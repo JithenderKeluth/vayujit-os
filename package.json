@@ -1,0 +1,33 @@
+{
+  "name": "vayujit-os",
+  "version": "0.1.0",
+  "private": true,
+  "engines": {
+    "node": ">=22.22.3"
+  },
+  "workspaces": [
+    "apps/web",
+    "apps/desktop",
+    "packages/shared"
+  ],
+  "scripts": {
+    "install:all": "npm install && npm run api:install",
+    "api:install": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-api.ps1",
+    "dev": "concurrently -k -n API,WEB,DESKTOP \"npm:dev:api\" \"npm:dev:web\" \"npm:dev:desktop\"",
+    "dev:web": "npm run start --workspace @vayujit/web",
+    "dev:api": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-api.ps1",
+    "dev:desktop": "npm run dev --workspace @vayujit/desktop",
+    "build": "npm run build --workspace @vayujit/shared && npm run build --workspace @vayujit/web && npm run build --workspace @vayujit/desktop",
+    "lint": "npm run lint --workspaces --if-present && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-api.ps1",
+    "test": "npm run test --workspaces --if-present && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api.ps1",
+    "format": "prettier --write . && powershell -NoProfile -ExecutionPolicy Bypass -Command \"& apps/api/.venv/Scripts/black.exe apps/api\"",
+    "format:check": "prettier --check .",
+    "db:up": "docker compose -f infrastructure/docker-compose.yml up -d",
+    "db:down": "docker compose -f infrastructure/docker-compose.yml down",
+    "db:migrate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/migrate-api.ps1"
+  },
+  "devDependencies": {
+    "concurrently": "9.2.1",
+    "prettier": "3.6.2"
+  }
+}

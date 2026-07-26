@@ -1,0 +1,14 @@
+<div class="app-shell">
+  <aside>
+    <a class="brand" routerLink="/dashboard">VAYUJIT OS</a>
+    <nav aria-label="Primary navigation">
+      @for (item of navigation; track item[1]) {
+        <a [routerLink]="item[1]" routerLinkActive="active">{{ item[0] }}</a>
+      }
+    </nav>
+    <a routerLink="/login">Login</a>
+  </aside>
+  <main>
+    <router-outlet />
+  </main>
+</div>

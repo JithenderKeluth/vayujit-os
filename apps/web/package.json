@@ -1,0 +1,35 @@
+{
+  "name": "@vayujit/web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "ng serve --host 127.0.0.1 --port 4200",
+    "build": "ng build",
+    "lint": "eslint \"src/**/*.ts\"",
+    "test": "ng test --watch=false"
+  },
+  "dependencies": {
+    "@angular/common": "22.0.1",
+    "@angular/compiler": "22.0.1",
+    "@angular/core": "22.0.1",
+    "@angular/platform-browser": "22.0.1",
+    "@angular/router": "22.0.1",
+    "@vayujit/shared": "0.1.0",
+    "rxjs": "7.8.2",
+    "tslib": "2.8.1"
+  },
+  "devDependencies": {
+    "@angular/build": "22.0.1",
+    "@angular/cli": "22.0.1",
+    "@angular/compiler-cli": "22.0.1",
+    "angular-eslint": "22.0.0",
+    "@angular-eslint/eslint-plugin": "22.0.0",
+    "@angular-eslint/eslint-plugin-template": "22.0.0",
+    "@angular-eslint/template-parser": "22.0.0",
+    "@types/node": "24.13.3",
+    "eslint": "9.31.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.59.3",
+    "vitest": "3.2.4"
+  }
+}
