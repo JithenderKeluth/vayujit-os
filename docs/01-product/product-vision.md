@@ -200,7 +200,7 @@ AI outputs should be traceable where practical, evaluated for quality, and revie
 - Frontend: Angular
 - Backend: Python and FastAPI
 - Database: PostgreSQL
-- Cache and job coordination: Redis
+- Cache and job coordination: Redis is excluded from the initial MVP and requires a later demonstrated need and ADR
 - Database migrations: Alembic
 - ORM: SQLAlchemy
 - AI orchestration: LangGraph or equivalent abstraction

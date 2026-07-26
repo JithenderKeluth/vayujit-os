@@ -1,0 +1,24 @@
+flowchart LR
+  Owner[Local owner]
+  System[VAYUJIT OS desktop application]
+  Angular[Angular UI]
+  Electron[Electron shell]
+  API[FastAPI backend]
+  DB[(PostgreSQL)]
+  Files[(Local file storage)]
+  MockAI[Mock AI provider]
+  Ollama[Ollama-compatible provider]
+  MockMarket[Mock marketplace connector]
+  MockPublish[Mock publishing connector]
+  Future[Future external platforms]
+  Owner --> System
+  System --- Electron
+  System --- Angular
+  System --- API
+  API --> DB
+  API --> Files
+  API --> MockAI
+  API -. optional local .-> Ollama
+  API --> MockMarket
+  API --> MockPublish
+  API -. postponed .-> Future

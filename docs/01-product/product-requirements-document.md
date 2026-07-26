@@ -574,7 +574,7 @@ The user shall be able to export selected analytics and reports.
 
 ### FR-049 Application Health
 
-The system shall display backend, database, Redis, storage, AI provider, and connector health.
+The system shall display backend, database, storage, AI provider, and connector health. Redis health shall be included only if Redis is introduced by a later ADR.
 
 ### FR-050 Safe Deletion
 
@@ -757,7 +757,7 @@ Includes:
 - Logging
 - Health
 - Database
-- Redis
+- Redis only if justified after the initial MVP
 - Local file storage
 
 ### Epic B — Identity and Access
@@ -1030,7 +1030,7 @@ The MVP will be accepted when all of the following are true:
 - Local AI runtime
 - FFmpeg
 - PostgreSQL
-- Redis
+- Redis only if introduced by a later ADR
 - Windows packaging tools
 - GitHub
 - Jira
@@ -1112,7 +1112,7 @@ The MVP will be accepted when all of the following are true:
 - Frontend
 - Desktop shell
 - Database
-- Redis
+- Redis is excluded from the initial MVP
 - Configuration
 - Logging
 - Health
@@ -1194,11 +1194,11 @@ The MVP will be accepted when all of the following are true:
 The following decisions must be captured separately:
 
 - Angular version and workspace structure
-- Electron versus Tauri
+- Electron packaging and security conventions
 - FastAPI application architecture
 - SQLAlchemy and Alembic conventions
 - PostgreSQL local deployment
-- Redis responsibilities
+- Background coordination requirements and whether they justify Redis after the MVP
 - Background job framework
 - LangGraph adoption
 - Local AI runtime
@@ -1214,16 +1214,22 @@ The following decisions must be captured separately:
 
 ## 21. Open Questions
 
-1. Which marketplace should be the first proof-of-architecture connector?
-2. Which publishing platform should be the first proof-of-architecture connector?
-3. Should the MVP support one owner only or multiple local users?
-4. Should Electron remain the default desktop technology after evaluation?
-5. Which local model runtime should be mandatory for offline AI?
-6. Which workflows provide the highest immediate business value?
-7. Which features require internet capability detection?
-8. What data should be included in backups by default?
-9. Which actions always require approval?
-10. What is the initial monthly AI usage budget?
+Approved Sprint 0 decisions resolve the initial integrations, user model, desktop shell, and local AI direction:
+
+- Mock marketplace and publishing connectors precede production APIs.
+- The MVP supports one local owner.
+- Electron is the desktop shell.
+- A deterministic mock AI provider is implemented first, followed by an Ollama-compatible local provider.
+
+Remaining questions:
+
+1. Which production marketplace should follow the mock vertical slice?
+2. Which production publishing platform should follow the mock vertical slice?
+3. Which later workflows provide the highest immediate business value?
+4. Which features require internet capability detection?
+5. Are database, managed assets, manifest, schema version, and checksums sufficient as the default backup set?
+6. Beyond publishing, which future actions always require approval?
+7. What is the initial monthly AI usage budget when cloud providers are introduced?
 
 These questions should be resolved during architecture and MVP planning.
 

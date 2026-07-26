@@ -1,0 +1,28 @@
+# Sprint 1 Backlog — Vertical Slice
+
+**Goal:** Deliver the smallest locally runnable product-to-approved-mock-publish journey. Sizes are relative: XS (hours), S (about one day), M (several days), L (must be split before commitment).
+
+| ID / Jira-style title | Description | Acceptance criteria | Dependencies | Priority | Size | Component | Labels |
+|---|---|---|---|---|---|---|---|
+| S1-01 Establish repository foundation | Add workspace conventions, ignore rules, environment templates, formatting, linting, and test commands. | Documented commands run; secrets/build outputs ignored; checks have one entry point. | None | P0 | S | Engineering | `sprint-1`, `foundation` |
+| S1-02 Scaffold FastAPI modular monolith | Create API entry point, configuration, module packages, correlation middleware, and health route. | API starts locally; health response is typed; boundary layout matches ADR-004. | S1-01 | P0 | M | Backend | `sprint-1`, `fastapi` |
+| S1-03 Scaffold Angular application | Create routed shell, API client, error handling, and initial accessible layout. | UI starts, calls health endpoint, and displays unavailable state safely. | S1-01, S1-02 | P0 | M | Frontend | `sprint-1`, `angular` |
+| S1-04 Scaffold secure Electron shell | Package Angular window and manage FastAPI lifecycle with secure Electron defaults. | One command launches UI/API; shutdown cleans child process; security assertions pass. | S1-02, S1-03 | P0 | M | Desktop | `sprint-1`, `electron`, `security` |
+| S1-05 Configure PostgreSQL and Alembic | Add least-privilege local configuration, SQLAlchemy session handling, baseline migration, and DB health. | Fresh DB migrates up/down; API transacts; setup is documented. | S1-02 | P0 | M | Data | `sprint-1`, `postgresql`, `alembic` |
+| S1-06 Implement local owner authentication | Add first-owner initialization, Argon2id login, session expiry/revocation, and protected routes. | Auth requirements SRS-FR-001–004 and negative tests pass. | S1-05 | P0 | M | Identity | `sprint-1`, `identity`, `security` |
+| S1-07 Implement brand module | Add brand model, migration, service, API, and create/list UI. | Required/unique-name validation and authenticated CRUD slice pass. | S1-05, S1-06 | P0 | M | Brands | `sprint-1`, `brands` |
+| S1-08 Implement product module | Add product/asset metadata models, service, API, and create/view UI. | Brand ownership and unique SKU enforced; safe asset rules tested. | S1-07 | P0 | M | Products | `sprint-1`, `products` |
+| S1-09 Define AI contract and deterministic mock | Add typed provider interface, prompt/artifact persistence, valid/invalid mock scenarios, and contract tests. | Same input yields same schema-valid output; invalid scenario is rejected. | S1-05, S1-08 | P0 | M | AI | `sprint-1`, `ai`, `mock` |
+| S1-10 Implement workflow engine subset | Persist definition/execution/steps and allowed transitions; start, fail, cancel, retry, and restart recovery. | State-model transition, retry, and forced-restart tests pass. | S1-05, S1-09 | P0 | L | Workflows | `sprint-1`, `workflow` |
+| S1-11 Implement approval API and UI | Create pending request after validation and owner approve/reject screens. | Only pending requests change once; rejection never publishes; decision is durable. | S1-06, S1-10 | P0 | M | Approvals | `sprint-1`, `approval` |
+| S1-12 Implement mock publishing connector | Add scoped interface, deterministic adapter, idempotency, result storage, and failure scenarios. | Approved artifact publishes once; duplicate key returns stored result; rejection cannot invoke it. | S1-11 | P0 | M | Publishing | `sprint-1`, `publishing`, `mock` |
+| S1-13 Build execution history | Add chronological workflow/step, artifact, approval, publishing, and sanitized-error API/UI. | Owner can trace the entire happy, rejected, and failed paths after restart. | S1-10, S1-12 | P0 | M | Workflows | `sprint-1`, `history` |
+| S1-14 Add append-only audit logging | Centralize audit writer and queries for required security/business events. | Required events include actor/correlation/time; secret-redaction tests pass. | S1-06, S1-10 | P0 | M | Audit | `sprint-1`, `audit`, `security` |
+| S1-15 Add automated vertical-slice tests | Add unit, DB/adapter integration, API security, and packaged happy/reject/recovery E2E tests. | CI demonstrates SRS acceptance matrix; offline run passes; no duplicate publishing. | S1-04–S1-14 | P0 | L | Quality | `sprint-1`, `testing` |
+| S1-16 Document local development and recovery | Document prerequisites, setup, migrations, run/test commands, troubleshooting, logs, backup expectations, and known limitations. | A clean supported Windows setup can run tests and demo without undocumented steps. | S1-01–S1-15 | P0 | M | Documentation | `sprint-1`, `docs` |
+| S1-17 Implement backup/restore proof | Produce integrity manifest/checksums and confirmed restore for DB and managed assets. | Corrupt backup rejected; valid backup restores slice data; secrets policy documented. | S1-05, S1-08, S1-14 | P1 | M | Data | `sprint-1`, `backup`, `security` |
+| S1-18 Add Ollama-compatible adapter | Implement local HTTP adapter behind the AI contract without changing workflow code. | Capability/health, timeout, invalid-output, and contract tests pass; mock remains default. | S1-09, S1-15 | P1 | M | AI | `sprint-1`, `ai`, `ollama` |
+
+## Suggested Delivery Order
+
+Commit only S1-01 through S1-04 first as a walking skeleton, then data/auth/business objects, then AI/workflow/approval/publishing, and finally history, audit, acceptance tests, and documentation. S1-10 and S1-15 are sized L and should be split into state/persistence/recovery and test-suite subtasks during Jira refinement.
