@@ -29,9 +29,22 @@ function Find-Python312 {
     return $null
 }
 
-$pythonCommand = Find-Python312
-if ($null -eq $pythonCommand) {
-    throw @"
+if (Test-Path -LiteralPath $venvPython) {
+    & $venvPython -c "import sys; assert sys.version_info[:2] == (3, 12)"
+    if ($LASTEXITCODE -ne 0) {
+        throw @"
+The existing API virtual environment is not Python 3.12:
+  $venvRoot
+
+Stop all VAYUJIT development processes, remove only this virtual environment,
+and rerun npm.cmd run api:install.
+"@
+    }
+}
+else {
+    $pythonCommand = Find-Python312
+    if ($null -eq $pythonCommand) {
+        throw @"
 Python 3.12 is required but was not found.
 
 Install it on Windows with:
@@ -41,16 +54,16 @@ Then open a new terminal, verify with:
   py -3.12 --version
 
 Finally rerun:
-  npm run api:install
+  npm.cmd run api:install
 "@
-}
+    }
 
-$pythonExecutable = $pythonCommand.Executable
-$pythonArguments = $pythonCommand.Arguments
-
-& $pythonExecutable @pythonArguments -m venv $venvRoot
-if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $venvPython)) {
-    throw "Python 3.12 failed to create the virtual environment at $venvRoot."
+    $pythonExecutable = $pythonCommand.Executable
+    $pythonArguments = $pythonCommand.Arguments
+    & $pythonExecutable @pythonArguments -m venv $venvRoot
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $venvPython)) {
+        throw "Python 3.12 failed to create the virtual environment at $venvRoot."
+    }
 }
 
 & $venvPython -m pip install --upgrade pip

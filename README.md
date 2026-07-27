@@ -93,3 +93,37 @@ git diff --check
 
 API-only commands use executables from `apps/api/.venv`. Stop PostgreSQL with
 `npm run db:down`.
+
+### Local owner authentication
+
+After migrations and services start, open `http://127.0.0.1:4200`. A clean database
+redirects to `/setup`; later launches restore the HttpOnly cookie session or redirect
+to `/login`.
+
+Authentication endpoints are under `/api/v1/auth`: `setup-status`, `setup-owner`,
+`login`, `logout`, and `me`. Sessions are opaque, server-managed PostgreSQL records;
+the browser never stores tokens in localStorage.
+
+Unsafe API requests require an exact configured Origin. Development allows
+`http://127.0.0.1:4200`; packaged Electron uses `app://vayujit`.
+`VAYUJIT_ALLOW_MISSING_ORIGIN` must remain false outside isolated same-process tests.
+Expired sessions are removed when a new session is created; revoked sessions are
+retained for the configured diagnostic window (24 hours by default).
+
+PostgreSQL integration tests require a separate disposable database through
+`VAYUJIT_TEST_DATABASE_URL`. The test suite intentionally skips these tests rather
+than substituting SQLite. Never point this variable at development or retained data:
+the integration fixture drops and recreates its schema.
+
+To reset authentication in development, stop the application and remove only the
+development Compose volume:
+
+```powershell
+npm.cmd run db:down
+docker volume rm infrastructure_vayujit_postgres_data
+npm.cmd run db:up
+npm.cmd run db:migrate
+```
+
+This destroys the entire local development database. Never use this procedure for
+production or a database containing data that must be retained.

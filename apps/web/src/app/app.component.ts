@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Router } from '@angular/router';
+import { AuthService } from './auth/auth.service';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 
 @Component({
@@ -9,6 +11,8 @@ import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent {
+  readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
   readonly navigation = [
     ['Dashboard', '/dashboard'],
     ['Brands', '/brands'],
@@ -18,4 +22,8 @@ export class AppComponent {
     ['Execution History', '/execution-history'],
     ['Settings', '/settings'],
   ] as const;
+  async logout(): Promise<void> {
+    await this.auth.logout();
+    await this.router.navigateByUrl('/login');
+  }
 }

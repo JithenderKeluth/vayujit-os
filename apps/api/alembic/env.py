@@ -1,7 +1,6 @@
 from logging.config import fileConfig
 
 from alembic import context
-
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import Base
 

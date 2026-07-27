@@ -35,3 +35,28 @@ export type WorkflowExecutionStatus =
   | 'completed'
   | 'failed'
   | 'cancelled';
+
+export interface SetupStatusResponse {
+  ownerExists: boolean;
+}
+export interface OwnerSetupRequest {
+  fullName: string;
+  email: string;
+  password: string;
+  passwordConfirmation: string;
+}
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+export interface AuthenticatedUserResponse {
+  id: string;
+  fullName: string;
+  email: string;
+  role: 'owner';
+}
+export interface ApiError {
+  code: string;
+  message: string;
+  correlationId?: string;
+}

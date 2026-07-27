@@ -27,7 +27,7 @@
     "db:migrate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/migrate-api.ps1"
   },
   "devDependencies": {
-    "concurrently": "9.2.1",
+    "concurrently": "9.2.4",
     "prettier": "3.6.2"
   }
 }

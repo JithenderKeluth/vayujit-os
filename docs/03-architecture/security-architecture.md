@@ -4,9 +4,10 @@
 
 - **Authentication:** exactly one local owner; Argon2id password hashing; generic login failures; rate limiting and short backoff.
 - **Sessions:** random bearer token, idle and absolute expiry, explicit revocation, held by Electron outside renderer-accessible storage.
-- **Local API:** loopback bind only, authenticated routes, strict Host/Origin and CORS policy, per-launch bootstrap coordination between Electron and FastAPI.
+- **Local API:** loopback bind only, authenticated routes, restricted credentialed CORS, and exact Origin validation on all unsafe methods. Missing or opaque origins are denied by default.
 - **Secrets:** values encrypted using a key protected by Windows DPAPI; database stores references/ciphertext only. Secrets are never returned after entry.
 - **Electron:** context isolation and sandbox enabled; Node integration, remote module, arbitrary navigation, permission requests, and unexpected windows disabled; Content Security Policy enforced.
+- **Electron origin:** development uses `http://127.0.0.1:4200`; packaged content uses the secure standard `app://vayujit` scheme so API Origin checks remain explicit.
 - **Validation/files:** typed request/output schemas, length limits, generated storage names, MIME/extension allow list, checksum and size limits, canonical-path containment.
 - **AI:** product text is untrusted delimited input; fixed system instructions and versioned output schema; generated text cannot call tools, approve itself, or select connector permissions.
 - **Connectors:** capability-specific interfaces, minimum payload, no arbitrary network/tool access, idempotency required, publishing gated by a durable approval.
