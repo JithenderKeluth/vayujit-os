@@ -17,6 +17,9 @@ Open `http://127.0.0.1:4200` or use Electron. Sign in, then open **Brands**.
 Revision `20260727_0003` creates `brands`, `audit_events`, uniqueness constraints, and the partial
 active-context index.
 
+Revision `20260727_0004` creates products, product indexes, ownership/uniqueness rules, decimal
+commerce columns, and lifecycle/inventory database checks.
+
 ```powershell
 cd apps\api
 .\.venv\Scripts\alembic.exe current
@@ -39,3 +42,6 @@ npm.cmd test
 ```
 
 The tests reset that database. Never use the development database as the test database.
+
+After signing in, select an active brand before creating a product. Product creation defaults to
+that brand, while the product list can explicitly select another owned brand or all brands.

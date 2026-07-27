@@ -17,7 +17,7 @@ VAYUJIT OS is a local desktop system that lets one local owner create product da
 | SRS-FR-003 | Protected API routes shall reject missing, expired, or invalid sessions with HTTP 401. |
 | SRS-FR-004 | The owner shall be able to sign out, immediately invalidating the session. |
 | SRS-FR-005 | The owner shall create and view brands with a required unique name and optional guidelines. |
-| SRS-FR-006 | The owner shall create and view products with required brand, name, SKU, and description; SKU shall be unique. |
+| SRS-FR-006 | The owner shall create, view, edit, activate, draft, archive, and restore products belonging to an owned brand; normalized name/slug shall be unique per brand and supplied SKU/barcode unique per owner. |
 | SRS-FR-007 | Product assets shall be stored under the managed local asset root and linked to one product. |
 | SRS-FR-008 | The owner shall start the versioned `product_content_v1` workflow for an existing product. |
 | SRS-FR-009 | Each workflow and step transition shall be persisted with timestamps before the next step begins. |

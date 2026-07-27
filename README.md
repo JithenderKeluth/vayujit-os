@@ -143,3 +143,15 @@ The list defaults to non-archived brands and supports search, status, archive in
 pagination. All changes write sanitized append-only audit events. See the
 [Brand API reference](docs/02-requirements/brand-api.md) and
 [local development guide](docs/00-governance/local-development.md).
+
+### Product Management
+
+Products belong to exactly one owned brand and default to the active brand when created. The
+`/products` area supports draft, active, and archived lifecycles; brand, status, type, category,
+featured and search filters; stable sorting; and pagination.
+
+Money crosses the API as decimal strings such as `"19.99"` and is stored as PostgreSQL
+`NUMERIC(12,2)`. Product activation is an explicit validated transition. Archive is a soft delete,
+and restoration always returns a product to draft. See the
+[Product API reference](docs/02-requirements/product-api.md) and
+[decimal money ADR](docs/04-decisions/ADR-008-decimal-money-json-strings.md).

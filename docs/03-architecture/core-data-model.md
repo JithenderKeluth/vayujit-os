@@ -6,7 +6,7 @@ All identifiers are UUIDs. Mutable records contain `created_at` and `updated_at`
 |---|---|
 | User | `id`, `username`, `password_hash`, `status`, `last_login_at`, timestamps |
 | Brand | `id`, `owner_id`, `name`, `normalized_name`, `slug`, identity fields, `status`, `is_active_context`, `archived_at`, timestamps |
-| Product | `id`, `brand_id`, `owner_id`, `sku`, `name`, `description`, `status`, timestamps |
+| Product | `id`, `brand_id`, `owner_id`, normalized identity, type/status, content, tags, decimal pricing, identifiers, inventory, weight, flags, archive/timestamps |
 | ProductAsset | `id`, `product_id`, `storage_key`, `media_type`, `size_bytes`, `checksum`, timestamps |
 | PromptTemplate | `id`, `key`, `version`, `template`, `output_schema_version`, `status`, timestamps |
 | AIProviderConfiguration | `id`, `provider_type`, `display_name`, `secret_reference`, `settings_json`, `enabled`, timestamps |
@@ -27,3 +27,8 @@ remaining active. Archive is a soft state transition.
 Key constraints also include unique username, SKU per owner, prompt/definition key plus version,
 one active approval per execution, and unique publishing idempotency key. Generated artifacts are
 immutable versions. See [core-data-model.mmd](diagrams/core-data-model.mmd).
+
+Product normalized names and slugs are unique per brand. Non-null SKU and barcode values are
+unique per owner. Money uses `NUMERIC(12,2)`; weight uses `NUMERIC(12,3)`. Database checks prevent
+negative prices, costs, weight, inventory, and thresholds; compare-at price below sale price; and
+status/archive-timestamp disagreement.

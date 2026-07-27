@@ -65,12 +65,113 @@ export interface ApiValidationError {
       }>;
 }
 
+export type ProductStatus = 'draft' | 'active' | 'archived';
+export type ProductType = 'physical' | 'digital' | 'service' | 'affiliate';
+export type WeightUnit = 'g' | 'kg' | 'oz' | 'lb';
+export type MoneyAmount = string;
+
 export interface ProductSummary {
   id: string;
-  brandId: string;
-  sku: string;
+  brand_id: string;
+  brand_name: string;
   name: string;
-  status: 'active' | 'archived';
+  slug: string;
+  sku: string | null;
+  product_type: ProductType;
+  status: ProductStatus;
+  short_description: string | null;
+  description: string | null;
+  category: string | null;
+  tags: string[];
+  price_amount: MoneyAmount | null;
+  price_currency: string | null;
+  compare_at_price_amount: MoneyAmount | null;
+  cost_amount: MoneyAmount | null;
+  tax_code: string | null;
+  barcode: string | null;
+  weight_value: string | null;
+  weight_unit: WeightUnit | null;
+  inventory_tracking_enabled: boolean;
+  inventory_quantity: number;
+  low_stock_threshold: number;
+  is_featured: boolean;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+export interface ProductAuditSummary {
+  action: string;
+  occurred_at: string;
+}
+
+export interface ProductDetails extends ProductSummary {
+  recent_audit_events: ProductAuditSummary[];
+}
+
+export interface CreateProductRequest {
+  brand_id?: string | null;
+  name: string;
+  slug?: string | null;
+  sku?: string | null;
+  product_type: ProductType;
+  short_description?: string | null;
+  description?: string | null;
+  category?: string | null;
+  tags?: string[];
+  price_amount?: MoneyAmount | null;
+  price_currency?: string | null;
+  compare_at_price_amount?: MoneyAmount | null;
+  cost_amount?: MoneyAmount | null;
+  tax_code?: string | null;
+  barcode?: string | null;
+  weight_value?: string | null;
+  weight_unit?: WeightUnit | null;
+  inventory_tracking_enabled?: boolean;
+  inventory_quantity?: number;
+  low_stock_threshold?: number;
+  is_featured?: boolean;
+}
+
+export type UpdateProductRequest = Partial<CreateProductRequest>;
+
+export interface PaginatedProductResponse {
+  items: ProductSummary[];
+  page: number;
+  page_size: number;
+  total: number;
+  pages: number;
+}
+
+export type ProductSortField =
+  | 'name'
+  | 'created_at'
+  | 'updated_at'
+  | 'price'
+  | 'inventory_quantity';
+
+export interface ProductFilters {
+  brandId?: string;
+  allBrands?: boolean;
+  includeArchived?: boolean;
+  search?: string;
+  sku?: string;
+  category?: string;
+  productType?: ProductType | '';
+  status?: ProductStatus | '';
+  featured?: boolean | null;
+  sortBy?: ProductSortField;
+  sortDirection?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+export interface ProductActivationErrorResponse {
+  detail: {
+    code: 'product_not_ready';
+    message: string;
+    fields: string[];
+  };
 }
 
 export type WorkflowExecutionStatus =

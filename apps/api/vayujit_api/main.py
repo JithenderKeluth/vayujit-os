@@ -9,6 +9,7 @@ from vayujit_api.core.logging import configure_logging
 from vayujit_api.core.origin import OriginProtectionMiddleware
 from vayujit_api.core.schemas import HealthResponse
 from vayujit_api.identity.router import router as auth_router
+from vayujit_api.products.router import router as products_router
 
 
 def create_app() -> FastAPI:
@@ -26,6 +27,7 @@ def create_app() -> FastAPI:
     install_exception_handlers(application)
     application.include_router(auth_router)
     application.include_router(brands_router)
+    application.include_router(products_router)
 
     @application.get("/health", response_model=HealthResponse, tags=["health"])
     @application.get("/api/v1/health", response_model=HealthResponse, tags=["health"])
