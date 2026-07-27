@@ -64,6 +64,29 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard],
   },
+  {
+    path: 'ai',
+    loadComponent: () => import('./ai/ai-home.component').then((module) => module.AIHomeComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ai/generate',
+    loadComponent: () =>
+      import('./ai/ai-generate.component').then((module) => module.AIGenerateComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ai/artifacts/:id',
+    loadComponent: () =>
+      import('./ai/ai-artifact.component').then((module) => module.AIArtifactComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ai/history',
+    loadComponent: () =>
+      import('./ai/ai-history.component').then((module) => module.AIHistoryComponent),
+    canActivate: [authGuard],
+  },
   { path: 'workflows', ...placeholder('Workflows'), canActivate: [authGuard] },
   { path: 'approvals', ...placeholder('Approvals'), canActivate: [authGuard] },
   { path: 'execution-history', ...placeholder('Execution History'), canActivate: [authGuard] },

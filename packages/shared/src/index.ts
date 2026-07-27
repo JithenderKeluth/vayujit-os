@@ -174,6 +174,111 @@ export interface ProductActivationErrorResponse {
   };
 }
 
+export type AIGenerationStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+export type AIArtifactStatus = 'pending_review' | 'approved' | 'rejected' | 'superseded';
+
+export interface AIProviderSummary {
+  key: string;
+  name: string;
+  provider_type: string;
+  available: boolean;
+  deterministic: boolean;
+  local: boolean;
+}
+
+export interface AITemplateSummary {
+  id: string;
+  key: string;
+  name: string;
+  description: string;
+  version: number;
+  template_type: string;
+  is_default: boolean;
+}
+
+export interface CreateAIGenerationRequest {
+  product_id: string;
+  prompt_template_id?: string | null;
+  additional_instructions?: string | null;
+}
+
+export interface AIGenerationResponse {
+  id: string;
+  status: AIGenerationStatus;
+  artifact_id: string | null;
+  error_code: string | null;
+  safe_error_message: string | null;
+}
+
+export interface AIProductContent {
+  product_title: string;
+  short_description: string;
+  long_description: string;
+  key_features: string[];
+  seo_title: string;
+  seo_description: string;
+  social_caption: string;
+  keywords: string[];
+  generation_summary: string;
+}
+
+export interface AIArtifactDetails {
+  id: string;
+  generation_request_id: string;
+  product_id: string;
+  product_name: string;
+  brand_id: string;
+  brand_name: string;
+  template_id: string;
+  template_name: string;
+  template_version: number;
+  provider_key: string;
+  version_number: number;
+  status: AIArtifactStatus;
+  content: AIProductContent;
+  validation_result: Record<string, unknown>;
+  provider_metadata: Record<string, unknown>;
+  approved_at: string | null;
+  rejected_at: string | null;
+  rejection_reason: string | null;
+  created_at: string;
+}
+
+export interface AIHistoryItem {
+  generation_id: string;
+  artifact_id: string | null;
+  product_id: string;
+  product_name: string;
+  brand_id: string;
+  brand_name: string;
+  template_name: string;
+  template_version: number;
+  provider_key: string;
+  request_status: AIGenerationStatus;
+  artifact_status: AIArtifactStatus | null;
+  version_number: number | null;
+  created_at: string;
+}
+
+export interface PaginatedAIHistory {
+  items: AIHistoryItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  pages: number;
+}
+
+export interface AIHistoryFilters {
+  productId?: string;
+  brandId?: string;
+  requestStatus?: AIGenerationStatus | '';
+  artifactStatus?: AIArtifactStatus | '';
+  dateFrom?: string;
+  dateTo?: string;
+  page?: number;
+  pageSize?: number;
+}
+
 export type WorkflowExecutionStatus =
   | 'pending'
   | 'running'

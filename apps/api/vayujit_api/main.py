@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from vayujit_api import __version__
+from vayujit_api.ai.router import router as ai_router
 from vayujit_api.brands.router import router as brands_router
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.errors import install_exception_handlers
@@ -28,6 +29,7 @@ def create_app() -> FastAPI:
     application.include_router(auth_router)
     application.include_router(brands_router)
     application.include_router(products_router)
+    application.include_router(ai_router)
 
     @application.get("/health", response_model=HealthResponse, tags=["health"])
     @application.get("/api/v1/health", response_model=HealthResponse, tags=["health"])

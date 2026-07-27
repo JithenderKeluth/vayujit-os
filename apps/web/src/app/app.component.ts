@@ -19,6 +19,7 @@ export class AppComponent {
     ['Dashboard', '/dashboard'],
     ['Brands', '/brands'],
     ['Products', '/products'],
+    ['AI Content', '/ai'],
     ['Workflows', '/workflows'],
     ['Approvals', '/approvals'],
     ['Execution History', '/execution-history'],

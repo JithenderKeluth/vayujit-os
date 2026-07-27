@@ -20,6 +20,9 @@ active-context index.
 Revision `20260727_0004` creates products, product indexes, ownership/uniqueness rules, decimal
 commerce columns, and lifecycle/inventory database checks.
 
+Revision `20260728_0005` creates prompt templates, AI generation requests, generated artifacts,
+review constraints, and the default deterministic product-content template.
+
 ```powershell
 cd apps\api
 .\.venv\Scripts\alembic.exe current
@@ -45,3 +48,7 @@ The tests reset that database. Never use the development database as the test da
 
 After signing in, select an active brand before creating a product. Product creation defaults to
 that brand, while the product list can explicitly select another owned brand or all brands.
+
+Open **AI Content** to generate content for a non-archived product. The current provider is local
+and deterministic; it does not contact Ollama or any cloud service. Review drafts can be
+approved, rejected with a reason, regenerated, and inspected after restart.

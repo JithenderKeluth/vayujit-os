@@ -155,3 +155,15 @@ Money crosses the API as decimal strings such as `"19.99"` and is stored as Post
 and restoration always returns a product to draft. See the
 [Product API reference](docs/02-requirements/product-api.md) and
 [decimal money ADR](docs/04-decisions/ADR-008-decimal-money-json-strings.md).
+
+### AI Content Generation
+
+The authenticated `/ai` area generates schema-validated product content with an offline,
+deterministic mock provider. Prompt templates, request lifecycle, versioned artifacts, review
+decisions, safe failures, history, and audit events persist in PostgreSQL.
+
+This slice is synchronous and review-only: it does not use Ollama, a cloud provider, Redis,
+background workers, workflow orchestration, or publishing. See the
+[AI architecture](docs/03-architecture/ai-architecture.md),
+[API reference](docs/02-requirements/ai-api.md), and
+[synchronous-generation ADR](docs/04-decisions/ADR-009-synchronous-ai-generation.md).
