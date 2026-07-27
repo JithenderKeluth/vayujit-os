@@ -14,6 +14,10 @@
       <button type="button" (click)="logout()">Log out</button>
     </aside>
     <main>
+      <header class="context-header">
+        <span>Active brand</span>
+        <strong>{{ brands.activeBrand()?.name || 'No active brand' }}</strong>
+      </header>
       <router-outlet />
     </main>
   </div>

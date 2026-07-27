@@ -127,3 +127,19 @@ npm.cmd run db:migrate
 
 This destroys the entire local development database. Never use this procedure for
 production or a database containing data that must be retained.
+
+### Brand Management
+
+Authenticated owners can create, search, view, edit, archive, restore, and activate brands from
+`/brands`. Brand names are whitespace-normalized and case-folded before applying per-owner
+uniqueness. Slugs are lowercase, URL-safe, and unique per owner.
+
+The first brand becomes the active context automatically. Activating another brand atomically
+clears the previous selection. Archiving the active brand clears the context; restoring it does
+not reactivate it. Active context is stored in PostgreSQL and restored in the application shell
+after refresh or restart.
+
+The list defaults to non-archived brands and supports search, status, archive inclusion, and
+pagination. All changes write sanitized append-only audit events. See the
+[Brand API reference](docs/02-requirements/brand-api.md) and
+[local development guide](docs/00-governance/local-development.md).

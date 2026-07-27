@@ -14,7 +14,30 @@ export const routes: Routes = [
   { path: 'setup', component: AuthPageComponent, canActivate: [guestGuard] },
   { path: 'login', component: AuthPageComponent, canActivate: [guestGuard] },
   { path: 'dashboard', ...placeholder('Dashboard'), canActivate: [authGuard] },
-  { path: 'brands', ...placeholder('Brands'), canActivate: [authGuard] },
+  {
+    path: 'brands',
+    loadComponent: () =>
+      import('./brands/brand-list.component').then((module) => module.BrandListComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'brands/new',
+    loadComponent: () =>
+      import('./brands/brand-form.component').then((module) => module.BrandFormComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'brands/:id/edit',
+    loadComponent: () =>
+      import('./brands/brand-form.component').then((module) => module.BrandFormComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'brands/:id',
+    loadComponent: () =>
+      import('./brands/brand-details.component').then((module) => module.BrandDetailsComponent),
+    canActivate: [authGuard],
+  },
   { path: 'products', ...placeholder('Products'), canActivate: [authGuard] },
   { path: 'workflows', ...placeholder('Workflows'), canActivate: [authGuard] },
   { path: 'approvals', ...placeholder('Approvals'), canActivate: [authGuard] },

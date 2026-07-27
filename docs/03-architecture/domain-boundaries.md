@@ -5,7 +5,7 @@ All modules expose application interfaces and own their persistence mappings. Cr
 | Module | Responsibility and owned entities | Public interfaces | Allowed dependencies | Prohibited dependencies |
 |---|---|---|---|---|
 | Identity | Owner lifecycle, credentials, sessions; `User` | initialize owner, authenticate, revoke/validate session | Settings, Audit interface | Brand/product/workflow internals |
-| Brands | Brand profile and guidelines; `Brand` | create/get/list brand | Identity actor ID, Audit interface | Product persistence |
+| Brands | Brand identity, lifecycle, archive state, and active context; `Brand` | create/get/list/update/archive/restore/activate brand | Identity actor ID, Audit interface | Product persistence |
 | Products | Product metadata/assets; `Product`, `ProductAsset` | create/get product, resolve workflow snapshot | Brands query interface, Audit | AI, workflow, publishing internals |
 | AI | Provider configuration, prompts, generation; `PromptTemplate`, `AIProviderConfiguration`, `GeneratedArtifact` | generate structured artifact, validate result | Settings, Products DTO, Audit | Approval/publishing state changes |
 | Workflows | Definitions, executions, steps, transition policy; `WorkflowDefinition`, `WorkflowExecution`, `WorkflowStepExecution` | start, advance, fail, retry, cancel, recover, history | Products query, AI, Approvals, Publishing interfaces, Audit | UI/Electron, adapter implementations |
@@ -15,3 +15,7 @@ All modules expose application interfaces and own their persistence mappings. Cr
 | Settings | Non-secret configuration and protected secret references; `ApplicationSetting` | get/update setting, resolve protected secret | OS secret protection, Audit | Business-domain persistence |
 
 The workflow application service coordinates the vertical slice through public interfaces. Domain events may be introduced later but are not required for Sprint 1.
+
+The Brands module owns all brand persistence. It receives the authenticated actor from Identity
+and writes events only through the Audit interface. Active-context changes are serialized per
+owner and constrained in PostgreSQL.

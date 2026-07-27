@@ -1,0 +1,148 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 76rem;
+  margin: 0 auto;
+}
+.narrow {
+  max-width: 54rem;
+}
+.page-header,
+.card-title,
+.actions,
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+h1 {
+  margin: 0.2rem 0;
+  font-size: 2.2rem;
+}
+h2 {
+  margin: 0;
+}
+.filters {
+  display: flex;
+  align-items: end;
+  gap: 1rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 0.75rem;
+  flex-wrap: wrap;
+}
+label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 600;
+}
+input,
+select,
+textarea {
+  border: 1px solid #b8c7c4;
+  border-radius: 0.4rem;
+  padding: 0.7rem;
+  font: inherit;
+}
+.checkbox {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding-bottom: 0.7rem;
+}
+.brand-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 1rem;
+}
+.card {
+  display: grid;
+  gap: 1rem;
+  padding: 1.4rem;
+  border: 1px solid #d9e3e1;
+  border-radius: 0.75rem;
+  background: white;
+  box-shadow: 0 0.3rem 1.2rem #16302b0d;
+}
+.card a {
+  color: #28565c;
+}
+.badge {
+  padding: 0.3rem 0.6rem;
+  border-radius: 2rem;
+  background: #e4ecea;
+  font-size: 0.75rem;
+  text-transform: capitalize;
+}
+.active-brand {
+  color: white;
+  background: #287860;
+}
+.button {
+  display: inline-block;
+  border: 1px solid #8fa7a2;
+  border-radius: 0.4rem;
+  padding: 0.55rem 0.8rem;
+  background: white;
+  color: #173531;
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.button.primary {
+  color: white;
+  border-color: #28565c;
+  background: #28565c;
+}
+.button.danger {
+  color: #8b2828;
+  border-color: #d9a7a7;
+}
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.state {
+  padding: 3rem;
+  border-radius: 0.75rem;
+  text-align: center;
+  background: white;
+}
+.error {
+  color: #9b2525;
+}
+dl {
+  display: flex;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+dt {
+  color: #627773;
+  font-size: 0.8rem;
+}
+dd {
+  margin: 0.2rem 0 0;
+}
+.brand-form {
+  gap: 1.2rem;
+}
+.color-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.swatches {
+  display: flex;
+  gap: 0.6rem;
+}
+.swatches span {
+  padding: 0.7rem;
+  border-radius: 0.4rem;
+  border: 1px solid #789;
+}
+.description {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}

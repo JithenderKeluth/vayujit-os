@@ -5,7 +5,7 @@ All identifiers are UUIDs. Mutable records contain `created_at` and `updated_at`
 | Entity | Important attributes |
 |---|---|
 | User | `id`, `username`, `password_hash`, `status`, `last_login_at`, timestamps |
-| Brand | `id`, `owner_id`, `name`, `guidelines`, `status`, timestamps |
+| Brand | `id`, `owner_id`, `name`, `normalized_name`, `slug`, identity fields, `status`, `is_active_context`, `archived_at`, timestamps |
 | Product | `id`, `brand_id`, `owner_id`, `sku`, `name`, `description`, `status`, timestamps |
 | ProductAsset | `id`, `product_id`, `storage_key`, `media_type`, `size_bytes`, `checksum`, timestamps |
 | PromptTemplate | `id`, `key`, `version`, `template`, `output_schema_version`, `status`, timestamps |
@@ -20,4 +20,10 @@ All identifiers are UUIDs. Mutable records contain `created_at` and `updated_at`
 | AuditEvent | `id`, `actor_id`, `event_type`, `entity_type`, `entity_id`, `correlation_id`, `sanitized_metadata`, `occurred_at` |
 | ApplicationSetting | `id`, `key`, `value_json`, `secret_reference`, `updated_by`, timestamps |
 
-Key constraints include unique username, brand name per owner, SKU per owner, prompt/definition key plus version, one active approval per execution, and unique publishing idempotency key. Generated artifacts are immutable versions. See [core-data-model.mmd](diagrams/core-data-model.mmd).
+Brand names and slugs are unique per owner. A partial unique index permits only one
+`is_active_context = true` brand per owner, and a check constraint prevents archived brands from
+remaining active. Archive is a soft state transition.
+
+Key constraints also include unique username, SKU per owner, prompt/definition key plus version,
+one active approval per execution, and unique publishing idempotency key. Generated artifacts are
+immutable versions. See [core-data-model.mmd](diagrams/core-data-model.mmd).
