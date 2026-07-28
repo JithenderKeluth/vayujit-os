@@ -6,6 +6,7 @@ import { windowOptions } from './window-options.js';
 
 const currentDirectory = dirname(fileURLToPath(import.meta.url));
 const developmentUrl = process.env['VAYUJIT_DESKTOP_DEV_URL'];
+const smokeMode = process.env['VAYUJIT_DESKTOP_SMOKE'] === '1';
 const productionOrigin = 'app://vayujit';
 
 protocol.registerSchemesAsPrivileged([
@@ -17,6 +18,9 @@ protocol.registerSchemesAsPrivileged([
 
 async function createWindow(): Promise<void> {
   const window = new BrowserWindow(windowOptions);
+  console.info(
+    `[desktop] BrowserWindow created (sandbox=${String(windowOptions.webPreferences?.sandbox)})`,
+  );
 
   window.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https://')) {
@@ -32,16 +36,39 @@ async function createWindow(): Promise<void> {
   });
   window.once('ready-to-show', () => window.show());
 
-  if (developmentUrl) {
-    await window.loadURL(developmentUrl);
-  } else {
-    await window.loadURL(productionOrigin);
+  const rendererUrl = developmentUrl ?? productionOrigin;
+  const smokeTimeout = smokeMode
+    ? setTimeout(() => {
+        console.error('[desktop] Smoke test timed out before renderer readiness.');
+        app.exit(1);
+      }, 20_000)
+    : undefined;
+  try {
+    await window.loadURL(rendererUrl);
+    const rendererReady: unknown = await window.webContents.executeJavaScript(
+      "document.readyState === 'complete' && Boolean(document.querySelector('app-root'))",
+    );
+    if (rendererReady !== true) {
+      throw new Error('Renderer did not expose a ready application root.');
+    }
+    console.info(`[desktop] Renderer ready: ${rendererUrl}`);
+    if (smokeMode) {
+      if (smokeTimeout) clearTimeout(smokeTimeout);
+      console.info('[desktop] Smoke test passed.');
+      app.exit(0);
+    }
+  } catch (error) {
+    if (smokeTimeout) clearTimeout(smokeTimeout);
+    console.error(`[desktop] Renderer failed to load: ${rendererUrl}`, error);
+    if (smokeMode) app.exit(1);
+    throw error;
   }
 }
 
 void app
   .whenReady()
   .then(async () => {
+    console.info(`[desktop] Electron ${process.versions.electron} ready.`);
     if (!developmentUrl) {
       const webRoot = join(currentDirectory, '../../../dist/apps/web/browser');
       protocol.handle('app', (request) => {

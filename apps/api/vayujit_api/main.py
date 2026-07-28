@@ -12,6 +12,7 @@ from vayujit_api.core.schemas import HealthResponse
 from vayujit_api.identity.router import router as auth_router
 from vayujit_api.products.router import router as products_router
 from vayujit_api.publishing.router import router as publishing_router
+from vayujit_api.workflows.router import router as workflows_router
 
 
 def create_app() -> FastAPI:
@@ -32,6 +33,7 @@ def create_app() -> FastAPI:
     application.include_router(products_router)
     application.include_router(ai_router)
     application.include_router(publishing_router)
+    application.include_router(workflows_router)
 
     @application.get("/health", response_model=HealthResponse, tags=["health"])
     @application.get("/api/v1/health", response_model=HealthResponse, tags=["health"])

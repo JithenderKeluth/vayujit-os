@@ -35,6 +35,9 @@ packages = ["vayujit_api"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "--strict-config --strict-markers --cov=vayujit_api --cov-report=term-missing"
+markers = [
+  "integration: requires the explicitly configured marked PostgreSQL test database",
+]
 
 [tool.ruff]
 target-version = "py312"

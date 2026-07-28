@@ -139,7 +139,24 @@ export const routes: Routes = [
       import('./publishing/execution-details.component').then((m) => m.ExecutionDetailsComponent),
     canActivate: [authGuard],
   },
-  { path: 'workflows', ...placeholder('Workflows'), canActivate: [authGuard] },
+  {
+    path: 'workflows',
+    loadComponent: () =>
+      import('./workflows/workflow-list.component').then((m) => m.WorkflowListComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'workflows/new',
+    loadComponent: () =>
+      import('./workflows/workflow-new.component').then((m) => m.WorkflowNewComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'workflows/:id',
+    loadComponent: () =>
+      import('./workflows/workflow-details.component').then((m) => m.WorkflowDetailsComponent),
+    canActivate: [authGuard],
+  },
   { path: 'approvals', ...placeholder('Approvals'), canActivate: [authGuard] },
   { path: 'execution-history', ...placeholder('Execution History'), canActivate: [authGuard] },
   { path: 'settings', ...placeholder('Settings'), canActivate: [authGuard] },

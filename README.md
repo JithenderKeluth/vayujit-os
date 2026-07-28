@@ -54,7 +54,7 @@ implemented yet.
 
 ### Prerequisites
 
-- Node.js 22.22.3 or newer and npm
+- Node.js 22 LTS (preferred; `.nvmrc`/`.node-version`) or Node.js 24, and npm
 - Python 3.12 with the `py` Windows launcher
 - Docker Desktop with Docker Compose
 
@@ -110,10 +110,15 @@ Unsafe API requests require an exact configured Origin. Development allows
 Expired sessions are removed when a new session is created; revoked sessions are
 retained for the configured diagnostic window (24 hours by default).
 
-PostgreSQL integration tests require a separate disposable database through
-`VAYUJIT_TEST_DATABASE_URL`. The test suite intentionally skips these tests rather
-than substituting SQLite. Never point this variable at development or retained data:
-the integration fixture drops and recreates its schema.
+Automated PostgreSQL tests use only the marked `vayujit_test` database. The guarded test command
+creates it when absent, refuses existing unmarked databases, validates the connected database,
+and never falls back to `vayujit`. See the
+[testing strategy](docs/00-governance/testing-strategy.md).
+
+Electron 43.2.0 is launched through `scripts/start-desktop.ps1`. The launcher removes an inherited
+`ELECTRON_RUN_AS_NODE` value from the Electron child so the main file cannot accidentally execute
+as ordinary Node. Validate BrowserWindow creation and renderer readiness with
+`npm.cmd run test:desktop:smoke`.
 
 To reset authentication in development, stop the application and remove only the
 development Compose volume:
@@ -181,3 +186,9 @@ AI content, create an active mock destination, select the approved version from 
 review the text-only preview, confirm publication, and inspect the execution timeline. Development
 builds expose deliberate failure simulation inside a collapsed **Development testing** section.
 Mock `.invalid` URLs are non-routable examples and remain display-only.
+
+### Workflow Orchestration
+
+The `/workflows` area runs the constrained Product Content Publish template: AI generation,
+durable human-approval pause, and idempotent mock publishing. State and immutable step attempts
+survive refresh/restart. See the [Workflow API](docs/02-requirements/workflow-api.md).

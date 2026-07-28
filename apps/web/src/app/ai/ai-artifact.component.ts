@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import type { AIArtifactDetails } from '@vayujit/shared';
+import { WorkflowService } from '../workflows/workflow.service';
 import { AIService } from './ai.service';
 
 @Component({
@@ -20,6 +21,13 @@ import { AIService } from './ai.service';
       </div>
       <a routerLink="/ai/history">History</a>
     </header>
+    @if (workflowId) {
+      <article class="ai-card">
+        <strong>Workflow approval step</strong>
+        <p>Approving or rejecting this Artifact will continue the waiting Workflow.</p>
+        <a [routerLink]="['/workflows', workflowId]">Back to Workflow</a>
+      </article>
+    }
     @if (error()) {
       <p class="ai-error">{{ error() }}</p>
     }
@@ -86,18 +94,20 @@ export class AIArtifactComponent implements OnInit {
   private readonly ai = inject(AIService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly workflows = inject(WorkflowService);
   readonly artifact = signal<AIArtifactDetails | null>(null);
   readonly busy = signal(false);
   readonly error = signal('');
   reason = '';
+  readonly workflowId = this.route.snapshot.queryParamMap.get('workflow') ?? '';
   ngOnInit(): void {
     void this.load();
   }
   async approve(): Promise<void> {
-    await this.act(() => this.ai.approve(this.id));
+    await this.reviewAndContinue(() => this.ai.approve(this.id));
   }
   async reject(): Promise<void> {
-    await this.act(() => this.ai.reject(this.id, this.reason));
+    await this.reviewAndContinue(() => this.ai.reject(this.id, this.reason));
   }
   async regenerate(): Promise<void> {
     this.busy.set(true);
@@ -129,6 +139,23 @@ export class AIArtifactComponent implements OnInit {
       this.artifact.set(await action());
     } catch (error) {
       this.error.set(AIService.errorMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  private async reviewAndContinue(action: () => Promise<AIArtifactDetails>): Promise<void> {
+    if (!this.workflowId) {
+      await this.act(action);
+      return;
+    }
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      this.artifact.set(await action());
+      await this.workflows.continue(this.workflowId);
+      await this.router.navigate(['/workflows', this.workflowId]);
+    } catch (error) {
+      this.error.set(WorkflowService.errorMessage(error));
     } finally {
       this.busy.set(false);
     }

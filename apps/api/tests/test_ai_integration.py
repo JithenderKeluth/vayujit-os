@@ -11,15 +11,13 @@ from sqlalchemy.orm import Session, sessionmaker
 from vayujit_api.ai.models import AIGenerationRequest, GeneratedArtifact, PromptTemplate
 from vayujit_api.audit.models import AuditEvent
 from vayujit_api.core.database import Base, get_session
+from vayujit_api.core.test_database import reset_test_schema
 from vayujit_api.identity.router import attempts
 from vayujit_api.identity.service import now
 from vayujit_api.main import create_app
 
 TEST_DATABASE_URL = os.getenv("VAYUJIT_TEST_DATABASE_URL")
-pytestmark = pytest.mark.skipif(
-    not TEST_DATABASE_URL,
-    reason="Set VAYUJIT_TEST_DATABASE_URL to an isolated PostgreSQL database.",
-)
+pytestmark = pytest.mark.integration
 ORIGIN = {"Origin": "http://127.0.0.1:4200"}
 PASSWORD = "correct horse battery staple"
 factory: sessionmaker[Session] | None = None
@@ -30,8 +28,7 @@ def client() -> Generator[TestClient, None, None]:
     global factory
     assert TEST_DATABASE_URL is not None and TEST_DATABASE_URL.startswith("postgresql")
     engine = create_engine(TEST_DATABASE_URL)
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
+    reset_test_schema(engine, Base.metadata, database_url=TEST_DATABASE_URL)
     attempts.clear()
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     with factory() as db:
@@ -64,7 +61,7 @@ def client() -> Generator[TestClient, None, None]:
     app.dependency_overrides[get_session] = test_session
     with TestClient(app) as value:
         yield value
-    Base.metadata.drop_all(engine)
+    reset_test_schema(engine, Base.metadata, database_url=TEST_DATABASE_URL)
     engine.dispose()
 
 

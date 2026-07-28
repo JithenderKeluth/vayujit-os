@@ -32,3 +32,11 @@ failed retryable execution and appends an attempt using its original snapshot.
 The UI communicates `succeeded`, retryable `failed`, and permanent `failed` distinctly. Repeated
 submission is disabled in-flight and uses the same key; retry is confirmed and disabled in-flight
 or after success.
+
+## Implemented Product Content Publish Workflow
+
+The MVP now persists `draft -> running -> waiting_for_approval -> running -> completed`, with
+`failed` and `cancelled` branches. Its fixed versioned template contains generation, approval
+wait, and publishing steps. Each retry appends a step attempt. Artifact decisions and Publishing
+executions remain authoritative in their owning modules; the Workflow stores related IDs only.
+See ADR-012 and ADR-013.

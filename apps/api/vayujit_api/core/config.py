@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -23,6 +23,13 @@ class Settings(BaseSettings):
     session_lifetime_hours: int = 24
     session_secure_cookie: bool = False
     revoked_session_retention_hours: int = 24
+
+    @field_validator("environment")
+    @classmethod
+    def recognized_environment(cls, value: str) -> str:
+        if value not in {"development", "test", "production"}:
+            raise ValueError("environment must be development, test, or production")
+        return value
 
     @property
     def allowed_origin_set(self) -> set[str]:

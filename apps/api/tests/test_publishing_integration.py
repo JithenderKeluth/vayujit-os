@@ -10,12 +10,13 @@ from sqlalchemy.orm import Session, sessionmaker
 from vayujit_api.ai.models import PromptTemplate
 from vayujit_api.audit.models import AuditEvent
 from vayujit_api.core.database import Base, get_session
+from vayujit_api.core.test_database import reset_test_schema
 from vayujit_api.identity.router import attempts
 from vayujit_api.identity.service import now
 from vayujit_api.main import create_app
 
 URL = os.getenv("VAYUJIT_TEST_DATABASE_URL")
-pytestmark = pytest.mark.skipif(not URL, reason="PostgreSQL test database required.")
+pytestmark = pytest.mark.integration
 ORIGIN = {"Origin": "http://127.0.0.1:4200"}
 test_factory: sessionmaker[Session] | None = None
 
@@ -25,8 +26,7 @@ def client() -> Generator[TestClient, None, None]:
     global test_factory
     assert URL and URL.startswith("postgresql")
     engine = create_engine(URL)
-    Base.metadata.drop_all(engine)
-    Base.metadata.create_all(engine)
+    reset_test_schema(engine, Base.metadata, database_url=URL)
     attempts.clear()
     factory = sessionmaker(bind=engine, expire_on_commit=False)
     test_factory = factory
@@ -59,7 +59,7 @@ def client() -> Generator[TestClient, None, None]:
     app.dependency_overrides[get_session] = session
     with TestClient(app) as value:
         yield value
-    Base.metadata.drop_all(engine)
+    reset_test_schema(engine, Base.metadata, database_url=URL)
     engine.dispose()
 
 

@@ -13,6 +13,7 @@
 - **Connectors:** capability-specific interfaces, minimum payload, no arbitrary network/tool access, idempotency required, publishing gated by a durable approval.
 - **Audit/redaction:** append-only security and business events with correlation IDs; tokens, passwords, secret values, and sensitive prompt content are redacted before logging.
 - **Backups:** integrity manifest and schema version; no plaintext secrets; restore requires authentication, validation, confirmation, and a pre-restore safety backup.
+- **Test data safety:** destructive fixtures require exact test mode, explicit test URL, approved database name, connected-name equality, and a durable VAYUJIT marker. Development and PostgreSQL system databases are denied.
 
 ## Threat Model
 

@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": ">=22.22.3"
+    "node": "22.x || 24.x"
   },
   "workspaces": [
     "apps/web",
@@ -17,9 +17,17 @@
     "dev:web": "npm run start --workspace @vayujit/web",
     "dev:api": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-api.ps1",
     "dev:desktop": "npm run dev --workspace @vayujit/desktop",
+    "test:desktop": "npm run test --workspace @vayujit/desktop",
+    "test:desktop:smoke": "npm run build && npm run smoke --workspace @vayujit/desktop",
     "build": "npm run build --workspace @vayujit/shared && npm run build --workspace @vayujit/web && npm run build --workspace @vayujit/desktop",
     "lint": "npm run lint --workspaces --if-present && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-api.ps1",
-    "test": "npm run test --workspaces --if-present && powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api.ps1",
+    "test": "npm run test:all",
+    "test:all": "npm run test:web && npm run test:desktop && npm run test:api && npm run test:api:integration",
+    "test:web": "npm run test --workspace @vayujit/web -- --watch=false",
+    "test:api": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1",
+    "test:api:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1",
+    "test:api:migrations": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-migrations.ps1",
+    "test:workflow": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_workflows_integration.py",
     "format": "prettier --write . && powershell -NoProfile -ExecutionPolicy Bypass -Command \"& apps/api/.venv/Scripts/black.exe apps/api\"",
     "format:check": "prettier --check .",
     "db:up": "docker compose -f infrastructure/docker-compose.yml up -d",

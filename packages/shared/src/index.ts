@@ -422,3 +422,106 @@ export interface PublishReadinessError {
     message: string;
   };
 }
+
+export type WorkflowStatus =
+  | 'draft'
+  | 'running'
+  | 'waiting_for_approval'
+  | 'completed'
+  | 'failed'
+  | 'cancelled';
+export type WorkflowStepType = 'ai_generate' | 'human_approval' | 'publish';
+export type WorkflowStepStatus =
+  | 'pending'
+  | 'running'
+  | 'waiting'
+  | 'succeeded'
+  | 'failed'
+  | 'skipped'
+  | 'cancelled';
+export interface WorkflowTemplateSummary {
+  id: string;
+  key: string;
+  name: string;
+  description: string;
+  version: number;
+  workflow_type: 'product_content_publish';
+  is_default: boolean;
+}
+export interface CreateWorkflowRequest {
+  product_id: string;
+  destination_id: string;
+  workflow_template_id?: string | null;
+  additional_instructions?: string | null;
+}
+export interface WorkflowStepAttemptDetails {
+  id: string;
+  step_key: string;
+  step_type: WorkflowStepType;
+  sequence_number: number;
+  attempt_number: number;
+  status: WorkflowStepStatus;
+  related_id: string | null;
+  related_type: 'artifact' | 'generation' | 'publishing_execution' | null;
+  started_at: string | null;
+  paused_at: string | null;
+  completed_at: string | null;
+  failed_at: string | null;
+  cancelled_at: string | null;
+  error_code: string | null;
+  safe_error_message: string | null;
+  retryable: boolean;
+}
+export interface WorkflowDetails {
+  id: string;
+  template_id: string;
+  template_key: string;
+  template_name: string;
+  template_version: number;
+  brand_id: string;
+  brand_name: string;
+  product_id: string;
+  product_name: string;
+  destination_id: string;
+  destination_name: string;
+  status: WorkflowStatus;
+  current_step_key: string | null;
+  artifact_id: string | null;
+  artifact_status: AIArtifactStatus | null;
+  generation_request_id: string | null;
+  publishing_execution_id: string | null;
+  publishing_status: PublishingExecutionStatus | null;
+  retryable: boolean;
+  started_at: string | null;
+  paused_at: string | null;
+  completed_at: string | null;
+  failed_at: string | null;
+  cancelled_at: string | null;
+  error_code: string | null;
+  safe_error_message: string | null;
+  created_at: string;
+  updated_at: string;
+  steps: WorkflowStepAttemptDetails[];
+}
+export interface WorkflowFilters {
+  brandId?: string;
+  productId?: string;
+  destinationId?: string;
+  status?: WorkflowStatus | '';
+  currentStep?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  retryable?: boolean | null;
+  page?: number;
+  pageSize?: number;
+}
+export interface PaginatedWorkflowResponse {
+  items: WorkflowDetails[];
+  page: number;
+  page_size: number;
+  total: number;
+  pages: number;
+}
+export interface SafeWorkflowError {
+  detail: string | { code: string; message: string };
+}

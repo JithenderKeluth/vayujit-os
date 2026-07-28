@@ -26,6 +26,9 @@ review constraints, and the default deterministic product-content template.
 Revision `20260728_0006` creates publishing destinations, executions, immutable attempts,
 owner-scoped idempotency, snapshots, lifecycle checks, and query indexes.
 
+Revision `20260728_0007` creates constrained Workflow templates, instances, step attempts, and
+the default Product Content Publish template.
+
 ```powershell
 cd apps\api
 .\.venv\Scripts\alembic.exe current
@@ -39,15 +42,33 @@ backup.
 
 ## Tests
 
-PostgreSQL integration tests require an isolated database:
+Do not export a test URL manually into a general development shell. Use the guarded commands:
 
 ```powershell
-$env:VAYUJIT_TEST_DATABASE_URL =
-  'postgresql+psycopg://vayujit:vayujit_dev@127.0.0.1:5432/vayujit_test'
-npm.cmd test
+npm.cmd run test:api
+npm.cmd run test:api:integration
+npm.cmd run test:api:migrations
 ```
 
-The tests reset that database. Never use the development database as the test database.
+The development database `vayujit` is intended for manual application data and is never
+automatically reset. Integration tests use marked `vayujit_test`; migration validation creates
+and removes marked `vayujit_migration_test`. See the [testing strategy](testing-strategy.md) and
+the [2026-07-28 incident note](incident-2026-07-28-test-database.md).
+
+## Electron runtime
+
+Use Node 22 LTS (preferred) or Node 24 with Electron 43.2.0. `npm.cmd run dev:desktop` waits for
+Angular and launches the compiled main process through Electron. The launcher clears
+`ELECTRON_RUN_AS_NODE` only for that child; otherwise Electron behaves like plain Node and ESM
+imports report that `BrowserWindow` is unavailable.
+
+```powershell
+npm.cmd run dev:web
+npm.cmd run dev:desktop
+npm.cmd run test:desktop:smoke
+```
+
+Startup logs confirm Electron readiness, secure BrowserWindow creation, and renderer readiness.
 
 After signing in, select an active brand before creating a product. Product creation defaults to
 that brand, while the product list can explicitly select another owned brand or all brands.
