@@ -68,6 +68,11 @@ Validation errors are non-retryable until input changes. Transient adapter/datab
 
 Acceptance tests shall cover: first-owner creation; duplicate-owner rejection; session expiry/revocation; brand and product validation; deterministic valid and invalid mock AI scenarios; approval and rejection branches; idempotent mock publishing; forced restart at each workflow state; unauthorized API access; path traversal rejection; secret redaction; offline execution; backup integrity failure; successful backup/restore; and chronological audit/history display.
 
+The Operational UI adds owner-scoped server-computed Dashboard metrics, a central Artifact
+Approval queue, normalized bounded audit history with formula-safe CSV, and typed durable owner
+preferences. Password changes verify the current password; session-management and system-status
+responses never expose tokens, hashes, database URLs, filesystem paths, or unrestricted metadata.
+
 The Sprint 1 standalone publishing implementation satisfies SRS-FR-016, SRS-FR-017, and the
 publishing portion of SRS-FR-018/SRS-FR-022 using a deterministic offline connector, durable
 owner-scoped idempotency, immutable attempts/snapshots, filtered execution history, and explicit

@@ -525,3 +525,117 @@ export interface PaginatedWorkflowResponse {
 export interface SafeWorkflowError {
   detail: string | { code: string; message: string };
 }
+
+export interface DashboardMetrics {
+  total_brands: number;
+  total_products: number;
+  active_products: number;
+  pending_approvals: number;
+  approved_artifacts: number;
+  active_destinations: number;
+  successful_executions: number;
+  failed_executions: number;
+  waiting_workflows: number;
+  completed_workflows: number;
+  failed_workflows: number;
+  retryable_failures: number;
+}
+export interface OperationalItem {
+  id: string;
+  timestamp: string;
+  category: string;
+  event_name: string;
+  entity_type: string;
+  entity_id: string;
+  brand_id: string | null;
+  brand_name: string | null;
+  product_id: string | null;
+  product_name: string | null;
+  status: string | null;
+  safe_summary: string;
+  related_url: string | null;
+}
+export interface DashboardResponse {
+  metrics: DashboardMetrics;
+  activity: OperationalItem[];
+}
+export interface ApprovalQueueItem {
+  id: string;
+  product_id: string;
+  product_name: string;
+  brand_id: string;
+  brand_name: string;
+  version_number: number;
+  template_name: string;
+  template_version: number;
+  generated_title: string;
+  short_description: string;
+  status: AIArtifactStatus;
+  generated_at: string;
+  decided_at: string | null;
+  workflow_id: string | null;
+}
+export interface PaginatedApprovals {
+  items: ApprovalQueueItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  pages: number;
+}
+export interface ApprovalDetailsResponse {
+  artifact: AIArtifactDetails;
+  versions: ApprovalComparisonVersion[];
+}
+export interface ApprovalComparisonVersion {
+  artifact: AIArtifactDetails;
+  workflow_id: string | null;
+}
+export interface PaginatedOperations {
+  items: OperationalItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  pages: number;
+}
+export interface OwnerProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  created_at: string;
+  last_login_at: string | null;
+}
+export interface OwnerPreferences {
+  timezone: string;
+  date_format: 'medium' | 'short' | 'iso';
+  default_page_size: 10 | 25 | 50 | 100;
+  execution_history_page_size: 10 | 25 | 50 | 100;
+  default_brand_id: string | null;
+  default_prompt_template_id: string | null;
+  default_publishing_destination_id: string | null;
+  confirm_before_publish: boolean;
+  confirm_before_retry: boolean;
+  theme_preference: 'system' | 'light' | 'dark';
+  density_preference: 'comfortable' | 'compact';
+}
+export interface SettingsResponse {
+  profile: OwnerProfile;
+  preferences: OwnerPreferences;
+}
+export interface SessionSummary {
+  id: string;
+  created_at: string;
+  expires_at: string;
+  current: boolean;
+}
+export interface SystemStatus {
+  application_version: string;
+  environment: string;
+  api_status: string;
+  database_status: string;
+  migration_revision: string;
+  expected_revision: string;
+  server_time: string;
+  python_version: string;
+  providers: string[];
+  connectors: string[];
+}

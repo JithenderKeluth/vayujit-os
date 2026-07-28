@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import type { AITemplateSummary, ProductSummary } from '@vayujit/shared';
 import { ProductService } from '../products/product.service';
+import { OperationsService } from '../operations/operations.service';
 import { AIService } from './ai.service';
 
 @Component({
@@ -58,6 +59,7 @@ export class AIGenerateComponent implements OnInit {
   private readonly ai = inject(AIService);
   private readonly productService = inject(ProductService);
   private readonly router = inject(Router);
+  private readonly operations = inject(OperationsService);
   readonly products = signal<ProductSummary[]>([]);
   readonly templates = signal<AITemplateSummary[]>([]);
   readonly busy = signal(false);
@@ -70,14 +72,17 @@ export class AIGenerateComponent implements OnInit {
   }
   private async load(): Promise<void> {
     try {
-      const [products, templates] = await Promise.all([
+      const [products, templates, settings] = await Promise.all([
         this.productService.list({ allBrands: true, pageSize: 100 }),
         this.ai.templates(),
+        this.operations.settings(),
       ]);
       this.products.set(products.items.filter((product) => product.status !== 'archived'));
       this.templates.set(templates);
-      this.templateId =
-        templates.find((template) => template.is_default)?.id ?? templates[0]?.id ?? '';
+      const preferred = settings.preferences.default_prompt_template_id;
+      this.templateId = templates.some((template) => template.id === preferred)
+        ? (preferred ?? '')
+        : (templates.find((template) => template.is_default)?.id ?? templates[0]?.id ?? '');
     } catch (error) {
       this.error.set(AIService.errorMessage(error));
     }

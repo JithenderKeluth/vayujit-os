@@ -13,6 +13,7 @@ import { BrandService } from '../brands/brand.service';
 import { ProductService } from '../products/product.service';
 import { PublicationPreviewComponent } from './publication-preview.component';
 import { PublishingService } from './publishing.service';
+import { OperationsService } from '../operations/operations.service';
 
 @Component({
   selector: 'app-publish-new',
@@ -108,6 +109,8 @@ export class PublishNewComponent implements OnInit {
   private readonly ai = inject(AIService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly operations = inject(OperationsService);
+  private preferredDestinationId = '';
   readonly brands = signal<BrandSummary[]>([]);
   readonly products = signal<ProductSummary[]>([]);
   readonly artifacts = signal<AIHistoryItem[]>([]);
@@ -150,19 +153,24 @@ export class PublishNewComponent implements OnInit {
   }
   private async load() {
     try {
-      const [brands, active, products, artifacts, destinations] = await Promise.all([
+      const [brands, active, products, artifacts, destinations, settings] = await Promise.all([
         this.brandApi.list({ pageSize: 100 }),
         this.brandApi.loadActive(),
         this.productsApi.list({ allBrands: true, pageSize: 100 }),
         this.ai.history({ artifactStatus: 'approved', pageSize: 100 }),
         this.publishing.destinations({ status: 'active', pageSize: 100 }),
+        this.operations.settings(),
       ]);
       this.brands.set(brands.items);
       this.products.set(products.items);
       this.artifacts.set(artifacts.items);
       this.destinations.set(destinations.items);
       this.brandId = active?.id ?? '';
-      this.destinationId = this.route.snapshot.queryParamMap.get('destination') ?? '';
+      this.preferredDestinationId =
+        this.route.snapshot.queryParamMap.get('destination') ??
+        settings.preferences.default_publishing_destination_id ??
+        '';
+      this.applyPreferredDestination();
     } catch (error) {
       this.error.set(PublishingService.errorMessage(error));
     } finally {
@@ -173,9 +181,18 @@ export class PublishNewComponent implements OnInit {
     this.productId = '';
     this.artifactId = '';
     this.artifactDetails.set(null);
-    this.destinationId = '';
+    this.applyPreferredDestination();
     this.confirmed = false;
     this.idempotencyKey = '';
+  }
+  private applyPreferredDestination(): void {
+    const preferred = this.destinations().find(
+      (item) =>
+        item.id === this.preferredDestinationId &&
+        item.status === 'active' &&
+        (!item.brand_id || item.brand_id === this.brandId),
+    );
+    this.destinationId = preferred?.id ?? '';
   }
   productChanged() {
     this.artifactId = '';

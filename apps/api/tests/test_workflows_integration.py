@@ -271,3 +271,113 @@ def test_rejection_ai_failure_and_truthful_cancellation(client: TestClient) -> N
     listing = client.get("/api/v1/workflows?status=failed&retryable=true").json()
     assert listing["total"] == 1
     assert listing["items"][0]["id"] == failed_workflow["id"]
+
+
+def test_operational_dashboard_approval_queue_and_history(client: TestClient) -> None:
+    assert client.get("/api/v1/dashboard/summary").status_code == 401
+    brand, product = setup_owner_business(client)
+    target = destination(client, str(brand["id"]))
+    workflow = create_workflow(client, str(product["id"]), str(target["id"]))
+    started = client.post(f"/api/v1/workflows/{workflow['id']}/start", headers=ORIGIN).json()
+    dashboard = client.get(f"/api/v1/dashboard/summary?brand_id={brand['id']}").json()
+    assert dashboard["metrics"]["pending_approvals"] == 1
+    assert dashboard["metrics"]["waiting_workflows"] == 1
+    assert all("metadata" not in item for item in dashboard["activity"])
+    queue = client.get("/api/v1/approvals?status=pending_review").json()
+    assert queue["total"] == 1
+    assert queue["items"][0]["product_name"] == product["name"]
+    details = client.get(f"/api/v1/approvals/{started['artifact_id']}").json()
+    assert details["artifact"]["status"] == "pending_review"
+    assert len(details["versions"]) == 1
+    client.post(f"/api/v1/ai/artifacts/{started['artifact_id']}/approve", headers=ORIGIN)
+    client.post(f"/api/v1/workflows/{workflow['id']}/continue", headers=ORIGIN)
+    history = client.get("/api/v1/operations/history?category=Workflow").json()
+    assert history["total"] > 0
+    exported = client.get("/api/v1/operations/history/export")
+    assert exported.status_code == 200
+    assert exported.content.startswith(b"\xef\xbb\xbf")
+    assert "content_json" not in exported.text
+
+
+def test_typed_settings_password_sessions_and_safe_system_status(
+    client: TestClient,
+) -> None:
+    brand, _product = setup_owner_business(client)
+    target = destination(client, str(brand["id"]))
+    template = client.get("/api/v1/ai/templates").json()[0]
+    settings = client.get("/api/v1/settings").json()
+    assert settings["preferences"]["default_page_size"] == 25
+    invalid = client.patch(
+        "/api/v1/settings/preferences",
+        json={**settings["preferences"], "timezone": "Not/A_Timezone"},
+        headers=ORIGIN,
+    )
+    assert invalid.status_code == 422
+    updated = client.patch(
+        "/api/v1/settings/preferences",
+        json={
+            **settings["preferences"],
+            "timezone": "Asia/Kolkata",
+            "theme_preference": "dark",
+            "default_page_size": 50,
+            "default_brand_id": brand["id"],
+            "default_prompt_template_id": template["id"],
+            "default_publishing_destination_id": target["id"],
+        },
+        headers=ORIGIN,
+    )
+    assert updated.status_code == 200
+    saved = client.get("/api/v1/settings").json()["preferences"]
+    assert saved["theme_preference"] == "dark"
+    assert saved["default_brand_id"] == brand["id"]
+    assert saved["default_prompt_template_id"] == template["id"]
+    assert saved["default_publishing_destination_id"] == target["id"]
+    client.post(f"/api/v1/brands/{brand['id']}/archive", headers=ORIGIN)
+    client.post(f"/api/v1/publishing/destinations/{target['id']}/disable", headers=ORIGIN)
+    invalidated = client.get("/api/v1/settings").json()["preferences"]
+    assert invalidated["default_brand_id"] is None
+    assert invalidated["default_publishing_destination_id"] is None
+    rejected = client.patch(
+        "/api/v1/settings/preferences",
+        json={**invalidated, "default_brand_id": brand["id"]},
+        headers=ORIGIN,
+    )
+    assert rejected.status_code == 404
+    assert rejected.json()["detail"] == "Selected default is unavailable."
+    cleared = client.patch(
+        "/api/v1/settings/preferences",
+        json={
+            **invalidated,
+            "default_brand_id": None,
+            "default_prompt_template_id": None,
+            "default_publishing_destination_id": None,
+        },
+        headers=ORIGIN,
+    )
+    assert cleared.status_code == 200
+    wrong = client.post(
+        "/api/v1/settings/change-password",
+        json={
+            "current_password": "wrong password",
+            "new_password": "a different secure password",
+            "confirmation": "a different secure password",
+        },
+        headers=ORIGIN,
+    )
+    assert wrong.status_code == 400
+    changed = client.post(
+        "/api/v1/settings/change-password",
+        json={
+            "current_password": "correct horse battery staple",
+            "new_password": "a different secure password",
+            "confirmation": "a different secure password",
+        },
+        headers=ORIGIN,
+    )
+    assert changed.status_code == 204
+    sessions = client.get("/api/v1/settings/sessions").json()
+    assert sessions[0]["current"] is True
+    status = client.get("/api/v1/system/status").json()
+    assert status["database_status"] == "ok"
+    assert "database_url" not in str(status)
+    assert "password" not in str(status)

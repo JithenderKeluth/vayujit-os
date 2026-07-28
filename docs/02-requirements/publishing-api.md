@@ -21,3 +21,8 @@ The Angular flow lists only approved artifacts attached to non-archived Products
 Brands, then filters active destinations for compatible Brand scope. One generated idempotency
 key is retained throughout one intentional submission. The preview and result screens interpolate
 generated data as text, collapse long content, and never turn mock URLs into links.
+# Preferred destination
+
+The owner may choose an active destination as a preference. Publication preselects it only when
+it is global or scoped to the selected Brand. Disabled, inaccessible, and Brand-incompatible
+destinations are not selected or re-enabled automatically.

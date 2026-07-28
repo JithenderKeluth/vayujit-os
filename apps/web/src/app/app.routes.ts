@@ -1,19 +1,18 @@
 import { Routes } from '@angular/router';
 
-import { PlaceholderPageComponent } from './placeholder-page.component';
 import { AuthPageComponent } from './auth/auth-page.component';
 import { authGuard, guestGuard } from './auth/auth.guards';
-
-const placeholder = (title: string) => ({
-  component: PlaceholderPageComponent,
-  data: { title },
-});
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: 'setup', component: AuthPageComponent, canActivate: [guestGuard] },
   { path: 'login', component: AuthPageComponent, canActivate: [guestGuard] },
-  { path: 'dashboard', ...placeholder('Dashboard'), canActivate: [authGuard] },
+  {
+    path: 'dashboard',
+    loadComponent: () =>
+      import('./operations/dashboard.component').then((m) => m.DashboardComponent),
+    canActivate: [authGuard],
+  },
   {
     path: 'brands',
     loadComponent: () =>
@@ -157,8 +156,32 @@ export const routes: Routes = [
       import('./workflows/workflow-details.component').then((m) => m.WorkflowDetailsComponent),
     canActivate: [authGuard],
   },
-  { path: 'approvals', ...placeholder('Approvals'), canActivate: [authGuard] },
-  { path: 'execution-history', ...placeholder('Execution History'), canActivate: [authGuard] },
-  { path: 'settings', ...placeholder('Settings'), canActivate: [authGuard] },
+  {
+    path: 'approvals',
+    loadComponent: () =>
+      import('./operations/approvals.component').then((m) => m.ApprovalsComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'approvals/:id',
+    loadComponent: () => import('./ai/ai-artifact.component').then((m) => m.AIArtifactComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'execution-history',
+    loadComponent: () =>
+      import('./operations/execution-history.component').then((m) => m.ExecutionHistoryComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'settings',
+    loadComponent: () => import('./operations/settings.component').then((m) => m.SettingsComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'settings/:section',
+    loadComponent: () => import('./operations/settings.component').then((m) => m.SettingsComponent),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'dashboard' },
 ];

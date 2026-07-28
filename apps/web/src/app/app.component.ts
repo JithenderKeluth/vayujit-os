@@ -3,6 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from './auth/auth.service';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { BrandService } from './brands/brand.service';
+import { OperationsService } from './operations/operations.service';
 
 @Component({
   selector: 'app-root',
@@ -15,6 +16,7 @@ export class AppComponent {
   readonly auth = inject(AuthService);
   readonly brands = inject(BrandService);
   private readonly router = inject(Router);
+  private readonly operations = inject(OperationsService);
   readonly navigation = [
     ['Dashboard', '/dashboard'],
     ['Brands', '/brands'],
@@ -28,12 +30,22 @@ export class AppComponent {
   ] as const;
   constructor() {
     effect(() => {
-      if (this.auth.user()) void this.brands.loadActive();
+      if (this.auth.user()) void this.restoreBrandContext();
       else this.brands.activeBrand.set(null);
     });
   }
   async logout(): Promise<void> {
     await this.auth.logout();
     await this.router.navigateByUrl('/login');
+  }
+  private async restoreBrandContext(): Promise<void> {
+    const active = await this.brands.loadActive();
+    if (active) return;
+    try {
+      const id = (await this.operations.settings()).preferences.default_brand_id;
+      if (id) await this.brands.activate(id);
+    } catch {
+      // An unavailable preference must never prevent application startup.
+    }
   }
 }

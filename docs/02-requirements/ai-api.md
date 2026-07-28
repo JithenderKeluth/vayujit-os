@@ -25,3 +25,8 @@ product-content schema and contains no markup.
 
 History filters include product, brand, request status, artifact status, date range, page, and
 page size. Review decisions are idempotent only when repeated in the same target state.
+# Preferred prompt template
+
+The owner preference stores an enabled prompt-template identifier. The generation screen
+preselects it when available and permits an explicit override before submission. Safe template
+summaries expose names and versions but never system instructions or raw template JSON.

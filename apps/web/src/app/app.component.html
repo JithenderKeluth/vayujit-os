@@ -14,6 +14,14 @@
       <button type="button" (click)="logout()">Log out</button>
     </aside>
     <main>
+      <details class="mobile-menu">
+        <summary>Application menu</summary>
+        <nav aria-label="Mobile primary navigation">
+          @for (item of navigation; track item[1]) {
+            <a [routerLink]="item[1]" routerLinkActive="active">{{ item[0] }}</a>
+          }
+        </nav>
+      </details>
       <header class="context-header">
         <span>Active brand</span>
         <strong>{{ brands.activeBrand()?.name || 'No active brand' }}</strong>

@@ -29,6 +29,9 @@ owner-scoped idempotency, snapshots, lifecycle checks, and query indexes.
 Revision `20260728_0007` creates constrained Workflow templates, instances, step attempts, and
 the default Product Content Publish template.
 
+Revision `20260728_0008` creates one typed owner-preference row with validated display,
+pagination, AI, and Publishing defaults.
+
 ```powershell
 cd apps\api
 .\.venv\Scripts\alembic.exe current
@@ -87,3 +90,6 @@ Browser validation: complete the journey, refresh execution details, then log ou
 `/publishing` redirects to login. Electron validation repeats login, destination selection,
 publication, execution inspection, and restart/session restoration. Mock `.invalid` URLs are
 display-only and should never be navigated.
+Default Brand, prompt-template, and Publishing-destination choices are persisted by the API, not
+only browser storage. Refresh Settings and the consuming AI or Publishing flow to validate
+server persistence and compatibility fallback.

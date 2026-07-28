@@ -12,6 +12,23 @@ body {
   margin: 0;
 }
 
+:root[data-theme='dark'] body {
+  background: #172328;
+  color: #edf5f3;
+}
+:root[data-theme='dark'] .op-card,
+:root[data-theme='dark'] article {
+  background: #22343a;
+  color: #edf5f3;
+  border-color: #47616a;
+}
+:root[data-theme='dark'] input,
+:root[data-theme='dark'] select,
+:root[data-theme='dark'] textarea {
+  background: #172328;
+  color: #fff;
+}
+
 .eyebrow {
   color: #47757a;
   font-size: 0.8rem;

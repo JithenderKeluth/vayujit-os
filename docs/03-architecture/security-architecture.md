@@ -14,6 +14,8 @@
 - **Audit/redaction:** append-only security and business events with correlation IDs; tokens, passwords, secret values, and sensitive prompt content are redacted before logging.
 - **Backups:** integrity manifest and schema version; no plaintext secrets; restore requires authentication, validation, confirmation, and a pre-restore safety backup.
 - **Test data safety:** destructive fixtures require exact test mode, explicit test URL, approved database name, connected-name equality, and a durable VAYUJIT marker. Development and PostgreSQL system databases are denied.
+- **Operational reads:** Dashboard and Execution History are owner-scoped and bounded; audit metadata is converted to an allow-listed safe read model. CSV cells with formula prefixes are neutralized.
+- **Settings:** explicit schemas and typed columns prevent mass assignment; password values, session hashes, database URLs, paths, and secret diagnostics are never returned or audited.
 
 ## Threat Model
 

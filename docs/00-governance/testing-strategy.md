@@ -36,7 +36,14 @@ npm.cmd run test:desktop:smoke
 npm.cmd test
 ```
 
+Operational integration coverage exercises owner-scoped Dashboard counts, Approval queues,
+normalized history/CSV, typed preferences, password verification, session summaries, and redacted
+system status through the same marked disposable database.
+
 The integration command fails if the explicit configuration or marker is absent. Ordinary
 integration fixtures currently perform guarded schema resets for isolation. Moving each test to
 transaction/savepoint rollback remains a performance hardening opportunity.
-
+Operational UI regression includes safe Artifact field/array diff tests, owner-preference
+validation and invalidation, default-flow preselection, guarded database integration, Electron
+launcher smoke, and rendered browser/Electron inspection when those interactive surfaces are
+available. Automated smoke results must not be described as visual validation.

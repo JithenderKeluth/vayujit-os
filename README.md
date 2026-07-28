@@ -192,3 +192,10 @@ Mock `.invalid` URLs are non-routable examples and remain display-only.
 The `/workflows` area runs the constrained Product Content Publish template: AI generation,
 durable human-approval pause, and idempotent mock publishing. State and immutable step attempts
 survive refresh/restart. See the [Workflow API](docs/02-requirements/workflow-api.md).
+
+### Operational UI
+
+Dashboard, Approvals, unified Execution History, and typed Settings are available as authenticated
+operational views. Metrics are computed server-side, history exposes only a normalized safe audit
+read model, CSV neutralizes spreadsheet formulas, and preferences persist in PostgreSQL. See the
+[Operational UI reference](docs/02-requirements/operational-ui.md).

@@ -102,3 +102,39 @@ button[disabled] {
     overflow-x: auto;
   }
 }
+.ai-compare-selectors,
+.ai-compare {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+.ai-compare section {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 10rem 1fr 1fr;
+  gap: 1rem;
+  border-left: 0.3rem solid var(--border, #bbb);
+  padding: 0.75rem;
+}
+.ai-compare section[data-state='added'] {
+  border-color: #16803a;
+}
+.ai-compare section[data-state='removed'] {
+  border-color: #b42318;
+}
+.ai-compare section[data-state='modified'] {
+  border-color: #b66a00;
+}
+.ai-compare li[data-state='added'] {
+  color: #16803a;
+}
+.ai-compare li[data-state='removed'] {
+  color: #b42318;
+  text-decoration: line-through;
+}
+@media (max-width: 700px) {
+  .ai-compare-selectors,
+  .ai-compare section {
+    grid-template-columns: 1fr;
+  }
+}
