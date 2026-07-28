@@ -32,3 +32,7 @@ Product normalized names and slugs are unique per brand. Non-null SKU and barcod
 unique per owner. Money uses `NUMERIC(12,2)`; weight uses `NUMERIC(12,3)`. Database checks prevent
 negative prices, costs, weight, inventory, and thresholds; compare-at price below sale price; and
 status/archive-timestamp disagreement.
+
+`PublishingDestination` stores strict safe mock configuration and an optional Brand scope.
+`PublishingExecution` stores owner-scoped idempotency and schema-versioned content/request
+snapshots. `PublishingExecutionAttempt` is immutable and unique by execution plus attempt number.

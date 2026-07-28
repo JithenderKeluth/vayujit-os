@@ -67,3 +67,8 @@ Validation errors are non-retryable until input changes. Transient adapter/datab
 ## Testable System Acceptance
 
 Acceptance tests shall cover: first-owner creation; duplicate-owner rejection; session expiry/revocation; brand and product validation; deterministic valid and invalid mock AI scenarios; approval and rejection branches; idempotent mock publishing; forced restart at each workflow state; unauthorized API access; path traversal rejection; secret redaction; offline execution; backup integrity failure; successful backup/restore; and chronological audit/history display.
+
+The Sprint 1 standalone publishing implementation satisfies SRS-FR-016, SRS-FR-017, and the
+publishing portion of SRS-FR-018/SRS-FR-022 using a deterministic offline connector, durable
+owner-scoped idempotency, immutable attempts/snapshots, filtered execution history, and explicit
+retryable failure classification. Workflow orchestration and restart recovery remain S1-10 scope.

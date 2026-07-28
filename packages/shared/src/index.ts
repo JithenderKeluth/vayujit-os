@@ -314,3 +314,111 @@ export interface ApiError {
   message: string;
   correlationId?: string;
 }
+
+export type PublishingDestinationStatus = 'active' | 'disabled';
+export type PublishingExecutionStatus =
+  | 'pending'
+  | 'running'
+  | 'succeeded'
+  | 'failed'
+  | 'cancelled';
+export interface PublishingConnectorSummary {
+  key: string;
+  name: string;
+  connector_type: string;
+  available: boolean;
+  deterministic: boolean;
+  local: boolean;
+}
+export interface MockDestinationConfiguration {
+  channel_name: string;
+  publication_prefix: string;
+  simulate_failure: boolean;
+  failure_type: 'retryable' | 'non_retryable';
+}
+export interface PublishingDestinationSummary {
+  id: string;
+  brand_id: string | null;
+  brand_name: string | null;
+  connector_key: string;
+  name: string;
+  status: PublishingDestinationStatus;
+  configuration: MockDestinationConfiguration;
+  created_at: string;
+  updated_at: string;
+  disabled_at: string | null;
+}
+export interface CreatePublishingDestinationRequest {
+  name: string;
+  brand_id?: string | null;
+  connector_key: 'mock_publisher_v1';
+  configuration: MockDestinationConfiguration;
+}
+export type UpdatePublishingDestinationRequest = Partial<CreatePublishingDestinationRequest>;
+export interface PublishingAttemptDetails {
+  attempt_number: number;
+  status: string;
+  result: Record<string, unknown> | null;
+  error_code: string | null;
+  safe_error_message: string | null;
+  retryable: boolean;
+  started_at: string;
+  completed_at: string | null;
+  failed_at: string | null;
+}
+export interface PublishingExecutionDetails {
+  id: string;
+  artifact_id: string;
+  destination_id: string;
+  brand_id: string;
+  product_id: string;
+  connector_key: string;
+  status: PublishingExecutionStatus;
+  idempotency_key: string;
+  attempt_count: number;
+  content_snapshot: Record<string, unknown>;
+  request_snapshot: Record<string, unknown>;
+  result: Record<string, unknown> | null;
+  external_reference: string | null;
+  external_url: string | null;
+  error_code: string | null;
+  safe_error_message: string | null;
+  retryable: boolean;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  failed_at: string | null;
+  attempts: PublishingAttemptDetails[];
+}
+export interface CreatePublishingExecutionRequest {
+  artifact_id: string;
+  destination_id: string;
+  idempotency_key?: string;
+}
+export interface PaginatedPublishingDestinations {
+  items: PublishingDestinationSummary[];
+  page: number;
+  page_size: number;
+  total: number;
+  pages: number;
+}
+export interface PaginatedPublishingExecutions {
+  items: PublishingExecutionDetails[];
+  page: number;
+  page_size: number;
+  total: number;
+  pages: number;
+}
+export interface PublishReadinessError {
+  detail: {
+    code:
+      | 'artifact_not_approved'
+      | 'product_archived'
+      | 'brand_archived'
+      | 'destination_disabled'
+      | 'destination_brand_mismatch'
+      | 'connector_unavailable'
+      | 'invalid_snapshot';
+    message: string;
+  };
+}

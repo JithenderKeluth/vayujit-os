@@ -24,3 +24,11 @@
 - Cancellation is rejected after publishing dispatch begins.
 
 See [workflow-state.mmd](diagrams/workflow-state.mmd).
+
+Until the general workflow engine exists, publishing uses the same persisted
+`pending -> running -> succeeded|failed` discipline in a standalone execution. Retry locks one
+failed retryable execution and appends an attempt using its original snapshot.
+
+The UI communicates `succeeded`, retryable `failed`, and permanent `failed` distinctly. Repeated
+submission is disabled in-flight and uses the same key; retry is confirmed and disabled in-flight
+or after success.

@@ -31,3 +31,9 @@
 ## Residual Risks and Follow-up
 
 A logged-in Windows user may access local business data unless whole-disk/OS account protection is enabled. DPAPI portability affects restore to another account and must be documented. Before production connectors, add connector-specific OAuth, egress, permission, revocation, and threat reviews.
+
+Mock publishing additionally enforces owner-scoped queries, exact-Origin writes, approved-artifact
+gating, Brand compatibility, strict configuration and idempotency allow-lists, bounded JSONB
+snapshots/results, display-only non-routable URLs, and sanitized failure/audit metadata.
+Publishing views render snapshots and connector results only through Angular text interpolation.
+Long output is collapsed, status always has text, and mock URLs cannot trigger navigation.

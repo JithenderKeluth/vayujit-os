@@ -23,6 +23,9 @@ commerce columns, and lifecycle/inventory database checks.
 Revision `20260728_0005` creates prompt templates, AI generation requests, generated artifacts,
 review constraints, and the default deterministic product-content template.
 
+Revision `20260728_0006` creates publishing destinations, executions, immutable attempts,
+owner-scoped idempotency, snapshots, lifecycle checks, and query indexes.
+
 ```powershell
 cd apps\api
 .\.venv\Scripts\alembic.exe current
@@ -52,3 +55,14 @@ that brand, while the product list can explicitly select another owned brand or 
 Open **AI Content** to generate content for a non-archived product. The current provider is local
 and deterministic; it does not contact Ollama or any cloud service. Review drafts can be
 approved, rejected with a reason, regenerated, and inspected after restart.
+
+Open **Publishing** after approving an Artifact. Create a destination, select Brand → Product →
+approved version → compatible destination, review the preview, and confirm. In development only,
+expand **Development testing** on the destination form to simulate retryable or permanent failure.
+Correct a retryable destination and use the execution-details retry action; the original immutable
+snapshot is reused.
+
+Browser validation: complete the journey, refresh execution details, then log out and confirm
+`/publishing` redirects to login. Electron validation repeats login, destination selection,
+publication, execution inspection, and restart/session restoration. Mock `.invalid` URLs are
+display-only and should never be navigated.

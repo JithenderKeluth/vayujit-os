@@ -167,3 +167,17 @@ background workers, workflow orchestration, or publishing. See the
 [AI architecture](docs/03-architecture/ai-architecture.md),
 [API reference](docs/02-requirements/ai-api.md), and
 [synchronous-generation ADR](docs/04-decisions/ADR-009-synchronous-ai-generation.md).
+
+### Mock Publishing and Execution History
+
+The protected `/publishing` area manages local mock destinations and publishes only approved AI
+artifacts. Each synchronous execution stores immutable content/request snapshots, deterministic
+safe connector output, owner-scoped idempotency, immutable attempts, retry classification, and
+audit evidence. No remote platform, OAuth, secret, webhook, scheduler, worker, or Redis is used.
+See the [Publishing API](docs/02-requirements/publishing-api.md).
+
+The user-facing journey is: activate a Brand, create and activate a Product, generate and approve
+AI content, create an active mock destination, select the approved version from **Publishing**,
+review the text-only preview, confirm publication, and inspect the execution timeline. Development
+builds expose deliberate failure simulation inside a collapsed **Development testing** section.
+Mock `.invalid` URLs are non-routable examples and remain display-only.

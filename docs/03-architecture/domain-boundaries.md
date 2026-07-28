@@ -24,3 +24,7 @@ The Products module owns product persistence and lifecycle validation. Brand rea
 allowed only to a non-archived brand owned by the actor and creates a distinct audit event.
 Products expose decimal money as strings and do not depend on future inventory, workflow, AI, or
 publishing implementations.
+
+The Publishing module owns destinations, executions, attempts, connector dispatch, idempotency,
+and immutable publication snapshots. It reads owner-scoped Brand/Product/Artifact state only to
+authorize a new execution; historical display and retry use stored snapshots.

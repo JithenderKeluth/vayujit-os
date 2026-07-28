@@ -20,6 +20,7 @@ export class AppComponent {
     ['Brands', '/brands'],
     ['Products', '/products'],
     ['AI Content', '/ai'],
+    ['Publishing', '/publishing'],
     ['Workflows', '/workflows'],
     ['Approvals', '/approvals'],
     ['Execution History', '/execution-history'],

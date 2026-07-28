@@ -87,6 +87,58 @@ export const routes: Routes = [
       import('./ai/ai-history.component').then((module) => module.AIHistoryComponent),
     canActivate: [authGuard],
   },
+  {
+    path: 'publishing',
+    loadComponent: () =>
+      import('./publishing/publishing-dashboard.component').then(
+        (m) => m.PublishingDashboardComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'publishing/destinations',
+    loadComponent: () =>
+      import('./publishing/destination-list.component').then((m) => m.DestinationListComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'publishing/destinations/new',
+    loadComponent: () =>
+      import('./publishing/destination-form.component').then((m) => m.DestinationFormComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'publishing/destinations/:id/edit',
+    loadComponent: () =>
+      import('./publishing/destination-form.component').then((m) => m.DestinationFormComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'publishing/destinations/:id',
+    loadComponent: () =>
+      import('./publishing/destination-details.component').then(
+        (m) => m.DestinationDetailsComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'publishing/new',
+    loadComponent: () =>
+      import('./publishing/publish-new.component').then((m) => m.PublishNewComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'publishing/executions',
+    loadComponent: () =>
+      import('./publishing/execution-list.component').then((m) => m.ExecutionListComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'publishing/executions/:id',
+    loadComponent: () =>
+      import('./publishing/execution-details.component').then((m) => m.ExecutionDetailsComponent),
+    canActivate: [authGuard],
+  },
   { path: 'workflows', ...placeholder('Workflows'), canActivate: [authGuard] },
   { path: 'approvals', ...placeholder('Approvals'), canActivate: [authGuard] },
   { path: 'execution-history', ...placeholder('Execution History'), canActivate: [authGuard] },
