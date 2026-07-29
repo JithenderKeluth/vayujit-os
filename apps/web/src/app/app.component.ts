@@ -22,6 +22,7 @@ export class AppComponent {
     ['Brands', '/brands'],
     ['Products', '/products'],
     ['AI Content', '/ai'],
+    ['Media', '/media'],
     ['Publishing', '/publishing'],
     ['Workflows', '/workflows'],
     ['Approvals', '/approvals'],

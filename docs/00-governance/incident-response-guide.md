@@ -26,3 +26,9 @@ procedure. The application does not execute destructive restore.
 Confirm readiness, exercise the affected journey, disable maintenance mode,
 and monitor structured request and audit events. Record root cause, scope,
 timeline, remediation, and follow-up controls without retaining secrets.
+# Media incidents
+
+For media write failures, enable maintenance mode if integrity is uncertain, verify free space and
+write permission through system health, retain audit correlation IDs, and never copy storage paths
+into tickets. For WordPress drift or missing media, reconcile first and do not automatically
+overwrite or delete remote content.

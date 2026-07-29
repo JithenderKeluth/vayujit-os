@@ -1,5 +1,7 @@
 import math
+import os
 import platform
+import shutil
 import uuid
 from datetime import UTC, datetime
 from typing import Annotated, Literal
@@ -11,12 +13,14 @@ from sqlalchemy.orm import Session
 
 from vayujit_api import __version__
 from vayujit_api.ai.models import AIProviderConfiguration
+from vayujit_api.audit.models import AuditEvent
 from vayujit_api.audit.service import record_event
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
 from vayujit_api.core.observability import maintenance_enabled
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.media.service import storage_root
 from vayujit_api.operations.backup import backup_directory, create_backup, verify_backup
 from vayujit_api.operations.models import BackupRecord
 from vayujit_api.products.models import Product
@@ -68,7 +72,7 @@ class RecoveryItem(BaseModel):
     entity_type: str
     product_id: uuid.UUID | None
     product_name: str | None
-    brand_id: uuid.UUID
+    brand_id: uuid.UUID | None
     failure_code: str | None
     safe_failure_message: str
     retryable: bool
@@ -173,16 +177,33 @@ def health_details(db: Session) -> SystemHealth:
             f"validation={wordpress_configuration.validation_status}; "
             "credentials are redacted."
         )
+    try:
+        media_root = storage_root()
+        media_writable = os.access(media_root, os.W_OK)
+        free_bytes = shutil.disk_usage(media_root).free
+        media_status: Literal["healthy", "degraded", "unavailable"] = (
+            "healthy"
+            if media_writable and free_bytes >= get_settings().media_min_free_bytes
+            else ("degraded" if media_writable else "unavailable")
+        )
+        media_message = (
+            "Media storage is writable; "
+            "free-space threshold="
+            f"{'met' if free_bytes >= get_settings().media_min_free_bytes else 'low'}."
+        )
+    except OSError:
+        media_status = "unavailable"
+        media_message = "Media storage is unavailable."
     components.extend(
         [
             ComponentHealth(
                 component="Migration",
                 status=(
                     "healthy"
-                    if current in {"20260731_0011", "unmanaged-test-schema"}
+                    if current in {"20260801_0012", "unmanaged-test-schema"}
                     else "degraded"
                 ),
-                message=f"Current {current}; expected 20260731_0011.",
+                message=f"Current {current}; expected 20260801_0012.",
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -204,6 +225,22 @@ def health_details(db: Session) -> SystemHealth:
                 checked_at=checked,
             ),
             ComponentHealth(
+                component="Media storage",
+                status=media_status,
+                message=media_message,
+                checked_at=checked,
+            ),
+            ComponentHealth(
+                component="WordPress taxonomy",
+                status=wordpress_status,
+                message=(
+                    "Category, tag, author, and media capabilities are available after validation."
+                    if wordpress_configuration
+                    else "Remote taxonomy and media checks are inactive."
+                ),
+                checked_at=checked,
+            ),
+            ComponentHealth(
                 component="Audit persistence",
                 status=database,
                 message="Audit events use PostgreSQL persistence.",
@@ -222,7 +259,7 @@ def health_details(db: Session) -> SystemHealth:
         status=overall,
         components=components,
         current_migration=current,
-        expected_migration="20260731_0011",
+        expected_migration="20260801_0012",
         application_version=__version__,
         build_identifier=get_settings().build_identifier,
     )
@@ -259,12 +296,52 @@ def maintenance(_user: CurrentUser) -> dict[str, bool]:
 def recovery(
     db: DatabaseSession,
     user: CurrentUser,
-    category: Literal["workflow", "publishing"] | None = None,
+    category: Literal["workflow", "publishing", "media"] | None = None,
     retryable: bool | None = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> RecoveryPage:
     items: list[RecoveryItem] = []
+    if category in {None, "media"}:
+        media_events = db.scalars(
+            select(AuditEvent)
+            .where(
+                AuditEvent.actor_id == user.id,
+                AuditEvent.action.in_(["media.upload_failed", "publishing.taxonomy_lookup_failed"]),
+            )
+            .order_by(AuditEvent.occurred_at.desc())
+            .limit(100)
+        ).all()
+        for event in media_events:
+            taxonomy = event.action == "publishing.taxonomy_lookup_failed"
+            items.append(
+                RecoveryItem(
+                    id=event.id,
+                    category="media",
+                    entity_type=event.entity_type,
+                    product_id=None,
+                    product_name=None,
+                    brand_id=None,
+                    failure_code=str(event.metadata_json.get("code") or "media_failure"),
+                    safe_failure_message=(
+                        "WordPress taxonomy lookup failed."
+                        if taxonomy
+                        else "Local media validation failed."
+                    ),
+                    retryable=True,
+                    attempt_count=1,
+                    failed_at=event.occurred_at,
+                    workflow_id=None,
+                    capabilities=(
+                        ["refresh_taxonomy", "open_destination"]
+                        if taxonomy
+                        else ["retry_media_upload", "select_another_media"]
+                    ),
+                    related_url=(
+                        "/settings/publishing/connectors/wordpress" if taxonomy else "/media/upload"
+                    ),
+                )
+            )
     if category in {None, "publishing"}:
         publishing_rows = db.execute(
             select(PublishingExecution, Product)

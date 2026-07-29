@@ -26,6 +26,8 @@ class WordPressDestinationConfiguration(BaseModel):
     tag_ids: list[Annotated[int, Field(ge=1)]] = Field(default_factory=list, max_length=100)
     author_id: Annotated[int, Field(ge=1)] | None = None
     media_policy: Literal["fail", "publish_without", "draft_degraded"] = "fail"
+    featured_image_policy: Literal["none", "optional", "required"] = "none"
+    default_media_id: uuid.UUID | None = None
     update_existing_remote_post: bool = True
     content_mapping_version: Literal[1] = 1
 
@@ -77,6 +79,7 @@ class CreateExecution(BaseModel):
         Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9._:-]{8,100}$")] | None
     ) = None
     action: Literal["create_draft", "publish", "update"] = "publish"
+    featured_media_id: uuid.UUID | None = None
 
 
 class AttemptResponse(BaseModel):
@@ -177,11 +180,22 @@ class WordPressTerm(BaseModel):
     id: int
     name: str
     slug: str
+    parent_id: int | None = None
 
 
 class WordPressAuthor(BaseModel):
     id: int
     name: str
+    username: str | None = None
+
+
+class WordPressTaxonomyPage(BaseModel):
+    items: list[WordPressTerm] | list[WordPressAuthor]
+    page: int
+    page_size: int
+    has_more: bool
+    cached: bool
+    stale: bool = False
 
 
 class CancellationResponse(BaseModel):
@@ -197,7 +211,50 @@ class ReconciliationResponse(BaseModel):
     remote_slug: str | None
     remote_url: str | None
     drift_fields: list[str]
+    differences: list["RemoteDriftField"] = Field(default_factory=list)
     correlation_id: str | None
+
+
+class RemoteDriftField(BaseModel):
+    field: str
+    expected: object | None
+    remote: object | None
+    status: Literal["in_sync", "changed_remotely", "unknown"]
+
+
+class SanitizationChange(BaseModel):
+    kind: Literal["escaped_html", "converted_paragraphs", "normalized_slug"]
+    message: str
+
+
+class PublishingPreviewRequest(BaseModel):
+    artifact_id: uuid.UUID
+    destination_id: uuid.UUID
+    action: Literal["create_draft", "publish", "update"] = "publish"
+    featured_media_id: uuid.UUID | None = None
+
+
+class PublishingPreviewResponse(BaseModel):
+    title: str
+    slug: str
+    excerpt: str
+    sanitized_body: str
+    post_status: str
+    author_id: int | None
+    category_ids: list[int]
+    tag_ids: list[int]
+    featured_media_id: uuid.UUID | None
+    destination_id: uuid.UUID
+    destination_name: str
+    remote_update_target: str | None
+    artifact_id: uuid.UUID
+    artifact_version: int
+    product_id: uuid.UUID
+    product_name: str
+    brand_id: uuid.UUID
+    brand_name: str
+    original_text: str
+    sanitization_changes: list[SanitizationChange]
 
 
 class Page(BaseModel):

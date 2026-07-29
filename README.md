@@ -16,6 +16,10 @@ analytics.
 - [Product Requirements Document](docs/01-product/product-requirements-document.md)
 - [Initial MVP Scope](docs/01-product/mvp-scope.md)
 - [Software Requirements Specification](docs/02-requirements/software-requirements-specification.md)
+- [Media Library](docs/03-architecture/media-library.md)
+- [WordPress Publishing](docs/03-architecture/wordpress-publishing.md)
+- [Publishing preview](docs/03-architecture/publishing-preview.md)
+- [Remote drift and reconciliation](docs/03-architecture/remote-drift-reconciliation.md)
 
 ### Governance
 

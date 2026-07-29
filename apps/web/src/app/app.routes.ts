@@ -125,6 +125,23 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
+    path: 'media',
+    loadComponent: () => import('./media/media-list.component').then((m) => m.MediaListComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'media/upload',
+    loadComponent: () =>
+      import('./media/media-upload.component').then((m) => m.MediaUploadComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'media/:id',
+    loadComponent: () =>
+      import('./media/media-details.component').then((m) => m.MediaDetailsComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'publishing',
     loadComponent: () =>
       import('./publishing/publishing-dashboard.component').then(

@@ -468,6 +468,8 @@ export interface WordPressDestinationConfiguration {
   tag_ids: number[];
   author_id: number | null;
   media_policy: 'fail' | 'publish_without' | 'draft_degraded';
+  featured_image_policy: 'none' | 'optional' | 'required';
+  default_media_id: string | null;
   update_existing_remote_post: boolean;
   content_mapping_version: 1;
 }
@@ -549,6 +551,7 @@ export interface CreatePublishingExecutionRequest {
   destination_id: string;
   idempotency_key?: string;
   action?: 'create_draft' | 'publish' | 'update';
+  featured_media_id?: string | null;
 }
 export interface WordPressConnectorConfiguration {
   connector_key: 'wordpress';
@@ -590,10 +593,76 @@ export interface WordPressTerm {
   id: number;
   name: string;
   slug: string;
+  parent_id: number | null;
 }
 export interface WordPressAuthor {
   id: number;
   name: string;
+  username: string | null;
+}
+export interface WordPressTaxonomyPage {
+  items: WordPressTerm[] | WordPressAuthor[];
+  page: number;
+  page_size: number;
+  has_more: boolean;
+  cached: boolean;
+  stale: boolean;
+}
+export interface MediaAsset {
+  id: string;
+  original_filename: string;
+  safe_filename: string;
+  mime_type: 'image/jpeg' | 'image/png' | 'image/webp';
+  size_bytes: number;
+  width: number;
+  height: number;
+  checksum_sha256: string;
+  status: 'ready' | 'archived';
+  upload_state: 'ready';
+  usage_count: number;
+  duplicate_reused: boolean;
+  created_at: string;
+  archived_at: string | null;
+  preview_url: string;
+}
+export interface PaginatedMedia {
+  items: MediaAsset[];
+  page: number;
+  page_size: number;
+  total: number;
+  pages: number;
+}
+export interface SanitizationChange {
+  kind: 'escaped_html' | 'converted_paragraphs' | 'normalized_slug';
+  message: string;
+}
+export interface PublishingPreview {
+  title: string;
+  slug: string;
+  excerpt: string;
+  sanitized_body: string;
+  post_status: string;
+  author_id: number | null;
+  category_ids: number[];
+  tag_ids: number[];
+  featured_media_id: string | null;
+  destination_id: string;
+  destination_name: string;
+  remote_update_target: string | null;
+  artifact_id: string;
+  artifact_version: number;
+  product_id: string;
+  product_name: string;
+  brand_id: string;
+  brand_name: string;
+  original_text: string;
+  sanitization_changes: SanitizationChange[];
+}
+export interface RemoteDriftField {
+  field: string;
+  expected: unknown;
+  remote: unknown;
+  status: 'in_sync' | 'changed_remotely' | 'unknown';
 }
 export interface PublishingReconciliationResult {
   id: string;
@@ -602,6 +671,7 @@ export interface PublishingReconciliationResult {
   remote_slug: string | null;
   remote_url: string | null;
   drift_fields: string[];
+  differences: RemoteDriftField[];
   correlation_id: string | null;
 }
 export interface PaginatedPublishingDestinations {
@@ -878,11 +948,11 @@ export interface ReleaseInfo {
 }
 export interface RecoveryItem {
   id: string;
-  category: 'workflow' | 'publishing';
+  category: 'workflow' | 'publishing' | 'media';
   entity_type: string;
   product_id: string | null;
   product_name: string | null;
-  brand_id: string;
+  brand_id: string | null;
   failure_code: string | null;
   safe_failure_message: string;
   retryable: boolean;

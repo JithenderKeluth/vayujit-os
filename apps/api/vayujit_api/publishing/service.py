@@ -1,3 +1,4 @@
+import hashlib
 import re
 import uuid
 from typing import Literal, cast
@@ -13,12 +14,15 @@ from vayujit_api.brands.models import Brand, BrandStatus
 from vayujit_api.core.observability import correlation_id
 from vayujit_api.identity.models import User
 from vayujit_api.identity.service import now
+from vayujit_api.media.models import WordPressMediaMapping
+from vayujit_api.media.service import owned_media, storage_path
 from vayujit_api.products.models import Product, ProductStatus
 from vayujit_api.publishing.connector import (
     ConnectorFailure,
     PublishingConnector,
     WordPressConnector,
     connector,
+    wordpress_payload,
 )
 from vayujit_api.publishing.models import (
     PublishingDestination,
@@ -33,7 +37,11 @@ from vayujit_api.publishing.schemas import (
     DestinationWrite,
     ExecutionResponse,
     MockConfiguration,
+    PublishingPreviewRequest,
+    PublishingPreviewResponse,
     ReconciliationResponse,
+    RemoteDriftField,
+    SanitizationChange,
     WordPressDestinationConfiguration,
 )
 from vayujit_api.publishing.wordpress import connector_for, owned_configuration
@@ -301,7 +309,79 @@ def wordpress_request_configuration(
                 },
             )
         configuration["remote_post_id"] = previous.remote_entity_id
+    selected_media_id = execution.request_snapshot_json.get("featured_media_id")
+    if selected_media_id:
+        configuration["featured_media_id"] = selected_media_id
     return configuration
+
+
+def ensure_wordpress_media(
+    db: Session,
+    owner: User,
+    connector_value: WordPressConnector,
+    configuration: dict[str, object],
+) -> None:
+    raw_media_id = configuration.get("featured_media_id")
+    if not raw_media_id:
+        return
+    media = owned_media(db, owner.id, uuid.UUID(str(raw_media_id)))
+    if media.status != "ready":
+        raise HTTPException(409, "The selected featured image is archived.")
+    site_fingerprint = hashlib.sha256(connector_value.site_url.encode()).hexdigest()
+    mapping = db.scalar(
+        select(WordPressMediaMapping).where(
+            WordPressMediaMapping.owner_id == owner.id,
+            WordPressMediaMapping.media_id == media.id,
+            WordPressMediaMapping.site_fingerprint == site_fingerprint,
+        )
+    )
+    if mapping:
+        try:
+            connector_value.request("GET", f"/media/{int(mapping.remote_media_id)}")
+            mapping.last_verified_at = now()
+            mapping.updated_at = mapping.last_verified_at
+            configuration["featured_media_remote_id"] = mapping.remote_media_id
+            record_event(
+                db,
+                actor_id=owner.id,
+                action="publishing.remote_media_reused",
+                entity_type="media_asset",
+                entity_id=media.id,
+                metadata={"remote_media_id": mapping.remote_media_id},
+            )
+            return
+        except ConnectorFailure as error:
+            if error.code != "wordpress_not_found":
+                raise
+            db.delete(mapping)
+            db.flush()
+    uploaded = connector_value.upload_media(
+        media.safe_filename, media.mime_type, storage_path(media.storage_key).read_bytes()
+    )
+    remote_id = str(uploaded["id"])
+    stamp = now()
+    db.add(
+        WordPressMediaMapping(
+            owner_id=owner.id,
+            media_id=media.id,
+            site_fingerprint=site_fingerprint,
+            remote_media_id=remote_id,
+            remote_url=str(uploaded.get("source_url") or "")[:500] or None,
+            remote_status="mapped",
+            last_verified_at=stamp,
+            created_at=stamp,
+            updated_at=stamp,
+        )
+    )
+    configuration["featured_media_remote_id"] = remote_id
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="publishing.featured_media_selected",
+        entity_type="media_asset",
+        entity_id=media.id,
+        metadata={"remote_media_id": remote_id},
+    )
 
 
 def run_attempt(
@@ -318,6 +398,8 @@ def run_attempt(
         if destination.connector_key == "wordpress"
         else destination.configuration_json
     )
+    if isinstance(active_connector, WordPressConnector):
+        ensure_wordpress_media(db, owner, active_connector, request_configuration)
     stamp = now()
     execution.status, execution.started_at, execution.updated_at = "running", stamp, stamp
     if retry:
@@ -491,19 +573,28 @@ def create_execution(db: Session, owner: User, data: CreateExecution) -> Executi
                 "message": "Destination Brand scope does not match.",
             },
         )
-    snapshot = {
-        "schema_version": 1,
-        "product_id": str(product.id),
-        "product_name": product.name,
-        "brand_id": str(brand.id),
-        "brand_name": brand.name,
-        "artifact_id": str(artifact.id),
-        "artifact_version": artifact.version_number,
-        **artifact.content_json,
-        "sku": product.sku,
-        "price_amount": str(product.price_amount) if product.price_amount is not None else None,
-        "price_currency": product.price_currency,
-    }
+    selected_media_id = data.featured_media_id
+    if destination.connector_key == "wordpress":
+        destination_configuration = WordPressDestinationConfiguration.model_validate(
+            destination.configuration_json
+        )
+        selected_media_id = selected_media_id or destination_configuration.default_media_id
+        if (
+            destination_configuration.featured_image_policy == "required"
+            and selected_media_id is None
+        ):
+            raise HTTPException(
+                409,
+                {
+                    "code": "featured_media_required",
+                    "message": "This destination requires a featured image.",
+                },
+            )
+        if selected_media_id:
+            media = owned_media(db, owner.id, selected_media_id)
+            if media.status != "ready":
+                raise HTTPException(409, "The selected featured image is archived.")
+    snapshot = content_snapshot(product, brand, artifact)
     stamp = now()
     execution = PublishingExecution(
         owner_id=owner.id,
@@ -521,6 +612,7 @@ def create_execution(db: Session, owner: User, data: CreateExecution) -> Executi
             "destination_id": str(destination.id),
             "destination_name": destination.name,
             "configuration": destination.configuration_json,
+            "featured_media_id": str(selected_media_id) if selected_media_id else None,
         },
         retryable=False,
         created_at=stamp,
@@ -544,7 +636,139 @@ def create_execution(db: Session, owner: User, data: CreateExecution) -> Executi
             "destination_id": str(destination.id),
         },
     )
+    if data.action == "update":
+        record_event(
+            db,
+            actor_id=owner.id,
+            action="publishing.remote_overwrite_confirmed",
+            entity_type="publishing_execution",
+            entity_id=execution.id,
+            metadata={"destination_id": str(destination.id)},
+        )
     return run_attempt(db, owner, execution, destination, retry=False)
+
+
+def keep_remote_changes(db: Session, owner: User, execution_id: uuid.UUID) -> ExecutionResponse:
+    value = owned_execution(db, owner.id, execution_id)
+    if value.connector_key != "wordpress" or value.reconciliation_status != "changed_remotely":
+        raise HTTPException(409, "No reviewed remote drift is available to keep.")
+    value.reconciliation_status = "remote_changes_kept"
+    value.updated_at = now()
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="publishing.remote_drift_reviewed",
+        entity_type="publishing_execution",
+        entity_id=value.id,
+        metadata={"decision": "keep_remote"},
+    )
+    db.commit()
+    return execution_response(db, value)
+
+
+def content_snapshot(
+    product: Product, brand: Brand, artifact: GeneratedArtifact
+) -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "product_id": str(product.id),
+        "product_name": product.name,
+        "brand_id": str(brand.id),
+        "brand_name": brand.name,
+        "artifact_id": str(artifact.id),
+        "artifact_version": artifact.version_number,
+        **artifact.content_json,
+        "sku": product.sku,
+        "price_amount": str(product.price_amount) if product.price_amount is not None else None,
+        "price_currency": product.price_currency,
+    }
+
+
+def publishing_preview(
+    db: Session, owner: User, data: PublishingPreviewRequest
+) -> PublishingPreviewResponse:
+    artifact = db.scalar(
+        select(GeneratedArtifact).where(
+            GeneratedArtifact.id == data.artifact_id,
+            GeneratedArtifact.owner_id == owner.id,
+        )
+    )
+    if not artifact or artifact.status != "approved":
+        raise HTTPException(409, "An approved artifact is required for preview.")
+    product = db.scalar(
+        select(Product).where(Product.id == artifact.product_id, Product.owner_id == owner.id)
+    )
+    brand = db.scalar(
+        select(Brand).where(Brand.id == artifact.brand_id, Brand.owner_id == owner.id)
+    )
+    destination = owned_destination(db, owner.id, data.destination_id)
+    if not product or not brand or destination.connector_key != "wordpress":
+        raise HTTPException(409, "A WordPress-compatible artifact and destination are required.")
+    configuration = WordPressDestinationConfiguration.model_validate(destination.configuration_json)
+    selected_media_id = data.featured_media_id or configuration.default_media_id
+    if selected_media_id:
+        owned_media(db, owner.id, selected_media_id)
+    snapshot = content_snapshot(product, brand, artifact)
+    status = "draft" if data.action == "create_draft" else "publish"
+    payload = wordpress_payload(
+        snapshot,
+        status=status,
+        categories=configuration.category_ids,
+        tags=configuration.tag_ids,
+        author=configuration.author_id,
+    )
+    original = str(snapshot.get("long_description") or "")
+    changes = [
+        SanitizationChange(
+            kind="converted_paragraphs",
+            message="Plain-text paragraphs are converted to safe WordPress paragraph markup.",
+        )
+    ]
+    if "<" in original or ">" in original:
+        changes.append(
+            SanitizationChange(
+                kind="escaped_html",
+                message="HTML-like input is escaped and rendered as text.",
+            )
+        )
+    changes.append(
+        SanitizationChange(
+            kind="normalized_slug",
+            message="The slug is normalized to lowercase letters, numbers, and hyphens.",
+        )
+    )
+    previous = db.scalar(
+        select(PublishingExecution)
+        .where(
+            PublishingExecution.owner_id == owner.id,
+            PublishingExecution.destination_id == destination.id,
+            PublishingExecution.product_id == product.id,
+            PublishingExecution.remote_entity_id.is_not(None),
+        )
+        .order_by(PublishingExecution.completed_at.desc())
+    )
+    return PublishingPreviewResponse(
+        title=str(payload["title"]),
+        slug=str(payload["slug"]),
+        excerpt=str(payload["excerpt"]),
+        sanitized_body=str(payload["content"]),
+        post_status=status,
+        author_id=configuration.author_id,
+        category_ids=configuration.category_ids,
+        tag_ids=configuration.tag_ids,
+        featured_media_id=selected_media_id,
+        destination_id=destination.id,
+        destination_name=destination.name,
+        remote_update_target=previous.remote_entity_id if previous else None,
+        artifact_id=artifact.id,
+        artifact_version=artifact.version_number,
+        product_id=product.id,
+        product_name=product.name,
+        brand_id=brand.id,
+        brand_name=brand.name,
+        original_text=original,
+        sanitization_changes=changes,
+    )
 
 
 def retry_execution(db: Session, owner: User, execution_id: uuid.UUID) -> ExecutionResponse:
@@ -608,12 +832,70 @@ def reconcile_execution(
     active_connector, _ = execution_connector(db, owner, destination)
     assert isinstance(active_connector, WordPressConnector)
     drift: list[str] = []
+    differences: list[RemoteDriftField] = []
     try:
         result = active_connector.reconcile(value.remote_entity_id)
-        if value.remote_status and value.remote_status != result.remote_status:
-            drift.append("status")
-        if value.remote_slug and value.remote_slug != result.remote_slug:
-            drift.append("slug")
+        raw_configuration = value.request_snapshot_json.get("configuration")
+        expected_configuration = raw_configuration if isinstance(raw_configuration, dict) else {}
+        raw_categories_value = expected_configuration.get("category_ids")
+        raw_tags_value = expected_configuration.get("tag_ids")
+        raw_categories = raw_categories_value if isinstance(raw_categories_value, list) else []
+        raw_tags = raw_tags_value if isinstance(raw_tags_value, list) else []
+        raw_author = expected_configuration.get("author_id")
+        expected_payload = wordpress_payload(
+            value.content_snapshot_json,
+            status=(
+                "draft"
+                if value.requested_action == "create_draft"
+                else str(value.remote_status or "publish")
+            ),
+            categories=[int(str(item)) for item in raw_categories],
+            tags=[int(str(item)) for item in raw_tags],
+            author=int(str(raw_author)) if raw_author else None,
+        )
+        remote_payload = result.payload
+
+        def rendered_field(key: str) -> object | None:
+            raw = remote_payload.get(key)
+            return raw.get("rendered") if isinstance(raw, dict) else raw
+
+        comparisons = {
+            "title": (
+                expected_payload.get("title"),
+                rendered_field("title"),
+            ),
+            "status": (expected_payload.get("status"), result.remote_status),
+            "slug": (expected_payload.get("slug"), result.remote_slug),
+            "excerpt": (
+                expected_payload.get("excerpt"),
+                rendered_field("excerpt"),
+            ),
+            "categories": (
+                expected_payload.get("categories", []),
+                remote_payload.get("categories"),
+            ),
+            "tags": (expected_payload.get("tags", []), remote_payload.get("tags")),
+            "author": (expected_payload.get("author"), remote_payload.get("author")),
+            "featured_media": (
+                value.result_json.get("featured_media") if value.result_json else None,
+                remote_payload.get("featured_media"),
+            ),
+            "modified": (
+                None,
+                remote_payload.get("modified_gmt") or remote_payload.get("modified"),
+            ),
+        }
+        for field, (expected, remote) in comparisons.items():
+            status_value: Literal["in_sync", "changed_remotely", "unknown"] = (
+                "unknown"
+                if remote is None
+                else ("in_sync" if expected == remote or expected is None else "changed_remotely")
+            )
+            differences.append(
+                RemoteDriftField(field=field, expected=expected, remote=remote, status=status_value)
+            )
+            if status_value == "changed_remotely":
+                drift.append(field)
         if value.external_url and value.external_url != result.external_url:
             drift.append("url")
         value.remote_status = result.remote_status
@@ -643,6 +925,7 @@ def reconcile_execution(
         remote_slug=value.remote_slug,
         remote_url=value.external_url,
         drift_fields=drift,
+        differences=differences,
         correlation_id=correlation_id(),
     )
 

@@ -139,6 +139,9 @@ def save_configuration(
         },
     )
     db.commit()
+    from vayujit_api.publishing.taxonomy import invalidate
+
+    invalidate(owner.id)
     return response_for(value)
 
 
@@ -173,4 +176,7 @@ def remove_credential(db: Session, owner: User) -> WordPressConnectorResponse:
         metadata={"connector": "wordpress"},
     )
     db.commit()
+    from vayujit_api.publishing.taxonomy import invalidate
+
+    invalidate(owner.id)
     return response_for(value)

@@ -15,6 +15,7 @@ import { OperationsService } from './operations.service';
           <option value="">All</option>
           <option value="workflow">Workflow</option>
           <option value="publishing">Publishing</option>
+          <option value="media">Media and taxonomy</option>
         </select></label
       ><label
         ><input type="checkbox" [(ngModel)]="retryable" (ngModelChange)="load()" /> Retryable
@@ -35,6 +36,7 @@ import { OperationsService } from './operations.service';
         <h2>{{ item.category }} · {{ item.product_name || item.entity_type }}</h2>
         <p>{{ item.failure_code || 'unknown_failure' }}: {{ item.safe_failure_message }}</p>
         <p>Attempts {{ item.attempt_count }} · Retryable {{ item.retryable ? 'Yes' : 'No' }}</p>
+        <p>Available actions: {{ item.capabilities.join(', ') || 'Review only' }}</p>
         <a [routerLink]="item.related_url">Open details and available actions</a>
       </article>
     }

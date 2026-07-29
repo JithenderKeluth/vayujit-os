@@ -31,3 +31,8 @@ npm.cmd run publishing:executions
 
 Configure through `/settings/publishing/connectors/wordpress`, validate, then enable the connector.
 Use WordPress application passwords with the minimum permissions needed to manage posts and media.
+
+The completed UX adds local featured media, searchable cached taxonomy selectors, backend-owned
+sanitization preview, and field-level drift review. Required-image destinations fail before a
+remote post request when no ready owner media is selected. Orphan local media may be archived;
+remote media is never deleted automatically.

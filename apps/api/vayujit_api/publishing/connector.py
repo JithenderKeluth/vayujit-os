@@ -234,9 +234,12 @@ class WordPressConnector:
         json_body: dict[str, object] | None = None,
         content: bytes | None = None,
         headers: dict[str, str] | None = None,
+        params: dict[str, str | int] | None = None,
         ambiguous_on_timeout: bool = False,
     ) -> dict[str, object] | list[object]:
-        if not re.fullmatch(r"/(?:users/me|posts(?:/\d+)?|media|categories|tags|users)", endpoint):
+        if not re.fullmatch(
+            r"/(?:users/me|posts(?:/\d+)?|media(?:/\d+)?|categories|tags|users)", endpoint
+        ):
             raise ConnectorFailure(
                 "invalid_endpoint", "WordPress endpoint is not allowed.", retryable=False
             )
@@ -253,6 +256,7 @@ class WordPressConnector:
                     json=json_body,
                     content=content,
                     headers=headers,
+                    params=params,
                 )
             if len(response.content) > MAX_RESPONSE_BYTES:
                 raise ConnectorFailure(
@@ -344,6 +348,8 @@ class WordPressConnector:
             tags=[int(str(x)) for x in raw_tags] if isinstance(raw_tags, list) else [],
             author=(int(str(destination["author_id"])) if destination.get("author_id") else None),
         )
+        if destination.get("featured_media_remote_id"):
+            payload["featured_media"] = int(str(destination["featured_media_remote_id"]))
         remote_id = destination.get("remote_post_id")
         endpoint = f"/posts/{int(str(remote_id))}" if remote_id else "/posts"
         value = self.request(

@@ -57,3 +57,9 @@ Production-hardening tests cover correlation validation, redaction, maintenance 
 backup traversal/checksum failure, health, release, recovery, audit filtering, guarded migration,
 and non-destructive commands. Restore validation is allowed only against an explicitly marked
 disposable restore-test database.
+# WordPress Publishing UX acceptance
+
+Media parsers cover JPEG, PNG, WebP, mismatch, corruption, size, dimensions, and traversal.
+Guarded PostgreSQL integration tests cover persistence, duplicate reuse, preview safety, archive,
+restore, maintenance mode, fake WordPress taxonomy, featured-media mapping, idempotency, and drift.
+No automated suite contacts a real WordPress site.

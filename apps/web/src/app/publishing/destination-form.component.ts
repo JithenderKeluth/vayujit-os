@@ -1,9 +1,10 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import type { BrandSummary } from '@vayujit/shared';
+import type { BrandSummary, MediaAsset, WordPressAuthor, WordPressTerm } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
 import { BrandService } from '../brands/brand.service';
+import { MediaService } from '../media/media.service';
 import { PublishingService } from './publishing.service';
 
 @Component({
@@ -89,9 +90,76 @@ import { PublishingService } from './publishing.service';
               <option value="publish">Publish</option>
             </select></label
           >
-          <label>Category IDs <input formControlName="category_ids" placeholder="1, 2" /></label>
-          <label>Tag IDs <input formControlName="tag_ids" placeholder="3, 4" /></label>
-          <label>Author ID <input formControlName="author_id" type="number" min="1" /></label>
+          <section>
+            <label>Search categories <input #categorySearch /></label>
+            <button type="button" (click)="loadCategories(categorySearch.value)">Search</button>
+            <button type="button" (click)="loadCategories(categorySearch.value, true)">
+              Refresh
+            </button>
+            @if (taxonomyBusy()) {
+              <p role="status">Loading categories…</p>
+            }
+            @for (category of categories(); track category.id) {
+              <label
+                ><input
+                  type="checkbox"
+                  [checked]="selectedId('category_ids', category.id)"
+                  (change)="toggleId('category_ids', category.id)"
+                />
+                {{ category.name }}</label
+              >
+            } @empty {
+              <p>No categories found.</p>
+            }
+          </section>
+          <section>
+            <label>Search tags <input #tagSearch /></label>
+            <button type="button" (click)="loadTags(tagSearch.value)">Search</button>
+            <button type="button" (click)="loadTags(tagSearch.value, true)">Refresh</button>
+            @for (tag of tags(); track tag.id) {
+              <label
+                ><input
+                  type="checkbox"
+                  [checked]="selectedId('tag_ids', tag.id)"
+                  (change)="toggleId('tag_ids', tag.id)"
+                />
+                {{ tag.name }}</label
+              >
+            } @empty {
+              <p>No tags found.</p>
+            }
+          </section>
+          <label
+            >Author
+            <select formControlName="author_id">
+              <option value="">Use WordPress default</option>
+              @for (author of authors(); track author.id) {
+                <option [value]="author.id">
+                  {{ author.name }}{{ author.username ? ' · ' + author.username : '' }}
+                </option>
+              }
+            </select>
+          </label>
+          <button type="button" (click)="loadAuthors('', true)">Refresh authors</button>
+          <label
+            >Featured-image policy
+            <select formControlName="featured_image_policy">
+              <option value="none">No featured image</option>
+              <option value="optional">Optional image</option>
+              <option value="required">Required image</option>
+            </select>
+          </label>
+          <label
+            >Default media
+            <select formControlName="default_media_id">
+              <option value="">No default media</option>
+              @for (media of mediaItems(); track media.id) {
+                <option [value]="media.id">
+                  {{ media.safe_filename }} · {{ media.width }}×{{ media.height }}
+                </option>
+              }
+            </select>
+          </label>
           <a routerLink="/settings/publishing/connectors/wordpress"
             >Configure WordPress credentials</a
           >
@@ -110,6 +178,7 @@ export class DestinationFormComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly api = inject(PublishingService);
   private readonly brandsApi = inject(BrandService);
+  private readonly mediaApi = inject(MediaService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly brands = signal<BrandSummary[]>([]);
@@ -118,6 +187,11 @@ export class DestinationFormComponent implements OnInit {
   readonly error = signal('');
   readonly editing = signal(false);
   readonly development = !environment.production;
+  readonly categories = signal<WordPressTerm[]>([]);
+  readonly tags = signal<WordPressTerm[]>([]);
+  readonly authors = signal<WordPressAuthor[]>([]);
+  readonly mediaItems = signal<MediaAsset[]>([]);
+  readonly taxonomyBusy = signal(false);
   private id = '';
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(160)]],
@@ -134,6 +208,8 @@ export class DestinationFormComponent implements OnInit {
     category_ids: [''],
     tag_ids: [''],
     author_id: [''],
+    featured_image_policy: this.fb.nonNullable.control<'none' | 'optional' | 'required'>('none'),
+    default_media_id: [''],
   });
   ngOnInit(): void {
     this.form.controls.connector_key.valueChanges.subscribe((key) => {
@@ -159,6 +235,7 @@ export class DestinationFormComponent implements OnInit {
     try {
       const brands = await this.brandsApi.list({ includeArchived: false, pageSize: 100 });
       this.brands.set(brands.items);
+      this.mediaItems.set((await this.mediaApi.list({ pageSize: 100 })).items);
       this.id = this.route.snapshot.paramMap.get('id') ?? '';
       this.editing.set(Boolean(this.id));
       if (this.id) {
@@ -180,8 +257,13 @@ export class DestinationFormComponent implements OnInit {
                 category_ids: configuration.category_ids.join(', '),
                 tag_ids: configuration.tag_ids.join(', '),
                 author_id: configuration.author_id ? String(configuration.author_id) : '',
+                featured_image_policy: configuration.featured_image_policy,
+                default_media_id: configuration.default_media_id ?? '',
               }),
         });
+      }
+      if (this.form.controls.connector_key.value === 'wordpress') {
+        await Promise.all([this.loadCategories(), this.loadTags(), this.loadAuthors()]);
       }
     } catch (error) {
       this.error.set(PublishingService.errorMessage(error));
@@ -212,6 +294,8 @@ export class DestinationFormComponent implements OnInit {
               tag_ids: ids(value.tag_ids),
               author_id: value.author_id ? Number(value.author_id) : null,
               media_policy: 'fail' as const,
+              featured_image_policy: value.featured_image_policy,
+              default_media_id: value.default_media_id || null,
               update_existing_remote_post: true,
               content_mapping_version: 1 as const,
             }
@@ -231,6 +315,45 @@ export class DestinationFormComponent implements OnInit {
       this.error.set(PublishingService.errorMessage(error));
     } finally {
       this.busy.set(false);
+    }
+  }
+  selectedId(control: 'category_ids' | 'tag_ids', id: number): boolean {
+    return this.form.controls[control].value.split(',').map(Number).includes(id);
+  }
+  toggleId(control: 'category_ids' | 'tag_ids', id: number): void {
+    const values = new Set(
+      this.form.controls[control].value.split(',').map(Number).filter(Boolean),
+    );
+    if (values.has(id)) values.delete(id);
+    else values.add(id);
+    this.form.controls[control].setValue([...values].join(','));
+  }
+  async loadCategories(search = '', refresh = false) {
+    this.taxonomyBusy.set(true);
+    try {
+      this.categories.set(
+        (await this.api.wordpressCategories(search, refresh)).items as WordPressTerm[],
+      );
+    } catch (error) {
+      this.error.set(PublishingService.errorMessage(error));
+    } finally {
+      this.taxonomyBusy.set(false);
+    }
+  }
+  async loadTags(search = '', refresh = false) {
+    try {
+      this.tags.set((await this.api.wordpressTags(search, refresh)).items as WordPressTerm[]);
+    } catch (error) {
+      this.error.set(PublishingService.errorMessage(error));
+    }
+  }
+  async loadAuthors(search = '', refresh = false) {
+    try {
+      this.authors.set(
+        (await this.api.wordpressAuthors(search, refresh)).items as WordPressAuthor[],
+      );
+    } catch (error) {
+      this.error.set(PublishingService.errorMessage(error));
     }
   }
 }

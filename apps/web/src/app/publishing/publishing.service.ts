@@ -11,10 +11,10 @@ import type {
   PublishingExecutionDetails,
   UpdatePublishingDestinationRequest,
   UpdateWordPressConnectorRequest,
-  WordPressAuthor,
   WordPressConnectorConfiguration,
-  WordPressTerm,
   WordPressValidationResult,
+  WordPressTaxonomyPage,
+  PublishingPreview,
   PublishingReconciliationResult,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
@@ -181,19 +181,36 @@ export class PublishingService {
       ),
     );
   }
-  wordpressCategories() {
+  private taxonomy(kind: 'categories' | 'tags' | 'authors', search = '', refresh = false) {
+    const params = new HttpParams()
+      .set('search', search)
+      .set('page', 1)
+      .set('page_size', 50)
+      .set('refresh', refresh);
     return firstValueFrom(
-      this.http.get<WordPressTerm[]>(`${this.base}/connectors/wordpress/categories`, this.options),
+      this.http.get<WordPressTaxonomyPage>(`${this.base}/connectors/wordpress/${kind}`, {
+        ...this.options,
+        params,
+      }),
     );
   }
-  wordpressTags() {
-    return firstValueFrom(
-      this.http.get<WordPressTerm[]>(`${this.base}/connectors/wordpress/tags`, this.options),
-    );
+  wordpressCategories(search = '', refresh = false) {
+    return this.taxonomy('categories', search, refresh);
   }
-  wordpressAuthors() {
+  wordpressTags(search = '', refresh = false) {
+    return this.taxonomy('tags', search, refresh);
+  }
+  wordpressAuthors(search = '', refresh = false) {
+    return this.taxonomy('authors', search, refresh);
+  }
+  preview(data: {
+    artifact_id: string;
+    destination_id: string;
+    action: 'create_draft' | 'publish' | 'update';
+    featured_media_id?: string | null;
+  }) {
     return firstValueFrom(
-      this.http.get<WordPressAuthor[]>(`${this.base}/connectors/wordpress/authors`, this.options),
+      this.http.post<PublishingPreview>(`${this.base}/preview`, data, this.options),
     );
   }
   cancel(id: string) {
@@ -218,6 +235,15 @@ export class PublishingService {
     return firstValueFrom(
       this.http.post<PublishingExecutionDetails>(
         `${this.base}/executions/${id}/move-to-draft`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  keepRemote(id: string) {
+    return firstValueFrom(
+      this.http.post<PublishingExecutionDetails>(
+        `${this.base}/executions/${id}/keep-remote`,
         {},
         this.options,
       ),

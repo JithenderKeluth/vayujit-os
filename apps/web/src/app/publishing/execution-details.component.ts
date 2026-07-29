@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import type { PublishingExecutionDetails } from '@vayujit/shared';
+import type { PublishingExecutionDetails, PublishingReconciliationResult } from '@vayujit/shared';
 import { AttemptTimelineComponent } from './attempt-timeline.component';
 import { PublishingService } from './publishing.service';
 
@@ -31,6 +31,9 @@ import { PublishingService } from './publishing.service';
             <button [disabled]="busy()" (click)="retry()">
               {{ busy() ? 'Retrying…' : 'Retry original snapshot' }}
             </button>
+          }
+          @if (value.connector_key === 'wordpress' && value.remote_entity_id) {
+            <button [disabled]="busy()" (click)="reconcile()">Refresh remote state</button>
           }
         </header>
         @if (value.status === 'succeeded') {
@@ -85,6 +88,15 @@ import { PublishingService } from './publishing.service';
               <dd>{{ value.external_reference }}</dd>
             </div>
           }
+          @if (value.connector_key === 'wordpress') {
+            <div>
+              <dt>Remote post</dt>
+              <dd>
+                {{ value.remote_entity_id || 'Unknown' }} · {{ value.remote_status || 'Unknown' }} ·
+                {{ value.reconciliation_status }}
+              </dd>
+            </div>
+          }
           @if (value.external_url) {
             <div>
               <dt>Display-only mock URL</dt>
@@ -113,8 +125,61 @@ import { PublishingService } from './publishing.service';
           <a [routerLink]="['/products', value.product_id]">View Product</a
           ><a [routerLink]="['/ai/artifacts', value.artifact_id]">View source Artifact</a
           ><a [routerLink]="['/publishing/destinations', value.destination_id]">View destination</a>
+          @if (value.remote_edit_url) {
+            <a [href]="value.remote_edit_url" target="_blank" rel="noopener noreferrer"
+              >Open remote post</a
+            >
+          }
+          @if (value.connector_key === 'wordpress' && value.remote_entity_id) {
+            <button [disabled]="busy()" (click)="moveToDraft()">Move remote post to draft</button>
+          }
         </div>
       </article>
+      @if (reconciliation(); as result) {
+        <article class="pub-card">
+          <h2>Remote drift comparison</h2>
+          <p>
+            <strong>{{ result.reconciliation_status }}</strong
+            >. Remote changes are never overwritten automatically.
+          </p>
+          <div class="pub-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Field</th>
+                  <th>Expected</th>
+                  <th>Remote</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (difference of result.differences; track difference.field) {
+                  <tr>
+                    <th>{{ difference.field }}</th>
+                    <td>{{ display(difference.expected) }}</td>
+                    <td>{{ display(difference.remote) }}</td>
+                    <td>{{ difference.status }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="pub-actions">
+            @if (result.reconciliation_status === 'changed_remotely') {
+              <button [disabled]="busy()" (click)="keepRemote()">Keep remote changes</button>
+              <button [disabled]="busy()" (click)="overwrite()">
+                Update remote from approved Artifact
+              </button>
+            }
+            <a
+              [routerLink]="['/publishing/new']"
+              [queryParams]="{ destination: value.destination_id }"
+              >Create a new draft</a
+            >
+            <a routerLink="/settings/publishing/connectors/wordpress">Open destination settings</a>
+          </div>
+        </article>
+      }
       <article class="pub-card">
         <h2>Content snapshot</h2>
         <p>
@@ -151,6 +216,7 @@ export class ExecutionDetailsComponent implements OnInit {
   readonly loading = signal(true);
   readonly busy = signal(false);
   readonly error = signal('');
+  readonly reconciliation = signal<PublishingReconciliationResult | null>(null);
   private id = '';
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -175,6 +241,58 @@ export class ExecutionDetailsComponent implements OnInit {
     this.error.set('');
     try {
       this.item.set(await this.api.retry(this.id));
+    } catch (error) {
+      this.error.set(PublishingService.errorMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  display(value: unknown): string {
+    if (value === null || value === undefined) return 'Unknown';
+    if (typeof value === 'object') return JSON.stringify(value);
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean') return `${value}`;
+    return 'Unknown';
+  }
+  async reconcile() {
+    await this.run(async () => {
+      this.reconciliation.set(await this.api.reconcile(this.id));
+      await this.load();
+    });
+  }
+  async keepRemote() {
+    await this.run(async () => {
+      this.item.set(await this.api.keepRemote(this.id));
+    });
+  }
+  async moveToDraft() {
+    if (!confirm('Move the remote WordPress post to draft? It will not be deleted.')) return;
+    await this.run(async () => {
+      this.item.set(await this.api.moveToDraft(this.id));
+    });
+  }
+  async overwrite() {
+    if (!confirm('Overwrite reviewed remote changes using the approved immutable Artifact?'))
+      return;
+    const value = this.item();
+    if (!value) return;
+    await this.run(async () => {
+      const result = await this.api.publish({
+        artifact_id: value.artifact_id,
+        destination_id: value.destination_id,
+        idempotency_key: crypto.randomUUID(),
+        action: 'update',
+        featured_media_id: (value.request_snapshot['featured_media_id'] as string | null) ?? null,
+      });
+      this.item.set(result);
+    });
+  }
+  private async run(operation: () => Promise<void>) {
+    if (this.busy()) return;
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      await operation();
     } catch (error) {
       this.error.set(PublishingService.errorMessage(error));
     } finally {

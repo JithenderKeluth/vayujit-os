@@ -57,6 +57,11 @@ class Settings(BaseSettings):
         ),
     )
     wordpress_required: bool = False
+    media_storage_directory: str = "../../var/media"
+    media_max_size_bytes: int = Field(default=10 * 1024 * 1024, ge=1024, le=50 * 1024 * 1024)
+    media_max_dimension: int = Field(default=10000, ge=256, le=50000)
+    media_min_free_bytes: int = Field(default=100 * 1024 * 1024, ge=1024 * 1024)
+    wordpress_taxonomy_cache_seconds: int = Field(default=900, ge=60, le=3600)
 
     @field_validator("environment")
     @classmethod

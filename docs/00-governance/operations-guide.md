@@ -11,3 +11,9 @@ Backups use owner-scoped metadata, bounded filenames, SHA-256, and compatibility
 Audit exposes a safe projection with correlation filtering and formula-safe bounded CSV.
 
 Use `npm.cmd run system:doctor` for PASS/WARN/FAIL runtime checks.
+# Media and WordPress UX
+
+System health reports media write access/free-space state and WordPress taxonomy/media readiness
+without exposing storage paths. Recovery includes upload validation and taxonomy lookup failures.
+Operators may retry upload, select another image, refresh taxonomy, reconcile remote state, or open
+the relevant destination/execution.

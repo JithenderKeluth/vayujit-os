@@ -23,11 +23,12 @@ from vayujit_api.publishing.schemas import (
     DestinationWrite,
     ExecutionResponse,
     Page,
+    PublishingPreviewRequest,
+    PublishingPreviewResponse,
     ReconciliationResponse,
-    WordPressAuthor,
     WordPressConnectorResponse,
     WordPressConnectorUpdate,
-    WordPressTerm,
+    WordPressTaxonomyPage,
     WordPressValidationResult,
 )
 from vayujit_api.publishing.service import (
@@ -36,14 +37,17 @@ from vayujit_api.publishing.service import (
     create_execution,
     destination_response,
     execution_response,
+    keep_remote_changes,
     move_execution_to_draft,
     owned_destination,
     owned_execution,
+    publishing_preview,
     reconcile_execution,
     retry_execution,
     set_destination_status,
     update_destination,
 )
+from vayujit_api.publishing.taxonomy import discover, invalidate
 from vayujit_api.publishing.wordpress import (
     capabilities,
     connector_for,
@@ -164,6 +168,7 @@ def set_wordpress_enabled(db: Session, owner: User, enabled: bool) -> WordPressC
         metadata={"connector": "wordpress"},
     )
     db.commit()
+    invalidate(owner.id)
     return response_for(value)
 
 
@@ -185,43 +190,64 @@ def wordpress_credential_delete(db: DB, owner: Owner) -> WordPressConnectorRespo
         raise HTTPException(404, str(error)) from error
 
 
-def wordpress_collection(db: Session, owner: User, endpoint: str) -> list[object]:
-    value = owned_configuration(db, owner.id)
-    if not value:
-        raise HTTPException(409, "WordPress is not configured.")
+def taxonomy_page(
+    db: Session,
+    owner: User,
+    kind: str,
+    search: str,
+    page: int,
+    page_size: int,
+    refresh: bool,
+) -> WordPressTaxonomyPage:
     try:
-        result = connector_for(value).request("GET", endpoint)
+        return discover(
+            db,
+            owner,
+            kind,
+            search=search,
+            page=page,
+            page_size=page_size,
+            refresh=refresh,
+        )
     except (ValueError, ConnectorFailure) as error:
         message = error.safe_message if isinstance(error, ConnectorFailure) else str(error)
         raise HTTPException(502, message) from error
-    return result[:100] if isinstance(result, list) else []
 
 
-@router.get("/connectors/wordpress/categories", response_model=list[WordPressTerm])
-def wordpress_categories(db: DB, owner: Owner) -> list[WordPressTerm]:
-    return [
-        WordPressTerm(id=int(x["id"]), name=str(x["name"]), slug=str(x.get("slug") or ""))
-        for x in wordpress_collection(db, owner, "/categories")
-        if isinstance(x, dict) and isinstance(x.get("id"), int) and isinstance(x.get("name"), str)
-    ]
+@router.get("/connectors/wordpress/categories", response_model=WordPressTaxonomyPage)
+def wordpress_categories(
+    db: DB,
+    owner: Owner,
+    search: Annotated[str, Query(max_length=100)] = "",
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 25,
+    refresh: bool = False,
+) -> WordPressTaxonomyPage:
+    return taxonomy_page(db, owner, "categories", search, page, page_size, refresh)
 
 
-@router.get("/connectors/wordpress/tags", response_model=list[WordPressTerm])
-def wordpress_tags(db: DB, owner: Owner) -> list[WordPressTerm]:
-    return [
-        WordPressTerm(id=int(x["id"]), name=str(x["name"]), slug=str(x.get("slug") or ""))
-        for x in wordpress_collection(db, owner, "/tags")
-        if isinstance(x, dict) and isinstance(x.get("id"), int) and isinstance(x.get("name"), str)
-    ]
+@router.get("/connectors/wordpress/tags", response_model=WordPressTaxonomyPage)
+def wordpress_tags(
+    db: DB,
+    owner: Owner,
+    search: Annotated[str, Query(max_length=100)] = "",
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 25,
+    refresh: bool = False,
+) -> WordPressTaxonomyPage:
+    return taxonomy_page(db, owner, "tags", search, page, page_size, refresh)
 
 
-@router.get("/connectors/wordpress/authors", response_model=list[WordPressAuthor])
-def wordpress_authors(db: DB, owner: Owner) -> list[WordPressAuthor]:
-    return [
-        WordPressAuthor(id=int(x["id"]), name=str(x["name"]))
-        for x in wordpress_collection(db, owner, "/users")
-        if isinstance(x, dict) and isinstance(x.get("id"), int) and isinstance(x.get("name"), str)
-    ]
+@router.get("/connectors/wordpress/authors", response_model=WordPressTaxonomyPage)
+def wordpress_authors(
+    db: DB,
+    owner: Owner,
+    search: Annotated[str, Query(max_length=100)] = "",
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 25,
+    refresh: bool = False,
+) -> WordPressTaxonomyPage:
+    return taxonomy_page(db, owner, "authors", search, page, page_size, refresh)
 
 
 @router.get("/destinations", response_model=Page)
@@ -302,6 +328,13 @@ def execution_create(data: CreateExecution, db: DB, owner: Owner) -> ExecutionRe
     return create_execution(db, owner, data)
 
 
+@router.post("/preview", response_model=PublishingPreviewResponse)
+def preview_create(
+    data: PublishingPreviewRequest, db: DB, owner: Owner
+) -> PublishingPreviewResponse:
+    return publishing_preview(db, owner, data)
+
+
 @router.get("/executions", response_model=Page)
 def executions(
     db: DB,
@@ -379,3 +412,8 @@ def execution_reconcile(execution_id: uuid.UUID, db: DB, owner: Owner) -> Reconc
 @router.post("/executions/{execution_id}/move-to-draft", response_model=ExecutionResponse)
 def execution_move_to_draft(execution_id: uuid.UUID, db: DB, owner: Owner) -> ExecutionResponse:
     return move_execution_to_draft(db, owner, execution_id)
+
+
+@router.post("/executions/{execution_id}/keep-remote", response_model=ExecutionResponse)
+def execution_keep_remote(execution_id: uuid.UUID, db: DB, owner: Owner) -> ExecutionResponse:
+    return keep_remote_changes(db, owner, execution_id)

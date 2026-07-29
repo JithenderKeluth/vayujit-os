@@ -7,6 +7,8 @@ import type {
   BrandSummary,
   ProductSummary,
   PublishingDestinationSummary,
+  MediaAsset,
+  PublishingPreview,
 } from '@vayujit/shared';
 import { AIService } from '../ai/ai.service';
 import { BrandService } from '../brands/brand.service';
@@ -14,6 +16,7 @@ import { ProductService } from '../products/product.service';
 import { PublicationPreviewComponent } from './publication-preview.component';
 import { PublishingService } from './publishing.service';
 import { OperationsService } from '../operations/operations.service';
+import { MediaService } from '../media/media.service';
 
 @Component({
   selector: 'app-publish-new',
@@ -64,14 +67,14 @@ import { OperationsService } from '../operations/operations.service';
         </select></label
       ><label
         >4. Action
-        <select name="action" [(ngModel)]="action">
+        <select name="action" [(ngModel)]="action" (ngModelChange)="refreshPreview()">
           <option value="create_draft">Create draft</option>
           <option value="publish">Publish</option>
           <option value="update">Update existing WordPress post</option>
         </select></label
       ><label
         >5. Compatible destination
-        <select name="destination" [(ngModel)]="destinationId">
+        <select name="destination" [(ngModel)]="destinationId" (ngModelChange)="refreshPreview()">
           <option value="">Select destination</option>
           @for (item of compatibleDestinations(); track item.id) {
             <option [value]="item.id">
@@ -80,6 +83,24 @@ import { OperationsService } from '../operations/operations.service';
           }
         </select></label
       >
+      @if (selectedDestination()?.connector_key === 'wordpress') {
+        <label
+          >6. Featured image
+          <select
+            name="featuredMedia"
+            [(ngModel)]="featuredMediaId"
+            (ngModelChange)="refreshPreview()"
+          >
+            <option value="">No featured image</option>
+            @for (media of mediaItems(); track media.id) {
+              <option [value]="media.id">
+                {{ media.safe_filename }} · {{ media.width }}×{{ media.height }}
+              </option>
+            }
+          </select>
+        </label>
+        <a routerLink="/media/upload">Upload a new image</a>
+      }
       @if (productId && !eligibleArtifacts().length) {
         <div class="pub-empty">
           <p>No approved artifact is eligible for this Product.</p>
@@ -97,6 +118,39 @@ import { OperationsService } from '../operations/operations.service';
         [product]="selectedProduct()"
         [destination]="selectedDestination()"
       />
+      @if (preview(); as mapped) {
+        <article class="pub-card">
+          <h2>WordPress mapped preview</h2>
+          <dl>
+            <dt>Title</dt>
+            <dd>{{ mapped.title }}</dd>
+            <dt>Slug</dt>
+            <dd>{{ mapped.slug }}</dd>
+            <dt>Status</dt>
+            <dd>{{ mapped.post_status }}</dd>
+            <dt>Excerpt</dt>
+            <dd>{{ mapped.excerpt }}</dd>
+            <dt>Categories</dt>
+            <dd>{{ mapped.category_ids.join(', ') || 'None' }}</dd>
+            <dt>Tags</dt>
+            <dd>{{ mapped.tag_ids.join(', ') || 'None' }}</dd>
+            <dt>Author</dt>
+            <dd>{{ mapped.author_id || 'WordPress default' }}</dd>
+          </dl>
+          <h3>Original generated text</h3>
+          <pre>{{ mapped.original_text }}</pre>
+          <h3>Sanitized WordPress output</h3>
+          <pre>{{ mapped.sanitized_body }}</pre>
+          <ul>
+            @for (change of mapped.sanitization_changes; track change.kind) {
+              <li>
+                <strong>{{ change.kind }}</strong
+                >: {{ change.message }}
+              </li>
+            }
+          </ul>
+        </article>
+      }
       @if (selectedArtifact() && selectedDestination()) {
         <label
           ><input type="checkbox" name="confirmed" [(ngModel)]="confirmed" /> I confirm this
@@ -117,12 +171,15 @@ export class PublishNewComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly operations = inject(OperationsService);
+  private readonly mediaApi = inject(MediaService);
   private preferredDestinationId = '';
   readonly brands = signal<BrandSummary[]>([]);
   readonly products = signal<ProductSummary[]>([]);
   readonly artifacts = signal<AIHistoryItem[]>([]);
   readonly artifactDetails = signal<AIArtifactDetails | null>(null);
   readonly destinations = signal<PublishingDestinationSummary[]>([]);
+  readonly mediaItems = signal<MediaAsset[]>([]);
+  readonly preview = signal<PublishingPreview | null>(null);
   readonly loading = signal(true);
   readonly busy = signal(false);
   readonly error = signal('');
@@ -130,6 +187,7 @@ export class PublishNewComponent implements OnInit {
   productId = '';
   artifactId = '';
   destinationId = '';
+  featuredMediaId = '';
   confirmed = false;
   action: 'create_draft' | 'publish' | 'update' = 'publish';
   private idempotencyKey = '';
@@ -161,18 +219,21 @@ export class PublishNewComponent implements OnInit {
   }
   private async load() {
     try {
-      const [brands, active, products, artifacts, destinations, settings] = await Promise.all([
-        this.brandApi.list({ pageSize: 100 }),
-        this.brandApi.loadActive(),
-        this.productsApi.list({ allBrands: true, pageSize: 100 }),
-        this.ai.history({ artifactStatus: 'approved', pageSize: 100 }),
-        this.publishing.destinations({ status: 'active', pageSize: 100 }),
-        this.operations.settings(),
-      ]);
+      const [brands, active, products, artifacts, destinations, settings, media] =
+        await Promise.all([
+          this.brandApi.list({ pageSize: 100 }),
+          this.brandApi.loadActive(),
+          this.productsApi.list({ allBrands: true, pageSize: 100 }),
+          this.ai.history({ artifactStatus: 'approved', pageSize: 100 }),
+          this.publishing.destinations({ status: 'active', pageSize: 100 }),
+          this.operations.settings(),
+          this.mediaApi.list({ pageSize: 100 }),
+        ]);
       this.brands.set(brands.items);
       this.products.set(products.items);
       this.artifacts.set(artifacts.items);
       this.destinations.set(destinations.items);
+      this.mediaItems.set(media.items);
       this.brandId = active?.id ?? '';
       this.preferredDestinationId =
         this.route.snapshot.queryParamMap.get('destination') ??
@@ -212,6 +273,28 @@ export class PublishNewComponent implements OnInit {
     this.confirmed = false;
     this.idempotencyKey = '';
     this.artifactDetails.set(this.artifactId ? await this.ai.artifact(this.artifactId) : null);
+    await this.refreshPreview();
+  }
+  async refreshPreview() {
+    this.preview.set(null);
+    if (
+      !this.artifactId ||
+      !this.destinationId ||
+      this.selectedDestination()?.connector_key !== 'wordpress'
+    )
+      return;
+    try {
+      this.preview.set(
+        await this.publishing.preview({
+          artifact_id: this.artifactId,
+          destination_id: this.destinationId,
+          action: this.action,
+          featured_media_id: this.featuredMediaId || null,
+        }),
+      );
+    } catch (error) {
+      this.error.set(PublishingService.errorMessage(error));
+    }
   }
   async publish() {
     if (!this.artifactId || !this.destinationId || !this.confirmed || this.busy()) return;
@@ -225,6 +308,7 @@ export class PublishNewComponent implements OnInit {
         destination_id: this.destinationId,
         idempotency_key: this.idempotencyKey,
         action: this.action,
+        featured_media_id: this.featuredMediaId || null,
       });
       await this.router.navigate(['/publishing/executions', result.id]);
     } catch (error) {

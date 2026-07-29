@@ -35,3 +35,11 @@ correlation, release diagnostics, and dependency governance. Real providers, con
 scheduling, billing, and organization features remain out of scope.
 
 Commit only S1-01 through S1-04 first as a walking skeleton, then data/auth/business objects, then AI/workflow/approval/publishing, and finally history, audit, acceptance tests, and documentation. S1-10 and S1-15 are sized L and should be split into state/persistence/recovery and test-suite subtasks during Jira refinement.
+# WordPress Publishing UX acceptance slice
+
+- Media Library and secure upload
+- Featured-image policy and remote mapping
+- Cached searchable category, tag, and author selectors
+- Shared Publishing preview and sanitization comparison
+- Field-level drift and explicit reconciliation decisions
+- Recovery, health, audit, accessibility, Electron, and guarded migration acceptance

@@ -93,3 +93,9 @@ backup records, and correlation-aware audit history. Liveness remains independen
 readiness returns unavailable when essential dependencies are unsafe. Maintenance blocks business
 writes without blocking health or guarded backup operations. Restore is preflight-only through the
 application and destructive execution remains an operator responsibility.
+# WordPress Publishing UX requirements
+
+The system shall provide authenticated owner-scoped local image storage for JPEG, PNG, and WebP;
+checksum duplicate reuse; featured-image policy; bounded taxonomy discovery/cache; backend-owned
+WordPress preview/sanitization; field-level remote drift; and explicit reconciliation decisions.
+It shall not fetch arbitrary image URLs, expose paths, render unsafe HTML, or delete remote media.

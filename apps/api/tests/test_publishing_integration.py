@@ -1,7 +1,9 @@
 import json
 import os
+import struct
 import uuid
 from collections.abc import Generator
+from pathlib import Path
 
 import httpx
 import pytest
@@ -11,6 +13,7 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from vayujit_api.ai.models import PromptTemplate
 from vayujit_api.audit.models import AuditEvent
+from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import Base, get_session
 from vayujit_api.core.test_database import reset_test_schema
 from vayujit_api.identity.router import attempts
@@ -202,14 +205,32 @@ def test_complete_publish_idempotency_failure_and_retry(client: TestClient) -> N
 
 
 def test_wordpress_draft_reconcile_and_move_to_draft(
-    client: TestClient, monkeypatch: pytest.MonkeyPatch
+    client: TestClient, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
+    monkeypatch.setattr(get_settings(), "media_storage_directory", str(tmp_path / "media"))
     brand, artifact = setup(client)
     posts: dict[int, dict[str, object]] = {}
+    remote_media: dict[int, dict[str, object]] = {}
 
     def handler(request: httpx.Request) -> httpx.Response:
         if request.url.path.endswith("/users/me"):
             return httpx.Response(200, json={"id": 1, "name": "Owner"})
+        if request.url.path.endswith("/categories"):
+            return httpx.Response(
+                200, json=[{"id": 3, "name": "Featured", "slug": "featured", "parent": 0}]
+            )
+        if request.url.path.endswith("/tags"):
+            return httpx.Response(200, json=[{"id": 4, "name": "Launch", "slug": "launch"}])
+        if request.url.path.endswith("/users"):
+            return httpx.Response(200, json=[{"id": 1, "name": "Owner", "slug": "owner"}])
+        if request.url.path.endswith("/media") and request.method == "POST":
+            remote_media[61] = {
+                "id": 61,
+                "source_url": "http://127.0.0.1/media/61.png",
+            }
+            return httpx.Response(201, json=remote_media[61])
+        if request.url.path.endswith("/media/61"):
+            return httpx.Response(200, json=remote_media[61])
         if request.url.path.endswith("/posts") and request.method == "POST":
             body = json.loads(request.content)
             posts[81] = {
@@ -217,6 +238,13 @@ def test_wordpress_draft_reconcile_and_move_to_draft(
                 "status": body["status"],
                 "slug": body["slug"],
                 "link": "http://127.0.0.1/?p=81",
+                "title": {"rendered": body["title"]},
+                "excerpt": {"rendered": body["excerpt"]},
+                "categories": body.get("categories", []),
+                "tags": body.get("tags", []),
+                "author": body.get("author"),
+                "featured_media": body.get("featured_media"),
+                "modified_gmt": "2026-08-01T00:00:00",
             }
             return httpx.Response(201, json=posts[81])
         if request.url.path.endswith("/posts/81") and request.method == "GET":
@@ -236,6 +264,7 @@ def test_wordpress_draft_reconcile_and_move_to_draft(
     )
     monkeypatch.setattr("vayujit_api.publishing.router.connector_for", lambda _value: fake)
     monkeypatch.setattr("vayujit_api.publishing.service.connector_for", lambda _value: fake)
+    monkeypatch.setattr("vayujit_api.publishing.taxonomy.connector_for", lambda _value: fake)
     configuration = client.put(
         "/api/v1/publishing/connectors/wordpress",
         json={
@@ -255,6 +284,25 @@ def test_wordpress_draft_reconcile_and_move_to_draft(
         client.post("/api/v1/publishing/connectors/wordpress/enable", headers=ORIGIN).status_code
         == 200
     )
+    categories = client.get("/api/v1/publishing/connectors/wordpress/categories?search=feat")
+    assert categories.status_code == 200 and categories.json()["items"][0]["id"] == 3
+    assert client.get("/api/v1/publishing/connectors/wordpress/tags").json()["items"][0]["id"] == 4
+    assert (
+        client.get("/api/v1/publishing/connectors/wordpress/authors").json()["items"][0]["id"] == 1
+    )
+    local_png = (
+        b"\x89PNG\r\n\x1a\n"
+        + b"\x00\x00\x00\rIHDR"
+        + struct.pack(">II", 2, 3)
+        + b"\x08\x06\x00\x00\x00"
+        + b"\x00\x00\x00\x00"
+        + b"\x00\x00\x00\x00IEND\x00\x00\x00\x00"
+    )
+    local_media = client.post(
+        "/api/v1/media",
+        files={"file": ("featured.png", local_png, "image/png")},
+        headers=ORIGIN,
+    ).json()
     destination = client.post(
         "/api/v1/publishing/destinations",
         json={
@@ -267,6 +315,8 @@ def test_wordpress_draft_reconcile_and_move_to_draft(
                 "tag_ids": [],
                 "author_id": None,
                 "media_policy": "fail",
+                "featured_image_policy": "required",
+                "default_media_id": local_media["id"],
                 "update_existing_remote_post": True,
                 "content_mapping_version": 1,
             },
@@ -287,12 +337,34 @@ def test_wordpress_draft_reconcile_and_move_to_draft(
     assert execution.status_code == 201
     assert execution.json()["remote_entity_id"] == "81"
     assert execution.json()["remote_status"] == "draft"
+    assert posts[81]["featured_media"] == 61
+    repeated = client.post(
+        "/api/v1/publishing/executions",
+        json={
+            "artifact_id": artifact["id"],
+            "destination_id": destination.json()["id"],
+            "idempotency_key": "wordpress-draft-001",
+            "action": "create_draft",
+        },
+        headers=ORIGIN,
+    )
+    assert repeated.json()["id"] == execution.json()["id"]
+    assert len(remote_media) == 1
     reconciled = client.post(
         f"/api/v1/publishing/executions/{execution.json()['id']}/reconcile",
         headers=ORIGIN,
     )
     assert reconciled.status_code == 200
     assert reconciled.json()["reconciliation_status"] == "in_sync"
+    posts[81]["title"] = {"rendered": "Changed remotely"}
+    drifted = client.post(
+        f"/api/v1/publishing/executions/{execution.json()['id']}/reconcile",
+        headers=ORIGIN,
+    )
+    assert "title" in drifted.json()["drift_fields"]
+    remote_title = posts[81]["title"]
+    assert isinstance(remote_title, dict)
+    assert remote_title["rendered"] == "Changed remotely"
     moved = client.post(
         f"/api/v1/publishing/executions/{execution.json()['id']}/move-to-draft",
         headers=ORIGIN,
