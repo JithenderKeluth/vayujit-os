@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "22.x || 24.x"
+    "node": "22.x || 24.x",
+    "npm": "11.x"
   },
   "workspaces": [
     "apps/web",
@@ -32,7 +33,22 @@
     "format:check": "prettier --check .",
     "db:up": "docker compose -f infrastructure/docker-compose.yml up -d",
     "db:down": "docker compose -f infrastructure/docker-compose.yml down",
-    "db:migrate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/migrate-api.ps1"
+    "db:migrate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/migrate-api.ps1",
+    "security:audit": "npm audit --audit-level=high",
+    "security:audit:prod": "npm audit --omit=dev --audit-level=high",
+    "security:licenses": "node scripts/dependency-licenses.mjs",
+    "security:check": "npm run security:audit:prod && npm run security:licenses",
+    "system:doctor": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/system-doctor.ps1",
+    "backup:create": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 backup-create",
+    "backup:list": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 backup-list",
+    "backup:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 backup-verify",
+    "backup:restore-plan": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 backup-restore-plan",
+    "maintenance:on": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 maintenance-on",
+    "maintenance:off": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 maintenance-off",
+    "maintenance:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 maintenance-status",
+    "maintenance:cleanup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 maintenance-cleanup --dry-run",
+    "sessions:cleanup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 sessions-cleanup",
+    "migration:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 migration-status"
   },
   "devDependencies": {
     "concurrently": "9.2.4",

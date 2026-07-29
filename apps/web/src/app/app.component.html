@@ -14,6 +14,11 @@
       <button type="button" (click)="logout()">Log out</button>
     </aside>
     <main>
+      @if (maintenance()) {
+        <div class="maintenance-banner" role="alert">
+          Maintenance mode is enabled. State-changing business operations are temporarily blocked.
+        </div>
+      }
       <details class="mobile-menu">
         <summary>Application menu</summary>
         <nav aria-label="Mobile primary navigation">

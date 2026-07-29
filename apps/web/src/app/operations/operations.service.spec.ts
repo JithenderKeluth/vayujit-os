@@ -71,4 +71,52 @@ describe('OperationsService', () => {
     revokeRequest.flush(null);
     await revoke;
   });
+
+  it('loads authenticated health, release, maintenance, and recovery projections', async () => {
+    const health = service.health();
+    const healthRequest = http.expectOne('http://127.0.0.1:8000/api/v1/system/health');
+    expect(healthRequest.request.withCredentials).toBe(true);
+    healthRequest.flush({ status: 'degraded', components: [] });
+    expect((await health).status).toBe('degraded');
+
+    const release = service.release();
+    http
+      .expectOne('http://127.0.0.1:8000/api/v1/system/release')
+      .flush({ semantic_version: '0.1.0' });
+    expect((await release).semantic_version).toBe('0.1.0');
+
+    const maintenance = service.maintenance();
+    http.expectOne('http://127.0.0.1:8000/api/v1/system/maintenance').flush({ enabled: true });
+    expect((await maintenance).enabled).toBe(true);
+
+    const recovery = service.recovery({ category: 'workflow', retryable: 'true' });
+    const recoveryRequest = http.expectOne(
+      (request) =>
+        request.url.endsWith('/operations/recovery') &&
+        request.params.get('category') === 'workflow' &&
+        request.params.get('retryable') === 'true',
+    );
+    recoveryRequest.flush({ items: [], page: 1, page_size: 25, total: 0, pages: 0 });
+    expect((await recovery).items).toEqual([]);
+  });
+
+  it('uses bounded backup create, verify, and restore-preflight endpoints', async () => {
+    const create = service.createBackup();
+    const createRequest = http.expectOne('http://127.0.0.1:8000/api/v1/operations/backups');
+    expect(createRequest.request.method).toBe('POST');
+    createRequest.flush({ id: 'backup-1', verification_status: 'pending' });
+    expect((await create).id).toBe('backup-1');
+
+    const verify = service.verifyBackup('backup-1');
+    http
+      .expectOne('http://127.0.0.1:8000/api/v1/operations/backups/backup-1/verify')
+      .flush({ id: 'backup-1', verification_status: 'verified' });
+    expect((await verify).verification_status).toBe('verified');
+
+    const preflight = service.restoreCheck('backup-1');
+    http
+      .expectOne('http://127.0.0.1:8000/api/v1/operations/backups/backup-1/restore-check')
+      .flush({ backup_id: 'backup-1', compatible: true, execution_supported: false });
+    expect((await preflight).execution_supported).toBe(false);
+  });
 });

@@ -40,7 +40,12 @@ import { OperationsService } from './operations.service';
           }
         </select></label
       ><label>From<input type="date" name="from" [(ngModel)]="from" /></label
-      ><label>To<input type="date" name="to" [(ngModel)]="to" /></label><button>Apply</button
+      ><label>To<input type="date" name="to" [(ngModel)]="to" /></label
+      ><label>Event<input name="event" maxlength="80" [(ngModel)]="eventName" /></label
+      ><label
+        >Correlation ID<input name="correlation" maxlength="64" [(ngModel)]="correlationId"
+      /></label>
+      <button>Apply</button
       ><button type="button" class="secondary" (click)="timeline.set(!timeline())">
         {{ timeline() ? 'List view' : 'Timeline view' }}
       </button>
@@ -64,6 +69,9 @@ import { OperationsService } from './operations.service';
                 {{ item.timestamp }} · {{ item.category }} · {{ item.entity_type }}
                 {{ item.entity_id.slice(0, 8) }}
               </p>
+              @if (item.correlation_id) {
+                <p class="op-muted">Correlation: {{ item.correlation_id }}</p>
+              }
             </div>
             <span class="op-status">{{ item.status || 'recorded' }}</span>
           </div>
@@ -102,6 +110,8 @@ export class ExecutionHistoryComponent implements OnInit {
   category = '';
   from = '';
   to = '';
+  eventName = '';
+  correlationId = '';
   ngOnInit() {
     void this.init();
   }
@@ -119,6 +129,8 @@ export class ExecutionHistoryComponent implements OnInit {
       brand_id: this.brandId,
       product_id: this.productId,
       category: this.category,
+      event_name: this.eventName,
+      correlation_id: this.correlationId,
       date_from: this.from ? `${this.from}T00:00:00Z` : undefined,
       date_to: this.to ? `${this.to}T23:59:59Z` : undefined,
     };

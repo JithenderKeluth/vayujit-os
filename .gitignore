@@ -32,3 +32,6 @@ Thumbs.db
 *.log
 data/
 backups/
+var/backups/
+var/maintenance/
+var/exports/

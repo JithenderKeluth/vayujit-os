@@ -25,4 +25,9 @@
 
 ## Suggested Delivery Order
 
+Production-hardening follow-up adds structured observability, operational health, recovery,
+verified local backups, guarded restore planning, maintenance and retention commands, audit
+correlation, release diagnostics, and dependency governance. Real providers, connectors, workers,
+scheduling, billing, and organization features remain out of scope.
+
 Commit only S1-01 through S1-04 first as a walking skeleton, then data/auth/business objects, then AI/workflow/approval/publishing, and finally history, audit, acceptance tests, and documentation. S1-10 and S1-15 are sized L and should be split into state/persistence/recovery and test-suite subtasks during Jira refinement.

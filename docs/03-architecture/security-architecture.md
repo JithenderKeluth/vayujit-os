@@ -40,3 +40,7 @@ gating, Brand compatibility, strict configuration and idempotency allow-lists, b
 snapshots/results, display-only non-routable URLs, and sanitized failure/audit metadata.
 Publishing views render snapshots and connector results only through Angular text interpolation.
 Long output is collapsed, status always has text, and mock URLs cannot trigger navigation.
+Production hardening adds bounded correlation IDs, centralized secret-field redaction, distinct
+liveness/readiness, owner-scoped backup metadata, canonical paths, no-shell subprocess arguments,
+SHA-256 verification, guarded restore preflight, maintenance write blocking, and safe audit
+projections. Backups are explicitly unencrypted and destructive restore is not a web API.

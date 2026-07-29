@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './auth/auth.service';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -26,13 +26,24 @@ export class AppComponent {
     ['Workflows', '/workflows'],
     ['Approvals', '/approvals'],
     ['Execution History', '/execution-history'],
+    ['Operations', '/operations'],
     ['Settings', '/settings'],
   ] as const;
+  readonly maintenance = signal(false);
   constructor() {
     effect(() => {
-      if (this.auth.user()) void this.restoreBrandContext();
-      else this.brands.activeBrand.set(null);
+      if (this.auth.user()) {
+        void this.restoreBrandContext();
+        void this.loadMaintenance();
+      } else this.brands.activeBrand.set(null);
     });
+  }
+  private async loadMaintenance(): Promise<void> {
+    try {
+      this.maintenance.set((await this.operations.maintenance()).enabled);
+    } catch {
+      this.maintenance.set(false);
+    }
   }
   async logout(): Promise<void> {
     await this.auth.logout();

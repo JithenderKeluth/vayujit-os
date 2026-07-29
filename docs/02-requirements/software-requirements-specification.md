@@ -77,3 +77,10 @@ The Sprint 1 standalone publishing implementation satisfies SRS-FR-016, SRS-FR-0
 publishing portion of SRS-FR-018/SRS-FR-022 using a deterministic offline connector, durable
 owner-scoped idempotency, immutable attempts/snapshots, filtered execution history, and explicit
 retryable failure classification. Workflow orchestration and restart recovery remain S1-10 scope.
+## Production hardening requirements
+
+The owner can inspect safe component health, release information, recoverable failures, verified
+backup records, and correlation-aware audit history. Liveness remains independent of PostgreSQL;
+readiness returns unavailable when essential dependencies are unsafe. Maintenance blocks business
+writes without blocking health or guarded backup operations. Restore is preflight-only through the
+application and destructive execution remains an operator responsibility.

@@ -81,3 +81,9 @@ summary:focus {
     margin-top: 0.5rem;
   }
 }
+.maintenance-banner {
+  background: #7a2e0e;
+  color: white;
+  padding: 0.75rem 1rem;
+  font-weight: 700;
+}

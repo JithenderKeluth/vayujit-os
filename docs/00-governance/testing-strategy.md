@@ -47,3 +47,7 @@ Operational UI regression includes safe Artifact field/array diff tests, owner-p
 validation and invalidation, default-flow preselection, guarded database integration, Electron
 launcher smoke, and rendered browser/Electron inspection when those interactive surfaces are
 available. Automated smoke results must not be described as visual validation.
+Production-hardening tests cover correlation validation, redaction, maintenance enforcement,
+backup traversal/checksum failure, health, release, recovery, audit filtering, guarded migration,
+and non-destructive commands. Restore validation is allowed only against an explicitly marked
+disposable restore-test database.

@@ -92,6 +92,7 @@ def safe_event(
         status=str(status) if status else None,
         safe_summary=summary,
         related_url=event_url(event),
+        correlation_id=event.correlation_id,
     )
 
 
@@ -103,6 +104,7 @@ def operational_query(
     product_id: uuid.UUID | None = None,
     category: str | None = None,
     event_name: str | None = None,
+    correlation_id: str | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     limit: int = 1000,
@@ -112,6 +114,8 @@ def operational_query(
     query = select(AuditEvent).where(AuditEvent.actor_id == owner_id)
     if event_name:
         query = query.where(AuditEvent.action == event_name)
+    if correlation_id:
+        query = query.where(AuditEvent.correlation_id == correlation_id)
     if date_from:
         query = query.where(AuditEvent.occurred_at >= date_from)
     if date_to:
@@ -317,6 +321,7 @@ def history(
     product_id: uuid.UUID | None = None,
     category: str | None = None,
     event_name: str | None = None,
+    correlation_id: Annotated[str | None, Query(max_length=64)] = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
     page: Annotated[int, Query(ge=1)] = 1,
@@ -329,6 +334,7 @@ def history(
         product_id=product_id,
         category=category,
         event_name=event_name,
+        correlation_id=correlation_id,
         date_from=date_from,
         date_to=date_to,
     )
@@ -354,9 +360,18 @@ def export_history(
     brand_id: uuid.UUID | None = None,
     product_id: uuid.UUID | None = None,
     category: str | None = None,
+    event_name: str | None = None,
+    correlation_id: Annotated[str | None, Query(max_length=64)] = None,
 ) -> Response:
     values = operational_query(
-        db, user.id, brand_id=brand_id, product_id=product_id, category=category, limit=5000
+        db,
+        user.id,
+        brand_id=brand_id,
+        product_id=product_id,
+        category=category,
+        event_name=event_name,
+        correlation_id=correlation_id,
+        limit=5000,
     )
     output = io.StringIO()
     writer = csv.writer(output)
@@ -371,6 +386,7 @@ def export_history(
             "entity_id",
             "status",
             "summary",
+            "correlation_id",
         ]
     )
     for item in values:
@@ -385,6 +401,7 @@ def export_history(
                 csv_safe(item.entity_id),
                 csv_safe(item.status),
                 csv_safe(item.safe_summary),
+                csv_safe(item.correlation_id),
             ]
         )
     return Response(

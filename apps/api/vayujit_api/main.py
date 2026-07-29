@@ -1,15 +1,23 @@
-from fastapi import FastAPI
+from typing import Annotated
+
+from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.orm import Session
 
 from vayujit_api import __version__
 from vayujit_api.ai.router import router as ai_router
 from vayujit_api.brands.router import router as brands_router
 from vayujit_api.core.config import get_settings
+from vayujit_api.core.database import get_session
 from vayujit_api.core.errors import install_exception_handlers
 from vayujit_api.core.logging import configure_logging
+from vayujit_api.core.observability import OperationalMiddleware
 from vayujit_api.core.origin import OriginProtectionMiddleware
 from vayujit_api.core.schemas import HealthResponse
 from vayujit_api.identity.router import router as auth_router
+from vayujit_api.operations.hardening import health_details
+from vayujit_api.operations.hardening import router as hardening_router
+from vayujit_api.operations.hardening import system_router as hardening_system_router
 from vayujit_api.operations.router import (
     approval_router,
     dashboard_router,
@@ -20,6 +28,8 @@ from vayujit_api.publishing.router import router as publishing_router
 from vayujit_api.settings.router import router as settings_router
 from vayujit_api.settings.router import system_router
 from vayujit_api.workflows.router import router as workflows_router
+
+DatabaseSession = Annotated[Session, Depends(get_session)]
 
 
 def create_app() -> FastAPI:
@@ -34,6 +44,7 @@ def create_app() -> FastAPI:
         allow_headers=["Authorization", "Content-Type", "X-Correlation-ID"],
     )
     application.add_middleware(OriginProtectionMiddleware)
+    application.add_middleware(OperationalMiddleware)
     install_exception_handlers(application)
     application.include_router(auth_router)
     application.include_router(brands_router)
@@ -44,8 +55,10 @@ def create_app() -> FastAPI:
     application.include_router(dashboard_router)
     application.include_router(approval_router)
     application.include_router(operations_router)
+    application.include_router(hardening_router)
     application.include_router(settings_router)
     application.include_router(system_router)
+    application.include_router(hardening_system_router)
 
     @application.get("/health", response_model=HealthResponse, tags=["health"])
     @application.get("/api/v1/health", response_model=HealthResponse, tags=["health"])
@@ -56,6 +69,17 @@ def create_app() -> FastAPI:
             version=__version__,
             environment=settings.environment,
         )
+
+    @application.get("/health/live", tags=["health"])
+    async def live() -> dict[str, str]:
+        return {"status": "alive", "service": "vayujit-api"}
+
+    @application.get("/health/ready", tags=["health"])
+    def ready(response: Response, db: DatabaseSession) -> dict[str, object]:
+        details = health_details(db)
+        if details.status != "healthy":
+            response.status_code = 503
+        return details.model_dump(mode="json")
 
     return application
 

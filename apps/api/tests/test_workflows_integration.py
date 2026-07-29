@@ -381,3 +381,12 @@ def test_typed_settings_password_sessions_and_safe_system_status(
     assert status["database_status"] == "ok"
     assert "database_url" not in str(status)
     assert "password" not in str(status)
+    health = client.get("/api/v1/system/health").json()
+    assert health["current_migration"] == "unmanaged-test-schema"
+    assert health["status"] == "healthy"
+    release = client.get("/api/v1/system/release").json()
+    assert release["migration_revision"] == "unmanaged-test-schema"
+    assert "database_url" not in str(release)
+    assert client.get("/api/v1/system/maintenance").json() == {"enabled": False}
+    recovery = client.get("/api/v1/operations/recovery?retryable=true").json()
+    assert recovery["page_size"] == 25

@@ -554,6 +554,7 @@ export interface OperationalItem {
   status: string | null;
   safe_summary: string;
   related_url: string | null;
+  correlation_id: string | null;
 }
 export interface DashboardResponse {
   metrics: DashboardMetrics;
@@ -638,4 +639,79 @@ export interface SystemStatus {
   python_version: string;
   providers: string[];
   connectors: string[];
+}
+export interface ComponentHealth {
+  component: string;
+  status: 'healthy' | 'degraded' | 'unavailable' | 'unknown';
+  message: string;
+  checked_at: string;
+  latency_ms: number | null;
+}
+export interface OperationalHealth {
+  status: string;
+  components: ComponentHealth[];
+  current_migration: string;
+  expected_migration: string;
+  application_version: string;
+  build_identifier: string;
+}
+export interface ReleaseInfo {
+  semantic_version: string;
+  build_timestamp: string;
+  git_commit: string;
+  build_identifier: string;
+  migration_revision: string;
+  python_version: string;
+  api_version: string;
+  node_version: string;
+  electron_version: string;
+  angular_build_version: string;
+}
+export interface RecoveryItem {
+  id: string;
+  category: 'workflow' | 'publishing';
+  entity_type: string;
+  product_id: string | null;
+  product_name: string | null;
+  brand_id: string;
+  failure_code: string | null;
+  safe_failure_message: string;
+  retryable: boolean;
+  attempt_count: number;
+  failed_at: string;
+  workflow_id: string | null;
+  capabilities: string[];
+  related_url: string;
+}
+export interface RecoveryPage {
+  items: RecoveryItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  pages: number;
+}
+export interface BackupSummary {
+  id: string;
+  backup_key: string;
+  filename: string;
+  format: string;
+  size_bytes: number;
+  checksum_sha256: string;
+  application_version: string;
+  migration_revision: string;
+  database_name: string;
+  created_at: string;
+  verified_at: string | null;
+  verification_status: string;
+  status: string;
+  encryption_status: 'not_encrypted';
+}
+export interface RestoreCheck {
+  backup_id: string;
+  compatible: boolean;
+  checksum_valid: boolean;
+  target_database: string;
+  requires_pre_restore_backup: boolean;
+  execution_supported: false;
+  operator_action: string;
 }

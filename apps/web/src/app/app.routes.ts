@@ -168,6 +168,33 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'operations',
+    loadComponent: () =>
+      import('./operations/operations-home.component').then((m) => m.OperationsHomeComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/health',
+    loadComponent: () => import('./operations/health.component').then((m) => m.HealthComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/recovery',
+    loadComponent: () => import('./operations/recovery.component').then((m) => m.RecoveryComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/backups',
+    loadComponent: () => import('./operations/backups.component').then((m) => m.BackupsComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/audit',
+    loadComponent: () =>
+      import('./operations/execution-history.component').then((m) => m.ExecutionHistoryComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'execution-history',
     loadComponent: () =>
       import('./operations/execution-history.component').then((m) => m.ExecutionHistoryComponent),

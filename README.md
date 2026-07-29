@@ -1,5 +1,9 @@
 # VAYUJIT OS
 
+Production-hardening operator guidance is in
+`docs/00-governance/production-readiness.md`. Start with `npm.cmd run system:doctor`,
+`npm.cmd run security:check`, and the authenticated `/operations` area.
+
 VAYUJIT OS is a local-first, AI-powered business operating system for
 entrepreneurs and small businesses managing commerce, content, automation, and
 analytics.

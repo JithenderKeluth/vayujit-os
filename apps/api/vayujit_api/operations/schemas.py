@@ -35,6 +35,7 @@ class OperationalItem(BaseModel):
     status: str | None = None
     safe_summary: str
     related_url: str | None = None
+    correlation_id: str | None = None
 
 
 class DashboardResponse(BaseModel):

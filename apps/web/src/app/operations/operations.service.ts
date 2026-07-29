@@ -10,6 +10,11 @@ import type {
   SessionSummary,
   SettingsResponse,
   SystemStatus,
+  BackupSummary,
+  OperationalHealth,
+  RecoveryPage,
+  ReleaseInfo,
+  RestoreCheck,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
 
@@ -95,6 +100,55 @@ export class OperationsService {
   }
   system(): Promise<SystemStatus> {
     return firstValueFrom(this.http.get<SystemStatus>(`${this.base}/system/status`, this.options));
+  }
+  health(): Promise<OperationalHealth> {
+    return firstValueFrom(
+      this.http.get<OperationalHealth>(`${this.base}/system/health`, this.options),
+    );
+  }
+  release(): Promise<ReleaseInfo> {
+    return firstValueFrom(this.http.get<ReleaseInfo>(`${this.base}/system/release`, this.options));
+  }
+  maintenance(): Promise<{ enabled: boolean }> {
+    return firstValueFrom(
+      this.http.get<{ enabled: boolean }>(`${this.base}/system/maintenance`, this.options),
+    );
+  }
+  recovery(filters: Record<string, string | number | undefined> = {}): Promise<RecoveryPage> {
+    return firstValueFrom(
+      this.http.get<RecoveryPage>(`${this.base}/operations/recovery`, {
+        ...this.options,
+        params: this.params(filters),
+      }),
+    );
+  }
+  backups(): Promise<BackupSummary[]> {
+    return firstValueFrom(
+      this.http.get<BackupSummary[]>(`${this.base}/operations/backups`, this.options),
+    );
+  }
+  createBackup(): Promise<BackupSummary> {
+    return firstValueFrom(
+      this.http.post<BackupSummary>(`${this.base}/operations/backups`, {}, this.options),
+    );
+  }
+  verifyBackup(id: string): Promise<BackupSummary> {
+    return firstValueFrom(
+      this.http.post<BackupSummary>(
+        `${this.base}/operations/backups/${id}/verify`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  restoreCheck(id: string): Promise<RestoreCheck> {
+    return firstValueFrom(
+      this.http.post<RestoreCheck>(
+        `${this.base}/operations/backups/${id}/restore-check`,
+        {},
+        this.options,
+      ),
+    );
   }
   private params(values: Record<string, string | number | undefined>): HttpParams {
     let result = new HttpParams();
