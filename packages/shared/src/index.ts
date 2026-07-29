@@ -454,6 +454,7 @@ export interface PublishingConnectorSummary {
   available: boolean;
   deterministic: boolean;
   local: boolean;
+  capabilities?: Record<string, boolean>;
 }
 export interface MockDestinationConfiguration {
   channel_name: string;
@@ -461,6 +462,18 @@ export interface MockDestinationConfiguration {
   simulate_failure: boolean;
   failure_type: 'retryable' | 'non_retryable';
 }
+export interface WordPressDestinationConfiguration {
+  post_status: 'draft' | 'publish';
+  category_ids: number[];
+  tag_ids: number[];
+  author_id: number | null;
+  media_policy: 'fail' | 'publish_without' | 'draft_degraded';
+  update_existing_remote_post: boolean;
+  content_mapping_version: 1;
+}
+export type PublishingDestinationConfiguration =
+  | MockDestinationConfiguration
+  | WordPressDestinationConfiguration;
 export interface PublishingDestinationSummary {
   id: string;
   brand_id: string | null;
@@ -468,7 +481,7 @@ export interface PublishingDestinationSummary {
   connector_key: string;
   name: string;
   status: PublishingDestinationStatus;
-  configuration: MockDestinationConfiguration;
+  configuration: PublishingDestinationConfiguration;
   created_at: string;
   updated_at: string;
   disabled_at: string | null;
@@ -476,8 +489,8 @@ export interface PublishingDestinationSummary {
 export interface CreatePublishingDestinationRequest {
   name: string;
   brand_id?: string | null;
-  connector_key: 'mock_publisher_v1';
-  configuration: MockDestinationConfiguration;
+  connector_key: 'mock_publisher_v1' | 'wordpress';
+  configuration: PublishingDestinationConfiguration;
 }
 export type UpdatePublishingDestinationRequest = Partial<CreatePublishingDestinationRequest>;
 export interface PublishingAttemptDetails {
@@ -490,6 +503,12 @@ export interface PublishingAttemptDetails {
   started_at: string;
   completed_at: string | null;
   failed_at: string | null;
+  operation: string;
+  latency_ms: number | null;
+  response_status: number | null;
+  retry_after_seconds: number | null;
+  ambiguous_result: boolean;
+  correlation_id: string | null;
 }
 export interface PublishingExecutionDetails {
   id: string;
@@ -514,11 +533,76 @@ export interface PublishingExecutionDetails {
   completed_at: string | null;
   failed_at: string | null;
   attempts: PublishingAttemptDetails[];
+  requested_action: 'create_draft' | 'publish' | 'update';
+  remote_entity_id: string | null;
+  remote_status: string | null;
+  remote_slug: string | null;
+  remote_edit_url: string | null;
+  reconciliation_status: string;
+  last_reconciled_at: string | null;
+  correlation_id: string | null;
+  cancellation_requested_at: string | null;
+  cancelled_at: string | null;
 }
 export interface CreatePublishingExecutionRequest {
   artifact_id: string;
   destination_id: string;
   idempotency_key?: string;
+  action?: 'create_draft' | 'publish' | 'update';
+}
+export interface WordPressConnectorConfiguration {
+  connector_key: 'wordpress';
+  display_name: string;
+  configured: boolean;
+  credential_source: 'application' | 'deployment' | 'not_configured';
+  masked_username: string | null;
+  site_url: string;
+  enabled: boolean;
+  default_post_status: 'draft' | 'publish';
+  request_timeout_seconds: number;
+  max_retry_attempts: number;
+  validation_status: string;
+  safe_validation_message: string | null;
+  last_validated_at: string | null;
+  last_validation_latency_ms: number | null;
+  capabilities: Record<string, boolean>;
+}
+export interface UpdateWordPressConnectorRequest {
+  site_url: string;
+  username: string;
+  application_password?: string;
+  enabled: boolean;
+  default_post_status: 'draft' | 'publish';
+  request_timeout_seconds: number;
+  max_retry_attempts: number;
+}
+export interface WordPressValidationResult {
+  valid: boolean;
+  safe_message: string;
+  site_url: string;
+  user_id: number | null;
+  display_name: string | null;
+  capabilities: Record<string, boolean>;
+  latency_ms: number;
+  correlation_id: string | null;
+}
+export interface WordPressTerm {
+  id: number;
+  name: string;
+  slug: string;
+}
+export interface WordPressAuthor {
+  id: number;
+  name: string;
+}
+export interface PublishingReconciliationResult {
+  id: string;
+  reconciliation_status: string;
+  remote_status: string | null;
+  remote_slug: string | null;
+  remote_url: string | null;
+  drift_fields: string[];
+  correlation_id: string | null;
 }
 export interface PaginatedPublishingDestinations {
   items: PublishingDestinationSummary[];

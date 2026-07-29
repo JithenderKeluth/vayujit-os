@@ -82,6 +82,7 @@ def create_app() -> FastAPI:
             and (
                 component.component in {"Database", "Migration"}
                 or (component.component == "AI provider" and settings.ai_real_provider_required)
+                or (component.component == "WordPress connector" and settings.wordpress_required)
             )
             for component in details.components
         )

@@ -10,6 +10,12 @@ import type {
   PublishingDestinationSummary,
   PublishingExecutionDetails,
   UpdatePublishingDestinationRequest,
+  UpdateWordPressConnectorRequest,
+  WordPressAuthor,
+  WordPressConnectorConfiguration,
+  WordPressTerm,
+  WordPressValidationResult,
+  PublishingReconciliationResult,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
 
@@ -127,6 +133,91 @@ export class PublishingService {
     return firstValueFrom(
       this.http.post<PublishingExecutionDetails>(
         `${this.base}/executions/${id}/retry`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  wordpressConfiguration() {
+    return firstValueFrom(
+      this.http.get<WordPressConnectorConfiguration>(
+        `${this.base}/connectors/wordpress`,
+        this.options,
+      ),
+    );
+  }
+  saveWordpressConfiguration(data: UpdateWordPressConnectorRequest) {
+    return firstValueFrom(
+      this.http.put<WordPressConnectorConfiguration>(
+        `${this.base}/connectors/wordpress`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  validateWordpress() {
+    return firstValueFrom(
+      this.http.post<WordPressValidationResult>(
+        `${this.base}/connectors/wordpress/validate`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  setWordpressEnabled(action: 'enable' | 'disable') {
+    return firstValueFrom(
+      this.http.post<WordPressConnectorConfiguration>(
+        `${this.base}/connectors/wordpress/${action}`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  removeWordpressCredential() {
+    return firstValueFrom(
+      this.http.delete<WordPressConnectorConfiguration>(
+        `${this.base}/connectors/wordpress/credential`,
+        this.options,
+      ),
+    );
+  }
+  wordpressCategories() {
+    return firstValueFrom(
+      this.http.get<WordPressTerm[]>(`${this.base}/connectors/wordpress/categories`, this.options),
+    );
+  }
+  wordpressTags() {
+    return firstValueFrom(
+      this.http.get<WordPressTerm[]>(`${this.base}/connectors/wordpress/tags`, this.options),
+    );
+  }
+  wordpressAuthors() {
+    return firstValueFrom(
+      this.http.get<WordPressAuthor[]>(`${this.base}/connectors/wordpress/authors`, this.options),
+    );
+  }
+  cancel(id: string) {
+    return firstValueFrom(
+      this.http.post<PublishingExecutionDetails>(
+        `${this.base}/executions/${id}/cancel`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  reconcile(id: string) {
+    return firstValueFrom(
+      this.http.post<PublishingReconciliationResult>(
+        `${this.base}/executions/${id}/reconcile`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  moveToDraft(id: string) {
+    return firstValueFrom(
+      this.http.post<PublishingExecutionDetails>(
+        `${this.base}/executions/${id}/move-to-draft`,
         {},
         this.options,
       ),

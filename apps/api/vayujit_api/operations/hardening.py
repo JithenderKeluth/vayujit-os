@@ -20,7 +20,10 @@ from vayujit_api.identity.router import current_user
 from vayujit_api.operations.backup import backup_directory, create_backup, verify_backup
 from vayujit_api.operations.models import BackupRecord
 from vayujit_api.products.models import Product
-from vayujit_api.publishing.models import PublishingExecution
+from vayujit_api.publishing.models import (
+    PublishingExecution,
+    WordPressConnectorConfiguration,
+)
 from vayujit_api.workflows.models import WorkflowInstance
 
 router = APIRouter(prefix="/api/v1/operations", tags=["operations"])
@@ -154,16 +157,32 @@ def health_details(db: Session) -> SystemHealth:
             f"{'application' if ai_configuration.encrypted_api_key else 'deployment-or-missing'}; "
             f"fallback={'available' if ai_configuration.fallback_provider_key else 'disabled'}."
         )
+    wordpress_configuration = db.scalar(
+        select(WordPressConnectorConfiguration)
+        .where(WordPressConnectorConfiguration.enabled.is_(True))
+        .limit(1)
+    )
+    wordpress_status: Literal["healthy", "degraded", "unavailable"] = "healthy"
+    wordpress_message = "WordPress connector is registered and disabled."
+    if wordpress_configuration:
+        wordpress_status = (
+            "healthy" if wordpress_configuration.validation_status == "valid" else "unavailable"
+        )
+        wordpress_message = (
+            "WordPress connector is enabled; "
+            f"validation={wordpress_configuration.validation_status}; "
+            "credentials are redacted."
+        )
     components.extend(
         [
             ComponentHealth(
                 component="Migration",
                 status=(
                     "healthy"
-                    if current in {"20260730_0010", "unmanaged-test-schema"}
+                    if current in {"20260731_0011", "unmanaged-test-schema"}
                     else "degraded"
                 ),
-                message=f"Current {current}; expected 20260730_0010.",
+                message=f"Current {current}; expected 20260731_0011.",
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -176,6 +195,12 @@ def health_details(db: Session) -> SystemHealth:
                 component="Publishing connector",
                 status="healthy",
                 message="Local mock connector is registered.",
+                checked_at=checked,
+            ),
+            ComponentHealth(
+                component="WordPress connector",
+                status=wordpress_status,
+                message=wordpress_message,
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -197,7 +222,7 @@ def health_details(db: Session) -> SystemHealth:
         status=overall,
         components=components,
         current_migration=current,
-        expected_migration="20260730_0010",
+        expected_migration="20260731_0011",
         application_version=__version__,
         build_identifier=get_settings().build_identifier,
     )
@@ -264,7 +289,23 @@ def recovery(
                     attempt_count=execution.attempt_count,
                     failed_at=execution.failed_at or execution.updated_at,
                     workflow_id=None,
-                    capabilities=["retry_publishing"] if execution.retryable else [],
+                    capabilities=(
+                        (["retry_publishing"] if execution.retryable else [])
+                        + (
+                            ["reconcile_publishing"]
+                            if execution.connector_key == "wordpress"
+                            and (
+                                execution.remote_entity_id
+                                or execution.reconciliation_status == "reconciliation_required"
+                            )
+                            else []
+                        )
+                        + (
+                            ["move_to_draft"]
+                            if execution.connector_key == "wordpress" and execution.remote_entity_id
+                            else []
+                        )
+                    ),
                     related_url=f"/publishing/executions/{execution.id}",
                 )
             )

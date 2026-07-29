@@ -63,7 +63,14 @@ import { OperationsService } from '../operations/operations.service';
           }
         </select></label
       ><label
-        >4. Compatible destination
+        >4. Action
+        <select name="action" [(ngModel)]="action">
+          <option value="create_draft">Create draft</option>
+          <option value="publish">Publish</option>
+          <option value="update">Update existing WordPress post</option>
+        </select></label
+      ><label
+        >5. Compatible destination
         <select name="destination" [(ngModel)]="destinationId">
           <option value="">Select destination</option>
           @for (item of compatibleDestinations(); track item.id) {
@@ -93,9 +100,9 @@ import { OperationsService } from '../operations/operations.service';
       @if (selectedArtifact() && selectedDestination()) {
         <label
           ><input type="checkbox" name="confirmed" [(ngModel)]="confirmed" /> I confirm this
-          intentional local mock publication.</label
+          intentional publishing action.</label
         ><button [disabled]="busy() || !confirmed">
-          {{ busy() ? 'Publishing…' : 'Publish to local mock' }}
+          {{ busy() ? 'Publishing…' : 'Run publishing action' }}
         </button>
       }
     </form>
@@ -124,6 +131,7 @@ export class PublishNewComponent implements OnInit {
   artifactId = '';
   destinationId = '';
   confirmed = false;
+  action: 'create_draft' | 'publish' | 'update' = 'publish';
   private idempotencyKey = '';
   readonly eligibleProducts = computed(() =>
     this.products().filter((item) => item.brand_id === this.brandId && item.status !== 'archived'),
@@ -207,8 +215,7 @@ export class PublishNewComponent implements OnInit {
   }
   async publish() {
     if (!this.artifactId || !this.destinationId || !this.confirmed || this.busy()) return;
-    if (!confirm('Publish this approved content to the local deterministic mock destination?'))
-      return;
+    if (!confirm(`Run ${this.action} for this approved content?`)) return;
     this.busy.set(true);
     this.error.set('');
     this.idempotencyKey ||= crypto.randomUUID();
@@ -217,6 +224,7 @@ export class PublishNewComponent implements OnInit {
         artifact_id: this.artifactId,
         destination_id: this.destinationId,
         idempotency_key: this.idempotencyKey,
+        action: this.action,
       });
       await this.router.navigate(['/publishing/executions', result.id]);
     } catch (error) {

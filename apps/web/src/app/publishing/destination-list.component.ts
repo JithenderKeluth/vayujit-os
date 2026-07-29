@@ -75,7 +75,13 @@ import { PublishingService } from './publishing.service';
               <td data-label="Connector">Local mock</td>
               <td data-label="Brand scope">{{ item.brand_name || 'All Brands' }}</td>
               <td data-label="Channel / prefix">
-                {{ item.configuration.channel_name }} / {{ item.configuration.publication_prefix }}
+                {{
+                  item.connector_key === 'wordpress'
+                    ? 'WordPress / ' + $any(item.configuration).post_status
+                    : $any(item.configuration).channel_name +
+                      ' / ' +
+                      $any(item.configuration).publication_prefix
+                }}
               </td>
               <td data-label="Status">
                 <span class="pub-status" [class]="item.status">{{ item.status }}</span>

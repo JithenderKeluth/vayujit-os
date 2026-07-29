@@ -1,7 +1,9 @@
+import json
 import os
 import uuid
 from collections.abc import Generator
 
+import httpx
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine, select
@@ -14,6 +16,7 @@ from vayujit_api.core.test_database import reset_test_schema
 from vayujit_api.identity.router import attempts
 from vayujit_api.identity.service import now
 from vayujit_api.main import create_app
+from vayujit_api.publishing.connector import WordPressConnector
 
 URL = os.getenv("VAYUJIT_TEST_DATABASE_URL")
 pytestmark = pytest.mark.integration
@@ -196,3 +199,103 @@ def test_complete_publish_idempotency_failure_and_retry(client: TestClient) -> N
             "publishing.execution_failed",
             "publishing.execution_retried",
         } <= actions
+
+
+def test_wordpress_draft_reconcile_and_move_to_draft(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    brand, artifact = setup(client)
+    posts: dict[int, dict[str, object]] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        if request.url.path.endswith("/users/me"):
+            return httpx.Response(200, json={"id": 1, "name": "Owner"})
+        if request.url.path.endswith("/posts") and request.method == "POST":
+            body = json.loads(request.content)
+            posts[81] = {
+                "id": 81,
+                "status": body["status"],
+                "slug": body["slug"],
+                "link": "http://127.0.0.1/?p=81",
+            }
+            return httpx.Response(201, json=posts[81])
+        if request.url.path.endswith("/posts/81") and request.method == "GET":
+            return httpx.Response(200, json=posts[81])
+        if request.url.path.endswith("/posts/81"):
+            posts[81]["status"] = json.loads(request.content)["status"]
+            return httpx.Response(200, json=posts[81])
+        raise AssertionError(request.url.path)
+
+    fake = WordPressConnector(
+        site_url="http://127.0.0.1",
+        username="owner",
+        application_password="not-a-real-secret",
+        timeout_seconds=10,
+        environment="development",
+        transport=httpx.MockTransport(handler),
+    )
+    monkeypatch.setattr("vayujit_api.publishing.router.connector_for", lambda _value: fake)
+    monkeypatch.setattr("vayujit_api.publishing.service.connector_for", lambda _value: fake)
+    configuration = client.put(
+        "/api/v1/publishing/connectors/wordpress",
+        json={
+            "site_url": "http://127.0.0.1",
+            "username": "owner",
+            "enabled": False,
+            "default_post_status": "draft",
+            "request_timeout_seconds": 10,
+            "max_retry_attempts": 2,
+        },
+        headers=ORIGIN,
+    )
+    assert configuration.status_code == 200
+    validated = client.post("/api/v1/publishing/connectors/wordpress/validate", headers=ORIGIN)
+    assert validated.status_code == 200 and validated.json()["valid"] is True
+    assert (
+        client.post("/api/v1/publishing/connectors/wordpress/enable", headers=ORIGIN).status_code
+        == 200
+    )
+    destination = client.post(
+        "/api/v1/publishing/destinations",
+        json={
+            "name": "WordPress Site",
+            "brand_id": brand["id"],
+            "connector_key": "wordpress",
+            "configuration": {
+                "post_status": "draft",
+                "category_ids": [],
+                "tag_ids": [],
+                "author_id": None,
+                "media_policy": "fail",
+                "update_existing_remote_post": True,
+                "content_mapping_version": 1,
+            },
+        },
+        headers=ORIGIN,
+    )
+    assert destination.status_code == 201
+    execution = client.post(
+        "/api/v1/publishing/executions",
+        json={
+            "artifact_id": artifact["id"],
+            "destination_id": destination.json()["id"],
+            "idempotency_key": "wordpress-draft-001",
+            "action": "create_draft",
+        },
+        headers=ORIGIN,
+    )
+    assert execution.status_code == 201
+    assert execution.json()["remote_entity_id"] == "81"
+    assert execution.json()["remote_status"] == "draft"
+    reconciled = client.post(
+        f"/api/v1/publishing/executions/{execution.json()['id']}/reconcile",
+        headers=ORIGIN,
+    )
+    assert reconciled.status_code == 200
+    assert reconciled.json()["reconciliation_status"] == "in_sync"
+    moved = client.post(
+        f"/api/v1/publishing/executions/{execution.json()['id']}/move-to-draft",
+        headers=ORIGIN,
+    )
+    assert moved.status_code == 200 and moved.json()["remote_status"] == "draft"
+    assert "application_password" not in configuration.text

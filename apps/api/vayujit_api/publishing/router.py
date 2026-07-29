@@ -1,34 +1,56 @@
 import math
 import uuid
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, cast
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
+from vayujit_api.audit.service import record_event
 from vayujit_api.core.database import get_session
+from vayujit_api.core.observability import correlation_id
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
-from vayujit_api.publishing.connector import connector
+from vayujit_api.identity.service import now
+from vayujit_api.publishing.connector import ConnectorFailure, WordPressConnector, connector
 from vayujit_api.publishing.models import PublishingDestination, PublishingExecution
 from vayujit_api.publishing.schemas import (
+    AttemptResponse,
     CreateExecution,
     DestinationResponse,
     DestinationUpdate,
     DestinationWrite,
     ExecutionResponse,
     Page,
+    ReconciliationResponse,
+    WordPressAuthor,
+    WordPressConnectorResponse,
+    WordPressConnectorUpdate,
+    WordPressTerm,
+    WordPressValidationResult,
 )
 from vayujit_api.publishing.service import (
+    cancel_execution,
     create_destination,
     create_execution,
     destination_response,
     execution_response,
+    move_execution_to_draft,
     owned_destination,
+    owned_execution,
+    reconcile_execution,
     retry_execution,
     set_destination_status,
     update_destination,
+)
+from vayujit_api.publishing.wordpress import (
+    capabilities,
+    connector_for,
+    owned_configuration,
+    remove_credential,
+    response_for,
+    save_configuration,
 )
 
 router = APIRouter(prefix="/api/v1/publishing", tags=["publishing"])
@@ -38,6 +60,7 @@ Owner = Annotated[User, Depends(current_user)]
 
 @router.get("/connectors")
 def connectors(owner: Owner) -> list[dict[str, object]]:
+    wordpress = WordPressConnector
     return [
         {
             "key": connector.key,
@@ -46,7 +69,158 @@ def connectors(owner: Owner) -> list[dict[str, object]]:
             "available": connector.available(),
             "deterministic": True,
             "local": True,
-        }
+        },
+        {
+            "key": wordpress.key,
+            "name": wordpress.name,
+            "connector_type": wordpress.connector_type,
+            "available": True,
+            "deterministic": False,
+            "local": False,
+            "capabilities": capabilities(),
+        },
+    ]
+
+
+@router.get("/connectors/wordpress", response_model=WordPressConnectorResponse)
+def wordpress_configuration(db: DB, owner: Owner) -> WordPressConnectorResponse:
+    return response_for(owned_configuration(db, owner.id))
+
+
+@router.put("/connectors/wordpress", response_model=WordPressConnectorResponse)
+def wordpress_configuration_update(
+    data: WordPressConnectorUpdate, db: DB, owner: Owner
+) -> WordPressConnectorResponse:
+    try:
+        return save_configuration(db, owner, data)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+
+
+@router.post("/connectors/wordpress/validate", response_model=WordPressValidationResult)
+def wordpress_validate(db: DB, owner: Owner) -> WordPressValidationResult:
+    value = owned_configuration(db, owner.id)
+    if not value:
+        raise HTTPException(409, "WordPress is not configured.")
+    started = now()
+    try:
+        remote_user = connector_for(value).validate()
+        latency = max(int((now() - started).total_seconds() * 1000), 0)
+        value.validation_status = "valid"
+        value.safe_validation_message = "WordPress credentials and REST API are valid."
+        value.capabilities_json = cast(dict[str, object], capabilities())
+        valid = True
+    except (ValueError, ConnectorFailure) as error:
+        latency = max(int((now() - started).total_seconds() * 1000), 0)
+        value.validation_status = "invalid"
+        value.safe_validation_message = (
+            error.safe_message
+            if isinstance(error, ConnectorFailure)
+            else "WordPress credentials are not configured."
+        )
+        remote_user = {}
+        valid = False
+    value.last_validated_at = now()
+    value.last_validation_latency_ms = latency
+    value.updated_at = value.last_validated_at
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="publishing.connector_validated",
+        entity_type="wordpress_connector_configuration",
+        entity_id=value.id,
+        metadata={"connector": "wordpress", "valid": valid},
+    )
+    db.commit()
+    remote_user_id = remote_user.get("id")
+    return WordPressValidationResult(
+        valid=valid,
+        safe_message=value.safe_validation_message or "",
+        site_url=value.site_url,
+        user_id=remote_user_id if isinstance(remote_user_id, int) else None,
+        display_name=(
+            str(remote_user["name"])[:160] if isinstance(remote_user.get("name"), str) else None
+        ),
+        capabilities=capabilities(),
+        latency_ms=latency,
+        correlation_id=correlation_id(),
+    )
+
+
+def set_wordpress_enabled(db: Session, owner: User, enabled: bool) -> WordPressConnectorResponse:
+    value = owned_configuration(db, owner.id)
+    if not value:
+        raise HTTPException(409, "WordPress is not configured.")
+    if enabled and value.validation_status != "valid":
+        raise HTTPException(409, "Validate WordPress before enabling it.")
+    value.enabled = enabled
+    value.updated_at = now()
+    record_event(
+        db,
+        actor_id=owner.id,
+        action=f"publishing.connector_{'enabled' if enabled else 'disabled'}",
+        entity_type="wordpress_connector_configuration",
+        entity_id=value.id,
+        metadata={"connector": "wordpress"},
+    )
+    db.commit()
+    return response_for(value)
+
+
+@router.post("/connectors/wordpress/enable", response_model=WordPressConnectorResponse)
+def wordpress_enable(db: DB, owner: Owner) -> WordPressConnectorResponse:
+    return set_wordpress_enabled(db, owner, True)
+
+
+@router.post("/connectors/wordpress/disable", response_model=WordPressConnectorResponse)
+def wordpress_disable(db: DB, owner: Owner) -> WordPressConnectorResponse:
+    return set_wordpress_enabled(db, owner, False)
+
+
+@router.delete("/connectors/wordpress/credential", response_model=WordPressConnectorResponse)
+def wordpress_credential_delete(db: DB, owner: Owner) -> WordPressConnectorResponse:
+    try:
+        return remove_credential(db, owner)
+    except ValueError as error:
+        raise HTTPException(404, str(error)) from error
+
+
+def wordpress_collection(db: Session, owner: User, endpoint: str) -> list[object]:
+    value = owned_configuration(db, owner.id)
+    if not value:
+        raise HTTPException(409, "WordPress is not configured.")
+    try:
+        result = connector_for(value).request("GET", endpoint)
+    except (ValueError, ConnectorFailure) as error:
+        message = error.safe_message if isinstance(error, ConnectorFailure) else str(error)
+        raise HTTPException(502, message) from error
+    return result[:100] if isinstance(result, list) else []
+
+
+@router.get("/connectors/wordpress/categories", response_model=list[WordPressTerm])
+def wordpress_categories(db: DB, owner: Owner) -> list[WordPressTerm]:
+    return [
+        WordPressTerm(id=int(x["id"]), name=str(x["name"]), slug=str(x.get("slug") or ""))
+        for x in wordpress_collection(db, owner, "/categories")
+        if isinstance(x, dict) and isinstance(x.get("id"), int) and isinstance(x.get("name"), str)
+    ]
+
+
+@router.get("/connectors/wordpress/tags", response_model=list[WordPressTerm])
+def wordpress_tags(db: DB, owner: Owner) -> list[WordPressTerm]:
+    return [
+        WordPressTerm(id=int(x["id"]), name=str(x["name"]), slug=str(x.get("slug") or ""))
+        for x in wordpress_collection(db, owner, "/tags")
+        if isinstance(x, dict) and isinstance(x.get("id"), int) and isinstance(x.get("name"), str)
+    ]
+
+
+@router.get("/connectors/wordpress/authors", response_model=list[WordPressAuthor])
+def wordpress_authors(db: DB, owner: Owner) -> list[WordPressAuthor]:
+    return [
+        WordPressAuthor(id=int(x["id"]), name=str(x["name"]))
+        for x in wordpress_collection(db, owner, "/users")
+        if isinstance(x, dict) and isinstance(x.get("id"), int) and isinstance(x.get("name"), str)
     ]
 
 
@@ -179,18 +353,29 @@ def executions(
 
 @router.get("/executions/{execution_id}", response_model=ExecutionResponse)
 def execution_get(execution_id: uuid.UUID, db: DB, owner: Owner) -> ExecutionResponse:
-    value = db.scalar(
-        select(PublishingExecution).where(
-            PublishingExecution.id == execution_id, PublishingExecution.owner_id == owner.id
-        )
-    )
-    if not value:
-        from fastapi import HTTPException
-
-        raise HTTPException(404, "Publishing execution not found.")
-    return execution_response(db, value)
+    return execution_response(db, owned_execution(db, owner.id, execution_id))
 
 
 @router.post("/executions/{execution_id}/retry", response_model=ExecutionResponse)
 def execution_retry(execution_id: uuid.UUID, db: DB, owner: Owner) -> ExecutionResponse:
     return retry_execution(db, owner, execution_id)
+
+
+@router.get("/executions/{execution_id}/attempts")
+def execution_attempts(execution_id: uuid.UUID, db: DB, owner: Owner) -> list[AttemptResponse]:
+    return execution_response(db, owned_execution(db, owner.id, execution_id)).attempts
+
+
+@router.post("/executions/{execution_id}/cancel", response_model=ExecutionResponse)
+def execution_cancel(execution_id: uuid.UUID, db: DB, owner: Owner) -> ExecutionResponse:
+    return cancel_execution(db, owner, execution_id)
+
+
+@router.post("/executions/{execution_id}/reconcile", response_model=ReconciliationResponse)
+def execution_reconcile(execution_id: uuid.UUID, db: DB, owner: Owner) -> ReconciliationResponse:
+    return reconcile_execution(db, owner, execution_id)
+
+
+@router.post("/executions/{execution_id}/move-to-draft", response_model=ExecutionResponse)
+def execution_move_to_draft(execution_id: uuid.UUID, db: DB, owner: Owner) -> ExecutionResponse:
+    return move_execution_to_draft(db, owner, execution_id)

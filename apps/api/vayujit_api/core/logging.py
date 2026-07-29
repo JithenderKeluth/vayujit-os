@@ -14,6 +14,7 @@ REDACTED_KEYS = {
     "encrypted_api_key",
     "password",
     "password_hash",
+    "application_password",
     "session_token",
     "token",
 }

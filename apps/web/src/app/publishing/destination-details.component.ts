@@ -46,11 +46,23 @@ import { PublishingService } from './publishing.service';
           </div>
           <div>
             <dt>Channel</dt>
-            <dd>{{ value.configuration.channel_name }}</dd>
+            <dd>
+              {{
+                value.connector_key === 'wordpress'
+                  ? 'WordPress post'
+                  : $any(value.configuration).channel_name
+              }}
+            </dd>
           </div>
           <div>
             <dt>Publication prefix</dt>
-            <dd>{{ value.configuration.publication_prefix }}</dd>
+            <dd>
+              {{
+                value.connector_key === 'wordpress'
+                  ? $any(value.configuration).post_status
+                  : $any(value.configuration).publication_prefix
+              }}
+            </dd>
           </div>
           <div>
             <dt>Created / updated</dt>

@@ -42,6 +42,21 @@ class Settings(BaseSettings):
     )
     ai_real_provider_required: bool = False
     ai_model_cache_seconds: int = Field(default=900, ge=60, le=3600)
+    wordpress_site_url: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("VAYUJIT_WORDPRESS_SITE_URL", "WORDPRESS_SITE_URL"),
+    )
+    wordpress_username: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("VAYUJIT_WORDPRESS_USERNAME", "WORDPRESS_USERNAME"),
+    )
+    wordpress_application_password: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "VAYUJIT_WORDPRESS_APPLICATION_PASSWORD", "WORDPRESS_APPLICATION_PASSWORD"
+        ),
+    )
+    wordpress_required: bool = False
 
     @field_validator("environment")
     @classmethod

@@ -13,8 +13,8 @@ import { PublishingService } from './publishing.service';
     <header>
       <h1>{{ editing() ? 'Edit' : 'Create' }} publishing destination</h1>
       <p class="pub-muted">
-        Configuration is restricted to safe local mock fields. No credentials or arbitrary JSON are
-        stored.
+        Destinations contain publishing preferences only. WordPress credentials are configured
+        separately and are never stored here.
       </p>
     </header>
     @if (loading()) {
@@ -33,6 +33,7 @@ import { PublishingService } from './publishing.service';
         >Connector
         <select formControlName="connector_key">
           <option value="mock_publisher_v1">Deterministic local mock</option>
+          <option value="wordpress">WordPress</option>
         </select></label
       ><label
         >Brand scope
@@ -78,6 +79,24 @@ import { PublishingService } from './publishing.service';
           >
         </details>
       }
+      @if (form.controls.connector_key.value === 'wordpress') {
+        <fieldset>
+          <legend>WordPress mapping</legend>
+          <label
+            >Post status
+            <select formControlName="post_status">
+              <option value="draft">Draft</option>
+              <option value="publish">Publish</option>
+            </select></label
+          >
+          <label>Category IDs <input formControlName="category_ids" placeholder="1, 2" /></label>
+          <label>Tag IDs <input formControlName="tag_ids" placeholder="3, 4" /></label>
+          <label>Author ID <input formControlName="author_id" type="number" min="1" /></label>
+          <a routerLink="/settings/publishing/connectors/wordpress"
+            >Configure WordPress credentials</a
+          >
+        </fieldset>
+      }
       <div class="pub-actions">
         <button [disabled]="busy() || form.invalid">
           {{ busy() ? 'Saving…' : 'Save destination' }}</button
@@ -102,14 +121,34 @@ export class DestinationFormComponent implements OnInit {
   private id = '';
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(160)]],
-    connector_key: ['mock_publisher_v1' as const, Validators.required],
+    connector_key: this.fb.nonNullable.control<'mock_publisher_v1' | 'wordpress'>(
+      'mock_publisher_v1',
+      Validators.required,
+    ),
     brand_id: [''],
     channel_name: ['', [Validators.required, Validators.maxLength(100)]],
     publication_prefix: ['PUB', [Validators.required, Validators.pattern(/^[A-Za-z0-9_-]{1,20}$/)]],
     simulate_failure: [false],
     failure_type: this.fb.nonNullable.control<'retryable' | 'non_retryable'>('non_retryable'),
+    post_status: this.fb.nonNullable.control<'draft' | 'publish'>('draft'),
+    category_ids: [''],
+    tag_ids: [''],
+    author_id: [''],
   });
   ngOnInit(): void {
+    this.form.controls.connector_key.valueChanges.subscribe((key) => {
+      const channel = this.form.controls.channel_name;
+      const prefix = this.form.controls.publication_prefix;
+      if (key === 'wordpress') {
+        channel.clearValidators();
+        prefix.clearValidators();
+      } else {
+        channel.setValidators([Validators.required, Validators.maxLength(100)]);
+        prefix.setValidators([Validators.required, Validators.pattern(/^[A-Za-z0-9_-]{1,20}$/)]);
+      }
+      channel.updateValueAndValidity();
+      prefix.updateValueAndValidity();
+    });
     void this.load();
   }
   touchedInvalid(name: keyof typeof this.form.controls) {
@@ -124,14 +163,24 @@ export class DestinationFormComponent implements OnInit {
       this.editing.set(Boolean(this.id));
       if (this.id) {
         const item = await this.api.destination(this.id);
+        const configuration = item.configuration;
         this.form.patchValue({
           name: item.name,
-          connector_key: 'mock_publisher_v1',
+          connector_key: item.connector_key === 'wordpress' ? 'wordpress' : 'mock_publisher_v1',
           brand_id: item.brand_id ?? '',
-          channel_name: item.configuration.channel_name,
-          publication_prefix: item.configuration.publication_prefix,
-          simulate_failure: item.configuration.simulate_failure,
-          failure_type: item.configuration.failure_type,
+          ...('channel_name' in configuration
+            ? {
+                channel_name: configuration.channel_name,
+                publication_prefix: configuration.publication_prefix,
+                simulate_failure: configuration.simulate_failure,
+                failure_type: configuration.failure_type,
+              }
+            : {
+                post_status: configuration.post_status,
+                category_ids: configuration.category_ids.join(', '),
+                tag_ids: configuration.tag_ids.join(', '),
+                author_id: configuration.author_id ? String(configuration.author_id) : '',
+              }),
         });
       }
     } catch (error) {
@@ -146,16 +195,32 @@ export class DestinationFormComponent implements OnInit {
     this.busy.set(true);
     this.error.set('');
     const value = this.form.getRawValue();
+    const ids = (input: string) =>
+      input
+        .split(',')
+        .map((part) => Number(part.trim()))
+        .filter((part) => Number.isInteger(part) && part > 0);
     const data = {
       name: value.name,
       brand_id: value.brand_id || null,
-      connector_key: 'mock_publisher_v1' as const,
-      configuration: {
-        channel_name: value.channel_name,
-        publication_prefix: value.publication_prefix,
-        simulate_failure: this.development ? value.simulate_failure : false,
-        failure_type: this.development ? value.failure_type : ('non_retryable' as const),
-      },
+      connector_key: value.connector_key,
+      configuration:
+        value.connector_key === 'wordpress'
+          ? {
+              post_status: value.post_status,
+              category_ids: ids(value.category_ids),
+              tag_ids: ids(value.tag_ids),
+              author_id: value.author_id ? Number(value.author_id) : null,
+              media_policy: 'fail' as const,
+              update_existing_remote_post: true,
+              content_mapping_version: 1 as const,
+            }
+          : {
+              channel_name: value.channel_name,
+              publication_prefix: value.publication_prefix,
+              simulate_failure: this.development ? value.simulate_failure : false,
+              failure_type: this.development ? value.failure_type : ('non_retryable' as const),
+            },
     };
     try {
       const item = this.editing()

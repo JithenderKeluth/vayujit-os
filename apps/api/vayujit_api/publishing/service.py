@@ -10,10 +10,16 @@ from sqlalchemy.orm import Session
 from vayujit_api.ai.models import GeneratedArtifact
 from vayujit_api.audit.service import record_event
 from vayujit_api.brands.models import Brand, BrandStatus
+from vayujit_api.core.observability import correlation_id
 from vayujit_api.identity.models import User
 from vayujit_api.identity.service import now
 from vayujit_api.products.models import Product, ProductStatus
-from vayujit_api.publishing.connector import ConnectorFailure, connector
+from vayujit_api.publishing.connector import (
+    ConnectorFailure,
+    PublishingConnector,
+    WordPressConnector,
+    connector,
+)
 from vayujit_api.publishing.models import (
     PublishingDestination,
     PublishingExecution,
@@ -27,7 +33,10 @@ from vayujit_api.publishing.schemas import (
     DestinationWrite,
     ExecutionResponse,
     MockConfiguration,
+    ReconciliationResponse,
+    WordPressDestinationConfiguration,
 )
+from vayujit_api.publishing.wordpress import connector_for, owned_configuration
 
 
 def normalize(value: str) -> str:
@@ -36,6 +45,11 @@ def normalize(value: str) -> str:
 
 def destination_response(db: Session, value: PublishingDestination) -> DestinationResponse:
     brand = db.get(Brand, value.brand_id) if value.brand_id else None
+    configuration_type = (
+        WordPressDestinationConfiguration
+        if value.connector_key == "wordpress"
+        else MockConfiguration
+    )
     return DestinationResponse(
         id=value.id,
         brand_id=value.brand_id,
@@ -43,7 +57,7 @@ def destination_response(db: Session, value: PublishingDestination) -> Destinati
         connector_key=value.connector_key,
         name=value.name,
         status=cast(Literal["active", "disabled"], value.status),
-        configuration=MockConfiguration.model_validate(value.configuration_json),
+        configuration=configuration_type.model_validate(value.configuration_json),
         created_at=value.created_at,
         updated_at=value.updated_at,
         disabled_at=value.disabled_at,
@@ -121,6 +135,13 @@ def update_destination(
     if data.name is not None:
         value.name, value.normalized_name = data.name, normalize(data.name)
     if data.configuration is not None:
+        expected = (
+            WordPressDestinationConfiguration
+            if value.connector_key == "wordpress"
+            else MockConfiguration
+        )
+        if not isinstance(data.configuration, expected):
+            raise HTTPException(422, "Destination configuration does not match its connector.")
         value.configuration_json = data.configuration.model_dump(mode="json")
     value.updated_at = now()
     record_event(
@@ -197,10 +218,90 @@ def execution_response(db: Session, value: PublishingExecution) -> ExecutionResp
                 started_at=a.started_at,
                 completed_at=a.completed_at,
                 failed_at=a.failed_at,
+                operation=a.operation,
+                latency_ms=a.latency_ms,
+                response_status=a.response_status,
+                retry_after_seconds=a.retry_after_seconds,
+                ambiguous_result=a.ambiguous_result,
+                correlation_id=a.correlation_id,
             )
             for a in attempts
         ],
+        requested_action=value.requested_action,
+        remote_entity_id=value.remote_entity_id,
+        remote_status=value.remote_status,
+        remote_slug=value.remote_slug,
+        remote_edit_url=value.remote_edit_url,
+        reconciliation_status=value.reconciliation_status,
+        last_reconciled_at=value.last_reconciled_at,
+        correlation_id=value.correlation_id,
+        cancellation_requested_at=value.cancellation_requested_at,
+        cancelled_at=value.cancelled_at,
     )
+
+
+def execution_connector(
+    db: Session, owner: User, destination: PublishingDestination
+) -> tuple[PublishingConnector, int]:
+    if destination.connector_key == connector.key:
+        return connector, 1
+    if destination.connector_key != "wordpress":
+        raise HTTPException(409, "Publishing connector is unsupported.")
+    configuration = owned_configuration(db, owner.id)
+    if not configuration or not configuration.enabled:
+        raise HTTPException(
+            409,
+            {
+                "code": "wordpress_not_enabled",
+                "message": "Configure, validate, and enable WordPress before publishing.",
+            },
+        )
+    if configuration.validation_status != "valid":
+        raise HTTPException(
+            409,
+            {
+                "code": "wordpress_not_validated",
+                "message": "Validate the WordPress connection before publishing.",
+            },
+        )
+    try:
+        return connector_for(configuration), configuration.max_retry_attempts
+    except ValueError as error:
+        raise HTTPException(409, str(error)) from error
+
+
+def wordpress_request_configuration(
+    db: Session,
+    execution: PublishingExecution,
+    destination: PublishingDestination,
+) -> dict[str, object]:
+    configuration = dict(destination.configuration_json)
+    configuration["post_status"] = (
+        "draft" if execution.requested_action == "create_draft" else "publish"
+    )
+    if execution.requested_action == "update":
+        previous = db.scalar(
+            select(PublishingExecution)
+            .where(
+                PublishingExecution.owner_id == execution.owner_id,
+                PublishingExecution.destination_id == execution.destination_id,
+                PublishingExecution.product_id == execution.product_id,
+                PublishingExecution.status == "succeeded",
+                PublishingExecution.remote_entity_id.is_not(None),
+                PublishingExecution.id != execution.id,
+            )
+            .order_by(PublishingExecution.completed_at.desc())
+        )
+        if not previous or not previous.remote_entity_id:
+            raise HTTPException(
+                409,
+                {
+                    "code": "remote_post_missing",
+                    "message": "No prior WordPress post is available to update.",
+                },
+            )
+        configuration["remote_post_id"] = previous.remote_entity_id
+    return configuration
 
 
 def run_attempt(
@@ -211,19 +312,14 @@ def run_attempt(
     *,
     retry: bool,
 ) -> ExecutionResponse:
+    active_connector, max_attempts = execution_connector(db, owner, destination)
+    request_configuration = (
+        wordpress_request_configuration(db, execution, destination)
+        if destination.connector_key == "wordpress"
+        else destination.configuration_json
+    )
     stamp = now()
     execution.status, execution.started_at, execution.updated_at = "running", stamp, stamp
-    execution.attempt_count += 1
-    attempt = PublishingExecutionAttempt(
-        execution_id=execution.id,
-        attempt_number=execution.attempt_count,
-        status="running",
-        request_snapshot_json=execution.request_snapshot_json,
-        retryable=False,
-        started_at=stamp,
-        created_at=stamp,
-    )
-    db.add(attempt)
     if retry:
         record_event(
             db,
@@ -233,46 +329,89 @@ def run_attempt(
             entity_id=execution.id,
             metadata={"attempt_number": execution.attempt_count},
         )
-    db.flush()
-    try:
-        result = connector.publish(destination.configuration_json, execution.content_snapshot_json)
-        finished = now()
-        attempt.status, attempt.result_json, attempt.completed_at = (
-            "succeeded",
-            result.payload,
-            finished,
+    action = "publishing.execution_failed"
+    for transport_attempt in range(max_attempts):
+        execution.attempt_count += 1
+        attempt = PublishingExecutionAttempt(
+            execution_id=execution.id,
+            attempt_number=execution.attempt_count,
+            operation=execution.requested_action,
+            status="running",
+            request_snapshot_json=execution.request_snapshot_json,
+            retryable=False,
+            started_at=now(),
+            created_at=now(),
+            correlation_id=correlation_id(),
+            request_method="POST",
+            safe_endpoint_label="posts",
         )
-        execution.status, execution.result_json, execution.completed_at = (
-            "succeeded",
-            result.payload,
-            finished,
-        )
-        execution.external_reference, execution.external_url = (
-            result.external_reference,
-            result.external_url,
-        )
-        execution.error_code = execution.safe_error_message = None
-        execution.retryable, execution.failed_at, execution.updated_at = False, None, finished
-        action = "publishing.execution_succeeded"
-    except ConnectorFailure as error:
-        finished = now()
-        attempt.status, attempt.error_code, attempt.safe_error_message = (
-            "failed",
-            error.code,
-            error.safe_message,
-        )
-        attempt.retryable, attempt.failed_at = error.retryable, finished
-        execution.status, execution.error_code, execution.safe_error_message = (
-            "failed",
-            error.code,
-            error.safe_message,
-        )
-        execution.retryable, execution.failed_at, execution.updated_at = (
-            error.retryable,
-            finished,
-            finished,
-        )
-        action = "publishing.execution_failed"
+        db.add(attempt)
+        db.flush()
+        try:
+            result = active_connector.publish(
+                request_configuration, execution.content_snapshot_json
+            )
+            finished = now()
+            if execution.cancellation_requested_at:
+                execution.status = "cancelled"
+                execution.cancelled_at = finished
+                execution.updated_at = finished
+                attempt.status = "succeeded"
+                attempt.result_json = {"late_result_discarded": True}
+                attempt.completed_at = finished
+                action = "publishing.execution_cancelled"
+                break
+            attempt.status, attempt.result_json, attempt.completed_at = (
+                "succeeded",
+                result.payload,
+                finished,
+            )
+            execution.status, execution.result_json, execution.completed_at = (
+                "succeeded",
+                result.payload,
+                finished,
+            )
+            execution.external_reference = result.external_reference
+            execution.external_url = result.external_url
+            execution.remote_entity_type = "post"
+            execution.remote_entity_id = result.external_reference
+            execution.remote_edit_url = (
+                f"{active_connector.site_url}/wp-admin/post.php"
+                f"?post={result.external_reference}&action=edit"
+                if isinstance(active_connector, WordPressConnector)
+                else None
+            )
+            execution.remote_status = result.remote_status
+            execution.remote_slug = result.remote_slug
+            execution.error_code = execution.safe_error_message = None
+            execution.retryable, execution.failed_at, execution.updated_at = False, None, finished
+            action = "publishing.execution_succeeded"
+            break
+        except ConnectorFailure as error:
+            finished = now()
+            attempt.status, attempt.error_code, attempt.safe_error_message = (
+                "failed",
+                error.code,
+                error.safe_message,
+            )
+            attempt.retryable, attempt.failed_at = error.retryable, finished
+            attempt.response_status = error.status_code
+            attempt.retry_after_seconds = error.retry_after
+            attempt.ambiguous_result = error.ambiguous
+            execution.status, execution.error_code, execution.safe_error_message = (
+                "failed",
+                error.code,
+                error.safe_message,
+            )
+            execution.retryable, execution.failed_at, execution.updated_at = (
+                error.retryable and not error.ambiguous,
+                finished,
+                finished,
+            )
+            if error.ambiguous:
+                execution.reconciliation_status = "reconciliation_required"
+            if not error.retryable or error.ambiguous or transport_attempt + 1 >= max_attempts:
+                break
     record_event(
         db,
         actor_id=owner.id,
@@ -283,6 +422,7 @@ def run_attempt(
             "attempt_number": execution.attempt_count,
             "retryable": execution.retryable,
             "connector_key": execution.connector_key,
+            "correlation_id": execution.correlation_id,
         },
     )
     db.commit()
@@ -385,6 +525,9 @@ def create_execution(db: Session, owner: User, data: CreateExecution) -> Executi
         retryable=False,
         created_at=stamp,
         updated_at=stamp,
+        requested_action=data.action,
+        reconciliation_status="unknown",
+        correlation_id=correlation_id(),
     )
     db.add(execution)
     db.flush()
@@ -418,3 +561,113 @@ def retry_execution(db: Session, owner: User, execution_id: uuid.UUID) -> Execut
     if destination.status != "active":
         raise HTTPException(409, "The destination is disabled.")
     return run_attempt(db, owner, execution, destination, retry=True)
+
+
+def owned_execution(
+    db: Session, owner_id: uuid.UUID, execution_id: uuid.UUID
+) -> PublishingExecution:
+    value = db.scalar(
+        select(PublishingExecution).where(
+            PublishingExecution.id == execution_id,
+            PublishingExecution.owner_id == owner_id,
+        )
+    )
+    if not value:
+        raise HTTPException(404, "Publishing execution not found.")
+    return value
+
+
+def cancel_execution(db: Session, owner: User, execution_id: uuid.UUID) -> ExecutionResponse:
+    value = owned_execution(db, owner.id, execution_id)
+    if value.status not in {"pending", "running"}:
+        raise HTTPException(409, "Only pending or running executions can be cancelled.")
+    stamp = now()
+    value.cancellation_requested_at = stamp
+    value.cancelled_at = stamp
+    value.status = "cancelled"
+    value.updated_at = stamp
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="publishing.execution_cancelled",
+        entity_type="publishing_execution",
+        entity_id=value.id,
+        metadata={"remote_cancellation": False},
+    )
+    db.commit()
+    return execution_response(db, value)
+
+
+def reconcile_execution(
+    db: Session, owner: User, execution_id: uuid.UUID
+) -> ReconciliationResponse:
+    value = owned_execution(db, owner.id, execution_id)
+    if value.connector_key != "wordpress" or not value.remote_entity_id:
+        raise HTTPException(409, "This execution has no WordPress post to reconcile.")
+    destination = owned_destination(db, owner.id, value.destination_id)
+    active_connector, _ = execution_connector(db, owner, destination)
+    assert isinstance(active_connector, WordPressConnector)
+    drift: list[str] = []
+    try:
+        result = active_connector.reconcile(value.remote_entity_id)
+        if value.remote_status and value.remote_status != result.remote_status:
+            drift.append("status")
+        if value.remote_slug and value.remote_slug != result.remote_slug:
+            drift.append("slug")
+        if value.external_url and value.external_url != result.external_url:
+            drift.append("url")
+        value.remote_status = result.remote_status
+        value.remote_slug = result.remote_slug
+        value.external_url = result.external_url
+        value.reconciliation_status = "changed_remotely" if drift else "in_sync"
+    except ConnectorFailure as error:
+        value.reconciliation_status = (
+            "missing_remotely" if error.code == "wordpress_not_found" else "reconciliation_failed"
+        )
+        drift = ["remote_missing"] if error.code == "wordpress_not_found" else []
+    value.last_reconciled_at = now()
+    value.updated_at = value.last_reconciled_at
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="publishing.execution_reconciled",
+        entity_type="publishing_execution",
+        entity_id=value.id,
+        metadata={"status": value.reconciliation_status, "drift_fields": drift},
+    )
+    db.commit()
+    return ReconciliationResponse(
+        id=value.id,
+        reconciliation_status=value.reconciliation_status,
+        remote_status=value.remote_status,
+        remote_slug=value.remote_slug,
+        remote_url=value.external_url,
+        drift_fields=drift,
+        correlation_id=correlation_id(),
+    )
+
+
+def move_execution_to_draft(db: Session, owner: User, execution_id: uuid.UUID) -> ExecutionResponse:
+    value = owned_execution(db, owner.id, execution_id)
+    if value.connector_key != "wordpress" or not value.remote_entity_id:
+        raise HTTPException(409, "This execution has no WordPress post to move to draft.")
+    destination = owned_destination(db, owner.id, value.destination_id)
+    active_connector, _ = execution_connector(db, owner, destination)
+    assert isinstance(active_connector, WordPressConnector)
+    result = active_connector.move_to_draft(value.remote_entity_id)
+    value.remote_status = result.remote_status
+    value.result_json = result.payload
+    value.external_url = result.external_url
+    value.reconciliation_status = "in_sync"
+    value.last_reconciled_at = now()
+    value.updated_at = value.last_reconciled_at
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="publishing.execution_moved_to_draft",
+        entity_type="publishing_execution",
+        entity_id=value.id,
+        metadata={"remote_entity_id": value.remote_entity_id},
+    )
+    db.commit()
+    return execution_response(db, value)

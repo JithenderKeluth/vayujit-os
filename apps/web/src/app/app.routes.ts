@@ -109,6 +109,22 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'settings/publishing/connectors',
+    redirectTo: 'settings/publishing/connectors/wordpress',
+    pathMatch: 'full',
+  },
+  {
+    path: 'settings/publishing/connectors/wordpress',
+    loadComponent: () =>
+      import('./publishing/wordpress-settings.component').then((m) => m.WordPressSettingsComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'publishing/destinations/wordpress',
+    redirectTo: 'publishing/destinations/new',
+    pathMatch: 'full',
+  },
+  {
     path: 'publishing',
     loadComponent: () =>
       import('./publishing/publishing-dashboard.component').then(
