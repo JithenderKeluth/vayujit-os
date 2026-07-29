@@ -4,6 +4,15 @@
 **Status:** Sprint 0 baseline  
 **Scope:** Initial vertical-slice MVP
 
+## Real AI provider
+
+The authenticated owner may configure one backend OpenAI-compatible provider,
+discover and validate a model, and explicitly select it for Product-content
+generation. Credentials never return to the client. Generation enforces strict
+structured output, bounded timeout/retry, safe errors, persisted attempts and
+usage, explicit fallback attribution, local cancellation intent, and mandatory
+human approval.
+
 ## Purpose and User
 
 VAYUJIT OS is a local desktop system that lets one local owner create product data, generate structured content, approve it, publish through a mock adapter, and inspect durable history. The only MVP role is `owner`.

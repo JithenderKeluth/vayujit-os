@@ -1,6 +1,6 @@
 from functools import lru_cache
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,6 +35,13 @@ class Settings(BaseSettings):
     node_version: str = "22-or-24"
     electron_version: str = "43.2.0"
     angular_build_version: str = "22"
+    credential_encryption_key: str | None = None
+    openai_api_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("VAYUJIT_OPENAI_API_KEY", "OPENAI_API_KEY"),
+    )
+    ai_real_provider_required: bool = False
+    ai_model_cache_seconds: int = Field(default=900, ge=60, le=3600)
 
     @field_validator("environment")
     @classmethod

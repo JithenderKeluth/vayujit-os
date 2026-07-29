@@ -48,7 +48,10 @@
     "maintenance:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 maintenance-status",
     "maintenance:cleanup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 maintenance-cleanup --dry-run",
     "sessions:cleanup": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 sessions-cleanup",
-    "migration:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 migration-status"
+    "migration:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 migration-status",
+    "ai:provider:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/ai-diagnostics.ps1 status",
+    "ai:provider:validate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/ai-diagnostics.ps1 validate",
+    "ai:usage:summary": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/ai-diagnostics.ps1 usage-summary"
   },
   "devDependencies": {
     "concurrently": "9.2.4",

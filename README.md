@@ -167,15 +167,15 @@ and restoration always returns a product to draft. See the
 
 ### AI Content Generation
 
-The authenticated `/ai` area generates schema-validated product content with an offline,
-deterministic mock provider. Prompt templates, request lifecycle, versioned artifacts, review
-decisions, safe failures, history, and audit events persist in PostgreSQL.
-
-This slice is synchronous and review-only: it does not use Ollama, a cloud provider, Redis,
-background workers, workflow orchestration, or publishing. See the
+The authenticated `/ai` area generates schema-validated product content with either the offline
+deterministic mock or one explicitly configured OpenAI-compatible endpoint. Provider credentials
+are backend-only and AES-256-GCM encrypted when stored in PostgreSQL. The real-provider path has
+bounded timeouts/retries, model discovery, strict structured output, one repair attempt, explicit
+mock fallback, attempt/usage persistence, and local cancellation intent. Human approval remains
+mandatory and no real publishing connector is included. See the
 [AI architecture](docs/03-architecture/ai-architecture.md),
-[API reference](docs/02-requirements/ai-api.md), and
-[synchronous-generation ADR](docs/04-decisions/ADR-009-synchronous-ai-generation.md).
+[provider guide](docs/00-governance/ai-provider-integration-guide.md), and
+[credential guide](docs/00-governance/ai-credential-management.md).
 
 ### Mock Publishing and Execution History
 

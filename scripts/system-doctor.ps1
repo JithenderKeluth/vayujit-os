@@ -15,6 +15,12 @@ Check-Command "npm" { npm.cmd --version }
 Check-Command "Python 3.12" { py -3.12 --version }
 Check-Command "PostgreSQL" { docker exec infrastructure-postgres-1 pg_isready -U vayujit -d vayujit }
 Check-Command "Migration" { & "$PSScriptRoot\maintenance.ps1" migration-status }
+Check-Command "AI provider status" { & "$PSScriptRoot\ai-diagnostics.ps1" status }
+if ($env:VAYUJIT_CREDENTIAL_ENCRYPTION_KEY) {
+    Write-Host "PASS AI credential encryption key configured"
+} else {
+    Write-Host "WARN AI credential encryption key not configured (real provider database credentials disabled)"
+}
 Check-Command "Angular build" { npm.cmd run build --workspace @vayujit/web }
 Check-Command "Electron executable" { & "$PSScriptRoot\..\node_modules\.bin\electron.cmd" --version }
 $backup = Resolve-Path (New-Item -ItemType Directory -Force -Path "$PSScriptRoot\..\var\backups")

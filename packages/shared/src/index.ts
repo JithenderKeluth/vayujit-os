@@ -200,6 +200,9 @@ export interface CreateAIGenerationRequest {
   product_id: string;
   prompt_template_id?: string | null;
   additional_instructions?: string | null;
+  provider_key?: 'deterministic_mock_v1' | 'openai_compatible' | null;
+  model?: string | null;
+  allow_fallback?: boolean;
 }
 
 export interface AIGenerationResponse {
@@ -208,6 +211,128 @@ export interface AIGenerationResponse {
   artifact_id: string | null;
   error_code: string | null;
   safe_error_message: string | null;
+  provider_key: string | null;
+  model: string | null;
+  attempt_count: number;
+  fallback_used: boolean;
+  correlation_id: string | null;
+}
+
+export type AICredentialSource = 'application' | 'deployment' | 'not_configured';
+export interface AIProviderConfiguration {
+  provider_key: 'openai_compatible';
+  display_name: string;
+  configured: boolean;
+  credential_source: AICredentialSource;
+  masked_credential: string | null;
+  base_url: string;
+  default_model: string;
+  manual_model_allowed: boolean;
+  enabled: boolean;
+  fallback_provider_key: 'deterministic_mock_v1' | null;
+  request_timeout_seconds: number;
+  max_retry_attempts: number;
+  validation_status: 'valid' | 'invalid' | 'unknown';
+  safe_validation_message: string | null;
+  last_validated_at: string | null;
+  last_validation_latency_ms: number | null;
+}
+export interface UpdateAIProviderConfiguration {
+  api_key?: string | null;
+  base_url: string;
+  default_model: string;
+  manual_model_allowed: boolean;
+  enabled: boolean;
+  fallback_provider_key: 'deterministic_mock_v1' | null;
+  request_timeout_seconds: number;
+  max_retry_attempts: number;
+}
+export interface AIProviderValidationResult {
+  valid: boolean;
+  status: string;
+  safe_message: string;
+  correlation_id: string | null;
+  latency_ms: number;
+  validated_model: string | null;
+}
+export interface AIModelSummary {
+  identifier: string;
+  provider_key: string;
+  structured_output: boolean | null;
+}
+export interface AIGenerationAttempt {
+  id: string;
+  attempt_number: number;
+  provider_key: string;
+  model: string;
+  status: string;
+  started_at: string;
+  completed_at: string | null;
+  latency_ms: number | null;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  total_tokens: number | null;
+  usage_source: 'provider' | 'estimated' | 'unavailable';
+  estimated_cost: string | null;
+  cost_currency: string | null;
+  retryable: boolean;
+  fallback: boolean;
+  error_code: string | null;
+  safe_error_message: string | null;
+  correlation_id: string | null;
+}
+export interface AIUsageSummary {
+  requests: number;
+  successful_generations: number;
+  failed_generations: number;
+  retries: number;
+  input_tokens: number;
+  output_tokens: number;
+  total_tokens: number;
+  estimated_cost: string | null;
+  cost_currency: string | null;
+}
+export interface AIUsageHistoryItem {
+  generation_id: string;
+  created_at: string;
+  provider_key: string;
+  model: string | null;
+  status: AIGenerationStatus;
+  attempts: number;
+  input_tokens: number | null;
+  output_tokens: number | null;
+  total_tokens: number | null;
+  estimated_cost: string | null;
+  cost_currency: string | null;
+  brand_id: string;
+  brand_name: string;
+  product_id: string;
+  product_name: string;
+}
+export interface PaginatedAIUsageHistory {
+  items: AIUsageHistoryItem[];
+  page: number;
+  page_size: number;
+  total: number;
+  pages: number;
+}
+export interface AIModelPricingSummary {
+  id: string;
+  provider_key: 'openai_compatible';
+  model_pattern: string;
+  currency: string;
+  input_cost_per_million_tokens: string;
+  output_cost_per_million_tokens: string;
+  effective_from: string;
+  effective_to: string | null;
+  source_note: string;
+  enabled: boolean;
+}
+export interface AICancellationResponse {
+  id: string;
+  status: AIGenerationStatus;
+  cancellation_requested_at: string;
+  remote_cancellation: false;
 }
 
 export interface AIProductContent {

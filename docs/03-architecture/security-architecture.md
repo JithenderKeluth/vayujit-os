@@ -1,5 +1,12 @@
 # Security Architecture
 
+AI provider credentials are backend-only and use versioned AES-256-GCM
+encryption with a deployment-supplied key. Provider base URLs are validated
+against credential-bearing URLs, redirects, unsafe schemes, and non-public
+networks outside development. Raw prompts, response bodies, and authorization
+headers are excluded from logs and audit metadata. See the prompt-security and
+credential-management guides.
+
 ## Controls
 
 - **Authentication:** exactly one local owner; Argon2id password hashing; generic login failures; rate limiting and short backoff.

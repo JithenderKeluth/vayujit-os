@@ -76,6 +76,11 @@ import { OperationsService } from './operations.service';
             }
           }
           @if (section() === 'ai') {
+            <p>
+              <a routerLink="/settings/ai/providers/openai-compatible"
+                >Configure OpenAI-compatible provider</a
+              >
+            </p>
             <label
               >Default prompt template
               <select name="defaultTemplate" [(ngModel)]="preferences.default_prompt_template_id">

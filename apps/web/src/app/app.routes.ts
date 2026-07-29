@@ -87,6 +87,28 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'ai/usage',
+    loadComponent: () =>
+      import('./ai/ai-usage.component').then((module) => module.AIUsageComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'settings/ai/providers',
+    loadComponent: () =>
+      import('./ai/ai-provider-settings.component').then(
+        (module) => module.AIProviderSettingsComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'settings/ai/providers/openai-compatible',
+    loadComponent: () =>
+      import('./ai/ai-provider-settings.component').then(
+        (module) => module.AIProviderSettingsComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'publishing',
     loadComponent: () =>
       import('./publishing/publishing-dashboard.component').then(

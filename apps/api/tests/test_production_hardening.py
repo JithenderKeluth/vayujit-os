@@ -46,9 +46,12 @@ def test_log_redaction() -> None:
             "cookie": "session=secret",
             "authorization": "Bearer secret",
             "database_url": "postgresql://secret",
+            "api_key": "secret",
+            "encrypted_api_key": "secret",
+            "credential_encryption_key": "secret",
         },
     )
-    assert json.dumps(event).count("[REDACTED]") == 4
+    assert json.dumps(event).count("[REDACTED]") == 7
     assert "secret" not in json.dumps(event)
 
 

@@ -33,9 +33,9 @@ Push-Location $apiRoot
 try {
     & ".\.venv\Scripts\alembic.exe" upgrade head
     if ($LASTEXITCODE -ne 0) { throw "Clean migration upgrade failed." }
-    & ".\.venv\Scripts\alembic.exe" downgrade 20260728_0008
+    & ".\.venv\Scripts\alembic.exe" downgrade 20260729_0009
     if ($LASTEXITCODE -ne 0) { throw "Migration downgrade failed." }
-    & ".\.venv\Scripts\alembic.exe" upgrade 20260729_0009
+    & ".\.venv\Scripts\alembic.exe" upgrade 20260730_0010
     if ($LASTEXITCODE -ne 0) { throw "Migration re-upgrade failed." }
 } finally {
     Pop-Location

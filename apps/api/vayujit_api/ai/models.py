@@ -1,5 +1,6 @@
 import uuid
 from datetime import datetime
+from decimal import Decimal
 
 from sqlalchemy import (
     Boolean,
@@ -7,6 +8,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -70,6 +72,111 @@ class AIGenerationRequest(Base):
     safe_error_message: Mapped[str | None] = mapped_column(String(500))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    selected_model: Mapped[str | None] = mapped_column(String(120))
+    final_provider_key: Mapped[str | None] = mapped_column(String(100))
+    fallback_used: Mapped[bool] = mapped_column(Boolean, default=False)
+    cancellation_requested_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    final_attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+    total_latency_ms: Mapped[int | None] = mapped_column(Integer)
+    input_tokens: Mapped[int | None] = mapped_column(Integer)
+    output_tokens: Mapped[int | None] = mapped_column(Integer)
+    total_tokens: Mapped[int | None] = mapped_column(Integer)
+    estimated_total_cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 8))
+    cost_currency: Mapped[str | None] = mapped_column(String(3))
+
+
+class AIProviderConfiguration(Base):
+    __tablename__ = "ai_provider_configurations"
+    __table_args__ = (
+        UniqueConstraint("owner_id", "provider_key", name="uq_ai_provider_owner_key"),
+        CheckConstraint(
+            "request_timeout_seconds BETWEEN 10 AND 120", name="ck_ai_provider_timeout"
+        ),
+        CheckConstraint("max_retry_attempts BETWEEN 1 AND 5", name="ck_ai_provider_retries"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    provider_key: Mapped[str] = mapped_column(String(100))
+    display_name: Mapped[str] = mapped_column(String(160))
+    encrypted_api_key: Mapped[str | None] = mapped_column(Text)
+    credential_version: Mapped[int] = mapped_column(Integer, default=1)
+    base_url: Mapped[str] = mapped_column(String(500))
+    default_model: Mapped[str] = mapped_column(String(120))
+    manual_model_allowed: Mapped[bool] = mapped_column(Boolean, default=False)
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    fallback_provider_key: Mapped[str | None] = mapped_column(String(100))
+    request_timeout_seconds: Mapped[int] = mapped_column(Integer, default=45)
+    max_retry_attempts: Mapped[int] = mapped_column(Integer, default=3)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_validated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    validation_status: Mapped[str] = mapped_column(String(20), default="unknown")
+    safe_validation_message: Mapped[str | None] = mapped_column(String(500))
+    last_validation_latency_ms: Mapped[int | None] = mapped_column(Integer)
+    last_successful_request_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AIGenerationAttempt(Base):
+    __tablename__ = "ai_generation_attempts"
+    __table_args__ = (
+        UniqueConstraint(
+            "generation_request_id", "attempt_number", name="uq_ai_generation_attempt_number"
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    generation_request_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("ai_generation_requests.id", ondelete="CASCADE"),
+        index=True,
+    )
+    attempt_number: Mapped[int] = mapped_column(Integer)
+    provider_key: Mapped[str] = mapped_column(String(100))
+    model: Mapped[str] = mapped_column(String(120))
+    status: Mapped[str] = mapped_column(String(20))
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    latency_ms: Mapped[int | None] = mapped_column(Integer)
+    provider_request_id: Mapped[str | None] = mapped_column(String(160))
+    input_tokens: Mapped[int | None] = mapped_column(Integer)
+    output_tokens: Mapped[int | None] = mapped_column(Integer)
+    total_tokens: Mapped[int | None] = mapped_column(Integer)
+    usage_source: Mapped[str] = mapped_column(String(20), default="unavailable")
+    estimated_cost: Mapped[Decimal | None] = mapped_column(Numeric(18, 8))
+    cost_currency: Mapped[str | None] = mapped_column(String(3))
+    retryable: Mapped[bool] = mapped_column(Boolean, default=False)
+    fallback: Mapped[bool] = mapped_column(Boolean, default=False)
+    error_code: Mapped[str | None] = mapped_column(String(80))
+    safe_error_message: Mapped[str | None] = mapped_column(String(500))
+    correlation_id: Mapped[str | None] = mapped_column(String(64))
+
+
+class AIModelPricing(Base):
+    __tablename__ = "ai_model_pricing"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id",
+            "provider_key",
+            "model_pattern",
+            "effective_from",
+            name="uq_ai_model_pricing_effective",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    provider_key: Mapped[str] = mapped_column(String(100))
+    model_pattern: Mapped[str] = mapped_column(String(120))
+    currency: Mapped[str] = mapped_column(String(3), default="USD")
+    input_cost_per_million_tokens: Mapped[Decimal] = mapped_column(Numeric(18, 8))
+    output_cost_per_million_tokens: Mapped[Decimal] = mapped_column(Numeric(18, 8))
+    effective_from: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    effective_to: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    source_note: Mapped[str] = mapped_column(String(500))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
 
 
 class GeneratedArtifact(Base):

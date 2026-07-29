@@ -2,6 +2,10 @@
 
 **Goal:** Deliver the smallest locally runnable product-to-approved-mock-publish journey. Sizes are relative: XS (hours), S (about one day), M (several days), L (must be split before commitment).
 
+Real AI provider hardening adds the provider abstraction, encrypted owner
+configuration, model discovery, structured generation, usage, explicit mock
+fallback, diagnostics, and provider settings UI without adding real publishing.
+
 | ID / Jira-style title | Description | Acceptance criteria | Dependencies | Priority | Size | Component | Labels |
 |---|---|---|---|---|---|---|---|
 | S1-01 Establish repository foundation | Add workspace conventions, ignore rules, environment templates, formatting, linting, and test commands. | Documented commands run; secrets/build outputs ignored; checks have one entry point. | None | P0 | S | Engineering | `sprint-1`, `foundation` |

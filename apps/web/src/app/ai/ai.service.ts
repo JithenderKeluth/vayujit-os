@@ -6,6 +6,14 @@ import type {
   AIGenerationResponse,
   AIHistoryFilters,
   AIProviderSummary,
+  AIProviderConfiguration,
+  UpdateAIProviderConfiguration,
+  AIProviderValidationResult,
+  AIModelSummary,
+  AIUsageSummary,
+  PaginatedAIUsageHistory,
+  AIGenerationAttempt,
+  AICancellationResponse,
   AITemplateSummary,
   CreateAIGenerationRequest,
   PaginatedAIHistory,
@@ -21,6 +29,97 @@ export class AIService {
   providers(): Promise<AIProviderSummary[]> {
     return firstValueFrom(
       this.http.get<AIProviderSummary[]>(`${this.baseUrl}/providers`, this.options),
+    );
+  }
+
+  providerConfiguration(): Promise<AIProviderConfiguration> {
+    return firstValueFrom(
+      this.http.get<AIProviderConfiguration>(
+        `${this.baseUrl}/providers/openai_compatible/configuration`,
+        this.options,
+      ),
+    );
+  }
+
+  saveProvider(data: UpdateAIProviderConfiguration): Promise<AIProviderConfiguration> {
+    return firstValueFrom(
+      this.http.put<AIProviderConfiguration>(
+        `${this.baseUrl}/providers/openai_compatible`,
+        data,
+        this.options,
+      ),
+    );
+  }
+
+  validateProvider(): Promise<AIProviderValidationResult> {
+    return firstValueFrom(
+      this.http.post<AIProviderValidationResult>(
+        `${this.baseUrl}/providers/openai_compatible/validate`,
+        {},
+        this.options,
+      ),
+    );
+  }
+
+  removeCredential(): Promise<AIProviderConfiguration> {
+    return firstValueFrom(
+      this.http.delete<AIProviderConfiguration>(
+        `${this.baseUrl}/providers/openai_compatible/credential`,
+        this.options,
+      ),
+    );
+  }
+
+  models(): Promise<AIModelSummary[]> {
+    return firstValueFrom(
+      this.http.get<AIModelSummary[]>(
+        `${this.baseUrl}/providers/openai_compatible/models`,
+        this.options,
+      ),
+    );
+  }
+
+  usage(): Promise<AIUsageSummary> {
+    return firstValueFrom(
+      this.http.get<AIUsageSummary>(`${this.baseUrl}/usage/summary`, this.options),
+    );
+  }
+
+  usageHistory(providerKey = ''): Promise<PaginatedAIUsageHistory> {
+    const params = providerKey ? new HttpParams().set('provider_key', providerKey) : undefined;
+    return firstValueFrom(
+      this.http.get<PaginatedAIUsageHistory>(`${this.baseUrl}/usage/history`, {
+        ...this.options,
+        params,
+      }),
+    );
+  }
+
+  usageExport(): Promise<Blob> {
+    return firstValueFrom(
+      this.http.get(`${this.baseUrl}/usage/export`, {
+        ...this.options,
+        responseType: 'blob',
+      }),
+    );
+  }
+
+  attempts(id: string): Promise<AIGenerationAttempt[]> {
+    return firstValueFrom(
+      this.http.get<AIGenerationAttempt[]>(
+        `${this.baseUrl}/generations/${id}/attempts`,
+        this.options,
+      ),
+    );
+  }
+
+  cancel(id: string): Promise<AICancellationResponse> {
+    return firstValueFrom(
+      this.http.post<AICancellationResponse>(
+        `${this.baseUrl}/generations/${id}/cancel`,
+        {},
+        this.options,
+      ),
     );
   }
 

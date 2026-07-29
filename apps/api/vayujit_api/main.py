@@ -77,7 +77,15 @@ def create_app() -> FastAPI:
     @application.get("/health/ready", tags=["health"])
     def ready(response: Response, db: DatabaseSession) -> dict[str, object]:
         details = health_details(db)
-        if details.status != "healthy":
+        essential_failure = any(
+            component.status == "unavailable"
+            and (
+                component.component in {"Database", "Migration"}
+                or (component.component == "AI provider" and settings.ai_real_provider_required)
+            )
+            for component in details.components
+        )
+        if essential_failure:
             response.status_code = 503
         return details.model_dump(mode="json")
 

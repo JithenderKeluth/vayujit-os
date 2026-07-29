@@ -35,6 +35,13 @@ import { AIService } from './ai.service';
         <h2>Generation history</h2>
         <p>{{ recent()?.total ?? 0 }} requests</p>
         <a routerLink="/ai/history">View history</a>
+        · <a routerLink="/ai/usage">View usage</a>
+      </article>
+      <article class="ai-card">
+        <h2>Provider settings</h2>
+        <a routerLink="/settings/ai/providers/openai-compatible"
+          >Configure and validate real provider</a
+        >
       </article>
     </div>
     <article class="ai-card">

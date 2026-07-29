@@ -1,5 +1,11 @@
 # Testing Strategy
 
+Real-provider tests never contact a paid external service. Unit coverage uses
+HTTP mock transports; guarded integration coverage uses a deterministic local
+fake OpenAI-compatible server and marked PostgreSQL test database. Migration
+validation cycles from a clean database through `0010`, down to `0009`, and
+back to `0010`.
+
 ## Database separation
 
 `vayujit` is the manual development database. Automated tests never select or reset it.

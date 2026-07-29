@@ -10,6 +10,7 @@ from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
 from vayujit_api import __version__
+from vayujit_api.ai.models import AIProviderConfiguration
 from vayujit_api.audit.service import record_event
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
@@ -130,22 +131,45 @@ def health_details(db: Session) -> SystemHealth:
         ComponentHealth(component="Database", status=database, message=message, checked_at=checked)
     )
     current = revision(db) if database == "healthy" else "unknown"
+    ai_configuration = db.scalar(
+        select(AIProviderConfiguration)
+        .where(AIProviderConfiguration.provider_key == "openai_compatible")
+        .limit(1)
+    )
+    ai_status: Literal["healthy", "degraded", "unavailable"] = "healthy"
+    ai_message = "Deterministic local mock is registered; real provider is disabled."
+    if ai_configuration and ai_configuration.enabled:
+        ai_status = (
+            "healthy"
+            if ai_configuration.validation_status == "valid"
+            else (
+                "degraded"
+                if ai_configuration.fallback_provider_key == "deterministic_mock_v1"
+                else "unavailable"
+            )
+        )
+        ai_message = (
+            f"Real provider is enabled; validation={ai_configuration.validation_status}; "
+            f"credential source is "
+            f"{'application' if ai_configuration.encrypted_api_key else 'deployment-or-missing'}; "
+            f"fallback={'available' if ai_configuration.fallback_provider_key else 'disabled'}."
+        )
     components.extend(
         [
             ComponentHealth(
                 component="Migration",
                 status=(
                     "healthy"
-                    if current in {"20260729_0009", "unmanaged-test-schema"}
+                    if current in {"20260730_0010", "unmanaged-test-schema"}
                     else "degraded"
                 ),
-                message=f"Current {current}; expected 20260729_0009.",
+                message=f"Current {current}; expected 20260730_0010.",
                 checked_at=checked,
             ),
             ComponentHealth(
                 component="AI provider",
-                status="healthy",
-                message="Deterministic local mock is registered.",
+                status=ai_status,
+                message=ai_message,
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -173,7 +197,7 @@ def health_details(db: Session) -> SystemHealth:
         status=overall,
         components=components,
         current_migration=current,
-        expected_migration="20260729_0009",
+        expected_migration="20260730_0010",
         application_version=__version__,
         build_identifier=get_settings().build_identifier,
     )

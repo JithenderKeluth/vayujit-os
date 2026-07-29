@@ -1,5 +1,16 @@
 # AI Content Generation Architecture
 
+The AI module resolves stable provider identifiers behind a backend protocol.
+`deterministic_mock_v1` remains offline and deterministic;
+`openai_compatible` implements the tested model-list and chat-completions
+surface. Product, artifact, approval, and workflow services do not contain
+provider transport or credential logic.
+
+Owner configuration and AES-GCM ciphertext persist separately from generation
+requests. Each external or fallback invocation creates an attempt. Only strict
+validated Product content creates a versioned pending-review artifact. Workflows
+consume the final artifact without weakening approval.
+
 The AI module owns prompt templates, generation requests, generated artifacts, provider
 selection, structured-output validation, and artifact review state. It references owned brands
 and products by identifier; it does not own or duplicate those records.

@@ -7,8 +7,11 @@ import structlog
 
 REDACTED_KEYS = {
     "authorization",
+    "api_key",
     "cookie",
+    "credential_encryption_key",
     "database_url",
+    "encrypted_api_key",
     "password",
     "password_hash",
     "session_token",
