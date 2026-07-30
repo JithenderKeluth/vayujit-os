@@ -62,6 +62,21 @@ class Settings(BaseSettings):
     media_max_dimension: int = Field(default=10000, ge=256, le=50000)
     media_min_free_bytes: int = Field(default=100 * 1024 * 1024, ge=1024 * 1024)
     wordpress_taxonomy_cache_seconds: int = Field(default=900, ge=60, le=3600)
+    shopify_shop_domain: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("VAYUJIT_SHOPIFY_SHOP_DOMAIN", "SHOPIFY_SHOP_DOMAIN"),
+    )
+    shopify_admin_api_access_token: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "VAYUJIT_SHOPIFY_ADMIN_API_ACCESS_TOKEN", "SHOPIFY_ADMIN_API_ACCESS_TOKEN"
+        ),
+    )
+    shopify_api_version: str = Field(
+        default="2026-07",
+        validation_alias=AliasChoices("VAYUJIT_SHOPIFY_API_VERSION", "SHOPIFY_API_VERSION"),
+    )
+    shopify_discovery_cache_seconds: int = Field(default=900, ge=60, le=3600)
 
     @field_validator("environment")
     @classmethod

@@ -120,6 +120,17 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'settings/publishing/connectors/shopify',
+    loadComponent: () =>
+      import('./publishing/shopify-settings.component').then((m) => m.ShopifySettingsComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'publishing/destinations/shopify',
+    redirectTo: 'publishing/destinations/new',
+    pathMatch: 'full',
+  },
+  {
     path: 'publishing/destinations/wordpress',
     redirectTo: 'publishing/destinations/new',
     pathMatch: 'full',

@@ -99,3 +99,9 @@ The system shall provide authenticated owner-scoped local image storage for JPEG
 checksum duplicate reuse; featured-image policy; bounded taxonomy discovery/cache; backend-owned
 WordPress preview/sanitization; field-level remote drift; and explicit reconciliation decisions.
 It shall not fetch arbitrary image URLs, expose paths, render unsafe HTML, or delete remote media.
+# Shopify Publishing requirements
+
+The system shall support encrypted owner-scoped Shopify credentials, versioned predefined GraphQL
+operations, draft-first approved-Artifact publishing, explicit activation, bounded discovery,
+idempotency, safe retries, cancellation, reconciliation, drift review, audit, health, and recovery.
+It shall not expose delete, inventory quantity synchronization, orders, payments, or customers.

@@ -63,3 +63,7 @@ Media parsers cover JPEG, PNG, WebP, mismatch, corruption, size, dimensions, and
 Guarded PostgreSQL integration tests cover persistence, duplicate reuse, preview safety, archive,
 restore, maintenance mode, fake WordPress taxonomy, featured-media mapping, idempotency, and drift.
 No automated suite contacts a real WordPress site.
+# Shopify connector testing
+
+Use `httpx.MockTransport` for unit tests and a deterministic local fake GraphQL server for guarded
+integration tests. Ordinary validation must never contact a real Shopify store.

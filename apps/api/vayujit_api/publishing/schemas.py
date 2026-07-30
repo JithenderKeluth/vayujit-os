@@ -32,20 +32,42 @@ class WordPressDestinationConfiguration(BaseModel):
     content_mapping_version: Literal[1] = 1
 
 
+class ShopifyDestinationConfiguration(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    default_product_status: Literal["draft", "active"] = "draft"
+    default_collection_ids: list[Annotated[str, StringConstraints(max_length=160)]] = Field(
+        default_factory=list, max_length=100
+    )
+    default_publication_ids: list[Annotated[str, StringConstraints(max_length=160)]] = Field(
+        default_factory=list, max_length=100
+    )
+    default_vendor: Annotated[str, StringConstraints(max_length=255)] = ""
+    default_product_type: Annotated[str, StringConstraints(max_length=255)] = ""
+    default_tags: list[Annotated[str, StringConstraints(max_length=255)]] = Field(
+        default_factory=list, max_length=100
+    )
+    variant_policy: Literal["default_variant", "structured_variants"] = "default_variant"
+    inventory_policy: Literal["no_inventory_write", "track_without_quantity"] = "no_inventory_write"
+    media_policy: Literal["fail", "draft_without_media", "degraded"] = "fail"
+    update_existing_remote_product: bool = True
+    content_mapping_version: Literal[1] = 1
+
+
 class DestinationWrite(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: Name
     brand_id: uuid.UUID | None = None
-    connector_key: Literal["mock_publisher_v1", "wordpress"] = "mock_publisher_v1"
-    configuration: MockConfiguration | WordPressDestinationConfiguration
+    connector_key: Literal["mock_publisher_v1", "wordpress", "shopify"] = "mock_publisher_v1"
+    configuration: (
+        MockConfiguration | WordPressDestinationConfiguration | ShopifyDestinationConfiguration
+    )
 
     @model_validator(mode="after")
     def connector_configuration_matches(self) -> "DestinationWrite":
-        expected = (
-            WordPressDestinationConfiguration
-            if self.connector_key == "wordpress"
-            else MockConfiguration
-        )
+        expected = {
+            "wordpress": WordPressDestinationConfiguration,
+            "shopify": ShopifyDestinationConfiguration,
+        }.get(self.connector_key, MockConfiguration)
         if not isinstance(self.configuration, expected):
             raise ValueError("Destination configuration does not match its connector.")
         return self
@@ -55,7 +77,12 @@ class DestinationUpdate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     name: Name | None = None
     brand_id: uuid.UUID | None = None
-    configuration: MockConfiguration | WordPressDestinationConfiguration | None = None
+    configuration: (
+        MockConfiguration
+        | WordPressDestinationConfiguration
+        | ShopifyDestinationConfiguration
+        | None
+    ) = None
 
 
 class DestinationResponse(BaseModel):
@@ -65,7 +92,9 @@ class DestinationResponse(BaseModel):
     connector_key: str
     name: str
     status: Literal["active", "disabled"]
-    configuration: MockConfiguration | WordPressDestinationConfiguration
+    configuration: (
+        MockConfiguration | WordPressDestinationConfiguration | ShopifyDestinationConfiguration
+    )
     created_at: datetime
     updated_at: datetime
     disabled_at: datetime | None
@@ -78,7 +107,7 @@ class CreateExecution(BaseModel):
     idempotency_key: (
         Annotated[str, StringConstraints(pattern=r"^[A-Za-z0-9._:-]{8,100}$")] | None
     ) = None
-    action: Literal["create_draft", "publish", "update"] = "publish"
+    action: Literal["create_draft", "publish", "activate", "update", "archive"] = "publish"
     featured_media_id: uuid.UUID | None = None
 
 
@@ -176,6 +205,72 @@ class WordPressValidationResult(BaseModel):
     correlation_id: str | None
 
 
+class ShopifyConnectorUpdate(BaseModel):
+    shop_domain: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=4, max_length=253)
+    ]
+    access_token: Annotated[str, StringConstraints(min_length=8, max_length=4096)] | None = None
+    api_version: Annotated[str, StringConstraints(pattern=r"^20\d{2}-(01|04|07|10)$")] = "2026-07"
+    default_product_status: Literal["draft", "active"] = "draft"
+    default_publication_ids: list[Annotated[str, StringConstraints(max_length=160)]] = Field(
+        default_factory=list, max_length=100
+    )
+    inventory_policy: Literal["no_inventory_write", "track_without_quantity"] = "no_inventory_write"
+    variant_policy: Literal["default_variant", "structured_variants"] = "default_variant"
+    media_policy: Literal["fail", "draft_without_media", "degraded"] = "fail"
+    request_timeout_seconds: int = Field(default=45, ge=10, le=120)
+    max_retry_attempts: int = Field(default=3, ge=1, le=5)
+
+
+class ShopifyConnectorResponse(BaseModel):
+    connector_key: Literal["shopify"] = "shopify"
+    display_name: str = "Shopify"
+    configured: bool
+    credential_source: Literal["application", "deployment", "not_configured"]
+    shop_domain: str
+    api_version: str
+    enabled: bool
+    default_product_status: str
+    default_publication_ids: list[str]
+    inventory_policy: str
+    variant_policy: str
+    media_policy: str
+    request_timeout_seconds: int
+    max_retry_attempts: int
+    validation_status: str
+    safe_validation_message: str | None
+    last_validated_at: datetime | None
+    last_validation_latency_ms: int | None
+    capabilities: dict[str, bool]
+
+
+class ShopifyValidationResult(BaseModel):
+    valid: bool
+    safe_message: str
+    shop_domain: str
+    api_version: str
+    shop_id: str | None
+    shop_name: str | None
+    primary_domain: str | None
+    capabilities: dict[str, bool]
+    latency_ms: int
+    correlation_id: str | None
+
+
+class ShopifyRemoteItem(BaseModel):
+    id: str
+    name: str
+    handle: str | None = None
+
+
+class ShopifyDiscoveryPage(BaseModel):
+    items: list[ShopifyRemoteItem]
+    has_more: bool
+    end_cursor: str | None
+    cached: bool
+    stale: bool = False
+
+
 class WordPressTerm(BaseModel):
     id: int
     name: str
@@ -230,7 +325,7 @@ class SanitizationChange(BaseModel):
 class PublishingPreviewRequest(BaseModel):
     artifact_id: uuid.UUID
     destination_id: uuid.UUID
-    action: Literal["create_draft", "publish", "update"] = "publish"
+    action: Literal["create_draft", "publish", "activate", "update", "archive"] = "publish"
     featured_media_id: uuid.UUID | None = None
 
 
@@ -255,6 +350,29 @@ class PublishingPreviewResponse(BaseModel):
     brand_name: str
     original_text: str
     sanitization_changes: list[SanitizationChange]
+
+
+class ShopifyPreviewResponse(BaseModel):
+    title: str
+    sanitized_description_html: str
+    status: Literal["DRAFT", "ACTIVE", "ARCHIVED"]
+    vendor: str
+    product_type: str
+    tags: list[str]
+    seo_title: str
+    seo_description: str
+    collection_ids: list[str]
+    publication_ids: list[str]
+    inventory_policy: str
+    destination_id: uuid.UUID
+    destination_name: str
+    artifact_id: uuid.UUID
+    artifact_version: int
+    product_id: uuid.UUID
+    product_name: str
+    brand_id: uuid.UUID
+    brand_name: str
+    original_text: str
 
 
 class Page(BaseModel):

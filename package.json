@@ -56,7 +56,12 @@
     "publishing:validate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/publishing-diagnostics.ps1 validate",
     "publishing:destinations": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/publishing-diagnostics.ps1 destinations",
     "publishing:executions": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/publishing-diagnostics.ps1 executions",
-    "publishing:reconcile": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/publishing-diagnostics.ps1 reconcile"
+    "publishing:reconcile": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/publishing-diagnostics.ps1 reconcile",
+    "publishing:shopify:status": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 status",
+    "publishing:shopify:validate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 validate",
+    "publishing:shopify:collections": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 collections",
+    "publishing:shopify:publications": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 publications",
+    "publishing:shopify:executions": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 executions"
   },
   "devDependencies": {
     "concurrently": "9.2.4",

@@ -1,7 +1,7 @@
 import hashlib
 import re
 import uuid
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -42,8 +42,17 @@ from vayujit_api.publishing.schemas import (
     ReconciliationResponse,
     RemoteDriftField,
     SanitizationChange,
+    ShopifyDestinationConfiguration,
+    ShopifyPreviewResponse,
     WordPressDestinationConfiguration,
 )
+from vayujit_api.publishing.shopify import (
+    connector_for as shopify_connector_for,
+)
+from vayujit_api.publishing.shopify import (
+    owned_configuration as owned_shopify_configuration,
+)
+from vayujit_api.publishing.shopify_connector import ShopifyGraphQLClient, shopify_product_input
 from vayujit_api.publishing.wordpress import connector_for, owned_configuration
 
 
@@ -53,11 +62,19 @@ def normalize(value: str) -> str:
 
 def destination_response(db: Session, value: PublishingDestination) -> DestinationResponse:
     brand = db.get(Brand, value.brand_id) if value.brand_id else None
-    configuration_type = (
-        WordPressDestinationConfiguration
-        if value.connector_key == "wordpress"
-        else MockConfiguration
+    parsed_configuration: (
+        WordPressDestinationConfiguration | ShopifyDestinationConfiguration | MockConfiguration
     )
+    if value.connector_key == "wordpress":
+        parsed_configuration = WordPressDestinationConfiguration.model_validate(
+            value.configuration_json
+        )
+    elif value.connector_key == "shopify":
+        parsed_configuration = ShopifyDestinationConfiguration.model_validate(
+            value.configuration_json
+        )
+    else:
+        parsed_configuration = MockConfiguration.model_validate(value.configuration_json)
     return DestinationResponse(
         id=value.id,
         brand_id=value.brand_id,
@@ -65,7 +82,7 @@ def destination_response(db: Session, value: PublishingDestination) -> Destinati
         connector_key=value.connector_key,
         name=value.name,
         status=cast(Literal["active", "disabled"], value.status),
-        configuration=configuration_type.model_validate(value.configuration_json),
+        configuration=parsed_configuration,
         created_at=value.created_at,
         updated_at=value.updated_at,
         disabled_at=value.disabled_at,
@@ -143,11 +160,10 @@ def update_destination(
     if data.name is not None:
         value.name, value.normalized_name = data.name, normalize(data.name)
     if data.configuration is not None:
-        expected = (
-            WordPressDestinationConfiguration
-            if value.connector_key == "wordpress"
-            else MockConfiguration
-        )
+        expected = {
+            "wordpress": WordPressDestinationConfiguration,
+            "shopify": ShopifyDestinationConfiguration,
+        }.get(value.connector_key, MockConfiguration)
         if not isinstance(data.configuration, expected):
             raise HTTPException(422, "Destination configuration does not match its connector.")
         value.configuration_json = data.configuration.model_dump(mode="json")
@@ -253,10 +269,35 @@ def execution_connector(
 ) -> tuple[PublishingConnector, int]:
     if destination.connector_key == connector.key:
         return connector, 1
+    if destination.connector_key == "shopify":
+        shopify_configuration = owned_shopify_configuration(db, owner.id)
+        if not shopify_configuration or not shopify_configuration.enabled:
+            raise HTTPException(
+                409,
+                {
+                    "code": "shopify_not_enabled",
+                    "message": "Configure, validate, and enable Shopify before publishing.",
+                },
+            )
+        if shopify_configuration.validation_status != "valid":
+            raise HTTPException(
+                409,
+                {
+                    "code": "shopify_not_validated",
+                    "message": "Validate the Shopify connection before publishing.",
+                },
+            )
+        try:
+            return (
+                cast(PublishingConnector, shopify_connector_for(shopify_configuration)),
+                shopify_configuration.max_retry_attempts,
+            )
+        except ValueError as error:
+            raise HTTPException(409, str(error)) from error
     if destination.connector_key != "wordpress":
         raise HTTPException(409, "Publishing connector is unsupported.")
-    configuration = owned_configuration(db, owner.id)
-    if not configuration or not configuration.enabled:
+    wordpress_configuration = owned_configuration(db, owner.id)
+    if not wordpress_configuration or not wordpress_configuration.enabled:
         raise HTTPException(
             409,
             {
@@ -264,7 +305,7 @@ def execution_connector(
                 "message": "Configure, validate, and enable WordPress before publishing.",
             },
         )
-    if configuration.validation_status != "valid":
+    if wordpress_configuration.validation_status != "valid":
         raise HTTPException(
             409,
             {
@@ -273,7 +314,10 @@ def execution_connector(
             },
         )
     try:
-        return connector_for(configuration), configuration.max_retry_attempts
+        return (
+            connector_for(wordpress_configuration),
+            wordpress_configuration.max_retry_attempts,
+        )
     except ValueError as error:
         raise HTTPException(409, str(error)) from error
 
@@ -312,6 +356,38 @@ def wordpress_request_configuration(
     selected_media_id = execution.request_snapshot_json.get("featured_media_id")
     if selected_media_id:
         configuration["featured_media_id"] = selected_media_id
+    return configuration
+
+
+def shopify_request_configuration(
+    db: Session,
+    execution: PublishingExecution,
+    destination: PublishingDestination,
+) -> dict[str, object]:
+    configuration = dict(destination.configuration_json)
+    configuration["requested_action"] = execution.requested_action
+    if execution.requested_action in {"update", "activate", "archive"}:
+        previous = db.scalar(
+            select(PublishingExecution)
+            .where(
+                PublishingExecution.owner_id == execution.owner_id,
+                PublishingExecution.destination_id == execution.destination_id,
+                PublishingExecution.product_id == execution.product_id,
+                PublishingExecution.status == "succeeded",
+                PublishingExecution.remote_entity_id.is_not(None),
+                PublishingExecution.id != execution.id,
+            )
+            .order_by(PublishingExecution.completed_at.desc())
+        )
+        if not previous or not previous.remote_entity_id:
+            raise HTTPException(
+                409,
+                {
+                    "code": "remote_product_missing",
+                    "message": "No prior Shopify product is available for this action.",
+                },
+            )
+        configuration["remote_product_id"] = previous.remote_entity_id
     return configuration
 
 
@@ -396,7 +472,11 @@ def run_attempt(
     request_configuration = (
         wordpress_request_configuration(db, execution, destination)
         if destination.connector_key == "wordpress"
-        else destination.configuration_json
+        else (
+            shopify_request_configuration(db, execution, destination)
+            if destination.connector_key == "shopify"
+            else destination.configuration_json
+        )
     )
     if isinstance(active_connector, WordPressConnector):
         ensure_wordpress_media(db, owner, active_connector, request_configuration)
@@ -425,7 +505,9 @@ def run_attempt(
             created_at=now(),
             correlation_id=correlation_id(),
             request_method="POST",
-            safe_endpoint_label="posts",
+            safe_endpoint_label=(
+                "shopify_graphql" if destination.connector_key == "shopify" else "posts"
+            ),
         )
         db.add(attempt)
         db.flush()
@@ -455,13 +537,19 @@ def run_attempt(
             )
             execution.external_reference = result.external_reference
             execution.external_url = result.external_url
-            execution.remote_entity_type = "post"
+            execution.remote_entity_type = (
+                "product" if destination.connector_key == "shopify" else "post"
+            )
             execution.remote_entity_id = result.external_reference
             execution.remote_edit_url = (
                 f"{active_connector.site_url}/wp-admin/post.php"
                 f"?post={result.external_reference}&action=edit"
                 if isinstance(active_connector, WordPressConnector)
-                else None
+                else (
+                    result.external_url
+                    if isinstance(active_connector, ShopifyGraphQLClient)
+                    else None
+                )
             )
             execution.remote_status = result.remote_status
             execution.remote_slug = result.remote_slug
@@ -507,6 +595,27 @@ def run_attempt(
             "correlation_id": execution.correlation_id,
         },
     )
+    if execution.connector_key == "shopify" and execution.status == "succeeded":
+        shopify_action = {
+            "create_draft": "publishing.shopify_product_draft_created",
+            "activate": "publishing.shopify_product_activated",
+            "update": "publishing.shopify_product_updated",
+            "archive": "publishing.shopify_product_archived",
+        }.get(execution.requested_action)
+        if shopify_action:
+            record_event(
+                db,
+                actor_id=owner.id,
+                action=shopify_action,
+                entity_type="publishing_execution",
+                entity_id=execution.id,
+                metadata={
+                    "connector": "shopify",
+                    "remote_product_id": execution.remote_entity_id,
+                    "remote_status": execution.remote_status,
+                    "correlation_id": execution.correlation_id,
+                },
+            )
     db.commit()
     return execution_response(db, execution)
 
@@ -594,6 +703,28 @@ def create_execution(db: Session, owner: User, data: CreateExecution) -> Executi
             media = owned_media(db, owner.id, selected_media_id)
             if media.status != "ready":
                 raise HTTPException(409, "The selected featured image is archived.")
+    if destination.connector_key == "shopify":
+        shopify_configuration = ShopifyDestinationConfiguration.model_validate(
+            destination.configuration_json
+        )
+        if data.action == "publish":
+            raise HTTPException(
+                422,
+                "Use create_draft or explicit activate for Shopify products.",
+            )
+        if data.action == "activate" and shopify_configuration.default_product_status != "active":
+            raise HTTPException(
+                409,
+                {
+                    "code": "shopify_activation_not_enabled",
+                    "message": "This destination does not permit product activation.",
+                },
+            )
+        if shopify_configuration.inventory_policy != "no_inventory_write":
+            raise HTTPException(
+                409,
+                "Inventory quantity writes are not supported in this Shopify slice.",
+            )
     snapshot = content_snapshot(product, brand, artifact)
     stamp = now()
     execution = PublishingExecution(
@@ -650,7 +781,10 @@ def create_execution(db: Session, owner: User, data: CreateExecution) -> Executi
 
 def keep_remote_changes(db: Session, owner: User, execution_id: uuid.UUID) -> ExecutionResponse:
     value = owned_execution(db, owner.id, execution_id)
-    if value.connector_key != "wordpress" or value.reconciliation_status != "changed_remotely":
+    if (
+        value.connector_key not in {"wordpress", "shopify"}
+        or value.reconciliation_status != "changed_remotely"
+    ):
         raise HTTPException(409, "No reviewed remote drift is available to keep.")
     value.reconciliation_status = "remote_changes_kept"
     value.updated_at = now()
@@ -771,6 +905,63 @@ def publishing_preview(
     )
 
 
+def shopify_publishing_preview(
+    db: Session, owner: User, data: PublishingPreviewRequest
+) -> ShopifyPreviewResponse:
+    artifact = db.scalar(
+        select(GeneratedArtifact).where(
+            GeneratedArtifact.id == data.artifact_id,
+            GeneratedArtifact.owner_id == owner.id,
+        )
+    )
+    if not artifact or artifact.status != "approved":
+        raise HTTPException(409, "An approved artifact is required for preview.")
+    product = db.scalar(
+        select(Product).where(Product.id == artifact.product_id, Product.owner_id == owner.id)
+    )
+    brand = db.scalar(
+        select(Brand).where(Brand.id == artifact.brand_id, Brand.owner_id == owner.id)
+    )
+    destination = owned_destination(db, owner.id, data.destination_id)
+    if not product or not brand or destination.connector_key != "shopify":
+        raise HTTPException(409, "A Shopify-compatible artifact and destination are required.")
+    configuration = ShopifyDestinationConfiguration.model_validate(destination.configuration_json)
+    status: Literal["DRAFT", "ACTIVE", "ARCHIVED"] = (
+        "ACTIVE"
+        if data.action == "activate"
+        else ("ARCHIVED" if data.action == "archive" else "DRAFT")
+    )
+    snapshot = content_snapshot(product, brand, artifact)
+    payload = shopify_product_input(
+        snapshot,
+        configuration.model_dump(mode="json"),
+        status=status,
+    )
+    seo = payload.get("seo")
+    return ShopifyPreviewResponse(
+        title=str(payload["title"]),
+        sanitized_description_html=str(payload["descriptionHtml"]),
+        status=status,
+        vendor=str(payload["vendor"]),
+        product_type=str(payload["productType"]),
+        tags=[str(item) for item in cast(list[object], payload["tags"])],
+        seo_title=str(seo.get("title") or "") if isinstance(seo, dict) else "",
+        seo_description=str(seo.get("description") or "") if isinstance(seo, dict) else "",
+        collection_ids=configuration.default_collection_ids,
+        publication_ids=configuration.default_publication_ids,
+        inventory_policy=configuration.inventory_policy,
+        destination_id=destination.id,
+        destination_name=destination.name,
+        artifact_id=artifact.id,
+        artifact_version=artifact.version_number,
+        product_id=product.id,
+        product_name=product.name,
+        brand_id=brand.id,
+        brand_name=brand.name,
+        original_text=str(snapshot.get("long_description") or ""),
+    )
+
+
 def retry_execution(db: Session, owner: User, execution_id: uuid.UUID) -> ExecutionResponse:
     execution = db.scalar(
         select(PublishingExecution)
@@ -826,15 +1017,70 @@ def reconcile_execution(
     db: Session, owner: User, execution_id: uuid.UUID
 ) -> ReconciliationResponse:
     value = owned_execution(db, owner.id, execution_id)
-    if value.connector_key != "wordpress" or not value.remote_entity_id:
-        raise HTTPException(409, "This execution has no WordPress post to reconcile.")
+    if value.connector_key not in {"wordpress", "shopify"} or not value.remote_entity_id:
+        raise HTTPException(409, "This execution has no remote entity to reconcile.")
     destination = owned_destination(db, owner.id, value.destination_id)
     active_connector, _ = execution_connector(db, owner, destination)
-    assert isinstance(active_connector, WordPressConnector)
+    if value.connector_key == "wordpress":
+        assert isinstance(active_connector, WordPressConnector)
+    remote_connector = cast(Any, active_connector)
     drift: list[str] = []
     differences: list[RemoteDriftField] = []
     try:
-        result = active_connector.reconcile(value.remote_entity_id)
+        result = remote_connector.reconcile(value.remote_entity_id)
+        if value.connector_key == "shopify":
+            raw_configuration = value.request_snapshot_json.get("configuration")
+            expected_configuration = (
+                raw_configuration if isinstance(raw_configuration, dict) else {}
+            )
+            expected = shopify_product_input(
+                value.content_snapshot_json,
+                expected_configuration,
+                status=("ACTIVE" if value.requested_action == "activate" else "DRAFT"),
+                remote_id=value.remote_entity_id,
+            )
+            remote_payload = result.payload
+            comparisons = {
+                "title": (expected.get("title"), remote_payload.get("title")),
+                "status": (
+                    str(expected.get("status", "")).casefold(),
+                    result.remote_status,
+                ),
+                "handle": (None, result.remote_slug),
+                "vendor": (expected.get("vendor"), remote_payload.get("vendor")),
+                "product_type": (
+                    expected.get("productType"),
+                    remote_payload.get("productType"),
+                ),
+                "tags": (expected.get("tags"), remote_payload.get("tags")),
+                "seo": (expected.get("seo"), remote_payload.get("seo")),
+                "modified": (None, remote_payload.get("updatedAt")),
+            }
+            for field, (expected_value, remote) in comparisons.items():
+                shopify_status: Literal["in_sync", "changed_remotely", "unknown"] = (
+                    "unknown"
+                    if remote is None
+                    else (
+                        "in_sync"
+                        if expected_value == remote or expected_value is None
+                        else "changed_remotely"
+                    )
+                )
+                differences.append(
+                    RemoteDriftField(
+                        field=field,
+                        expected=expected_value,
+                        remote=remote,
+                        status=shopify_status,
+                    )
+                )
+                if shopify_status == "changed_remotely":
+                    drift.append(field)
+            value.remote_status = result.remote_status
+            value.remote_slug = result.remote_slug
+            value.external_url = result.external_url
+            value.reconciliation_status = "changed_remotely" if drift else "in_sync"
+            raise StopIteration
         raw_configuration = value.request_snapshot_json.get("configuration")
         expected_configuration = raw_configuration if isinstance(raw_configuration, dict) else {}
         raw_categories_value = expected_configuration.get("category_ids")
@@ -885,14 +1131,23 @@ def reconcile_execution(
                 remote_payload.get("modified_gmt") or remote_payload.get("modified"),
             ),
         }
-        for field, (expected, remote) in comparisons.items():
+        for field, (expected_field, remote) in comparisons.items():
             status_value: Literal["in_sync", "changed_remotely", "unknown"] = (
                 "unknown"
                 if remote is None
-                else ("in_sync" if expected == remote or expected is None else "changed_remotely")
+                else (
+                    "in_sync"
+                    if expected_field == remote or expected_field is None
+                    else "changed_remotely"
+                )
             )
             differences.append(
-                RemoteDriftField(field=field, expected=expected, remote=remote, status=status_value)
+                RemoteDriftField(
+                    field=field,
+                    expected=expected_field,
+                    remote=remote,
+                    status=status_value,
+                )
             )
             if status_value == "changed_remotely":
                 drift.append(field)
@@ -902,11 +1157,17 @@ def reconcile_execution(
         value.remote_slug = result.remote_slug
         value.external_url = result.external_url
         value.reconciliation_status = "changed_remotely" if drift else "in_sync"
+    except StopIteration:
+        pass
     except ConnectorFailure as error:
         value.reconciliation_status = (
-            "missing_remotely" if error.code == "wordpress_not_found" else "reconciliation_failed"
+            "missing_remotely"
+            if error.code in {"wordpress_not_found", "shopify_not_found"}
+            else "reconciliation_failed"
         )
-        drift = ["remote_missing"] if error.code == "wordpress_not_found" else []
+        drift = (
+            ["remote_missing"] if error.code in {"wordpress_not_found", "shopify_not_found"} else []
+        )
     value.last_reconciled_at = now()
     value.updated_at = value.last_reconciled_at
     record_event(

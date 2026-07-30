@@ -1,5 +1,10 @@
 # VAYUJIT OS
 
+Shopify is available as the second real Publishing connector. It provides encrypted Admin API
+credentials, draft-first product publishing, bounded discovery, explicit activation, update,
+reconciliation, diagnostics, and conservative no-inventory-write behavior. See
+`docs/03-architecture/shopify-publishing.md`.
+
 Production-hardening operator guidance is in
 `docs/00-governance/production-readiness.md`. Start with `npm.cmd run system:doctor`,
 `npm.cmd run security:check`, and the authenticated `/operations` area.

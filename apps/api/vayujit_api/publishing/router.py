@@ -1,7 +1,7 @@
 import math
 import uuid
 from datetime import datetime
-from typing import Annotated, cast
+from typing import Annotated, Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, or_, select
@@ -26,6 +26,11 @@ from vayujit_api.publishing.schemas import (
     PublishingPreviewRequest,
     PublishingPreviewResponse,
     ReconciliationResponse,
+    ShopifyConnectorResponse,
+    ShopifyConnectorUpdate,
+    ShopifyDiscoveryPage,
+    ShopifyPreviewResponse,
+    ShopifyValidationResult,
     WordPressConnectorResponse,
     WordPressConnectorUpdate,
     WordPressTaxonomyPage,
@@ -45,7 +50,32 @@ from vayujit_api.publishing.service import (
     reconcile_execution,
     retry_execution,
     set_destination_status,
+    shopify_publishing_preview,
     update_destination,
+)
+from vayujit_api.publishing.shopify import (
+    capabilities as shopify_capabilities,
+)
+from vayujit_api.publishing.shopify import (
+    connector_for as shopify_connector_for,
+)
+from vayujit_api.publishing.shopify import (
+    owned_configuration as owned_shopify_configuration,
+)
+from vayujit_api.publishing.shopify import (
+    remove_credential as remove_shopify_credential,
+)
+from vayujit_api.publishing.shopify import (
+    response_for as shopify_response_for,
+)
+from vayujit_api.publishing.shopify import (
+    save_configuration as save_shopify_configuration,
+)
+from vayujit_api.publishing.shopify_discovery import (
+    discover as shopify_discover,
+)
+from vayujit_api.publishing.shopify_discovery import (
+    invalidate as invalidate_shopify,
 )
 from vayujit_api.publishing.taxonomy import discover, invalidate
 from vayujit_api.publishing.wordpress import (
@@ -83,7 +113,177 @@ def connectors(owner: Owner) -> list[dict[str, object]]:
             "local": False,
             "capabilities": capabilities(),
         },
+        {
+            "key": "shopify",
+            "name": "Shopify",
+            "connector_type": "remote",
+            "available": True,
+            "deterministic": False,
+            "local": False,
+            "capabilities": shopify_capabilities(),
+        },
     ]
+
+
+@router.get("/connectors/shopify", response_model=ShopifyConnectorResponse)
+def shopify_configuration(db: DB, owner: Owner) -> ShopifyConnectorResponse:
+    return shopify_response_for(owned_shopify_configuration(db, owner.id))
+
+
+@router.put("/connectors/shopify", response_model=ShopifyConnectorResponse)
+def shopify_configuration_update(
+    data: ShopifyConnectorUpdate, db: DB, owner: Owner
+) -> ShopifyConnectorResponse:
+    try:
+        result = save_shopify_configuration(db, owner, data)
+        invalidate_shopify(owner.id)
+        return result
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+
+
+@router.post("/connectors/shopify/validate", response_model=ShopifyValidationResult)
+def shopify_validate(db: DB, owner: Owner) -> ShopifyValidationResult:
+    value = owned_shopify_configuration(db, owner.id)
+    if not value:
+        raise HTTPException(409, "Shopify is not configured.")
+    started = now()
+    try:
+        data = shopify_connector_for(value).validate()
+        shop = data.get("shop")
+        if not isinstance(shop, dict):
+            raise ValueError("Shopify shop identity response was invalid.")
+        latency = max(int((now() - started).total_seconds() * 1000), 0)
+        value.validation_status = "valid"
+        value.safe_validation_message = "Shopify Admin API credentials are valid."
+        value.capabilities_json = cast(dict[str, object], shopify_capabilities())
+        valid = True
+    except (ValueError, ConnectorFailure) as error:
+        latency = max(int((now() - started).total_seconds() * 1000), 0)
+        value.validation_status = "invalid"
+        value.safe_validation_message = (
+            error.safe_message
+            if isinstance(error, ConnectorFailure)
+            else "Shopify credentials or store configuration are invalid."
+        )
+        shop, valid = {}, False
+    value.last_validated_at = value.updated_at = now()
+    value.last_validation_latency_ms = latency
+    record_event(
+        db,
+        actor_id=owner.id,
+        action=(
+            "publishing.shopify_validated" if valid else "publishing.shopify_validation_failed"
+        ),
+        entity_type="shopify_connector_configuration",
+        entity_id=value.id,
+        metadata={"connector": "shopify", "valid": valid},
+    )
+    db.commit()
+    primary = shop.get("primaryDomain")
+    return ShopifyValidationResult(
+        valid=valid,
+        safe_message=value.safe_validation_message or "",
+        shop_domain=value.shop_domain,
+        api_version=value.api_version,
+        shop_id=str(shop["id"]) if shop.get("id") else None,
+        shop_name=str(shop["name"])[:160] if shop.get("name") else None,
+        primary_domain=(
+            str(primary["host"])[:255]
+            if isinstance(primary, dict) and primary.get("host")
+            else None
+        ),
+        capabilities=shopify_capabilities(),
+        latency_ms=latency,
+        correlation_id=correlation_id(),
+    )
+
+
+def set_shopify_enabled(db: Session, owner: User, enabled: bool) -> ShopifyConnectorResponse:
+    value = owned_shopify_configuration(db, owner.id)
+    if not value:
+        raise HTTPException(409, "Shopify is not configured.")
+    if enabled and value.validation_status != "valid":
+        raise HTTPException(409, "Validate Shopify before enabling it.")
+    value.enabled = enabled
+    value.updated_at = now()
+    record_event(
+        db,
+        actor_id=owner.id,
+        action=f"publishing.shopify_{'enabled' if enabled else 'disabled'}",
+        entity_type="shopify_connector_configuration",
+        entity_id=value.id,
+        metadata={"connector": "shopify"},
+    )
+    db.commit()
+    invalidate_shopify(owner.id)
+    return shopify_response_for(value)
+
+
+@router.post("/connectors/shopify/enable", response_model=ShopifyConnectorResponse)
+def shopify_enable(db: DB, owner: Owner) -> ShopifyConnectorResponse:
+    return set_shopify_enabled(db, owner, True)
+
+
+@router.post("/connectors/shopify/disable", response_model=ShopifyConnectorResponse)
+def shopify_disable(db: DB, owner: Owner) -> ShopifyConnectorResponse:
+    return set_shopify_enabled(db, owner, False)
+
+
+@router.delete("/connectors/shopify/credential", response_model=ShopifyConnectorResponse)
+def shopify_credential_delete(db: DB, owner: Owner) -> ShopifyConnectorResponse:
+    try:
+        invalidate_shopify(owner.id)
+        return remove_shopify_credential(db, owner)
+    except ValueError as error:
+        raise HTTPException(404, str(error)) from error
+
+
+def shopify_discovery_page(
+    db: Session,
+    owner: User,
+    kind: str,
+    search: str,
+    cursor: str | None,
+    page_size: int,
+    refresh: bool,
+) -> ShopifyDiscoveryPage:
+    try:
+        return shopify_discover(
+            db,
+            owner,
+            cast(Any, kind),
+            search=search,
+            cursor=cursor,
+            page_size=page_size,
+            refresh=refresh,
+        )
+    except (ValueError, ConnectorFailure) as error:
+        message = error.safe_message if isinstance(error, ConnectorFailure) else str(error)
+        raise HTTPException(502, message) from error
+
+
+@router.get("/connectors/shopify/collections", response_model=ShopifyDiscoveryPage)
+def shopify_collections(
+    db: DB,
+    owner: Owner,
+    search: Annotated[str, Query(max_length=100)] = "",
+    cursor: Annotated[str | None, Query(max_length=500)] = None,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 25,
+    refresh: bool = False,
+) -> ShopifyDiscoveryPage:
+    return shopify_discovery_page(db, owner, "collections", search, cursor, page_size, refresh)
+
+
+@router.get("/connectors/shopify/publications", response_model=ShopifyDiscoveryPage)
+def shopify_publications(
+    db: DB,
+    owner: Owner,
+    cursor: Annotated[str | None, Query(max_length=500)] = None,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 25,
+    refresh: bool = False,
+) -> ShopifyDiscoveryPage:
+    return shopify_discovery_page(db, owner, "publications", "", cursor, page_size, refresh)
 
 
 @router.get("/connectors/wordpress", response_model=WordPressConnectorResponse)
@@ -333,6 +533,13 @@ def preview_create(
     data: PublishingPreviewRequest, db: DB, owner: Owner
 ) -> PublishingPreviewResponse:
     return publishing_preview(db, owner, data)
+
+
+@router.post("/preview/shopify", response_model=ShopifyPreviewResponse)
+def shopify_preview_create(
+    data: PublishingPreviewRequest, db: DB, owner: Owner
+) -> ShopifyPreviewResponse:
+    return shopify_publishing_preview(db, owner, data)
 
 
 @router.get("/executions", response_model=Page)

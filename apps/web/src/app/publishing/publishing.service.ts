@@ -16,6 +16,11 @@ import type {
   WordPressTaxonomyPage,
   PublishingPreview,
   PublishingReconciliationResult,
+  ShopifyConnectorConfiguration,
+  ShopifyDiscoveryPage,
+  ShopifyPublishingPreview,
+  ShopifyValidationResult,
+  UpdateShopifyConnectorRequest,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
 
@@ -203,14 +208,82 @@ export class PublishingService {
   wordpressAuthors(search = '', refresh = false) {
     return this.taxonomy('authors', search, refresh);
   }
+  shopifyConfiguration() {
+    return firstValueFrom(
+      this.http.get<ShopifyConnectorConfiguration>(`${this.base}/connectors/shopify`, this.options),
+    );
+  }
+  saveShopifyConfiguration(data: UpdateShopifyConnectorRequest) {
+    return firstValueFrom(
+      this.http.put<ShopifyConnectorConfiguration>(
+        `${this.base}/connectors/shopify`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  validateShopify() {
+    return firstValueFrom(
+      this.http.post<ShopifyValidationResult>(
+        `${this.base}/connectors/shopify/validate`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  setShopifyEnabled(action: 'enable' | 'disable') {
+    return firstValueFrom(
+      this.http.post<ShopifyConnectorConfiguration>(
+        `${this.base}/connectors/shopify/${action}`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  removeShopifyCredential() {
+    return firstValueFrom(
+      this.http.delete<ShopifyConnectorConfiguration>(
+        `${this.base}/connectors/shopify/credential`,
+        this.options,
+      ),
+    );
+  }
+  shopifyDiscovery(
+    kind: 'collections' | 'publications',
+    search = '',
+    refresh = false,
+    cursor?: string,
+  ) {
+    let params = new HttpParams()
+      .set('page_size', 50)
+      .set('refresh', refresh)
+      .set('search', search);
+    if (cursor) params = params.set('cursor', cursor);
+    return firstValueFrom(
+      this.http.get<ShopifyDiscoveryPage>(`${this.base}/connectors/shopify/${kind}`, {
+        ...this.options,
+        params,
+      }),
+    );
+  }
   preview(data: {
     artifact_id: string;
     destination_id: string;
-    action: 'create_draft' | 'publish' | 'update';
+    action: 'create_draft' | 'publish' | 'activate' | 'update';
     featured_media_id?: string | null;
   }) {
     return firstValueFrom(
       this.http.post<PublishingPreview>(`${this.base}/preview`, data, this.options),
+    );
+  }
+  shopifyPreview(data: {
+    artifact_id: string;
+    destination_id: string;
+    action: 'create_draft' | 'activate' | 'update';
+    featured_media_id?: string | null;
+  }) {
+    return firstValueFrom(
+      this.http.post<ShopifyPublishingPreview>(`${this.base}/preview/shopify`, data, this.options),
     );
   }
   cancel(id: string) {

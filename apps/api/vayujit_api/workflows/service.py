@@ -454,6 +454,10 @@ def continue_workflow(db: Session, owner: User, workflow_id: uuid.UUID) -> Workf
             "destination_id": str(workflow.destination_id),
         },
     )
+    destination = db.get(PublishingDestination, workflow.destination_id)
+    requested_action: Literal["create_draft", "publish"] = (
+        "create_draft" if destination and destination.connector_key == "shopify" else "publish"
+    )
     result = create_execution(
         db,
         owner,
@@ -461,6 +465,7 @@ def continue_workflow(db: Session, owner: User, workflow_id: uuid.UUID) -> Workf
             artifact_id=artifact.id,
             destination_id=workflow.destination_id,
             idempotency_key=f"wf:{workflow.id}:publish:{step.attempt_number}",
+            action=requested_action,
         ),
     )
     workflow.context_json = {

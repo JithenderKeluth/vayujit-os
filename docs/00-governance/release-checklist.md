@@ -15,3 +15,6 @@
 - [ ] Development business-data counts are unchanged.
 - [ ] No path, credential, raw bytes, authorization header, or unsafe HTML is rendered.
 - [ ] Optional real-site validation used only a non-production operator-controlled site.
+- [ ] Migration 0013 clean upgrade, downgrade to 0012, and re-upgrade passes.
+- [ ] Shopify token is absent from API responses, logs, audit, exports, and Electron storage.
+- [ ] Draft creation, explicit activation, update, throttling, cancellation, and reconciliation pass.

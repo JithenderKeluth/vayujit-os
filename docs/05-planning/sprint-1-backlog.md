@@ -43,3 +43,7 @@ Commit only S1-01 through S1-04 first as a walking skeleton, then data/auth/busi
 - Shared Publishing preview and sanitization comparison
 - Field-level drift and explicit reconciliation decisions
 - Recovery, health, audit, accessibility, Electron, and guarded migration acceptance
+# Shopify Publishing vertical slice
+
+- Shopify configuration, validation, discovery, destination, draft, update, activation, execution,
+  reconciliation, recovery, health, audit, diagnostics, tests, and documentation.

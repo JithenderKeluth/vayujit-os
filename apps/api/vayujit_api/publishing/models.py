@@ -154,3 +154,66 @@ class WordPressConnectorConfiguration(Base):
     safe_validation_message: Mapped[str | None] = mapped_column(String(500))
     last_validation_latency_ms: Mapped[int | None] = mapped_column(Integer)
     capabilities_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+
+
+class ShopifyConnectorConfiguration(Base):
+    __tablename__ = "shopify_connector_configurations"
+    __table_args__ = (
+        UniqueConstraint("owner_id", name="uq_shopify_configuration_owner"),
+        CheckConstraint("request_timeout_seconds BETWEEN 10 AND 120", name="ck_shopify_timeout"),
+        CheckConstraint("max_retry_attempts BETWEEN 1 AND 5", name="ck_shopify_retries"),
+        CheckConstraint(
+            "default_product_status IN ('draft','active')", name="ck_shopify_default_status"
+        ),
+        CheckConstraint(
+            "inventory_policy IN ('no_inventory_write','track_without_quantity')",
+            name="ck_shopify_inventory_policy",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    shop_domain: Mapped[str] = mapped_column(String(255))
+    encrypted_access_token: Mapped[str | None] = mapped_column(Text)
+    credential_version: Mapped[int] = mapped_column(Integer, default=1)
+    api_version: Mapped[str] = mapped_column(String(20))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    default_product_status: Mapped[str] = mapped_column(String(20), default="draft")
+    default_publication_ids_json: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    inventory_policy: Mapped[str] = mapped_column(String(40), default="no_inventory_write")
+    variant_policy: Mapped[str] = mapped_column(String(40), default="default_variant")
+    media_policy: Mapped[str] = mapped_column(String(40), default="fail")
+    request_timeout_seconds: Mapped[int] = mapped_column(Integer, default=45)
+    max_retry_attempts: Mapped[int] = mapped_column(Integer, default=3)
+    validation_status: Mapped[str] = mapped_column(String(20), default="unknown")
+    safe_validation_message: Mapped[str | None] = mapped_column(String(500))
+    last_validated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_validation_latency_ms: Mapped[int | None] = mapped_column(Integer)
+    capabilities_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ShopifyMediaMapping(Base):
+    __tablename__ = "shopify_media_mappings"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "media_id", "shop_fingerprint", name="uq_shopify_media_mapping"
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    media_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("media_assets.id", ondelete="CASCADE"), index=True
+    )
+    shop_fingerprint: Mapped[str] = mapped_column(String(64))
+    remote_media_id: Mapped[str] = mapped_column(String(160))
+    remote_url: Mapped[str | None] = mapped_column(String(500))
+    checksum_sha256: Mapped[str] = mapped_column(String(64))
+    status: Mapped[str] = mapped_column(String(30), default="mapped")
+    last_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

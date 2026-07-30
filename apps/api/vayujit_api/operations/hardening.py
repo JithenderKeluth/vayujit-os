@@ -26,6 +26,7 @@ from vayujit_api.operations.models import BackupRecord
 from vayujit_api.products.models import Product
 from vayujit_api.publishing.models import (
     PublishingExecution,
+    ShopifyConnectorConfiguration,
     WordPressConnectorConfiguration,
 )
 from vayujit_api.workflows.models import WorkflowInstance
@@ -177,6 +178,23 @@ def health_details(db: Session) -> SystemHealth:
             f"validation={wordpress_configuration.validation_status}; "
             "credentials are redacted."
         )
+    shopify_configuration = db.scalar(
+        select(ShopifyConnectorConfiguration)
+        .where(ShopifyConnectorConfiguration.enabled.is_(True))
+        .limit(1)
+    )
+    shopify_status: Literal["healthy", "degraded", "unavailable"] = "healthy"
+    shopify_message = "Shopify connector is registered and disabled."
+    if shopify_configuration:
+        shopify_status = (
+            "healthy" if shopify_configuration.validation_status == "valid" else "degraded"
+        )
+        shopify_message = (
+            "Shopify connector is enabled; "
+            f"validation={shopify_configuration.validation_status}; "
+            f"shop={shopify_configuration.shop_domain}; "
+            f"api_version={shopify_configuration.api_version}; credentials are redacted."
+        )
     try:
         media_root = storage_root()
         media_writable = os.access(media_root, os.W_OK)
@@ -200,10 +218,10 @@ def health_details(db: Session) -> SystemHealth:
                 component="Migration",
                 status=(
                     "healthy"
-                    if current in {"20260801_0012", "unmanaged-test-schema"}
+                    if current in {"20260802_0013", "unmanaged-test-schema"}
                     else "degraded"
                 ),
-                message=f"Current {current}; expected 20260801_0012.",
+                message=f"Current {current}; expected 20260802_0013.",
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -241,6 +259,23 @@ def health_details(db: Session) -> SystemHealth:
                 checked_at=checked,
             ),
             ComponentHealth(
+                component="Shopify connector",
+                status=shopify_status,
+                message=shopify_message,
+                checked_at=checked,
+            ),
+            ComponentHealth(
+                component="Shopify discovery",
+                status=shopify_status,
+                message=(
+                    "Collection and publication capabilities are available after validation; "
+                    "inventory quantity writes remain disabled."
+                    if shopify_configuration
+                    else "Remote Shopify discovery checks are inactive."
+                ),
+                checked_at=checked,
+            ),
+            ComponentHealth(
                 component="Audit persistence",
                 status=database,
                 message="Audit events use PostgreSQL persistence.",
@@ -259,7 +294,7 @@ def health_details(db: Session) -> SystemHealth:
         status=overall,
         components=components,
         current_migration=current,
-        expected_migration="20260801_0012",
+        expected_migration="20260802_0013",
         application_version=__version__,
         build_identifier=get_settings().build_identifier,
     )
@@ -370,7 +405,7 @@ def recovery(
                         (["retry_publishing"] if execution.retryable else [])
                         + (
                             ["reconcile_publishing"]
-                            if execution.connector_key == "wordpress"
+                            if execution.connector_key in {"wordpress", "shopify"}
                             and (
                                 execution.remote_entity_id
                                 or execution.reconciliation_status == "reconciliation_required"

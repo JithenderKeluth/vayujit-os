@@ -473,9 +473,23 @@ export interface WordPressDestinationConfiguration {
   update_existing_remote_post: boolean;
   content_mapping_version: 1;
 }
+export interface ShopifyDestinationConfiguration {
+  default_product_status: 'draft' | 'active';
+  default_collection_ids: string[];
+  default_publication_ids: string[];
+  default_vendor: string;
+  default_product_type: string;
+  default_tags: string[];
+  variant_policy: 'default_variant' | 'structured_variants';
+  inventory_policy: 'no_inventory_write' | 'track_without_quantity';
+  media_policy: 'fail' | 'draft_without_media' | 'degraded';
+  update_existing_remote_product: boolean;
+  content_mapping_version: 1;
+}
 export type PublishingDestinationConfiguration =
   | MockDestinationConfiguration
-  | WordPressDestinationConfiguration;
+  | WordPressDestinationConfiguration
+  | ShopifyDestinationConfiguration;
 export interface PublishingDestinationSummary {
   id: string;
   brand_id: string | null;
@@ -491,7 +505,7 @@ export interface PublishingDestinationSummary {
 export interface CreatePublishingDestinationRequest {
   name: string;
   brand_id?: string | null;
-  connector_key: 'mock_publisher_v1' | 'wordpress';
+  connector_key: 'mock_publisher_v1' | 'wordpress' | 'shopify';
   configuration: PublishingDestinationConfiguration;
 }
 export type UpdatePublishingDestinationRequest = Partial<CreatePublishingDestinationRequest>;
@@ -535,7 +549,7 @@ export interface PublishingExecutionDetails {
   completed_at: string | null;
   failed_at: string | null;
   attempts: PublishingAttemptDetails[];
-  requested_action: 'create_draft' | 'publish' | 'update';
+  requested_action: 'create_draft' | 'publish' | 'activate' | 'update' | 'archive';
   remote_entity_id: string | null;
   remote_status: string | null;
   remote_slug: string | null;
@@ -550,7 +564,7 @@ export interface CreatePublishingExecutionRequest {
   artifact_id: string;
   destination_id: string;
   idempotency_key?: string;
-  action?: 'create_draft' | 'publish' | 'update';
+  action?: 'create_draft' | 'publish' | 'activate' | 'update' | 'archive';
   featured_media_id?: string | null;
 }
 export interface WordPressConnectorConfiguration {
@@ -588,6 +602,63 @@ export interface WordPressValidationResult {
   capabilities: Record<string, boolean>;
   latency_ms: number;
   correlation_id: string | null;
+}
+export interface ShopifyConnectorConfiguration {
+  connector_key: 'shopify';
+  display_name: string;
+  configured: boolean;
+  credential_source: 'application' | 'deployment' | 'not_configured';
+  shop_domain: string;
+  api_version: string;
+  enabled: boolean;
+  default_product_status: 'draft' | 'active';
+  default_publication_ids: string[];
+  inventory_policy: 'no_inventory_write' | 'track_without_quantity';
+  variant_policy: 'default_variant' | 'structured_variants';
+  media_policy: 'fail' | 'draft_without_media' | 'degraded';
+  request_timeout_seconds: number;
+  max_retry_attempts: number;
+  validation_status: string;
+  safe_validation_message: string | null;
+  last_validated_at: string | null;
+  last_validation_latency_ms: number | null;
+  capabilities: Record<string, boolean>;
+}
+export interface UpdateShopifyConnectorRequest {
+  shop_domain: string;
+  access_token?: string;
+  api_version: string;
+  default_product_status: 'draft' | 'active';
+  default_publication_ids: string[];
+  inventory_policy: 'no_inventory_write' | 'track_without_quantity';
+  variant_policy: 'default_variant' | 'structured_variants';
+  media_policy: 'fail' | 'draft_without_media' | 'degraded';
+  request_timeout_seconds: number;
+  max_retry_attempts: number;
+}
+export interface ShopifyValidationResult {
+  valid: boolean;
+  safe_message: string;
+  shop_domain: string;
+  api_version: string;
+  shop_id: string | null;
+  shop_name: string | null;
+  primary_domain: string | null;
+  capabilities: Record<string, boolean>;
+  latency_ms: number;
+  correlation_id: string | null;
+}
+export interface ShopifyRemoteItem {
+  id: string;
+  name: string;
+  handle: string | null;
+}
+export interface ShopifyDiscoveryPage {
+  items: ShopifyRemoteItem[];
+  has_more: boolean;
+  end_cursor: string | null;
+  cached: boolean;
+  stale: boolean;
 }
 export interface WordPressTerm {
   id: number;
@@ -657,6 +728,28 @@ export interface PublishingPreview {
   brand_name: string;
   original_text: string;
   sanitization_changes: SanitizationChange[];
+}
+export interface ShopifyPublishingPreview {
+  title: string;
+  sanitized_description_html: string;
+  status: 'DRAFT' | 'ACTIVE' | 'ARCHIVED';
+  vendor: string;
+  product_type: string;
+  tags: string[];
+  seo_title: string;
+  seo_description: string;
+  collection_ids: string[];
+  publication_ids: string[];
+  inventory_policy: string;
+  destination_id: string;
+  destination_name: string;
+  artifact_id: string;
+  artifact_version: number;
+  product_id: string;
+  product_name: string;
+  brand_id: string;
+  brand_name: string;
+  original_text: string;
 }
 export interface RemoteDriftField {
   field: string;

@@ -1,3 +1,4 @@
+import base64
 import json
 import os
 import struct
@@ -19,7 +20,9 @@ from vayujit_api.core.test_database import reset_test_schema
 from vayujit_api.identity.router import attempts
 from vayujit_api.identity.service import now
 from vayujit_api.main import create_app
-from vayujit_api.publishing.connector import WordPressConnector
+from vayujit_api.publishing.connector import ConnectorResult, WordPressConnector
+from vayujit_api.publishing.models import ShopifyConnectorConfiguration
+from vayujit_api.publishing.shopify_connector import ShopifyThrottle
 
 URL = os.getenv("VAYUJIT_TEST_DATABASE_URL")
 pytestmark = pytest.mark.integration
@@ -371,3 +374,169 @@ def test_wordpress_draft_reconcile_and_move_to_draft(
     )
     assert moved.status_code == 200 and moved.json()["remote_status"] == "draft"
     assert "application_password" not in configuration.text
+
+
+def test_shopify_configuration_discovery_draft_idempotency_and_drift(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class FakeShopify:
+        last_throttle = ShopifyThrottle(currently_available=992, restore_rate=50.0)
+
+        def validate(self) -> dict[str, object]:
+            return {
+                "shop": {
+                    "id": "gid://shopify/Shop/1",
+                    "name": "VAYUJIT Test Store",
+                    "primaryDomain": {"host": "test-shop.myshopify.com"},
+                }
+            }
+
+        def discover(
+            self,
+            kind: str,
+            *,
+            first: int,
+            after: str | None,
+            search: str = "",
+        ) -> dict[str, object]:
+            node = (
+                {"id": "gid://shopify/Collection/1", "title": "Featured", "handle": "featured"}
+                if kind == "collections"
+                else {"id": "gid://shopify/Publication/1", "name": "Online Store"}
+            )
+            return {
+                kind: {
+                    "nodes": [node],
+                    "pageInfo": {"hasNextPage": False, "endCursor": None},
+                }
+            }
+
+        def publish(
+            self, destination: dict[str, object], snapshot: dict[str, object]
+        ) -> ConnectorResult:
+            return ConnectorResult(
+                "gid://shopify/Product/42",
+                "https://test-shop.myshopify.com/admin/products/42",
+                {
+                    "product": {
+                        "id": "gid://shopify/Product/42",
+                        "title": snapshot["product_name"],
+                        "status": "DRAFT",
+                    },
+                    "throttle": self.last_throttle.__dict__,
+                },
+                remote_status="draft",
+                remote_slug="publish-product",
+            )
+
+        def reconcile(self, remote_id: str) -> ConnectorResult:
+            return ConnectorResult(
+                remote_id,
+                "https://test-shop.myshopify.com/admin/products/42",
+                {
+                    "id": remote_id,
+                    "title": "Changed remotely",
+                    "status": "DRAFT",
+                    "vendor": "Publish Brand",
+                    "productType": "",
+                    "tags": [],
+                    "seo": {"title": "", "description": ""},
+                },
+                remote_status="draft",
+                remote_slug="publish-product",
+            )
+
+    fake = FakeShopify()
+    monkeypatch.setattr(
+        get_settings(),
+        "credential_encryption_key",
+        base64.urlsafe_b64encode(b"0" * 32).decode(),
+    )
+    monkeypatch.setattr("vayujit_api.publishing.shopify.validate_shop_domain", lambda value: value)
+    monkeypatch.setattr("vayujit_api.publishing.router.shopify_connector_for", lambda _value: fake)
+    monkeypatch.setattr("vayujit_api.publishing.service.shopify_connector_for", lambda _value: fake)
+    monkeypatch.setattr(
+        "vayujit_api.publishing.shopify_discovery.connector_for", lambda _value: fake
+    )
+    brand, artifact = setup(client)
+    token = "shpat_test_token_never_returned"
+    saved = client.put(
+        "/api/v1/publishing/connectors/shopify",
+        json={
+            "shop_domain": "test-shop.myshopify.com",
+            "access_token": token,
+            "api_version": "2026-07",
+            "default_product_status": "draft",
+            "default_publication_ids": [],
+            "inventory_policy": "no_inventory_write",
+            "variant_policy": "default_variant",
+            "media_policy": "fail",
+            "request_timeout_seconds": 45,
+            "max_retry_attempts": 3,
+        },
+        headers=ORIGIN,
+    )
+    assert saved.status_code == 200, saved.text
+    assert token not in saved.text
+    assert saved.json()["credential_source"] == "application"
+    assert client.post("/api/v1/publishing/connectors/shopify/validate", headers=ORIGIN).json()[
+        "valid"
+    ]
+    assert (
+        client.post("/api/v1/publishing/connectors/shopify/enable", headers=ORIGIN).status_code
+        == 200
+    )
+    assert (
+        client.get("/api/v1/publishing/connectors/shopify/collections?search=feat").json()["items"][
+            0
+        ]["name"]
+        == "Featured"
+    )
+    assert (
+        client.get("/api/v1/publishing/connectors/shopify/publications").json()["items"][0]["name"]
+        == "Online Store"
+    )
+    destination = client.post(
+        "/api/v1/publishing/destinations",
+        json={
+            "name": "Shopify draft",
+            "brand_id": brand["id"],
+            "connector_key": "shopify",
+            "configuration": {
+                "default_product_status": "draft",
+                "default_collection_ids": ["gid://shopify/Collection/1"],
+                "default_publication_ids": [],
+                "default_vendor": "",
+                "default_product_type": "",
+                "default_tags": [],
+                "variant_policy": "default_variant",
+                "inventory_policy": "no_inventory_write",
+                "media_policy": "fail",
+                "update_existing_remote_product": True,
+                "content_mapping_version": 1,
+            },
+        },
+        headers=ORIGIN,
+    ).json()
+    request = {
+        "artifact_id": artifact["id"],
+        "destination_id": destination["id"],
+        "idempotency_key": "shopify-draft-integration",
+        "action": "create_draft",
+    }
+    first = client.post("/api/v1/publishing/executions", json=request, headers=ORIGIN)
+    assert first.status_code == 201
+    assert first.json()["remote_status"] == "draft"
+    second = client.post("/api/v1/publishing/executions", json=request, headers=ORIGIN)
+    assert second.json()["id"] == first.json()["id"]
+    reconciled = client.post(
+        f"/api/v1/publishing/executions/{first.json()['id']}/reconcile",
+        headers=ORIGIN,
+    )
+    assert reconciled.json()["reconciliation_status"] == "changed_remotely"
+    assert "title" in reconciled.json()["drift_fields"]
+    assert test_factory
+    with test_factory() as db:
+        configuration = db.scalar(select(ShopifyConnectorConfiguration))
+        assert configuration and configuration.encrypted_access_token
+        assert token not in configuration.encrypted_access_token

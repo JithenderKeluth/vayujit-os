@@ -41,7 +41,12 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "WordPress migration downgrade failed." }
     & ".\.venv\Scripts\alembic.exe" upgrade 20260801_0012
     if ($LASTEXITCODE -ne 0) { throw "WordPress migration re-upgrade failed." }
-    if ($LASTEXITCODE -ne 0) { throw "Migration re-upgrade failed." }
+    & ".\.venv\Scripts\alembic.exe" upgrade 20260802_0013
+    if ($LASTEXITCODE -ne 0) { throw "Shopify migration upgrade failed." }
+    & ".\.venv\Scripts\alembic.exe" downgrade 20260801_0012
+    if ($LASTEXITCODE -ne 0) { throw "Shopify migration downgrade failed." }
+    & ".\.venv\Scripts\alembic.exe" upgrade 20260802_0013
+    if ($LASTEXITCODE -ne 0) { throw "Shopify migration re-upgrade failed." }
 } finally {
     Pop-Location
 }

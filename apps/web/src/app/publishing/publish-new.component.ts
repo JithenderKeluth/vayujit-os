@@ -14,6 +14,7 @@ import { AIService } from '../ai/ai.service';
 import { BrandService } from '../brands/brand.service';
 import { ProductService } from '../products/product.service';
 import { PublicationPreviewComponent } from './publication-preview.component';
+import type { ShopifyPublishingPreview } from '@vayujit/shared';
 import { PublishingService } from './publishing.service';
 import { OperationsService } from '../operations/operations.service';
 import { MediaService } from '../media/media.service';
@@ -69,12 +70,21 @@ import { MediaService } from '../media/media.service';
         >4. Action
         <select name="action" [(ngModel)]="action" (ngModelChange)="refreshPreview()">
           <option value="create_draft">Create draft</option>
-          <option value="publish">Publish</option>
-          <option value="update">Update existing WordPress post</option>
+          @if (selectedDestination()?.connector_key === 'shopify') {
+            <option value="activate">Activate product—with confirmation</option>
+            <option value="update">Update existing Shopify product</option>
+          } @else {
+            <option value="publish">Publish</option>
+            <option value="update">Update existing WordPress post</option>
+          }
         </select></label
       ><label
         >5. Compatible destination
-        <select name="destination" [(ngModel)]="destinationId" (ngModelChange)="refreshPreview()">
+        <select
+          name="destination"
+          [(ngModel)]="destinationId"
+          (ngModelChange)="destinationChanged()"
+        >
           <option value="">Select destination</option>
           @for (item of compatibleDestinations(); track item.id) {
             <option [value]="item.id">
@@ -83,7 +93,10 @@ import { MediaService } from '../media/media.service';
           }
         </select></label
       >
-      @if (selectedDestination()?.connector_key === 'wordpress') {
+      @if (
+        selectedDestination()?.connector_key === 'wordpress' ||
+        selectedDestination()?.connector_key === 'shopify'
+      ) {
         <label
           >6. Featured image
           <select
@@ -91,7 +104,7 @@ import { MediaService } from '../media/media.service';
             [(ngModel)]="featuredMediaId"
             (ngModelChange)="refreshPreview()"
           >
-            <option value="">No featured image</option>
+            <option value="">No product image</option>
             @for (media of mediaItems(); track media.id) {
               <option [value]="media.id">
                 {{ media.safe_filename }} · {{ media.width }}×{{ media.height }}
@@ -151,6 +164,37 @@ import { MediaService } from '../media/media.service';
           </ul>
         </article>
       }
+      @if (shopifyPreview(); as mapped) {
+        <article class="pub-card">
+          <h2>Shopify mapped preview</h2>
+          <dl class="pub-preview">
+            <dt>Title</dt>
+            <dd>{{ mapped.title }}</dd>
+            <dt>Status</dt>
+            <dd>{{ mapped.status }}</dd>
+            <dt>Vendor</dt>
+            <dd>{{ mapped.vendor || 'Not set' }}</dd>
+            <dt>Product type</dt>
+            <dd>{{ mapped.product_type || 'Not set' }}</dd>
+            <dt>Tags</dt>
+            <dd>{{ mapped.tags.join(', ') || 'None' }}</dd>
+            <dt>Collections</dt>
+            <dd>{{ mapped.collection_ids.join(', ') || 'None' }}</dd>
+            <dt>Publications</dt>
+            <dd>{{ mapped.publication_ids.join(', ') || 'None' }}</dd>
+            <dt>Inventory</dt>
+            <dd>{{ mapped.inventory_policy }}</dd>
+            <dt>SEO title</dt>
+            <dd>{{ mapped.seo_title || 'Not set' }}</dd>
+            <dt>SEO description</dt>
+            <dd>{{ mapped.seo_description || 'Not set' }}</dd>
+          </dl>
+          <h3>Original generated text</h3>
+          <pre>{{ mapped.original_text }}</pre>
+          <h3>Sanitized Shopify description</h3>
+          <pre>{{ mapped.sanitized_description_html }}</pre>
+        </article>
+      }
       @if (selectedArtifact() && selectedDestination()) {
         <label
           ><input type="checkbox" name="confirmed" [(ngModel)]="confirmed" /> I confirm this
@@ -180,6 +224,7 @@ export class PublishNewComponent implements OnInit {
   readonly destinations = signal<PublishingDestinationSummary[]>([]);
   readonly mediaItems = signal<MediaAsset[]>([]);
   readonly preview = signal<PublishingPreview | null>(null);
+  readonly shopifyPreview = signal<ShopifyPublishingPreview | null>(null);
   readonly loading = signal(true);
   readonly busy = signal(false);
   readonly error = signal('');
@@ -189,7 +234,7 @@ export class PublishNewComponent implements OnInit {
   destinationId = '';
   featuredMediaId = '';
   confirmed = false;
-  action: 'create_draft' | 'publish' | 'update' = 'publish';
+  action: 'create_draft' | 'publish' | 'activate' | 'update' = 'publish';
   private idempotencyKey = '';
   readonly eligibleProducts = computed(() =>
     this.products().filter((item) => item.brand_id === this.brandId && item.status !== 'archived'),
@@ -275,23 +320,34 @@ export class PublishNewComponent implements OnInit {
     this.artifactDetails.set(this.artifactId ? await this.ai.artifact(this.artifactId) : null);
     await this.refreshPreview();
   }
+  async destinationChanged() {
+    this.action =
+      this.selectedDestination()?.connector_key === 'shopify' ? 'create_draft' : 'publish';
+    this.confirmed = false;
+    this.idempotencyKey = '';
+    await this.refreshPreview();
+  }
   async refreshPreview() {
     this.preview.set(null);
-    if (
-      !this.artifactId ||
-      !this.destinationId ||
-      this.selectedDestination()?.connector_key !== 'wordpress'
-    )
-      return;
+    this.shopifyPreview.set(null);
+    if (!this.artifactId || !this.destinationId) return;
     try {
-      this.preview.set(
-        await this.publishing.preview({
-          artifact_id: this.artifactId,
-          destination_id: this.destinationId,
-          action: this.action,
-          featured_media_id: this.featuredMediaId || null,
-        }),
-      );
+      const request = {
+        artifact_id: this.artifactId,
+        destination_id: this.destinationId,
+        action: this.action,
+        featured_media_id: this.featuredMediaId || null,
+      };
+      if (this.selectedDestination()?.connector_key === 'wordpress') {
+        this.preview.set(await this.publishing.preview(request));
+      } else if (this.selectedDestination()?.connector_key === 'shopify') {
+        this.shopifyPreview.set(
+          await this.publishing.shopifyPreview({
+            ...request,
+            action: this.action === 'publish' ? 'create_draft' : this.action,
+          }),
+        );
+      }
     } catch (error) {
       this.error.set(PublishingService.errorMessage(error));
     }

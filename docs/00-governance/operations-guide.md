@@ -17,3 +17,8 @@ System health reports media write access/free-space state and WordPress taxonomy
 without exposing storage paths. Recovery includes upload validation and taxonomy lookup failures.
 Operators may retry upload, select another image, refresh taxonomy, reconcile remote state, or open
 the relevant destination/execution.
+# Shopify operations
+
+Use `publishing:shopify:status` for safe local state. Validation and discovery diagnostics contact
+only the explicitly configured store and must be run by an operator. Tokens are never accepted as
+arguments or printed. Ambiguous mutations require reconciliation before retry.
