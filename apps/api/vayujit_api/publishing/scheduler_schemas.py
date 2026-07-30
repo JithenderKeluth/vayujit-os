@@ -34,6 +34,10 @@ class ScheduleCreate(BaseModel):
     schedule_type: Literal["one_time", "recurring"] = "one_time"
     recurrence: RecurrenceRule | None = None
     recurrence_end_at: datetime | None = None
+    max_occurrences: int = Field(default=100, ge=1, le=1000)
+    missed_occurrence_policy: Literal["skip_missed", "next_occurrence", "one_catch_up"] = (
+        "next_occurrence"
+    )
 
 
 class ScheduleUpdate(BaseModel):
@@ -42,6 +46,7 @@ class ScheduleUpdate(BaseModel):
     timezone_name: str | None = Field(default=None, min_length=1, max_length=100)
     recurrence: RecurrenceRule | None = None
     recurrence_end_at: datetime | None = None
+    max_occurrences: int | None = Field(default=None, ge=1, le=1000)
 
 
 class ScheduleResponse(BaseModel):
@@ -64,6 +69,9 @@ class ScheduleResponse(BaseModel):
     last_result: str | None
     created_at: datetime
     updated_at: datetime
+    missed_occurrence_policy: str
+    max_occurrences: int
+    materialized_occurrence_count: int
 
 
 class JobResponse(BaseModel):
@@ -85,6 +93,20 @@ class JobResponse(BaseModel):
     retryable: bool
     created_at: datetime
     updated_at: datetime
+    product_id: uuid.UUID
+    artifact_id: uuid.UUID
+    artifact_version: int
+    destination_id: uuid.UUID
+    claimed_at: datetime | None
+    started_at: datetime | None
+    completed_at: datetime | None
+    lease_owner: str | None
+    lease_expires_at: datetime | None
+    next_retry_at: datetime | None
+    correlation_id: str | None
+    recovery_state: str | None
+    recovery_reason: str | None
+    maintenance_blocked_at: datetime | None
 
 
 class WorkerResponse(BaseModel):
@@ -98,6 +120,33 @@ class WorkerResponse(BaseModel):
     draining: bool
     shutdown_requested: bool
     safe_status: str
+    completed_jobs: int
+    failed_jobs: int
+    lease_renewal_failures: int
+    stale_recoveries: int
+    graceful_shutdowns: int
+
+
+class ResumeScheduleRequest(BaseModel):
+    policy: Literal["skip_missed", "next_occurrence", "one_catch_up"]
+
+
+class OccurrencePreview(BaseModel):
+    local: datetime
+    utc: datetime
+
+
+class SchedulePreviewRequest(BaseModel):
+    local_scheduled_at: datetime
+    timezone_name: str
+    schedule_type: Literal["one_time", "recurring"]
+    recurrence: RecurrenceRule | None = None
+    count: int = Field(default=5, ge=1, le=10)
+
+
+class SchedulePreviewResponse(BaseModel):
+    occurrences: list[OccurrencePreview]
+    dst_warning: str | None
 
 
 class Page(BaseModel):

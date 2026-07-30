@@ -11,4 +11,16 @@ describe('windowOptions', () => {
       webSecurity: true,
     });
   });
+
+  it('does not expose a preload bridge or renderer privileges', () => {
+    const preferences = windowOptions.webPreferences as Record<string, unknown>;
+    expect(preferences['preload']).toBeUndefined();
+    expect(preferences['enableRemoteModule']).toBeUndefined();
+    expect(preferences['nodeIntegrationInWorker']).not.toBe(true);
+    expect(preferences['nodeIntegrationInSubFrames']).not.toBe(true);
+  });
+
+  it('keeps the renderer hidden until it is ready', () => {
+    expect(windowOptions.show).toBe(false);
+  });
 });

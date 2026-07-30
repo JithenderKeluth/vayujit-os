@@ -1,9 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import type { OperationalHealth, ReleaseInfo } from '@vayujit/shared';
+import type { OperationalHealth, ReleaseInfo, SchedulerHealth } from '@vayujit/shared';
+import { RouterLink } from '@angular/router';
+import { PublishingService } from '../publishing/publishing.service';
 import { OperationsService } from './operations.service';
 
 @Component({
   selector: 'app-health',
+  imports: [RouterLink],
   template: `<section class="op-page">
     <header>
       <h1>Operational health</h1>
@@ -42,15 +45,36 @@ import { OperationsService } from './operations.service';
         <p>Commit {{ value.git_commit }} · built {{ value.build_timestamp }}</p>
       </article>
     }
+    @if (scheduler(); as value) {
+      <article class="op-card">
+        <h2>Scheduler and workers</h2>
+        <p>
+          {{ value.maintenance_blocked ? 'Maintenance blocked' : 'Dispatch available' }} ·
+          {{ value.active_schedule_count }} active · {{ value.paused_schedule_count }} paused
+        </p>
+        <p>
+          {{ value.due_job_count }} due · {{ value.retry_wait_count }} retrying ·
+          {{ value.dead_letter_count }} dead letter
+        </p>
+        <p>
+          {{ value.workers.length }} registered workers · oldest overdue
+          {{ value.oldest_overdue_age_seconds ?? 0 }} seconds
+        </p>
+        <a routerLink="/publishing/jobs">Review jobs</a> ·
+        <a routerLink="/operations/workers">Review workers</a>
+      </article>
+    }
   </section>`,
   styleUrl: './operations.css',
 })
 export class HealthComponent implements OnInit {
   private readonly api = inject(OperationsService);
+  private readonly publishing = inject(PublishingService);
   readonly health = signal<OperationalHealth | null>(null);
   readonly release = signal<ReleaseInfo | null>(null);
   readonly loading = signal(true);
   readonly error = signal('');
+  readonly scheduler = signal<SchedulerHealth | null>(null);
   ngOnInit() {
     void this.load();
   }
@@ -58,9 +82,14 @@ export class HealthComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [health, release] = await Promise.all([this.api.health(), this.api.release()]);
+      const [health, release, scheduler] = await Promise.all([
+        this.api.health(),
+        this.api.release(),
+        this.publishing.schedulerHealth(),
+      ]);
       this.health.set(health);
       this.release.set(release);
+      this.scheduler.set(scheduler);
     } catch {
       this.error.set('Health information is unavailable. Run system:doctor.');
     } finally {

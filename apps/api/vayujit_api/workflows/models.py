@@ -38,7 +38,8 @@ class WorkflowInstance(Base):
     __tablename__ = "workflow_instances"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('draft','running','waiting_for_approval','completed','failed','cancelled')",
+            "status IN ('draft','running','waiting_for_approval','waiting_for_publishing',"
+            "'completed','failed','cancelled')",
             name="ck_workflow_instance_status",
         ),
     )
@@ -107,3 +108,39 @@ class WorkflowStepExecution(Base):
     retryable: Mapped[bool]
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class WorkflowPublishingWait(Base):
+    __tablename__ = "workflow_publishing_waits"
+    __table_args__ = (
+        UniqueConstraint("workflow_step_execution_id", name="uq_workflow_publishing_wait_step"),
+        CheckConstraint(
+            "status IN ('scheduled','waiting','running','retrying','succeeded','failed',"
+            "'cancelled','dead_letter','blocked')",
+            name="ck_workflow_publishing_wait_status",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    workflow_instance_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workflow_instances.id", ondelete="CASCADE"), index=True
+    )
+    workflow_step_execution_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("workflow_step_executions.id", ondelete="CASCADE"),
+        index=True,
+    )
+    schedule_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_schedules.id", ondelete="SET NULL"), index=True
+    )
+    job_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_jobs.id", ondelete="SET NULL"), index=True
+    )
+    expected_terminal_state: Mapped[str] = mapped_column(String(30), default="succeeded")
+    status: Mapped[str] = mapped_column(String(30), index=True)
+    correlation_id: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

@@ -8,8 +8,6 @@ from __future__ import annotations
 
 import argparse
 import logging
-import os
-import socket
 import threading
 import time
 import uuid
@@ -44,12 +42,16 @@ from vayujit_api.publishing.service import (
     move_execution_to_draft,
     reconcile_execution,
 )
+from vayujit_api.workflows.service import (
+    resume_publishing_waits,
+    resume_terminal_publishing_waits,
+)
 
 logger = logging.getLogger(__name__)
 
 
 def default_worker_id() -> str:
-    return f"{socket.gethostname()}:{os.getpid()}:{uuid.uuid4().hex[:8]}"
+    return f"worker-{uuid.uuid4().hex[:16]}"
 
 
 def heartbeat(worker_id: str, concurrency: int, active_jobs: int, draining: bool) -> None:
@@ -88,6 +90,10 @@ def _lease_pulse(job_id: uuid.UUID, worker_id: str, stopped: threading.Event) ->
     while not stopped.wait(settings.publishing_worker_heartbeat_seconds):
         with SessionFactory() as pulse_db:
             if not renew_lease(pulse_db, job_id, worker_id, settings.publishing_job_lease_seconds):
+                worker = pulse_db.get(PublishingWorkerHeartbeat, worker_id)
+                if worker:
+                    worker.lease_renewal_failures += 1
+                    pulse_db.commit()
                 return
 
 
@@ -139,7 +145,7 @@ def execute_job(job_id: uuid.UUID, worker_id: str) -> None:
                     CreateExecution(
                         artifact_id=job.artifact_id,
                         destination_id=job.destination_id,
-                        idempotency_key=f"job:{job.id}:{job.execution_attempt_count}",
+                        idempotency_key=f"job:{job.id}",
                         action=action,  # type: ignore[arg-type]
                     ),
                 )
@@ -179,6 +185,15 @@ def execute_job(job_id: uuid.UUID, worker_id: str) -> None:
                 schedule.last_result = final_state
                 schedule.updated_at = utcnow()
                 db.commit()
+        if final_state in {"succeeded", "failed", "dead_letter", "cancelled", "expired"}:
+            heartbeat_row = db.get(PublishingWorkerHeartbeat, worker_id)
+            if heartbeat_row:
+                if final_state == "succeeded":
+                    heartbeat_row.completed_jobs += 1
+                else:
+                    heartbeat_row.failed_jobs += 1
+                db.commit()
+            resume_publishing_waits(db, job_id)
 
 
 def run_worker(*, once: bool = False) -> None:
@@ -187,6 +202,7 @@ def run_worker(*, once: bool = False) -> None:
     futures: set[Future[None]] = set()
     draining = False
     logger.info("publishing_worker_started", extra={"worker_id": worker_id})
+    heartbeat(worker_id, settings.publishing_worker_concurrency, 0, False)
     with ThreadPoolExecutor(
         max_workers=settings.publishing_worker_concurrency,
         thread_name_prefix="publishing",
@@ -198,6 +214,7 @@ def run_worker(*, once: bool = False) -> None:
                 maintenance = marker.exists()
                 with SessionFactory() as db:
                     recover_expired_leases(db)
+                    resume_terminal_publishing_waits(db)
                 if not maintenance:
                     with SessionFactory() as db:
                         materialize_due_schedules(db)
@@ -213,6 +230,15 @@ def run_worker(*, once: bool = False) -> None:
                         futures.update(
                             pool.submit(execute_job, job_id, worker_id) for job_id in claimed
                         )
+                else:
+                    with SessionFactory() as db:
+                        claim_jobs(
+                            db,
+                            worker_id,
+                            0,
+                            settings.publishing_job_lease_seconds,
+                            maintenance_mode=True,
+                        )
                 heartbeat(worker_id, settings.publishing_worker_concurrency, len(futures), draining)
                 if once:
                     break
@@ -225,6 +251,13 @@ def run_worker(*, once: bool = False) -> None:
             for future in futures:
                 future.result()
             heartbeat(worker_id, settings.publishing_worker_concurrency, 0, True)
+            with SessionFactory() as db:
+                value = db.get(PublishingWorkerHeartbeat, worker_id)
+                if value:
+                    value.graceful_shutdowns += 1
+                    value.safe_status = "stopped"
+                    value.updated_at = utcnow()
+                    db.commit()
 
 
 PROCESS_STARTED_AT = utcnow()

@@ -5,7 +5,13 @@ from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_validator
 
 WorkflowStatus = Literal[
-    "draft", "running", "waiting_for_approval", "completed", "failed", "cancelled"
+    "draft",
+    "running",
+    "waiting_for_approval",
+    "waiting_for_publishing",
+    "completed",
+    "failed",
+    "cancelled",
 ]
 
 
@@ -52,11 +58,20 @@ class CreateWorkflow(BaseModel):
     ) = None
     publishing_action: Literal[
         "default",
+        "schedule_wordpress_draft",
+        "schedule_wordpress_publish",
+        "schedule_wordpress_update",
+        "schedule_shopify_draft",
+        "schedule_shopify_update",
+        "schedule_shopify_activation",
+        "schedule_shopify_archive",
         "shopify_create_draft",
         "shopify_update_product",
         "shopify_activate_product",
         "shopify_archive_product",
     ] = "default"
+    schedule_at_local: datetime | None = None
+    schedule_timezone: str | None = None
 
 
 class StepAttemptDetails(BaseModel):
@@ -108,6 +123,9 @@ class WorkflowDetails(BaseModel):
     created_at: datetime
     updated_at: datetime
     steps: list[StepAttemptDetails] = Field(default_factory=list)
+    publishing_schedule_id: uuid.UUID | None = None
+    publishing_job_id: uuid.UUID | None = None
+    publishing_wait_status: str | None = None
 
 
 class WorkflowPage(BaseModel):

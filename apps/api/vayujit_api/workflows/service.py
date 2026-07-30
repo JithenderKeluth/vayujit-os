@@ -1,7 +1,7 @@
 import math
 import uuid
 from datetime import datetime
-from typing import Literal, cast
+from typing import Any, Literal, cast
 
 from fastapi import HTTPException
 from sqlalchemy import func, select
@@ -12,13 +12,25 @@ from vayujit_api.ai.schemas import CreateGenerationRequest
 from vayujit_api.ai.service import generate
 from vayujit_api.audit.service import record_event
 from vayujit_api.brands.models import Brand, BrandStatus
+from vayujit_api.core.observability import correlation_id
 from vayujit_api.identity.models import User
 from vayujit_api.identity.service import now
 from vayujit_api.products.models import Product, ProductStatus
-from vayujit_api.publishing.models import PublishingDestination, PublishingExecution
+from vayujit_api.publishing.models import (
+    PublishingDestination,
+    PublishingExecution,
+    PublishingJob,
+)
+from vayujit_api.publishing.scheduler_schemas import ScheduleCreate
+from vayujit_api.publishing.scheduler_service import create_schedule, materialize_due_schedules
 from vayujit_api.publishing.schemas import CreateExecution
 from vayujit_api.publishing.service import create_execution, retry_execution
-from vayujit_api.workflows.models import WorkflowInstance, WorkflowStepExecution, WorkflowTemplate
+from vayujit_api.workflows.models import (
+    WorkflowInstance,
+    WorkflowPublishingWait,
+    WorkflowStepExecution,
+    WorkflowTemplate,
+)
 from vayujit_api.workflows.schemas import (
     CreateWorkflow,
     StepAttemptDetails,
@@ -147,6 +159,12 @@ def workflow_details(db: Session, workflow: WorkflowInstance) -> WorkflowDetails
     )
     artifact = db.get(GeneratedArtifact, artifact_id) if artifact_id else None
     publishing = db.get(PublishingExecution, publishing_id) if publishing_id else None
+    wait = db.scalar(
+        select(WorkflowPublishingWait)
+        .where(WorkflowPublishingWait.workflow_instance_id == workflow.id)
+        .order_by(WorkflowPublishingWait.created_at.desc())
+        .limit(1)
+    )
     values = db.scalars(
         select(WorkflowStepExecution)
         .where(WorkflowStepExecution.workflow_instance_id == workflow.id)
@@ -169,6 +187,7 @@ def workflow_details(db: Session, workflow: WorkflowInstance) -> WorkflowDetails
                 "draft",
                 "running",
                 "waiting_for_approval",
+                "waiting_for_publishing",
                 "completed",
                 "failed",
                 "cancelled",
@@ -196,6 +215,9 @@ def workflow_details(db: Session, workflow: WorkflowInstance) -> WorkflowDetails
         created_at=workflow.created_at,
         updated_at=workflow.updated_at,
         steps=[step_details(value) for value in values],
+        publishing_schedule_id=wait.schedule_id if wait else None,
+        publishing_job_id=wait.job_id if wait else None,
+        publishing_wait_status=wait.status if wait else None,
     )
 
 
@@ -207,6 +229,8 @@ def step_details(value: WorkflowStepExecution) -> StepAttemptDetails:
         ("artifact_id", "artifact"),
         ("generation_request_id", "generation"),
         ("publishing_execution_id", "publishing_execution"),
+        ("publishing_job_id", "publishing_job"),
+        ("publishing_schedule_id", "publishing_schedule"),
     ):
         if output.get(key):
             related_type = kind
@@ -268,6 +292,10 @@ def create_workflow(db: Session, owner: User, data: CreateWorkflow) -> WorkflowD
             "schema_version": 1,
             "additional_instructions": data.additional_instructions,
             "publishing_action": data.publishing_action,
+            "schedule_at_local": (
+                data.schedule_at_local.isoformat() if data.schedule_at_local else None
+            ),
+            "schedule_timezone": data.schedule_timezone,
         },
         context_json={"schema_version": 1},
         created_at=stamp,
@@ -457,6 +485,89 @@ def continue_workflow(db: Session, owner: User, workflow_id: uuid.UUID) -> Workf
     )
     destination = db.get(PublishingDestination, workflow.destination_id)
     configured_action = str(workflow.input_json.get("publishing_action") or "default")
+    schedule_actions = {
+        "schedule_wordpress_draft": "create_draft",
+        "schedule_wordpress_publish": "publish",
+        "schedule_wordpress_update": "update",
+        "schedule_shopify_draft": "create_draft",
+        "schedule_shopify_update": "update_product",
+        "schedule_shopify_activation": "activate_product",
+        "schedule_shopify_archive": "archive_product",
+    }
+    schedule_at = workflow.input_json.get("schedule_at_local")
+    if configured_action in schedule_actions:
+        if not schedule_at or not workflow.input_json.get("schedule_timezone"):
+            raise HTTPException(422, "Scheduled Workflow action requires local time and timezone.")
+        expected_connector = (
+            "wordpress" if configured_action.startswith("schedule_wordpress_") else "shopify"
+        )
+        if not destination or destination.connector_key != expected_connector:
+            raise HTTPException(
+                409,
+                f"This Workflow action requires a {expected_connector.title()} destination.",
+            )
+        schedule = create_schedule(
+            db,
+            owner,
+            ScheduleCreate(
+                name=f"Workflow {workflow.id}",
+                artifact_id=artifact.id,
+                destination_id=workflow.destination_id,
+                requested_action=cast(Any, schedule_actions[configured_action]),
+                local_scheduled_at=datetime.fromisoformat(str(schedule_at)),
+                timezone_name=str(workflow.input_json["schedule_timezone"]),
+                schedule_type="one_time",
+            ),
+        )
+        materialize_due_schedules(db)
+        job = db.scalar(select(PublishingJob).where(PublishingJob.schedule_id == schedule.id))
+        step.status = "waiting"
+        step.paused_at = step.updated_at = now()
+        step.output_reference_json = {
+            "publishing_schedule_id": str(schedule.id),
+            "publishing_job_id": str(job.id) if job else None,
+        }
+        wait = WorkflowPublishingWait(
+            owner_id=owner.id,
+            workflow_instance_id=workflow.id,
+            workflow_step_execution_id=step.id,
+            schedule_id=schedule.id,
+            job_id=job.id if job else None,
+            expected_terminal_state="succeeded",
+            status="waiting",
+            correlation_id=correlation_id(),
+            created_at=now(),
+            updated_at=now(),
+        )
+        db.add(wait)
+        if job:
+            job.workflow_instance_id = workflow.id
+            job.correlation_id = wait.correlation_id
+        workflow.status = "waiting_for_publishing"
+        workflow.paused_at = workflow.updated_at = now()
+        workflow.context_json = {
+            **workflow.context_json,
+            "publishing_schedule_id": str(schedule.id),
+            "publishing_job_id": str(job.id) if job else None,
+        }
+        record_event(
+            db,
+            actor_id=owner.id,
+            action="publishing.workflow_schedule_created",
+            entity_type="workflow_instance",
+            entity_id=workflow.id,
+            metadata={"schedule_id": str(schedule.id), "job_id": str(job.id) if job else None},
+        )
+        record_event(
+            db,
+            actor_id=owner.id,
+            action="publishing.workflow_wait_started",
+            entity_type="workflow_instance",
+            entity_id=workflow.id,
+            metadata={"job_id": str(job.id) if job else None},
+        )
+        db.commit()
+        return workflow_details(db, workflow)
     shopify_actions: dict[str, Literal["create_draft", "update", "activate", "archive"]] = {
         "default": "create_draft",
         "shopify_create_draft": "create_draft",
@@ -496,6 +607,88 @@ def continue_workflow(db: Session, owner: User, workflow_id: uuid.UUID) -> Workf
     )
     db.commit()
     return workflow_details(db, workflow)
+
+
+def resume_publishing_waits(db: Session, job_id: uuid.UUID) -> int:
+    job = db.get(PublishingJob, job_id)
+    if not job or job.state not in {
+        "succeeded",
+        "failed",
+        "dead_letter",
+        "cancelled",
+        "expired",
+    }:
+        return 0
+    waits = list(
+        db.scalars(
+            select(WorkflowPublishingWait)
+            .where(
+                WorkflowPublishingWait.job_id == job_id,
+                WorkflowPublishingWait.status.in_(["scheduled", "waiting", "running", "retrying"]),
+            )
+            .with_for_update(skip_locked=True)
+        )
+    )
+    stamp = now()
+    for wait in waits:
+        workflow = db.get(WorkflowInstance, wait.workflow_instance_id)
+        step = db.get(WorkflowStepExecution, wait.workflow_step_execution_id)
+        if not workflow or not step:
+            continue
+        wait.completed_at = wait.updated_at = stamp
+        if job.state == "succeeded":
+            wait.status = "succeeded"
+            step.status = "succeeded"
+            step.completed_at = step.updated_at = stamp
+            workflow.status = "completed"
+            workflow.current_step_key = None
+            workflow.completed_at = workflow.updated_at = stamp
+            workflow.paused_at = None
+            action = "publishing.workflow_wait_completed"
+        else:
+            wait.status = "dead_letter" if job.state == "dead_letter" else "failed"
+            step.status = "failed"
+            step.failed_at = step.updated_at = stamp
+            step.error_code = job.last_error_code or f"publishing_job_{job.state}"
+            step.safe_error_message = job.last_error_message or "Scheduled publishing failed."
+            step.retryable = job.retryable
+            workflow.status = "failed"
+            workflow.failed_at = workflow.updated_at = stamp
+            workflow.error_code = step.error_code
+            workflow.safe_error_message = step.safe_error_message
+            action = "publishing.workflow_wait_failed"
+        record_event(
+            db,
+            actor_id=wait.owner_id,
+            action=action,
+            entity_type="workflow_instance",
+            entity_id=workflow.id,
+            metadata={"job_id": str(job.id), "state": job.state},
+        )
+    db.commit()
+    return len(waits)
+
+
+def resume_terminal_publishing_waits(db: Session) -> int:
+    job_ids = [
+        job_id
+        for job_id in db.scalars(
+            select(WorkflowPublishingWait.job_id)
+            .join(PublishingJob, PublishingJob.id == WorkflowPublishingWait.job_id)
+            .where(
+                WorkflowPublishingWait.status.in_(["scheduled", "waiting", "running", "retrying"]),
+                PublishingJob.state.in_(
+                    ["succeeded", "failed", "dead_letter", "cancelled", "expired"]
+                ),
+            )
+            .distinct()
+        )
+        if job_id is not None
+    ]
+    resumed = 0
+    for job_id in job_ids:
+        resumed += resume_publishing_waits(db, job_id)
+    return resumed
 
 
 def retry_workflow(db: Session, owner: User, workflow_id: uuid.UUID) -> WorkflowDetails:
@@ -549,9 +742,42 @@ def retry_workflow(db: Session, owner: User, workflow_id: uuid.UUID) -> Workflow
 
 def cancel_workflow(db: Session, owner: User, workflow_id: uuid.UUID) -> WorkflowDetails:
     workflow = owned_workflow(db, owner.id, workflow_id, lock=True)
-    if workflow.status not in {"draft", "waiting_for_approval", "failed"}:
+    if workflow.status not in {
+        "draft",
+        "waiting_for_approval",
+        "waiting_for_publishing",
+        "failed",
+    }:
         raise HTTPException(409, "Workflow cannot be cancelled in its current state.")
     stamp = now()
+    if workflow.status == "waiting_for_publishing":
+        waits = list(
+            db.scalars(
+                select(WorkflowPublishingWait).where(
+                    WorkflowPublishingWait.workflow_instance_id == workflow.id,
+                    WorkflowPublishingWait.status.in_(
+                        ["scheduled", "waiting", "running", "retrying"]
+                    ),
+                )
+            )
+        )
+        for wait in waits:
+            job = db.get(PublishingJob, wait.job_id)
+            if job and job.state not in {
+                "succeeded",
+                "failed",
+                "cancelled",
+                "expired",
+                "dead_letter",
+            }:
+                job.state = (
+                    "cancel_requested" if job.state in {"claimed", "running"} else "cancelled"
+                )
+                if job.state == "cancelled":
+                    job.completed_at = stamp
+                job.updated_at = stamp
+            wait.status = "cancelled"
+            wait.completed_at = wait.updated_at = stamp
     for step in db.scalars(
         select(WorkflowStepExecution).where(
             WorkflowStepExecution.workflow_instance_id == workflow.id,

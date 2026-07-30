@@ -9,7 +9,14 @@ from datetime import timedelta
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
-from vayujit_api.publishing.models import PublishingJob, PublishingJobAttempt
+from vayujit_api.audit.service import record_event
+from vayujit_api.publishing.models import (
+    PublishingExecution,
+    PublishingJob,
+    PublishingJobAttempt,
+    PublishingRecoveryRecord,
+    PublishingWorkerHeartbeat,
+)
 from vayujit_api.publishing.scheduler_time import utcnow
 
 TERMINAL_STATES = {"succeeded", "failed", "cancelled", "expired", "dead_letter"}
@@ -21,8 +28,37 @@ def retry_delay(attempt: int, *, jitter: bool = True) -> int:
     return base + (random.randint(0, max(base // 4, 1)) if jitter else 0)
 
 
-def claim_jobs(db: Session, worker_id: str, limit: int, lease_seconds: int) -> list[uuid.UUID]:
+def claim_jobs(
+    db: Session,
+    worker_id: str,
+    limit: int,
+    lease_seconds: int,
+    *,
+    maintenance_mode: bool = False,
+) -> list[uuid.UUID]:
     timestamp = utcnow()
+    if maintenance_mode:
+        blocked = list(
+            db.scalars(
+                select(PublishingJob).where(
+                    PublishingJob.state.in_(CLAIMABLE_STATES),
+                    PublishingJob.available_at_utc <= timestamp,
+                    PublishingJob.maintenance_blocked_at.is_(None),
+                )
+            )
+        )
+        for job in blocked:
+            job.maintenance_blocked_at = timestamp
+            job.updated_at = timestamp
+            record_event(
+                db,
+                actor_id=job.owner_id,
+                action="publishing.scheduler_maintenance_blocked",
+                entity_type="publishing_job",
+                entity_id=job.id,
+            )
+        db.commit()
+        return []
     jobs = list(
         db.scalars(
             select(PublishingJob)
@@ -52,6 +88,7 @@ def claim_jobs(db: Session, worker_id: str, limit: int, lease_seconds: int) -> l
         job.claim_count += 1
         job.row_version += 1
         job.updated_at = timestamp
+        job.maintenance_blocked_at = None
     db.commit()
     return [job.id for job in jobs]
 
@@ -171,7 +208,11 @@ def recover_expired_leases(db: Session) -> int:
             .with_for_update(skip_locked=True)
         )
     )
+    recovered = 0
     for job in jobs:
+        worker = db.get(PublishingWorkerHeartbeat, job.lease_owner) if job.lease_owner else None
+        if worker and worker.last_heartbeat_at >= timestamp - timedelta(minutes=2):
+            continue
         attempt = db.scalar(
             select(PublishingJobAttempt)
             .where(
@@ -181,6 +222,19 @@ def recover_expired_leases(db: Session) -> int:
             .order_by(PublishingJobAttempt.attempt_number.desc())
             .with_for_update()
         )
+        execution = (
+            db.get(PublishingExecution, job.publishing_execution_id)
+            if job.publishing_execution_id
+            else db.scalar(
+                select(PublishingExecution).where(
+                    PublishingExecution.owner_id == job.owner_id,
+                    PublishingExecution.idempotency_key == f"job:{job.id}",
+                )
+            )
+        )
+        if execution and not job.publishing_execution_id:
+            job.publishing_execution_id = execution.id
+        old_worker_id = job.lease_owner
         if attempt:
             attempt.outcome = "lease_lost"
             attempt.completed_at = timestamp
@@ -189,21 +243,76 @@ def recover_expired_leases(db: Session) -> int:
         if job.state == "cancel_requested":
             job.state = "cancelled"
             job.completed_at = timestamp
+            result = "cancelled"
+        elif execution and execution.status == "succeeded":
+            job.state = "succeeded"
+            job.completed_at = timestamp
+            result = "remote_succeeded"
+        elif execution and execution.status == "running":
+            job.state = "failed"
+            job.completed_at = timestamp
+            job.recovery_state = "manual_review"
+            job.recovery_reason = "Remote outcome is ambiguous after worker lease expiry."
+            result = "manual_review"
         elif job.execution_attempt_count >= job.max_execution_attempts:
             job.state = "dead_letter"
             job.completed_at = timestamp
+            result = "dead_letter"
         else:
             job.state = "retry_wait"
             job.available_at_utc = timestamp + timedelta(
                 seconds=retry_delay(job.execution_attempt_count, jitter=False)
             )
-        job.last_error_code = "worker_lease_expired"
-        job.last_error_message = "Worker lease expired; job was recovered safely."
+            result = "retry_wait"
+        job.last_error_code = (
+            "remote_result_ambiguous" if result == "manual_review" else "worker_lease_expired"
+        )
+        job.last_error_message = (
+            "Remote result requires operator reconciliation."
+            if result == "manual_review"
+            else "Worker lease expired; job was recovered safely."
+        )
         job.retryable = job.state == "retry_wait"
         job.lease_owner = None
         job.lease_expires_at = None
         job.heartbeat_at = None
         job.updated_at = timestamp
+        job.recovered_at = timestamp
+        job.recovery_state = job.recovery_state or result
+        job.recovery_reason = job.recovery_reason or job.last_error_message
         job.row_version += 1
+        db.add(
+            PublishingRecoveryRecord(
+                owner_id=job.owner_id,
+                job_id=job.id,
+                worker_id=old_worker_id,
+                publishing_execution_id=job.publishing_execution_id,
+                result=result,
+                reason_code=job.last_error_code,
+                safe_message=job.last_error_message,
+                correlation_id=job.correlation_id,
+                created_at=timestamp,
+            )
+        )
+        if worker:
+            worker.stale_recoveries += 1
+        record_event(
+            db,
+            actor_id=job.owner_id,
+            action=(
+                "publishing.job_recovery_requires_review"
+                if result == "manual_review"
+                else "publishing.worker_recovered_job"
+            ),
+            entity_type="publishing_job",
+            entity_id=job.id,
+            metadata={
+                "result": result,
+                "publishing_execution_id": (
+                    str(job.publishing_execution_id) if job.publishing_execution_id else None
+                ),
+            },
+        )
+        recovered += 1
     db.commit()
-    return len(jobs)
+    return recovered

@@ -76,4 +76,48 @@ describe('PublishingService', () => {
     request.flush({ id: 'e1', status: 'succeeded' });
     expect((await retrying).status).toBe('succeeded');
   });
+
+  it('previews bounded timezone-aware recurring occurrences', async () => {
+    const result = service.previewSchedule({
+      local_scheduled_at: '2026-08-10T09:00:00',
+      timezone_name: 'Asia/Kolkata',
+      schedule_type: 'recurring',
+      recurrence: { frequency: 'daily', interval: 1, fold: 0 },
+      count: 5,
+    });
+    const request = http.expectOne((candidate) => candidate.url.endsWith('/schedules/preview'));
+    expect(request.request.body.timezone_name).toBe('Asia/Kolkata');
+    expect(request.request.body.count).toBe(5);
+    request.flush({
+      occurrences: [{ local: '2026-08-10T09:00:00', utc: '2026-08-10T03:30:00Z' }],
+      dst_warning: null,
+    });
+    expect((await result).occurrences[0].utc).toContain('03:30');
+  });
+
+  it('requires an explicit missed-occurrence policy when resuming', async () => {
+    const result = service.scheduleAction('schedule-1', 'resume', 'one_catch_up');
+    const request = http.expectOne((candidate) =>
+      candidate.url.endsWith('/schedules/schedule-1/resume'),
+    );
+    expect(request.request.body).toEqual({ policy: 'one_catch_up' });
+    request.flush({ id: 'schedule-1', paused: false });
+    expect((await result).paused).toBe(false);
+  });
+
+  it('loads safe job attempts and operations worker details', async () => {
+    const attempts = service.jobAttempts('job-1');
+    http
+      .expectOne((candidate) => candidate.url.endsWith('/jobs/job-1/attempts'))
+      .flush([{ id: 'attempt-1', outcome: 'lease_lost' }]);
+    expect((await attempts)[0].outcome).toBe('lease_lost');
+
+    const worker = service.worker('worker-safe');
+    const request = http.expectOne((candidate) =>
+      candidate.url.endsWith('/operations/workers/worker-safe'),
+    );
+    request.flush({ worker_id: 'worker-safe', recent_jobs: [] });
+    expect((await worker).worker_id).toBe('worker-safe');
+    expect(request.request.url).not.toContain('database');
+  });
 });

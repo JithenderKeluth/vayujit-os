@@ -1,11 +1,12 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import type { PublishingWorker } from '@vayujit/shared';
 import { PublishingService } from './publishing.service';
 
 @Component({
   selector: 'app-publishing-workers',
-  imports: [DatePipe],
+  imports: [DatePipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<section class="op-page">
     <header>
@@ -26,8 +27,10 @@ import { PublishingService } from './publishing.service';
         <tbody>
           @for (item of workers(); track item.worker_id) {
             <tr>
-              <td>{{ item.worker_id }}</td>
-              <td>{{ item.safe_status }}</td>
+              <td>
+                <a [routerLink]="['/operations/workers', item.worker_id]">{{ item.worker_id }}</a>
+              </td>
+              <td>{{ item.status || item.safe_status }}</td>
               <td>{{ item.active_jobs }}</td>
               <td>{{ item.concurrency }}</td>
               <td>{{ item.last_heartbeat_at | date: 'medium' }}</td>

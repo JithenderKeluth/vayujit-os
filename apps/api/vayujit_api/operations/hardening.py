@@ -27,6 +27,7 @@ from vayujit_api.products.models import Product
 from vayujit_api.publishing.models import (
     PublishingExecution,
     PublishingExecutionAttempt,
+    PublishingJob,
     ShopifyConnectorConfiguration,
     ShopifyMediaMapping,
     ShopifyMediaPollAttempt,
@@ -86,6 +87,18 @@ class RecoveryItem(BaseModel):
     workflow_id: uuid.UUID | None
     capabilities: list[str]
     related_url: str
+    schedule_id: uuid.UUID | None = None
+    job_state: str | None = None
+    connector: str | None = None
+    destination_id: uuid.UUID | None = None
+    artifact_id: uuid.UUID | None = None
+    artifact_version: int | None = None
+    scheduled_at: datetime | None = None
+    available_at: datetime | None = None
+    lease_owner: str | None = None
+    lease_expiry: datetime | None = None
+    next_retry: datetime | None = None
+    correlation_id: str | None = None
 
 
 class RecoveryPage(BaseModel):
@@ -330,10 +343,10 @@ def health_details(db: Session) -> SystemHealth:
                 component="Migration",
                 status=(
                     "healthy"
-                    if current in {"20260805_0016", "unmanaged-test-schema"}
+                    if current in {"20260806_0017", "unmanaged-test-schema"}
                     else "degraded"
                 ),
-                message=f"Current {current}; expected 20260805_0016.",
+                message=f"Current {current}; expected 20260806_0017.",
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -406,7 +419,7 @@ def health_details(db: Session) -> SystemHealth:
         status=overall,
         components=components,
         current_migration=current,
-        expected_migration="20260805_0016",
+        expected_migration="20260806_0017",
         application_version=__version__,
         build_identifier=get_settings().build_identifier,
     )
@@ -490,6 +503,73 @@ def recovery(
                 )
             )
     if category in {None, "publishing"}:
+        scheduler_rows = db.execute(
+            select(PublishingJob, Product)
+            .join(Product, Product.id == PublishingJob.product_id)
+            .where(
+                PublishingJob.owner_id == user.id,
+                PublishingJob.state.in_(
+                    [
+                        "retry_wait",
+                        "failed",
+                        "dead_letter",
+                        "cancel_requested",
+                        "claimed",
+                        "running",
+                    ]
+                ),
+            )
+        ).all()
+        current = datetime.now(UTC)
+        for job, product in scheduler_rows:
+            expired = bool(job.lease_expires_at and job.lease_expires_at < current)
+            capabilities: list[str] = ["open_schedule"] if job.schedule_id else []
+            if job.state in {"failed", "dead_letter"} and job.retryable:
+                capabilities.append("retry_job")
+            if expired:
+                capabilities.append("recover_expired_lease")
+            if job.publishing_execution_id or job.recovery_state == "manual_review":
+                capabilities.append("reconcile_remote_execution")
+            if job.state not in {"succeeded", "failed", "dead_letter", "cancelled", "expired"}:
+                capabilities.append("cancel_job")
+            state_message = {
+                "retry_wait": "Waiting for retry.",
+                "dead_letter": "Job exhausted its bounded attempts.",
+                "cancel_requested": "Cancellation requested.",
+            }.get(
+                job.state,
+                job.recovery_reason or job.last_error_message or "Publishing job needs review.",
+            )
+            items.append(
+                RecoveryItem(
+                    id=job.id,
+                    category="publishing",
+                    entity_type="publishing_job",
+                    product_id=product.id,
+                    product_name=product.name,
+                    brand_id=product.brand_id,
+                    failure_code=job.last_error_code or job.recovery_state,
+                    safe_failure_message=state_message,
+                    retryable=job.retryable,
+                    attempt_count=job.execution_attempt_count,
+                    failed_at=job.completed_at or job.updated_at,
+                    workflow_id=job.workflow_instance_id,
+                    capabilities=capabilities,
+                    related_url=f"/publishing/jobs/{job.id}",
+                    schedule_id=job.schedule_id,
+                    job_state=job.state,
+                    connector=job.connector_key,
+                    destination_id=job.destination_id,
+                    artifact_id=job.artifact_id,
+                    artifact_version=job.artifact_version,
+                    scheduled_at=job.scheduled_at_utc,
+                    available_at=job.available_at_utc,
+                    lease_owner=job.lease_owner,
+                    lease_expiry=job.lease_expires_at,
+                    next_retry=job.next_retry_at,
+                    correlation_id=job.correlation_id,
+                )
+            )
         publishing_rows = db.execute(
             select(PublishingExecution, Product)
             .join(Product, Product.id == PublishingExecution.product_id)

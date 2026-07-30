@@ -88,6 +88,9 @@ def create_schedule(db: Session, owner: User, data: ScheduleCreate) -> Publishin
         created_at=timestamp,
         updated_at=timestamp,
         next_run_at_utc=scheduled_utc,
+        missed_occurrence_policy=data.missed_occurrence_policy,
+        max_occurrences=data.max_occurrences,
+        materialized_occurrence_count=0,
     )
     db.add(value)
     db.flush()
@@ -121,6 +124,8 @@ def update_schedule(
         value.recurrence_json = recurrence.model_dump() if recurrence else None
     if "recurrence_end_at" in values:
         value.recurrence_end_at = data.recurrence_end_at
+    if "max_occurrences" in values and data.max_occurrences is not None:
+        value.max_occurrences = data.max_occurrences
     fold = int(cast(Any, (value.recurrence_json or {}).get("fold", 0)))
     value.scheduled_at_utc = local_to_utc(value.local_scheduled_at, value.timezone_name, fold)
     value.next_run_at_utc = value.scheduled_at_utc
@@ -156,6 +161,10 @@ def materialize_due_schedules(db: Session) -> int:
     created = 0
     for schedule in schedules:
         while schedule.next_run_at_utc and schedule.next_run_at_utc <= horizon:
+            if schedule.materialized_occurrence_count >= schedule.max_occurrences:
+                schedule.next_run_at_utc = None
+                schedule.enabled = False
+                break
             due = schedule.next_run_at_utc
             key = occurrence_key(schedule.id, due)
             exists = db.scalar(
@@ -165,31 +174,41 @@ def materialize_due_schedules(db: Session) -> int:
                 )
             )
             if not exists:
-                db.add(
-                    PublishingJob(
-                        owner_id=schedule.owner_id,
-                        schedule_id=schedule.id,
-                        product_id=schedule.product_id,
-                        artifact_id=schedule.artifact_id,
-                        artifact_version=schedule.artifact_version,
-                        destination_id=schedule.destination_id,
-                        connector_key=schedule.connector_key,
-                        requested_action=schedule.requested_action,
-                        idempotency_key=key,
-                        state="scheduled" if due > timestamp else "pending",
-                        priority=0,
-                        scheduled_at_utc=due,
-                        available_at_utc=due,
-                        claim_count=0,
-                        execution_attempt_count=0,
-                        max_execution_attempts=get_settings().publishing_job_max_attempts,
-                        retryable=False,
-                        created_at=timestamp,
-                        updated_at=timestamp,
-                        row_version=1,
-                    )
+                key_job = PublishingJob(
+                    owner_id=schedule.owner_id,
+                    schedule_id=schedule.id,
+                    product_id=schedule.product_id,
+                    artifact_id=schedule.artifact_id,
+                    artifact_version=schedule.artifact_version,
+                    destination_id=schedule.destination_id,
+                    connector_key=schedule.connector_key,
+                    requested_action=schedule.requested_action,
+                    idempotency_key=key,
+                    state="scheduled" if due > timestamp else "pending",
+                    priority=0,
+                    scheduled_at_utc=due,
+                    available_at_utc=due,
+                    claim_count=0,
+                    execution_attempt_count=0,
+                    max_execution_attempts=get_settings().publishing_job_max_attempts,
+                    retryable=False,
+                    created_at=timestamp,
+                    updated_at=timestamp,
+                    row_version=1,
+                    recovery_state=None,
                 )
+                db.add(key_job)
+                db.flush()
                 created += 1
+                schedule.materialized_occurrence_count += 1
+                record_event(
+                    db,
+                    actor_id=schedule.owner_id,
+                    action="publishing.schedule_occurrence_materialized",
+                    entity_type="publishing_job",
+                    entity_id=key_job.id,
+                    metadata={"schedule_id": str(schedule.id), "connector": schedule.connector_key},
+                )
             schedule.last_job_created_at = timestamp
             if schedule.schedule_type == "one_time":
                 schedule.next_run_at_utc = None

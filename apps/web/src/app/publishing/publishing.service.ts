@@ -27,6 +27,8 @@ import type {
   PublishingSchedule,
   PublishingSchedulerPage,
   PublishingWorker,
+  PublishingJobAttempt,
+  SchedulerHealth,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
 
@@ -43,6 +45,11 @@ export class PublishingService {
       ),
     );
   }
+  schedule(id: string) {
+    return firstValueFrom(
+      this.http.get<PublishingSchedule>(`${this.base}/schedules/${id}`, this.options),
+    );
+  }
   createSchedule(data: {
     name: string;
     artifact_id: string;
@@ -51,23 +58,59 @@ export class PublishingService {
     local_scheduled_at: string;
     timezone_name: string;
     schedule_type: 'one_time' | 'recurring';
+    recurrence?: Record<string, unknown>;
+    recurrence_end_at?: string;
+    max_occurrences?: number;
   }) {
     return firstValueFrom(
       this.http.post<PublishingSchedule>(`${this.base}/schedules`, data, this.options),
     );
   }
-  scheduleAction(id: string, action: 'pause' | 'resume') {
+  scheduleAction(
+    id: string,
+    action: 'pause' | 'resume',
+    policy: 'skip_missed' | 'next_occurrence' | 'one_catch_up' = 'next_occurrence',
+  ) {
     return firstValueFrom(
       this.http.post<PublishingSchedule>(
         `${this.base}/schedules/${id}/${action}`,
-        {},
+        action === 'resume' ? { policy } : {},
         this.options,
       ),
     );
   }
-  jobs() {
+  previewSchedule(data: {
+    local_scheduled_at: string;
+    timezone_name: string;
+    schedule_type: 'one_time' | 'recurring';
+    recurrence?: Record<string, unknown>;
+    count?: number;
+  }) {
     return firstValueFrom(
-      this.http.get<PublishingSchedulerPage<PublishingJob>>(`${this.base}/jobs`, this.options),
+      this.http.post<{
+        occurrences: { local: string; utc: string }[];
+        dst_warning: string | null;
+      }>(`${this.base}/schedules/preview`, data, this.options),
+    );
+  }
+  jobs(filters: Record<string, string | boolean | undefined> = {}) {
+    let params = new HttpParams();
+    for (const [key, value] of Object.entries(filters)) {
+      if (value !== '' && value !== undefined) params = params.set(key, value);
+    }
+    return firstValueFrom(
+      this.http.get<PublishingSchedulerPage<PublishingJob>>(`${this.base}/jobs`, {
+        ...this.options,
+        params,
+      }),
+    );
+  }
+  job(id: string) {
+    return firstValueFrom(this.http.get<PublishingJob>(`${this.base}/jobs/${id}`, this.options));
+  }
+  jobAttempts(id: string) {
+    return firstValueFrom(
+      this.http.get<PublishingJobAttempt[]>(`${this.base}/jobs/${id}/attempts`, this.options),
     );
   }
   jobAction(id: string, action: 'retry' | 'cancel') {
@@ -76,7 +119,25 @@ export class PublishingService {
     );
   }
   workers() {
-    return firstValueFrom(this.http.get<PublishingWorker[]>(`${this.base}/workers`, this.options));
+    return firstValueFrom(
+      this.http.get<PublishingWorker[]>(`${environment.apiUrl}/operations/workers`, this.options),
+    );
+  }
+  worker(id: string) {
+    return firstValueFrom(
+      this.http.get<PublishingWorker & { recent_jobs: PublishingJob[] }>(
+        `${environment.apiUrl}/operations/workers/${id}`,
+        this.options,
+      ),
+    );
+  }
+  schedulerHealth() {
+    return firstValueFrom(
+      this.http.get<SchedulerHealth>(
+        `${environment.apiUrl}/operations/scheduler-health`,
+        this.options,
+      ),
+    );
   }
   connectors() {
     return firstValueFrom(

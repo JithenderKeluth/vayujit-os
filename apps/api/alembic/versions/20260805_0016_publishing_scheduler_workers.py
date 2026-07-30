@@ -71,7 +71,9 @@ def upgrade() -> None:
         sa.Column("cancellation_reason", sa.String(300)),
         sa.CheckConstraint("schedule_type IN ('one_time','recurring')", name="ck_schedule_type"),
         sa.CheckConstraint(
-            "requested_action IN ('create_draft','publish','update','move_to_draft','update_product','activate_product','archive_product','reconcile')",
+            "requested_action IN ("
+            "'create_draft','publish','update','move_to_draft','update_product',"
+            "'activate_product','archive_product','reconcile')",
             name="ck_schedule_action",
         ),
     )
@@ -155,7 +157,9 @@ def upgrade() -> None:
         sa.Column("row_version", sa.Integer(), nullable=False, server_default="1"),
         sa.UniqueConstraint("owner_id", "idempotency_key", name="uq_job_owner_idempotency"),
         sa.CheckConstraint(
-            "state IN ('pending','scheduled','claimed','running','retry_wait','succeeded','failed','cancel_requested','cancelled','paused','expired','dead_letter')",
+            "state IN ("
+            "'pending','scheduled','claimed','running','retry_wait','succeeded','failed',"
+            "'cancel_requested','cancelled','paused','expired','dead_letter')",
             name="ck_publishing_job_state",
         ),
         sa.CheckConstraint("max_execution_attempts BETWEEN 1 AND 10", name="ck_job_max_attempts"),

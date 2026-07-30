@@ -374,6 +374,9 @@ class PublishingSchedule(Base):
     last_run_at_utc: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     last_result: Mapped[str | None] = mapped_column(String(40))
     cancellation_reason: Mapped[str | None] = mapped_column(String(300))
+    missed_occurrence_policy: Mapped[str] = mapped_column(String(30), default="next_occurrence")
+    max_occurrences: Mapped[int] = mapped_column(Integer, default=100)
+    materialized_occurrence_count: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class PublishingJob(Base):
@@ -433,6 +436,10 @@ class PublishingJob(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     row_version: Mapped[int] = mapped_column(Integer, default=1)
+    recovery_state: Mapped[str | None] = mapped_column(String(40), index=True)
+    recovery_reason: Mapped[str | None] = mapped_column(String(500))
+    maintenance_blocked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    recovered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class PublishingJobAttempt(Base):
@@ -477,3 +484,28 @@ class PublishingWorkerHeartbeat(Base):
     safe_status: Mapped[str] = mapped_column(String(30))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    completed_jobs: Mapped[int] = mapped_column(Integer, default=0)
+    failed_jobs: Mapped[int] = mapped_column(Integer, default=0)
+    lease_renewal_failures: Mapped[int] = mapped_column(Integer, default=0)
+    stale_recoveries: Mapped[int] = mapped_column(Integer, default=0)
+    graceful_shutdowns: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class PublishingRecoveryRecord(Base):
+    __tablename__ = "publishing_recovery_records"
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    job_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_jobs.id", ondelete="CASCADE"), index=True
+    )
+    worker_id: Mapped[str | None] = mapped_column(String(160))
+    publishing_execution_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_executions.id", ondelete="SET NULL")
+    )
+    result: Mapped[str] = mapped_column(String(40), index=True)
+    reason_code: Mapped[str] = mapped_column(String(80))
+    safe_message: Mapped[str] = mapped_column(String(500))
+    correlation_id: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)

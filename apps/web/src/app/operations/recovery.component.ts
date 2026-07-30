@@ -36,6 +36,16 @@ import { OperationsService } from './operations.service';
         <h2>{{ item.category }} · {{ item.product_name || item.entity_type }}</h2>
         <p>{{ item.failure_code || 'unknown_failure' }}: {{ item.safe_failure_message }}</p>
         <p>Attempts {{ item.attempt_count }} · Retryable {{ item.retryable ? 'Yes' : 'No' }}</p>
+        @if (item.entity_type === 'publishing_job') {
+          <p>{{ item.job_state }} · {{ item.connector }} · Artifact v{{ item.artifact_version }}</p>
+          <p>Scheduled {{ item.scheduled_at }} · Available {{ item.available_at }}</p>
+          @if (item.lease_owner) {
+            <p>Lease {{ item.lease_owner }} until {{ item.lease_expiry }}</p>
+          }
+          @if (item.correlation_id) {
+            <p>Correlation {{ item.correlation_id }}</p>
+          }
+        }
         <p>Available actions: {{ item.capabilities.join(', ') || 'Review only' }}</p>
         <a [routerLink]="item.related_url">Open details and available actions</a>
       </article>

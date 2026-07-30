@@ -17,6 +17,14 @@ Check-Command "PostgreSQL" { docker exec infrastructure-postgres-1 pg_isready -U
 Check-Command "Migration" { & "$PSScriptRoot\maintenance.ps1" migration-status }
 Check-Command "AI provider status" { & "$PSScriptRoot\ai-diagnostics.ps1" status }
 Check-Command "Publishing connector status" { & "$PSScriptRoot\publishing-diagnostics.ps1" status }
+Check-Command "Scheduler status" {
+    $env:PYTHONPATH = Join-Path $PSScriptRoot "..\apps\api"
+    & "$PSScriptRoot\..\apps\api\.venv\Scripts\python.exe" -m vayujit_api.scheduler_cli jobs
+}
+Check-Command "Worker status" {
+    $env:PYTHONPATH = Join-Path $PSScriptRoot "..\apps\api"
+    & "$PSScriptRoot\..\apps\api\.venv\Scripts\python.exe" -m vayujit_api.scheduler_cli workers
+}
 if ($env:VAYUJIT_CREDENTIAL_ENCRYPTION_KEY) {
     Write-Host "PASS AI credential encryption key configured"
 } else {

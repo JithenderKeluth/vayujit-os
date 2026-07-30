@@ -211,13 +211,37 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'publishing/schedules/new',
+    loadComponent: () =>
+      import('./publishing/schedules.component').then((m) => m.SchedulesComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'publishing/schedules/:id',
+    loadComponent: () =>
+      import('./publishing/schedule-details.component').then((m) => m.ScheduleDetailsComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'publishing/jobs',
     loadComponent: () => import('./publishing/jobs.component').then((m) => m.JobsComponent),
     canActivate: [authGuard],
   },
   {
+    path: 'publishing/jobs/:id',
+    loadComponent: () =>
+      import('./publishing/job-details.component').then((m) => m.JobDetailsComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'operations/workers',
     loadComponent: () => import('./publishing/workers.component').then((m) => m.WorkersComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/workers/:id',
+    loadComponent: () =>
+      import('./publishing/worker-details.component').then((m) => m.WorkerDetailsComponent),
     canActivate: [authGuard],
   },
   {

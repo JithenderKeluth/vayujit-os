@@ -1137,6 +1137,18 @@ export interface RecoveryItem {
   workflow_id: string | null;
   capabilities: string[];
   related_url: string;
+  schedule_id?: string | null;
+  job_state?: string | null;
+  connector?: string | null;
+  destination_id?: string | null;
+  artifact_id?: string | null;
+  artifact_version?: number | null;
+  scheduled_at?: string | null;
+  available_at?: string | null;
+  lease_owner?: string | null;
+  lease_expiry?: string | null;
+  next_retry?: string | null;
+  correlation_id?: string | null;
 }
 export interface RecoveryPage {
   items: RecoveryItem[];
@@ -1186,6 +1198,9 @@ export interface PublishingSchedule {
   archived: boolean;
   next_run_at_utc: string | null;
   last_result: string | null;
+  missed_occurrence_policy: 'skip_missed' | 'next_occurrence' | 'one_catch_up';
+  max_occurrences: number;
+  materialized_occurrence_count: number;
 }
 export interface PublishingJob {
   id: string;
@@ -1198,15 +1213,69 @@ export interface PublishingJob {
   execution_attempt_count: number;
   max_execution_attempts: number;
   last_error_message: string | null;
+  product_id: string;
+  artifact_id: string;
+  artifact_version: number;
+  destination_id: string;
+  claimed_at: string | null;
+  started_at: string | null;
+  completed_at: string | null;
+  lease_owner: string | null;
+  lease_expires_at: string | null;
+  next_retry_at: string | null;
+  correlation_id: string | null;
+  recovery_state: string | null;
+  recovery_reason: string | null;
+  maintenance_blocked_at: string | null;
 }
 export interface PublishingWorker {
   worker_id: string;
+  process_started_at: string;
   last_heartbeat_at: string;
   version: string;
   concurrency: number;
   active_jobs: number;
   draining: boolean;
+  shutdown_requested: boolean;
   safe_status: string;
+  status?: 'online' | 'offline' | 'stale' | 'draining';
+  completed_jobs: number;
+  failed_jobs: number;
+  lease_renewal_failures: number;
+  stale_recoveries: number;
+  graceful_shutdowns: number;
+}
+export interface PublishingJobAttempt {
+  id: string;
+  attempt_number: number;
+  worker_id: string;
+  started_at: string;
+  completed_at: string | null;
+  outcome: string;
+  retryable: boolean;
+  error_code: string | null;
+  safe_error_message: string | null;
+  delay_seconds: number | null;
+  connector_execution_id: string | null;
+  correlation_id: string | null;
+}
+export interface SchedulerHealth {
+  scheduler_enabled: boolean;
+  globally_paused: boolean;
+  maintenance_blocked: boolean;
+  active_schedule_count: number;
+  paused_schedule_count: number;
+  recurring_schedule_count: number;
+  due_job_count: number;
+  overdue_job_count: number;
+  retry_wait_count: number;
+  failed_count: number;
+  dead_letter_count: number;
+  cancelled_count: number;
+  oldest_overdue_age_seconds: number | null;
+  workers: PublishingWorker[];
+  connector_backlog: Record<string, number>;
+  generated_at: string;
 }
 export interface PublishingSchedulerPage<T> {
   items: T[];
