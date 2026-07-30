@@ -77,6 +77,15 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("VAYUJIT_SHOPIFY_API_VERSION", "SHOPIFY_API_VERSION"),
     )
     shopify_discovery_cache_seconds: int = Field(default=900, ge=60, le=3600)
+    publishing_worker_enabled: bool = False
+    publishing_worker_concurrency: int = Field(default=2, ge=1, le=32)
+    publishing_worker_poll_seconds: float = Field(default=2.0, ge=0.1, le=60)
+    publishing_job_lease_seconds: int = Field(default=60, ge=15, le=3600)
+    publishing_worker_heartbeat_seconds: int = Field(default=20, ge=5, le=300)
+    publishing_schedule_horizon_days: int = Field(default=30, ge=1, le=366)
+    publishing_schedule_max_per_owner: int = Field(default=1000, ge=1, le=100000)
+    publishing_job_max_attempts: int = Field(default=5, ge=1, le=10)
+    publishing_worker_id: str | None = None
 
     @field_validator("environment")
     @classmethod

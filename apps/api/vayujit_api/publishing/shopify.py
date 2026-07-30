@@ -1,4 +1,5 @@
 import uuid
+from typing import Literal
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -45,7 +46,12 @@ def owned_configuration(db: Session, owner_id: uuid.UUID) -> ShopifyConnectorCon
 
 def credentials_for(
     value: ShopifyConnectorConfiguration | None,
-) -> tuple[str | None, str | None, str, str]:
+) -> tuple[
+    str | None,
+    str | None,
+    str,
+    Literal["application", "deployment", "not_configured"],
+]:
     settings = get_settings()
     if value and value.encrypted_access_token:
         return (

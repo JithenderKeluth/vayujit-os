@@ -45,7 +45,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "Shopify migration upgrade failed." }
     & ".\.venv\Scripts\alembic.exe" downgrade 20260803_0014
     if ($LASTEXITCODE -ne 0) { throw "Shopify migration downgrade failed." }
-    & ".\.venv\Scripts\alembic.exe" upgrade 20260804_0015
+    & ".\.venv\Scripts\alembic.exe" upgrade 20260805_0016
     if ($LASTEXITCODE -ne 0) { throw "Shopify migration re-upgrade failed." }
 } finally {
     Pop-Location

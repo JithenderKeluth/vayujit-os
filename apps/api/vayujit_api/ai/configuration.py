@@ -1,6 +1,7 @@
 import time
 import uuid
 from dataclasses import dataclass
+from typing import Literal
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -53,7 +54,9 @@ def owned_configuration(
     return value
 
 
-def credential_for(configuration: AIProviderConfiguration | None) -> tuple[str | None, str]:
+def credential_for(
+    configuration: AIProviderConfiguration | None,
+) -> tuple[str | None, Literal["application", "deployment", "not_configured"]]:
     settings = get_settings()
     if configuration and configuration.encrypted_api_key:
         return (

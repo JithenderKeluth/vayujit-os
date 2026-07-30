@@ -26,6 +26,7 @@ from vayujit_api.operations.router import (
 )
 from vayujit_api.products.router import router as products_router
 from vayujit_api.publishing.router import router as publishing_router
+from vayujit_api.publishing.scheduler_router import router as scheduler_router
 from vayujit_api.settings.router import router as settings_router
 from vayujit_api.settings.router import system_router
 from vayujit_api.workflows.router import router as workflows_router
@@ -53,6 +54,7 @@ def create_app() -> FastAPI:
     application.include_router(ai_router)
     application.include_router(media_router)
     application.include_router(publishing_router)
+    application.include_router(scheduler_router)
     application.include_router(workflows_router)
     application.include_router(dashboard_router)
     application.include_router(approval_router)

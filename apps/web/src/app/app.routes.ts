@@ -205,6 +205,22 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'publishing/schedules',
+    loadComponent: () =>
+      import('./publishing/schedules.component').then((m) => m.SchedulesComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'publishing/jobs',
+    loadComponent: () => import('./publishing/jobs.component').then((m) => m.JobsComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/workers',
+    loadComponent: () => import('./publishing/workers.component').then((m) => m.WorkersComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'workflows',
     loadComponent: () =>
       import('./workflows/workflow-list.component').then((m) => m.WorkflowListComponent),

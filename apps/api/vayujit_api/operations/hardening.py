@@ -330,10 +330,10 @@ def health_details(db: Session) -> SystemHealth:
                 component="Migration",
                 status=(
                     "healthy"
-                    if current in {"20260804_0015", "unmanaged-test-schema"}
+                    if current in {"20260805_0016", "unmanaged-test-schema"}
                     else "degraded"
                 ),
-                message=f"Current {current}; expected 20260804_0015.",
+                message=f"Current {current}; expected 20260805_0016.",
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -406,7 +406,7 @@ def health_details(db: Session) -> SystemHealth:
         status=overall,
         components=components,
         current_migration=current,
-        expected_migration="20260804_0015",
+        expected_migration="20260805_0016",
         application_version=__version__,
         build_identifier=get_settings().build_identifier,
     )

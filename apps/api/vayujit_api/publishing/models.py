@@ -321,3 +321,159 @@ class ShopifyMediaPollAttempt(Base):
     correlation_id: Mapped[str | None] = mapped_column(String(64))
     safe_error_message: Mapped[str | None] = mapped_column(String(500))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class PublishingSchedule(Base):
+    __tablename__ = "publishing_schedules"
+    __table_args__ = (
+        CheckConstraint("schedule_type IN ('one_time','recurring')", name="ck_schedule_type"),
+        CheckConstraint(
+            "requested_action IN ('create_draft','publish','update','move_to_draft',"
+            "'update_product','activate_product','archive_product','reconcile')",
+            name="ck_schedule_action",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    brand_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("brands.id", ondelete="CASCADE"), index=True
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), index=True
+    )
+    artifact_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="RESTRICT"), index=True
+    )
+    artifact_version: Mapped[int] = mapped_column(Integer)
+    destination_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("publishing_destinations.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    connector_key: Mapped[str] = mapped_column(String(80), index=True)
+    requested_action: Mapped[str] = mapped_column(String(30))
+    name: Mapped[str] = mapped_column(String(160))
+    schedule_type: Mapped[str] = mapped_column(String(20))
+    scheduled_at_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    timezone_name: Mapped[str] = mapped_column(String(100))
+    local_scheduled_at: Mapped[datetime] = mapped_column(DateTime(timezone=False))
+    recurrence_json: Mapped[dict[str, object] | None] = mapped_column(JSONB)
+    recurrence_end_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    enabled: Mapped[bool] = mapped_column(Boolean, default=True)
+    paused: Mapped[bool] = mapped_column(Boolean, default=False)
+    archived: Mapped[bool] = mapped_column(Boolean, default=False)
+    approval_snapshot_json: Mapped[dict[str, object]] = mapped_column(JSONB)
+    destination_snapshot_version: Mapped[str] = mapped_column(String(64))
+    created_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_job_created_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    next_run_at_utc: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    last_run_at_utc: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_result: Mapped[str | None] = mapped_column(String(40))
+    cancellation_reason: Mapped[str | None] = mapped_column(String(300))
+
+
+class PublishingJob(Base):
+    __tablename__ = "publishing_jobs"
+    __table_args__ = (
+        UniqueConstraint("owner_id", "idempotency_key", name="uq_job_owner_idempotency"),
+        CheckConstraint(
+            "state IN ('pending','scheduled','claimed','running','retry_wait','succeeded',"
+            "'failed','cancel_requested','cancelled','paused','expired','dead_letter')",
+            name="ck_publishing_job_state",
+        ),
+        CheckConstraint("max_execution_attempts BETWEEN 1 AND 10", name="ck_job_max_attempts"),
+        CheckConstraint("priority BETWEEN -100 AND 100", name="ck_job_priority"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    schedule_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_schedules.id", ondelete="SET NULL"), index=True
+    )
+    workflow_instance_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workflow_instances.id", ondelete="SET NULL"), index=True
+    )
+    publishing_execution_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_executions.id", ondelete="SET NULL"), index=True
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("products.id"))
+    artifact_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("generated_artifacts.id")
+    )
+    artifact_version: Mapped[int] = mapped_column(Integer)
+    destination_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_destinations.id"), index=True
+    )
+    connector_key: Mapped[str] = mapped_column(String(80), index=True)
+    requested_action: Mapped[str] = mapped_column(String(30))
+    idempotency_key: Mapped[str] = mapped_column(String(100))
+    state: Mapped[str] = mapped_column(String(30), index=True)
+    priority: Mapped[int] = mapped_column(Integer, default=0)
+    scheduled_at_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    available_at_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    claimed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    lease_owner: Mapped[str | None] = mapped_column(String(160), index=True)
+    lease_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
+    heartbeat_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    claim_count: Mapped[int] = mapped_column(Integer, default=0)
+    execution_attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+    max_execution_attempts: Mapped[int] = mapped_column(Integer, default=5)
+    last_error_code: Mapped[str | None] = mapped_column(String(80))
+    last_error_message: Mapped[str | None] = mapped_column(String(500))
+    retryable: Mapped[bool] = mapped_column(Boolean, default=False)
+    next_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    correlation_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    row_version: Mapped[int] = mapped_column(Integer, default=1)
+
+
+class PublishingJobAttempt(Base):
+    __tablename__ = "publishing_job_attempts"
+    __table_args__ = (
+        UniqueConstraint("job_id", "attempt_number", name="uq_job_attempt_number"),
+        CheckConstraint(
+            "outcome IN ('running','succeeded','failed','cancelled','lease_lost')",
+            name="ck_job_attempt_outcome",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    job_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_jobs.id", ondelete="CASCADE"), index=True
+    )
+    attempt_number: Mapped[int] = mapped_column(Integer)
+    worker_id: Mapped[str] = mapped_column(String(160), index=True)
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    outcome: Mapped[str] = mapped_column(String(30))
+    retryable: Mapped[bool] = mapped_column(Boolean, default=False)
+    error_code: Mapped[str | None] = mapped_column(String(80))
+    safe_error_message: Mapped[str | None] = mapped_column(String(500))
+    delay_seconds: Mapped[int | None] = mapped_column(Integer)
+    connector_execution_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_executions.id", ondelete="SET NULL")
+    )
+    correlation_id: Mapped[str | None] = mapped_column(String(64))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class PublishingWorkerHeartbeat(Base):
+    __tablename__ = "publishing_worker_heartbeats"
+    worker_id: Mapped[str] = mapped_column(String(160), primary_key=True)
+    process_started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_heartbeat_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    version: Mapped[str] = mapped_column(String(30))
+    concurrency: Mapped[int] = mapped_column(Integer)
+    active_jobs: Mapped[int] = mapped_column(Integer)
+    draining: Mapped[bool] = mapped_column(Boolean, default=False)
+    shutdown_requested: Mapped[bool] = mapped_column(Boolean, default=False)
+    safe_status: Mapped[str] = mapped_column(String(30))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

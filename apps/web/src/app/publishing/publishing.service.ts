@@ -23,6 +23,10 @@ import type {
   ShopifyOverwritePreview,
   ShopifyAssignmentRemovalPreview,
   UpdateShopifyConnectorRequest,
+  PublishingJob,
+  PublishingSchedule,
+  PublishingSchedulerPage,
+  PublishingWorker,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
 
@@ -31,6 +35,49 @@ export class PublishingService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/publishing`;
   private readonly options = { withCredentials: true } as const;
+  schedules() {
+    return firstValueFrom(
+      this.http.get<PublishingSchedulerPage<PublishingSchedule>>(
+        `${this.base}/schedules`,
+        this.options,
+      ),
+    );
+  }
+  createSchedule(data: {
+    name: string;
+    artifact_id: string;
+    destination_id: string;
+    requested_action: string;
+    local_scheduled_at: string;
+    timezone_name: string;
+    schedule_type: 'one_time' | 'recurring';
+  }) {
+    return firstValueFrom(
+      this.http.post<PublishingSchedule>(`${this.base}/schedules`, data, this.options),
+    );
+  }
+  scheduleAction(id: string, action: 'pause' | 'resume') {
+    return firstValueFrom(
+      this.http.post<PublishingSchedule>(
+        `${this.base}/schedules/${id}/${action}`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  jobs() {
+    return firstValueFrom(
+      this.http.get<PublishingSchedulerPage<PublishingJob>>(`${this.base}/jobs`, this.options),
+    );
+  }
+  jobAction(id: string, action: 'retry' | 'cancel') {
+    return firstValueFrom(
+      this.http.post<PublishingJob>(`${this.base}/jobs/${id}/${action}`, {}, this.options),
+    );
+  }
+  workers() {
+    return firstValueFrom(this.http.get<PublishingWorker[]>(`${this.base}/workers`, this.options));
+  }
   connectors() {
     return firstValueFrom(
       this.http.get<PublishingConnectorSummary[]>(`${this.base}/connectors`, this.options),

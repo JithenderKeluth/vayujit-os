@@ -1,4 +1,5 @@
 import uuid
+from typing import Literal
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -29,7 +30,12 @@ def owned_configuration(db: Session, owner_id: uuid.UUID) -> WordPressConnectorC
 
 def credentials_for(
     value: WordPressConnectorConfiguration | None,
-) -> tuple[str | None, str | None, str | None, str]:
+) -> tuple[
+    str | None,
+    str | None,
+    str | None,
+    Literal["application", "deployment", "not_configured"],
+]:
     settings = get_settings()
     if value and value.encrypted_application_password:
         return (

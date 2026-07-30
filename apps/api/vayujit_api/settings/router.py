@@ -258,7 +258,7 @@ def system_status(db: DatabaseSession, _user: CurrentUser) -> SystemStatus:
         api_status="ok",
         database_status=database_status,
         migration_revision=str(revision),
-        expected_revision="20260804_0015",
+        expected_revision="20260805_0016",
         server_time=datetime.now(UTC),
         python_version=f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}",
         providers=["mock-deterministic"],

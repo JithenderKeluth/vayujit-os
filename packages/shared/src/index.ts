@@ -1170,3 +1170,48 @@ export interface RestoreCheck {
   execution_supported: false;
   operator_action: string;
 }
+
+export interface PublishingSchedule {
+  id: string;
+  name: string;
+  connector_key: string;
+  requested_action: string;
+  schedule_type: 'one_time' | 'recurring';
+  scheduled_at_utc: string;
+  timezone_name: string;
+  local_scheduled_at: string;
+  recurrence_json: Record<string, unknown> | null;
+  enabled: boolean;
+  paused: boolean;
+  archived: boolean;
+  next_run_at_utc: string | null;
+  last_result: string | null;
+}
+export interface PublishingJob {
+  id: string;
+  schedule_id: string | null;
+  publishing_execution_id: string | null;
+  connector_key: string;
+  requested_action: string;
+  state: string;
+  scheduled_at_utc: string;
+  execution_attempt_count: number;
+  max_execution_attempts: number;
+  last_error_message: string | null;
+}
+export interface PublishingWorker {
+  worker_id: string;
+  last_heartbeat_at: string;
+  version: string;
+  concurrency: number;
+  active_jobs: number;
+  draining: boolean;
+  safe_status: string;
+}
+export interface PublishingSchedulerPage<T> {
+  items: T[];
+  page: number;
+  page_size: number;
+  total: number;
+  pages: number;
+}

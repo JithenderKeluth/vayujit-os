@@ -24,6 +24,8 @@ export class AppComponent {
     ['AI Content', '/ai'],
     ['Media', '/media'],
     ['Publishing', '/publishing'],
+    ['Schedules', '/publishing/schedules'],
+    ['Jobs', '/publishing/jobs'],
     ['Workflows', '/workflows'],
     ['Approvals', '/approvals'],
     ['Execution History', '/execution-history'],
