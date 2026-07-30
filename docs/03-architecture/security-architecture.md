@@ -51,3 +51,10 @@ Production hardening adds bounded correlation IDs, centralized secret-field reda
 liveness/readiness, owner-scoped backup metadata, canonical paths, no-shell subprocess arguments,
 SHA-256 verification, guarded restore preflight, maintenance write blocking, and safe audit
 projections. Backups are explicitly unencrypted and destructive restore is not a web API.
+# Campaign security
+
+Campaign APIs inherit authenticated owner scoping, exact-Origin write protection, maintenance
+mode, correlation IDs, and safe errors. Activity types come from a closed action map. Exact
+Artifact approval/version and destination connector compatibility are revalidated. Calendar,
+dependency, activity, duration, and bulk operations are bounded. Campaign cancellation never
+deletes remote WordPress or Shopify entities.

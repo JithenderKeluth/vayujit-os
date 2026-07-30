@@ -196,6 +196,10 @@ it does not use Redis, RabbitMQ, Kafka, Celery, BullMQ, webhooks, or a cloud que
 
 Scheduled publishing operations, recurrence semantics, worker startup, recovery, security, and
 test commands are documented in [docs/publishing-scheduler.md](docs/publishing-scheduler.md).
+
+Content Calendar and Campaign architecture, lifecycle, readiness, conflict, scheduling,
+operations, testing, and incident guidance are documented in
+[docs/content-calendar-campaigns.md](docs/content-calendar-campaigns.md).
 See the [Publishing API](docs/02-requirements/publishing-api.md).
 
 The user-facing journey is: activate a Brand, create and activate a Product, generate and approve

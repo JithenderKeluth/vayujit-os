@@ -1124,7 +1124,7 @@ export interface ReleaseInfo {
 }
 export interface RecoveryItem {
   id: string;
-  category: 'workflow' | 'publishing' | 'media';
+  category: 'workflow' | 'publishing' | 'media' | 'campaign';
   entity_type: string;
   product_id: string | null;
   product_name: string | null;
@@ -1149,6 +1149,10 @@ export interface RecoveryItem {
   lease_expiry?: string | null;
   next_retry?: string | null;
   correlation_id?: string | null;
+  campaign_id?: string | null;
+  campaign_name?: string | null;
+  activity_id?: string | null;
+  activity_name?: string | null;
 }
 export interface RecoveryPage {
   items: RecoveryItem[];
@@ -1283,4 +1287,138 @@ export interface PublishingSchedulerPage<T> {
   page_size: number;
   total: number;
   pages: number;
+}
+
+export type CampaignStatus =
+  | 'draft'
+  | 'planning'
+  | 'ready'
+  | 'scheduled'
+  | 'running'
+  | 'paused'
+  | 'partially_completed'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'archived';
+
+export interface Campaign {
+  id: string;
+  owner_id: string;
+  brand_id: string;
+  name: string;
+  slug: string;
+  description: string;
+  objective: string;
+  status: CampaignStatus;
+  priority: number;
+  timezone_name: string;
+  start_at_utc: string;
+  end_at_utc: string;
+  local_start_at: string;
+  local_end_at: string;
+  approval_policy: string;
+  scheduling_policy: string;
+  conflict_policy: string;
+  created_at: string;
+  updated_at: string;
+  launched_at: string | null;
+  paused_at: string | null;
+  completed_at: string | null;
+  archived_at: string | null;
+  cancellation_reason: string | null;
+  row_version: number;
+}
+
+export interface CampaignActivity {
+  id: string;
+  campaign_id: string;
+  product_id: string | null;
+  artifact_id: string | null;
+  artifact_version: number | null;
+  destination_id: string | null;
+  connector_key: string | null;
+  requested_action: string | null;
+  activity_type: string;
+  name: string;
+  description: string;
+  sequence: number;
+  scheduled_local_date: string;
+  scheduled_local_time: string;
+  timezone_name: string;
+  scheduled_at_utc: string;
+  duration_minutes: number | null;
+  status: string;
+  readiness_status: string;
+  schedule_id: string | null;
+  job_id: string | null;
+  publishing_execution_id: string | null;
+  required: boolean;
+  enabled: boolean;
+  failure_code: string | null;
+  safe_failure_message: string | null;
+  correlation_id: string | null;
+  row_version: number;
+}
+
+export interface CampaignReadinessIssue {
+  code: string;
+  severity: 'info' | 'warning' | 'error';
+  safe_message: string;
+  activity_id: string | null;
+  suggested_resolution: string;
+  navigation_target: string | null;
+}
+
+export interface CampaignReadiness {
+  state: 'ready' | 'incomplete' | 'blocked' | 'warning' | 'invalid';
+  issues: CampaignReadinessIssue[];
+}
+
+export interface CampaignConflict {
+  conflict_type: string;
+  severity: 'warning' | 'error';
+  activity_ids: string[];
+  safe_explanation: string;
+  suggested_correction: string;
+  override_allowed: boolean;
+}
+
+export interface CampaignCalendarEvent {
+  campaign_id: string;
+  campaign_name: string;
+  activity_id: string;
+  activity_name: string;
+  brand_id: string;
+  product_id: string | null;
+  destination_id: string | null;
+  connector_key: string | null;
+  requested_action: string | null;
+  status: string;
+  readiness_status: string;
+  scheduled_at_utc: string;
+  timezone_name: string;
+  has_conflict: boolean;
+}
+
+export interface CampaignProgress {
+  total: number;
+  required: number;
+  optional: number;
+  ready: number;
+  scheduled: number;
+  running: number;
+  succeeded: number;
+  failed: number;
+  blocked: number;
+  cancelled: number;
+  completion_percentage: number;
+}
+
+export interface CampaignHealth {
+  active_campaigns: number;
+  upcoming_activities: number;
+  blocked_activities: number;
+  overdue_activities: number;
+  generated_at: string;
 }

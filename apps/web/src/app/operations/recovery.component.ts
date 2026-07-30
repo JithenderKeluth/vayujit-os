@@ -15,6 +15,7 @@ import { OperationsService } from './operations.service';
           <option value="">All</option>
           <option value="workflow">Workflow</option>
           <option value="publishing">Publishing</option>
+          <option value="campaign">Campaign activities</option>
           <option value="media">Media and taxonomy</option>
         </select></label
       ><label
@@ -45,6 +46,10 @@ import { OperationsService } from './operations.service';
           @if (item.correlation_id) {
             <p>Correlation {{ item.correlation_id }}</p>
           }
+        }
+        @if (item.entity_type === 'campaign_activity') {
+          <p>{{ item.campaign_name }} · {{ item.activity_name }} · {{ item.job_state }}</p>
+          <p>{{ item.connector || 'checkpoint' }} · Artifact v{{ item.artifact_version }}</p>
         }
         <p>Available actions: {{ item.capabilities.join(', ') || 'Review only' }}</p>
         <a [routerLink]="item.related_url">Open details and available actions</a>

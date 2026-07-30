@@ -105,3 +105,11 @@ The system shall support encrypted owner-scoped Shopify credentials, versioned p
 operations, draft-first approved-Artifact publishing, explicit activation, bounded discovery,
 idempotency, safe retries, cancellation, reconciliation, drift review, audit, health, and recovery.
 It shall not expose delete, inventory quantity synchronization, orders, payments, or customers.
+# Content Calendar and Campaign requirements
+
+The system shall provide owner-scoped Campaign CRUD, explicit lifecycle transitions, bounded
+activities and dependencies, exact approved Artifact version enforcement, conflict/readiness
+projections, durable Publishing scheduler integration, explicit pause/resume/cancellation,
+90-day-bounded calendar projections, safe recovery/health diagnostics, and complete Audit events.
+Detailed acceptance behavior is defined in
+[Content Calendar and Campaign Orchestration](../content-calendar-campaigns.md).

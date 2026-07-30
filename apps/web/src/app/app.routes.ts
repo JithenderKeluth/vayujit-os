@@ -14,6 +14,36 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'campaigns',
+    loadComponent: () =>
+      import('./campaigns/campaign-list.component').then((m) => m.CampaignListComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'campaigns/new',
+    loadComponent: () =>
+      import('./campaigns/campaign-form.component').then((m) => m.CampaignFormComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'campaigns/:id/activities/new',
+    loadComponent: () =>
+      import('./campaigns/activity-form.component').then((m) => m.ActivityFormComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'campaigns/:id',
+    loadComponent: () =>
+      import('./campaigns/campaign-detail.component').then((m) => m.CampaignDetailComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'calendar',
+    loadComponent: () =>
+      import('./campaigns/content-calendar.component').then((m) => m.ContentCalendarComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'brands',
     loadComponent: () =>
       import('./brands/brand-list.component').then((module) => module.BrandListComponent),

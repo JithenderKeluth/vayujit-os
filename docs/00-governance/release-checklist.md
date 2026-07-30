@@ -18,3 +18,12 @@
 - [ ] Migration 0013 clean upgrade, downgrade to 0012, and re-upgrade passes.
 - [ ] Shopify token is absent from API responses, logs, audit, exports, and Electron storage.
 - [ ] Draft creation, explicit activation, update, throttling, cancellation, and reconciliation pass.
+# Campaign release checks
+
+- Verify migration `20260807_0018`, including downgrade to 0017 and re-upgrade.
+- Run Campaign unit/integration tests plus scheduler, worker, WordPress, Shopify, Workflow,
+  Recovery, Health, Angular, and Electron regressions.
+- Confirm development Campaign/activity/dependency/link counts remain unchanged by tests.
+- Verify exact Artifact approval, owner isolation, exact-Origin, maintenance, bounded calendar and
+  dependency-cycle rejection.
+- Record browser and Electron manual acceptance honestly.

@@ -67,3 +67,10 @@ No automated suite contacts a real WordPress site.
 
 Use `httpx.MockTransport` for unit tests and a deterministic local fake GraphQL server for guarded
 integration tests. Ordinary validation must never contact a real Shopify store.
+# Campaign testing
+
+Campaign tests use deterministic unit graphs and the guarded PostgreSQL harness. They cover
+lifecycle/action bounds, cycle detection, conflicts, normalized persistence, readiness,
+checkpoint scheduling, progress, calendar projections, migration downgrade/re-upgrade, and
+regressions for the existing scheduler/connectors. Production WordPress and Shopify services are
+never contacted by automated tests.
