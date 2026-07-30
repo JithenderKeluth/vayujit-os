@@ -18,6 +18,16 @@ The guarded, coherent two-worker fake WordPress/Shopify Campaign E2E and full ty
 Workflow action executor remain known limitations; existing connector and Workflow regression
 suites do not substitute for those acceptance tests.
 
+## Final-acceptance additions
+
+The Campaign API now exposes a closed discriminated Workflow action executor, bounded owner-scoped
+lookups, typed Recovery projections/actions, and durable one-catch-up materialization through the
+existing scheduler. Brand, Product, exact approved Artifact version, destination, and manager
+selectors use safe display metadata rather than raw identifiers.
+
+The coherent fake WordPress/Shopify two-worker Campaign scenario and actual-window browser/Electron
+acceptance remain pending and must not be inferred from the passing component regression suites.
+
 ## Architecture
 
 Campaigns are an orchestration aggregate over existing Brands, Products, immutable Artifact

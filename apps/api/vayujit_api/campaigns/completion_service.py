@@ -58,6 +58,7 @@ class ResumePreview:
     optional_missed: list[uuid.UUID]
     to_skip: list[uuid.UUID]
     catch_up: uuid.UUID | None
+    catch_up_replacement: uuid.UUID | None
     next_future: uuid.UUID | None
     blocked_successors: list[uuid.UUID]
     confirmation_required: bool = True
@@ -112,6 +113,7 @@ def resume_preview(
         optional_missed=optional,
         to_skip=skipped,
         catch_up=catch_up,
+        catch_up_replacement=None,
         next_future=future.id if future else None,
         blocked_successors=sorted({edge.successor_activity_id for edge in edges}, key=str),
     )
@@ -119,6 +121,23 @@ def resume_preview(
 
 def resolve_missed(db: Session, owner: User, campaign: Campaign, policy: str) -> ResumePreview:
     preview = resume_preview(db, campaign, policy)
+    existing = db.scalar(
+        select(CampaignMissedActivityResolution)
+        .where(
+            CampaignMissedActivityResolution.owner_id == owner.id,
+            CampaignMissedActivityResolution.campaign_id == campaign.id,
+            CampaignMissedActivityResolution.policy == policy,
+        )
+        .order_by(CampaignMissedActivityResolution.resolved_at.desc())
+        .limit(1)
+    )
+    if existing:
+        return ResumePreview(
+            **{
+                **preview.__dict__,
+                "catch_up_replacement": existing.replacement_activity_id,
+            }
+        )
     if policy == "skip_missed" and preview.required_missed:
         raise ValueError("Required missed activities cannot be skipped.")
     stamp = utcnow()
@@ -187,6 +206,52 @@ def resolve_missed(db: Session, owner: User, campaign: Campaign, policy: str) ->
             resolved_at=stamp,
         )
         db.add(resolution)
+    if catch_up_replacement is not None:
+        from vayujit_api.campaigns.schedule_service import schedule_activities
+        from vayujit_api.campaigns.schemas import ScheduleRequest
+        from vayujit_api.publishing.models import PublishingJob
+        from vayujit_api.publishing.scheduler_service import materialize_due_schedules
+
+        schedule_activities(
+            db,
+            owner,
+            campaign,
+            [catch_up_replacement],
+            ScheduleRequest(
+                activity_ids=[catch_up_replacement.id],
+                behavior="require_all_ready",
+                confirm=True,
+            ),
+        )
+        materialize_due_schedules(db)
+        job = db.scalar(
+            select(PublishingJob)
+            .where(PublishingJob.schedule_id == catch_up_replacement.schedule_id)
+            .order_by(PublishingJob.created_at.desc())
+            .limit(1)
+        )
+        linked_resolution = db.scalar(
+            select(CampaignMissedActivityResolution).where(
+                CampaignMissedActivityResolution.replacement_activity_id == catch_up_replacement.id
+            )
+        )
+        if linked_resolution:
+            linked_resolution.replacement_schedule_id = catch_up_replacement.schedule_id
+            linked_resolution.replacement_job_id = job.id if job else None
+        record_event(
+            db,
+            actor_id=owner.id,
+            action="campaign.catch_up_scheduled",
+            entity_type="campaign",
+            entity_id=campaign.id,
+            metadata={"replacement_activity_id": str(catch_up_replacement.id)},
+        )
+        preview = ResumePreview(
+            **{
+                **preview.__dict__,
+                "catch_up_replacement": catch_up_replacement.id,
+            }
+        )
     record_event(
         db,
         actor_id=owner.id,

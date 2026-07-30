@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import type { CampaignSelectorItem } from '@vayujit/shared';
 import { CampaignService } from './campaign.service';
 
 @Component({
@@ -35,9 +36,41 @@ import { CampaignService } from './campaign.service';
           </select></label
         >
         <label>Name<input formControlName="name" required /></label>
-        <label>Product ID<input formControlName="product_id" /></label>
-        <label>Approved Artifact ID<input formControlName="artifact_id" /></label>
-        <label>Destination ID<input formControlName="destination_id" /></label>
+        <label>Search Products<input type="search" (input)="searchProducts($event)" /></label>
+        <label
+          >Product<select formControlName="product_id" (change)="productChanged()">
+            <option value="">Select Product</option>
+            @for (item of products(); track item.id) {
+              <option [value]="item.id" [disabled]="item.disabled">{{ item.label }}</option>
+            }
+          </select></label
+        >
+        <label
+          >Search approved Artifacts<input type="search" (input)="searchArtifacts($event)"
+        /></label>
+        <label
+          >Exact approved Artifact version<select formControlName="artifact_id">
+            <option value="">Select exact version</option>
+            @for (item of artifacts(); track item.id) {
+              <option [value]="item.id" [disabled]="item.disabled">
+                {{ item.label }} · {{ item.status }}
+              </option>
+            }
+          </select></label
+        >
+        <label
+          >Search destinations<input type="search" (input)="searchDestinations($event)"
+        /></label>
+        <label
+          >Destination<select formControlName="destination_id">
+            <option value="">Select destination</option>
+            @for (item of destinations(); track item.id) {
+              <option [value]="item.id" [disabled]="item.disabled">
+                {{ item.label }} · {{ item.connector_key }}
+              </option>
+            }
+          </select></label
+        >
         <label>Sequence<input type="number" min="1" max="500" formControlName="sequence" /></label>
         <label>Date<input type="date" formControlName="scheduled_local_date" required /></label>
         <label>Time<input type="time" formControlName="scheduled_local_time" required /></label>
@@ -65,6 +98,9 @@ export class ActivityFormComponent {
   private readonly router = inject(Router);
   readonly campaignId = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
   readonly error = signal('');
+  readonly products = signal<CampaignSelectorItem[]>([]);
+  readonly artifacts = signal<CampaignSelectorItem[]>([]);
+  readonly destinations = signal<CampaignSelectorItem[]>([]);
   readonly form = this.fb.nonNullable.group({
     activity_type: ['wordpress_create_draft', Validators.required],
     name: ['', Validators.required],
@@ -78,6 +114,34 @@ export class ActivityFormComponent {
     required: [true],
     enabled: [true],
   });
+  constructor() {
+    void this.searchProducts();
+    void this.searchDestinations();
+  }
+  async searchProducts(event?: Event): Promise<void> {
+    const search = event ? (event.target as HTMLInputElement).value : '';
+    this.products.set((await this.api.lookup('product', search)).items);
+  }
+  async productChanged(): Promise<void> {
+    this.form.controls.artifact_id.setValue('');
+    await this.searchArtifacts();
+  }
+  async searchArtifacts(event?: Event): Promise<void> {
+    const search = event ? (event.target as HTMLInputElement).value : '';
+    const productId = this.form.controls.product_id.value;
+    this.artifacts.set(
+      (await this.api.lookup('artifact', search, { productId: productId || undefined })).items,
+    );
+  }
+  async searchDestinations(event?: Event): Promise<void> {
+    const search = event ? (event.target as HTMLInputElement).value : '';
+    const connectorKey = this.form.controls.activity_type.value.startsWith('wordpress')
+      ? 'wordpress'
+      : this.form.controls.activity_type.value.startsWith('shopify')
+        ? 'shopify'
+        : undefined;
+    this.destinations.set((await this.api.lookup('destination', search, { connectorKey })).items);
+  }
   async save(): Promise<void> {
     if (this.form.invalid) return;
     const raw = this.form.getRawValue();

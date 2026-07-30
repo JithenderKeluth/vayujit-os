@@ -48,6 +48,8 @@ def create_campaign(db: Session, owner: User, data: CampaignCreate) -> Campaign:
     brand = db.scalar(select(Brand).where(Brand.id == data.brand_id, Brand.owner_id == owner.id))
     if not brand:
         raise HTTPException(422, "Brand is unavailable.")
+    if data.campaign_manager_user_id and data.campaign_manager_user_id != owner.id:
+        raise HTTPException(422, "Campaign manager is unavailable.")
     if data.local_end_at - data.local_start_at > timedelta(
         days=settings.campaign_max_duration_days
     ):
@@ -85,6 +87,7 @@ def create_campaign(db: Session, owner: User, data: CampaignCreate) -> Campaign:
         end_at_utc=local_to_utc(data.local_end_at, data.timezone_name, 0),
         local_start_at=data.local_start_at,
         local_end_at=data.local_end_at,
+        campaign_manager_user_id=data.campaign_manager_user_id,
         approval_policy=data.approval_policy,
         scheduling_policy=data.scheduling_policy,
         conflict_policy=data.conflict_policy,

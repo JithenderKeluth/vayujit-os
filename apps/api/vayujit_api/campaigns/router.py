@@ -1,11 +1,14 @@
 import uuid
 from datetime import datetime, timedelta
-from typing import Annotated
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from vayujit_api.ai.models import GeneratedArtifact
+from vayujit_api.audit.service import record_event
+from vayujit_api.brands.models import Brand
 from vayujit_api.campaigns.activity_service import (
     add_dependency,
     create_activity,
@@ -41,8 +44,12 @@ from vayujit_api.campaigns.schemas import (
     AgendaCalendar,
     CalendarEvent,
     CampaignCreate,
+    CampaignRecoveryActionRequest,
+    CampaignRecoveryProjection,
     CampaignResponse,
     CampaignUpdate,
+    CampaignWorkflowAction,
+    CampaignWorkflowResult,
     Conflict,
     DependencyCreate,
     DependencyResponse,
@@ -53,19 +60,311 @@ from vayujit_api.campaigns.schemas import (
     RescheduleRequest,
     ResumePreviewResponse,
     ScheduleRequest,
+    SelectorItem,
+    SelectorPage,
     WeekCalendar,
 )
+from vayujit_api.campaigns.workflow_executor import execute_campaign_action
+from vayujit_api.campaigns.workflow_service import restore_campaign_waits
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
 from vayujit_api.identity.service import now
-from vayujit_api.publishing.models import PublishingJob, PublishingSchedule
+from vayujit_api.products.models import Product
+from vayujit_api.publishing.models import PublishingDestination, PublishingJob, PublishingSchedule
 from vayujit_api.publishing.scheduler_time import local_to_utc, utcnow
 
 router = APIRouter(prefix="/api/v1/campaigns", tags=["campaigns"])
 DB = Annotated[Session, Depends(get_session)]
 Owner = Annotated[User, Depends(current_user)]
+
+
+@router.post("/workflow-actions", response_model=CampaignWorkflowResult)
+def workflow_action(action: CampaignWorkflowAction, db: DB, owner: Owner) -> CampaignWorkflowResult:
+    return execute_campaign_action(db, owner, action)
+
+
+@router.get("/lookups/{kind}", response_model=SelectorPage)
+def lookup(
+    kind: str,
+    db: DB,
+    owner: Owner,
+    search: Annotated[str, Query(max_length=120)] = "",
+    product_id: uuid.UUID | None = None,
+    campaign_id: uuid.UUID | None = None,
+    connector_key: str | None = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=50)] = 20,
+) -> SelectorPage:
+    term = f"%{search.strip()}%"
+    query: Any
+    values: Any
+    items: list[SelectorItem]
+    if kind == "brand":
+        query = (
+            select(Brand)
+            .where(Brand.owner_id == owner.id, Brand.name.ilike(term))
+            .order_by(Brand.name, Brand.id)
+        )
+        values = list(db.scalars(query.offset((page - 1) * page_size).limit(page_size)))
+        items = [
+            SelectorItem(id=value.id, label=value.name, kind="brand", status=str(value.status))
+            for value in values
+        ]
+    elif kind == "product":
+        query = (
+            select(Product)
+            .where(Product.owner_id == owner.id, Product.name.ilike(term))
+            .order_by(Product.name, Product.id)
+        )
+        values = list(db.scalars(query.offset((page - 1) * page_size).limit(page_size)))
+        items = [
+            SelectorItem(id=value.id, label=value.name, kind="product", status=str(value.status))
+            for value in values
+        ]
+    elif kind == "artifact":
+        clauses = [
+            GeneratedArtifact.owner_id == owner.id,
+            GeneratedArtifact.status == "approved",
+        ]
+        if product_id:
+            clauses.append(GeneratedArtifact.product_id == product_id)
+        query = (
+            select(GeneratedArtifact)
+            .where(*clauses)
+            .order_by(GeneratedArtifact.created_at.desc(), GeneratedArtifact.id)
+        )
+        values = list(db.scalars(query.offset((page - 1) * page_size).limit(page_size)))
+        items = [
+            SelectorItem(
+                id=value.id,
+                label=f"Artifact v{value.version_number}",
+                kind="artifact",
+                version=value.version_number,
+                status=value.status,
+                product_id=value.product_id,
+            )
+            for value in values
+        ]
+    elif kind == "destination":
+        clauses = [PublishingDestination.owner_id == owner.id]
+        if connector_key:
+            clauses.append(PublishingDestination.connector_key == connector_key)
+        query = (
+            select(PublishingDestination)
+            .where(*clauses, PublishingDestination.name.ilike(term))
+            .order_by(PublishingDestination.name, PublishingDestination.id)
+        )
+        values = list(db.scalars(query.offset((page - 1) * page_size).limit(page_size)))
+        items = [
+            SelectorItem(
+                id=value.id,
+                label=value.name,
+                kind="destination",
+                status=value.status,
+                connector_key=value.connector_key,
+                disabled=value.status != "active",
+                disabled_reason="Destination is disabled." if value.status != "active" else None,
+            )
+            for value in values
+        ]
+    elif kind == "manager":
+        values = (
+            [owner] if search.casefold() in f"{owner.full_name} {owner.email}".casefold() else []
+        )
+        items = [
+            SelectorItem(
+                id=value.id,
+                label=f"{value.full_name} ({value.email})",
+                kind="manager",
+                status="active" if value.is_active else "disabled",
+                disabled=not value.is_active,
+            )
+            for value in values
+        ]
+    elif kind == "activity" and campaign_id:
+        owned_campaign(db, owner.id, campaign_id)
+        query = (
+            select(CampaignActivity)
+            .where(
+                CampaignActivity.owner_id == owner.id,
+                CampaignActivity.campaign_id == campaign_id,
+                CampaignActivity.name.ilike(term),
+            )
+            .order_by(CampaignActivity.sequence, CampaignActivity.id)
+        )
+        values = list(db.scalars(query.offset((page - 1) * page_size).limit(page_size)))
+        items = [
+            SelectorItem(
+                id=value.id,
+                label=f"{value.sequence}. {value.name}",
+                kind="activity",
+                status=value.status,
+            )
+            for value in values
+        ]
+    else:
+        raise HTTPException(422, "Unsupported Campaign lookup kind.")
+    return SelectorPage(items=items, page=page, page_size=page_size, total=len(items))
+
+
+def recovery_actions(activity: CampaignActivity) -> list[str]:
+    actions = ["open_campaign", "open_activity"]
+    if activity.product_id:
+        actions.append("open_product")
+    if activity.artifact_id:
+        actions.append("open_artifact")
+    if activity.destination_id:
+        actions.append("open_destination")
+    if activity.job_id:
+        actions.append("open_job")
+    if activity.publishing_execution_id:
+        actions.append("open_publishing_execution")
+    if activity.status in {"failed", "dead_letter"}:
+        actions.append("retry_activity")
+    if activity.status == "reconciliation_required" and activity.publishing_execution_id:
+        actions.append("reconcile_activity")
+    if not activity.required and activity.status not in {"succeeded", "skipped"}:
+        actions.append("skip_optional_activity")
+    if activity.status == "missed":
+        actions.extend(["reschedule_activity", "create_one_catch_up"])
+        if not activity.required:
+            actions.append("skip_missed_activity")
+    if activity.status not in {"succeeded", "cancelled", "archived"}:
+        actions.append("cancel_activity")
+    return actions
+
+
+@router.get("/recovery", response_model=list[CampaignRecoveryProjection])
+def campaign_recovery(db: DB, owner: Owner) -> list[CampaignRecoveryProjection]:
+    rows = list(
+        db.execute(
+            select(CampaignActivity, Campaign)
+            .join(Campaign, Campaign.id == CampaignActivity.campaign_id)
+            .where(
+                CampaignActivity.owner_id == owner.id,
+                CampaignActivity.status.in_(
+                    [
+                        "blocked",
+                        "retrying",
+                        "failed",
+                        "dead_letter",
+                        "maintenance_blocked",
+                        "reconciliation_required",
+                        "cancel_requested",
+                        "missed",
+                    ]
+                ),
+            )
+            .order_by(CampaignActivity.updated_at.desc())
+            .limit(200)
+        )
+    )
+    return [
+        CampaignRecoveryProjection(
+            recovery_type=f"activity_{activity.status}",
+            campaign_id=campaign.id,
+            campaign_name=campaign.name,
+            campaign_status=campaign.status,
+            activity_id=activity.id,
+            activity_name=activity.name,
+            required=activity.required,
+            product_id=activity.product_id,
+            artifact_id=activity.artifact_id,
+            artifact_version=activity.artifact_version,
+            destination_id=activity.destination_id,
+            connector_key=activity.connector_key,
+            schedule_id=activity.schedule_id,
+            job_id=activity.job_id,
+            publishing_execution_id=activity.publishing_execution_id,
+            workflow_wait_id=None,
+            safe_failure_message=activity.safe_failure_message or "Campaign activity needs review.",
+            correlation_id=activity.correlation_id,
+            eligible_actions=recovery_actions(activity),  # type: ignore[arg-type]
+        )
+        for activity, campaign in rows
+    ]
+
+
+@router.post("/recovery/actions")
+def execute_recovery_action(
+    request: CampaignRecoveryActionRequest, db: DB, owner: Owner
+) -> dict[str, object]:
+    campaign = owned_campaign(db, owner.id, request.campaign_id)
+    navigation = {
+        "open_campaign": f"/campaigns/{campaign.id}",
+        "open_activity": f"/campaigns/{campaign.id}",
+    }
+    activity = (
+        owned_activity(db, owner.id, campaign.id, request.activity_id)
+        if request.activity_id
+        else None
+    )
+    if request.action.startswith("open_"):
+        if activity:
+            navigation.update(
+                {
+                    "open_product": f"/products/{activity.product_id}",
+                    "open_artifact": f"/ai/artifacts/{activity.artifact_id}",
+                    "open_destination": f"/publishing/destinations/{activity.destination_id}",
+                    "open_job": f"/publishing/jobs/{activity.job_id}",
+                    "open_publishing_execution": (
+                        f"/publishing/executions/{activity.publishing_execution_id}"
+                    ),
+                }
+            )
+        target = navigation.get(request.action)
+        if not target:
+            raise HTTPException(409, "Recovery navigation is unavailable.")
+        return {"action": request.action, "navigation_target": target}
+    if activity is None and request.action not in {
+        "resume_campaign",
+        "pause_campaign",
+        "cancel_campaign",
+        "retry_campaign_workflow_wait",
+    }:
+        raise HTTPException(422, "This Recovery action requires an Activity.")
+    if activity and request.action not in recovery_actions(activity):
+        raise HTTPException(409, "Recovery action is not eligible for the current state.")
+    result: Any
+    if request.action == "retry_activity" and activity:
+        result = activity_retry(campaign.id, activity.id, db, owner)
+    elif request.action in {"skip_optional_activity", "skip_missed_activity"} and activity:
+        if activity.required:
+            raise HTTPException(409, "Required Activities cannot be skipped.")
+        activity.status = "skipped"
+        activity.completed_at = activity.updated_at = now()
+        db.commit()
+        result = activity
+    elif request.action == "cancel_activity" and activity:
+        result = activity_cancel(campaign.id, activity.id, db, owner)
+    elif request.action == "pause_campaign":
+        result = pause(campaign.id, db, owner)
+    elif request.action == "resume_campaign":
+        result = resume(
+            campaign.id,
+            LifecycleRequest(missed_activity_policy="reschedule_manually"),
+            db,
+            owner,
+        )
+    elif request.action == "cancel_campaign":
+        result = cancel(campaign.id, LifecycleRequest(reason=request.reason), db, owner)
+    elif request.action == "retry_campaign_workflow_wait":
+        restored = restore_campaign_waits(db, owner_id=owner.id)
+        result = {"restored": restored}
+    else:
+        raise HTTPException(409, "Recovery action is not implemented for the current state.")
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="campaign.recovery_action_executed",
+        entity_type="campaign",
+        entity_id=campaign.id,
+        metadata={"recovery_action": request.action, "activity_id": str(request.activity_id)},
+    )
+    db.commit()
+    return {"action": request.action, "result": result}
 
 
 def campaign_activities(db: Session, campaign_id: uuid.UUID) -> list[CampaignActivity]:
