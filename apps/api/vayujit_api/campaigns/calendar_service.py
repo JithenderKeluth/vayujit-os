@@ -1,12 +1,21 @@
-from collections import Counter
-from datetime import datetime
+from collections import Counter, defaultdict
+from datetime import date, datetime
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from vayujit_api.campaigns.conflict_service import detect_conflicts
 from vayujit_api.campaigns.models import Campaign, CampaignActivity, CampaignActivityDependency
-from vayujit_api.campaigns.schemas import CalendarEvent, ProgressResponse
+from vayujit_api.campaigns.schemas import (
+    AgendaCalendar,
+    AgendaDay,
+    CalendarEvent,
+    MonthCalendar,
+    MonthDay,
+    ProgressResponse,
+    WeekCalendar,
+    WeekSlot,
+)
 
 
 def calendar_events(
@@ -84,4 +93,69 @@ def progress(activities: list[CampaignActivity]) -> ProgressResponse:
         blocked=states["blocked"] + states["waiting_dependency"],
         cancelled=states["cancelled"],
         completion_percentage=percentage,
+    )
+
+
+def calendar_projection(
+    events: list[CalendarEvent],
+    view: str,
+    start: datetime,
+    end: datetime,
+    timezone_name: str,
+    *,
+    offset: int = 0,
+    limit: int = 100,
+) -> MonthCalendar | WeekCalendar | AgendaCalendar:
+    grouped: dict[date, list[CalendarEvent]] = defaultdict(list)
+    for event in events:
+        grouped[event.scheduled_at_utc.date()].append(event)
+    if view == "month":
+        return MonthCalendar(
+            start=start,
+            end=end,
+            days=[
+                MonthDay(
+                    date=day,
+                    activity_count=len(values),
+                    campaign_count=len({value.campaign_id for value in values}),
+                    status_summary=dict(Counter(value.status for value in values)),
+                    conflict_count=sum(value.has_conflict for value in values),
+                    previews=values[:3],
+                    overflow_count=max(0, len(values) - 3),
+                )
+                for day, values in sorted(grouped.items())
+            ],
+        )
+    if view == "week":
+        return WeekCalendar(
+            start=start,
+            end=end,
+            timezone_name=timezone_name,
+            slots=[
+                WeekSlot(
+                    date=day,
+                    events=values,
+                    destination_workload=dict(
+                        Counter(
+                            str(value.destination_id) for value in values if value.destination_id
+                        )
+                    ),
+                    overlap_count=sum(
+                        first.scheduled_at_utc == second.scheduled_at_utc
+                        for index, first in enumerate(values)
+                        for second in values[index + 1 :]
+                    ),
+                )
+                for day, values in sorted(grouped.items())
+            ],
+        )
+    selected = events[offset : offset + limit]
+    agenda: dict[date, list[CalendarEvent]] = defaultdict(list)
+    for event in selected:
+        agenda[event.scheduled_at_utc.date()].append(event)
+    return AgendaCalendar(
+        start=start,
+        end=end,
+        days=[AgendaDay(date=day, events=values) for day, values in sorted(agenda.items())],
+        next_offset=offset + limit if offset + limit < len(events) else None,
     )

@@ -2,7 +2,7 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import type { CampaignCalendarEvent } from '@vayujit/shared';
+import type { CampaignCalendar, CampaignCalendarEvent } from '@vayujit/shared';
 import { CampaignService } from './campaign.service';
 
 @Component({
@@ -19,9 +19,9 @@ import { CampaignService } from './campaign.service';
       </header>
       <nav class="calendar-nav" aria-label="Calendar view">
         <div role="group" aria-label="View">
-          <button (click)="view.set('month')">Month</button
-          ><button (click)="view.set('week')">Week</button
-          ><button (click)="view.set('agenda')">Agenda</button>
+          <button (click)="setView('month')">Month</button
+          ><button (click)="setView('week')">Week</button
+          ><button (click)="setView('agenda')">Agenda</button>
         </div>
         <label
           >Connector<select [(ngModel)]="connector">
@@ -41,31 +41,67 @@ import { CampaignService } from './campaign.service';
       } @else if (!filtered().length) {
         <div class="panel"><h2>No scheduled Campaign activities</h2></div>
       }
-      <div class="calendar-grid" role="list" aria-label="Campaign activities">
-        @for (event of filtered(); track event.activity_id) {
-          <article
-            role="listitem"
-            class="calendar-event"
-            [class.conflict]="event.has_conflict"
-            tabindex="0"
-          >
-            <time [attr.datetime]="event.scheduled_at_utc">{{
-              event.scheduled_at_utc | date: 'medium'
-            }}</time>
-            <h2>
-              <a [routerLink]="['/campaigns', event.campaign_id]">{{ event.activity_name }}</a>
-            </h2>
-            <p>
-              {{ event.campaign_name }} · {{ event.connector_key || 'checkpoint' }} ·
-              {{ event.requested_action || 'review' }}
-            </p>
-            <span class="badge">{{ event.status }}</span> <span>{{ event.readiness_status }}</span>
-            @if (event.has_conflict) {
-              <strong class="error">Conflict requires review</strong>
-            }
-          </article>
-        }
-      </div>
+      @if (projection()?.view === 'month') {
+        <div class="calendar-grid month-grid" role="grid" aria-label="Month calendar">
+          @for (day of monthDays(); track day.date) {
+            <section role="gridcell" tabindex="0">
+              <h2>{{ day.date | date: 'd' }}</h2>
+              <p>{{ day.activity_count }} activities · {{ day.campaign_count }} campaigns</p>
+              @if (day.conflict_count) {
+                <strong class="error">{{ day.conflict_count }} conflicts</strong>
+              }
+              @for (event of day.previews; track event.activity_id) {
+                <a [routerLink]="['/campaigns', event.campaign_id]">{{ event.activity_name }}</a>
+              }
+              @if (day.overflow_count) {
+                <span>+{{ day.overflow_count }} more</span>
+              }
+            </section>
+          }
+        </div>
+      } @else if (projection()?.view === 'week') {
+        <div class="calendar-grid week-grid" role="grid" aria-label="Week calendar">
+          @for (slot of weekSlots(); track slot.date) {
+            <section role="gridcell">
+              <h2>{{ slot.date | date: 'EEE d' }}</h2>
+              <p>{{ slot.overlap_count }} overlaps</p>
+              @for (event of slot.events; track event.activity_id) {
+                <article tabindex="0">
+                  <time>{{ event.scheduled_at_utc | date: 'shortTime' }}</time>
+                  {{ event.activity_name }}
+                </article>
+              }
+            </section>
+          }
+        </div>
+      } @else {
+        <div class="calendar-grid agenda-list" role="list" aria-label="Campaign agenda">
+          @for (event of filtered(); track event.activity_id) {
+            <article
+              role="listitem"
+              class="calendar-event"
+              [class.conflict]="event.has_conflict"
+              tabindex="0"
+            >
+              <time [attr.datetime]="event.scheduled_at_utc">{{
+                event.scheduled_at_utc | date: 'medium'
+              }}</time>
+              <h2>
+                <a [routerLink]="['/campaigns', event.campaign_id]">{{ event.activity_name }}</a>
+              </h2>
+              <p>
+                {{ event.campaign_name }} · {{ event.connector_key || 'checkpoint' }} ·
+                {{ event.requested_action || 'review' }}
+              </p>
+              <span class="badge">{{ event.status }}</span>
+              <span>{{ event.readiness_status }}</span>
+              @if (event.has_conflict) {
+                <strong class="error">Conflict requires review</strong>
+              }
+            </article>
+          }
+        </div>
+      }
     </section>
   `,
   styleUrl: './campaigns.css',
@@ -74,6 +110,7 @@ import { CampaignService } from './campaign.service';
 export class ContentCalendarComponent {
   private readonly api = inject(CampaignService);
   readonly events = signal<CampaignCalendarEvent[]>([]);
+  readonly projection = signal<CampaignCalendar | null>(null);
   readonly loading = signal(true);
   readonly view = signal<'month' | 'week' | 'agenda'>('month');
   readonly start = signal(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
@@ -84,6 +121,18 @@ export class ContentCalendarComponent {
   }
   filtered(): CampaignCalendarEvent[] {
     return this.events().filter((item) => !this.connector || item.connector_key === this.connector);
+  }
+  monthDays() {
+    const value = this.projection();
+    return value?.view === 'month' ? value.days : [];
+  }
+  weekSlots() {
+    const value = this.projection();
+    return value?.view === 'week' ? value.slots : [];
+  }
+  setView(value: 'month' | 'week' | 'agenda'): void {
+    this.view.set(value);
+    void this.load();
   }
   previous(): void {
     const value = this.start();
@@ -99,7 +148,19 @@ export class ContentCalendarComponent {
   }
   private async load(): Promise<void> {
     this.loading.set(true);
-    this.events.set(await this.api.calendar(this.start().toISOString(), this.end().toISOString()));
+    const result = await this.api.calendar(
+      this.start().toISOString(),
+      this.end().toISOString(),
+      this.view(),
+    );
+    this.projection.set(result);
+    this.events.set(
+      result.view === 'month'
+        ? result.days.flatMap((day) => day.previews)
+        : result.view === 'week'
+          ? result.slots.flatMap((slot) => slot.events)
+          : result.days.flatMap((day) => day.events),
+    );
     this.loading.set(false);
   }
 }

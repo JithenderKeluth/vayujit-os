@@ -1401,6 +1401,70 @@ export interface CampaignCalendarEvent {
   has_conflict: boolean;
 }
 
+export interface CampaignMonthCalendar {
+  view: 'month';
+  start: string;
+  end: string;
+  days: Array<{
+    date: string;
+    activity_count: number;
+    campaign_count: number;
+    status_summary: Record<string, number>;
+    conflict_count: number;
+    previews: CampaignCalendarEvent[];
+    overflow_count: number;
+  }>;
+}
+
+export interface CampaignWeekCalendar {
+  view: 'week';
+  start: string;
+  end: string;
+  timezone_name: string;
+  slots: Array<{
+    date: string;
+    events: CampaignCalendarEvent[];
+    destination_workload: Record<string, number>;
+    overlap_count: number;
+  }>;
+}
+
+export interface CampaignAgendaCalendar {
+  view: 'agenda';
+  start: string;
+  end: string;
+  days: Array<{ date: string; events: CampaignCalendarEvent[] }>;
+  next_offset: number | null;
+}
+
+export type CampaignCalendar =
+  | CampaignMonthCalendar
+  | CampaignWeekCalendar
+  | CampaignAgendaCalendar;
+
+export interface CampaignResumePreview {
+  missed: string[];
+  required_missed: string[];
+  optional_missed: string[];
+  to_skip: string[];
+  catch_up: string | null;
+  next_future: string | null;
+  blocked_successors: string[];
+  confirmation_required: boolean;
+}
+
+export interface CampaignWorkflowWait {
+  id: string;
+  campaign_id: string;
+  workflow_instance_id: string;
+  expected_state: string;
+  current_state: string;
+  correlation_id: string;
+  completed_at: string | null;
+  failure_code: string | null;
+  safe_failure_message: string | null;
+}
+
 export interface CampaignProgress {
   total: number;
   required: number;
@@ -1420,5 +1484,9 @@ export interface CampaignHealth {
   upcoming_activities: number;
   blocked_activities: number;
   overdue_activities: number;
+  active_campaign_waits: number;
+  failed_campaign_waits: number;
+  missed_activities: number;
+  catch_ups_created: number;
   generated_at: string;
 }

@@ -1,5 +1,23 @@
 # Content Calendar and Campaign Orchestration
 
+## Completion additions
+
+Migration `20260808_0019` adds durable Campaign Workflow waits and append-only missed-Activity
+resolutions. Wait restoration uses row locking and a unique Workflow-step constraint to prevent
+duplicate continuation. Terminal state is derived from required and optional Activity outcomes.
+
+Resume policies now produce an explicit preview. Optional missed Activities may be skipped;
+`run_next` and manual rescheduling preserve unresolved missed work; one-catch-up creates one new
+Activity identity while retaining the original history and exact Artifact version.
+
+Calendar API view bounds are month 62 days, week 21 days, and agenda 90 days. Month returns daily
+counts and previews, week returns slots/workload/overlaps, and agenda returns paginated day groups.
+The Angular UI renders these as distinct views and provides an accessible dependency editor.
+
+The guarded, coherent two-worker fake WordPress/Shopify Campaign E2E and full typed Campaign
+Workflow action executor remain known limitations; existing connector and Workflow regression
+suites do not substitute for those acceptance tests.
+
 ## Architecture
 
 Campaigns are an orchestration aggregate over existing Brands, Products, immutable Artifact
