@@ -28,6 +28,9 @@ from vayujit_api.publishing.models import (
     PublishingExecution,
     PublishingExecutionAttempt,
     ShopifyConnectorConfiguration,
+    ShopifyMediaMapping,
+    ShopifyMediaPollAttempt,
+    ShopifyProductAssignment,
     WordPressConnectorConfiguration,
 )
 from vayujit_api.workflows.models import WorkflowInstance
@@ -234,6 +237,55 @@ def health_details(db: Session) -> SystemHealth:
             )
             or 0
         )
+        media_processing, media_timeout, stale_media, failed_media = db.execute(
+            select(
+                func.count(ShopifyMediaMapping.id).filter(
+                    ShopifyMediaMapping.status.in_(["uploaded", "processing"])
+                ),
+                func.count(ShopifyMediaMapping.id).filter(
+                    ShopifyMediaMapping.status == "timed_out"
+                ),
+                func.count(ShopifyMediaMapping.id).filter(
+                    ShopifyMediaMapping.reuse_state == "stale"
+                ),
+                func.count(ShopifyMediaMapping.id).filter(ShopifyMediaMapping.status == "failed"),
+            ).where(ShopifyMediaMapping.updated_at >= window_start)
+        ).one()
+        assignment_failures: dict[str, int] = {
+            assignment_type: int(total)
+            for assignment_type, total in db.execute(
+                select(
+                    ShopifyProductAssignment.assignment_type,
+                    func.count(ShopifyProductAssignment.id),
+                )
+                .where(
+                    ShopifyProductAssignment.updated_at >= window_start,
+                    ShopifyProductAssignment.status.in_(["assignment_failed", "removal_failed"]),
+                )
+                .group_by(ShopifyProductAssignment.assignment_type)
+            ).all()
+        }
+        polling_latencies = list(
+            db.scalars(
+                select(ShopifyMediaPollAttempt.latency_ms)
+                .where(ShopifyMediaPollAttempt.created_at >= window_start)
+                .order_by(ShopifyMediaPollAttempt.latency_ms)
+                .limit(200)
+            )
+        )
+        median_polling_latency = (
+            polling_latencies[len(polling_latencies) // 2] if polling_latencies else None
+        )
+        partial_products = (
+            db.scalar(
+                select(func.count(PublishingExecution.id)).where(
+                    PublishingExecution.connector_key == "shopify",
+                    PublishingExecution.reconciliation_status == "partially_published",
+                    PublishingExecution.updated_at >= window_start,
+                )
+            )
+            or 0
+        )
         success_rate = (
             round(int(recent_success) * 100 / int(recent_count), 1) if recent_count else 100.0
         )
@@ -247,7 +299,13 @@ def health_details(db: Session) -> SystemHealth:
             f"api_version={shopify_configuration.api_version}; credentials are redacted."
             f" recent_24h={recent_count}; successes={recent_success}; failures={recent_failure};"
             f" success_rate={success_rate}%; median_latency_ms={median_latency};"
-            f" throttles={throttle_count}."
+            f" throttles={throttle_count}; media_processing={media_processing};"
+            f" media_timeouts={media_timeout}; stale_mappings={stale_media};"
+            f" failed_media={failed_media};"
+            f" collection_failures={assignment_failures.get('collection', 0)};"
+            f" publication_failures={assignment_failures.get('publication', 0)};"
+            f" partially_published={partial_products};"
+            f" median_polling_latency_ms={median_polling_latency}."
         )
     try:
         media_root = storage_root()
@@ -272,10 +330,10 @@ def health_details(db: Session) -> SystemHealth:
                 component="Migration",
                 status=(
                     "healthy"
-                    if current in {"20260803_0014", "unmanaged-test-schema"}
+                    if current in {"20260804_0015", "unmanaged-test-schema"}
                     else "degraded"
                 ),
-                message=f"Current {current}; expected 20260803_0014.",
+                message=f"Current {current}; expected 20260804_0015.",
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -348,7 +406,7 @@ def health_details(db: Session) -> SystemHealth:
         status=overall,
         components=components,
         current_migration=current,
-        expected_migration="20260803_0014",
+        expected_migration="20260804_0015",
         application_version=__version__,
         build_identifier=get_settings().build_identifier,
     )
@@ -478,7 +536,13 @@ def recovery(
                                 else []
                             )
                             + (
-                                ["retry_media_upload"]
+                                [
+                                    "poll_media_again",
+                                    "verify_remote_media",
+                                    "retry_media_upload",
+                                    "continue_without_media",
+                                    "preserve_degraded_draft",
+                                ]
                                 if execution.error_code and "media" in execution.error_code
                                 else []
                             )
@@ -488,7 +552,12 @@ def recovery(
                                 else []
                             )
                             + (
-                                ["retry_publication_assignment"]
+                                [
+                                    "retry_publication_assignment",
+                                    "restore_required_publication",
+                                    "reconcile_partial_publication",
+                                    "retry_activation_after_publication_repair",
+                                ]
                                 if execution.error_code and "publication" in execution.error_code
                                 else []
                             )

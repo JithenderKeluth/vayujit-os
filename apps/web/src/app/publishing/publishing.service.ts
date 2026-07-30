@@ -21,6 +21,7 @@ import type {
   ShopifyPublishingPreview,
   ShopifyValidationResult,
   ShopifyOverwritePreview,
+  ShopifyAssignmentRemovalPreview,
   UpdateShopifyConnectorRequest,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
@@ -319,6 +320,32 @@ export class PublishingService {
       this.http.post<PublishingExecutionDetails>(
         `${this.base}/executions/${id}/overwrite`,
         { fields, confirmed: true },
+        this.options,
+      ),
+    );
+  }
+  assignmentRemovalPreview(id: string, assignmentType: 'collection' | 'publication') {
+    const params = new HttpParams().set('assignment_type', assignmentType);
+    return firstValueFrom(
+      this.http.get<ShopifyAssignmentRemovalPreview>(
+        `${this.base}/executions/${id}/assignment-removal-preview`,
+        { ...this.options, params },
+      ),
+    );
+  }
+  removeAssignments(
+    id: string,
+    assignmentType: 'collection' | 'publication',
+    remoteTargetIds: string[],
+  ) {
+    return firstValueFrom(
+      this.http.post<PublishingExecutionDetails>(
+        `${this.base}/executions/${id}/assignment-removal`,
+        {
+          assignment_type: assignmentType,
+          remote_target_ids: remoteTargetIds,
+          confirmed: true,
+        },
         this.options,
       ),
     );

@@ -1,12 +1,17 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import type { PublishingExecutionDetails, PublishingReconciliationResult } from '@vayujit/shared';
+import type {
+  PublishingExecutionDetails,
+  PublishingReconciliationResult,
+  ShopifyAssignmentRemovalPreview,
+} from '@vayujit/shared';
 import { AttemptTimelineComponent } from './attempt-timeline.component';
 import { PublishingService } from './publishing.service';
 
 @Component({
   selector: 'app-execution-details',
-  imports: [RouterLink, AttemptTimelineComponent],
+  imports: [FormsModule, RouterLink, AttemptTimelineComponent],
   template: ` <section class="pub-page">
     <header class="pub-header">
       <div>
@@ -32,7 +37,10 @@ import { PublishingService } from './publishing.service';
               {{ busy() ? 'Retrying…' : 'Retry original snapshot' }}
             </button>
           }
-          @if (value.connector_key === 'wordpress' && value.remote_entity_id) {
+          @if (
+            (value.connector_key === 'wordpress' || value.connector_key === 'shopify') &&
+            value.remote_entity_id
+          ) {
             <button [disabled]="busy()" (click)="reconcile()">Refresh remote state</button>
           }
         </header>
@@ -134,6 +142,26 @@ import { PublishingService } from './publishing.service';
             <button [disabled]="busy()" (click)="moveToDraft()">Move remote post to draft</button>
           }
         </div>
+        @if (value.connector_key === 'shopify' && mediaResults(value.result).length) {
+          <section>
+            <h3>Shopify media processing</h3>
+            @for (media of mediaResults(value.result); track media['remote_media_id']) {
+              <article class="pub-card">
+                <p>
+                  <strong>{{ mediaStateLabel(media['status']) }}</strong> · remote media
+                  {{ media['remote_media_id'] || 'not assigned' }}
+                </p>
+                <p>
+                  Order {{ media['position'] ?? 'unknown' }} · alt text
+                  {{ media['alt_text'] || 'not set' }}
+                </p>
+                @if (media['safe_error']) {
+                  <p class="pub-error">{{ media['safe_error'] }}</p>
+                }
+              </article>
+            }
+          </section>
+        }
       </article>
       @if (reconciliation(); as result) {
         <article class="pub-card">
@@ -182,6 +210,53 @@ import { PublishingService } from './publishing.service';
             >
             <a routerLink="/settings/publishing/connectors/wordpress">Open destination settings</a>
           </div>
+          @if (value.connector_key === 'shopify') {
+            <section>
+              <h3>Explicit assignment resolution</h3>
+              <p class="pub-muted">
+                Refresh and select only VAYUJIT-managed assignments. Remote-only assignments are
+                preserved.
+              </p>
+              <div class="pub-actions">
+                <button [disabled]="busy()" (click)="loadAssignmentPreview('collection')">
+                  Review collection removal
+                </button>
+                <button [disabled]="busy()" (click)="loadAssignmentPreview('publication')">
+                  Review publication removal
+                </button>
+              </div>
+              @if (assignmentPreview(); as preview) {
+                <p>{{ preview.activation_impact }}</p>
+                @for (target of preview.removable_target_ids; track target) {
+                  <label>
+                    <input
+                      type="checkbox"
+                      [checked]="selectedAssignments.includes(target)"
+                      (change)="toggleAssignment(target)"
+                    />
+                    {{
+                      preview.assignment_type === 'publication'
+                        ? 'Remove publication assignment'
+                        : 'Remove collection membership'
+                    }}
+                    · {{ target }}
+                    @if (preview.required_target_ids.includes(target)) {
+                      <strong>Required for activation</strong>
+                    }
+                  </label>
+                }
+                @for (target of preview.preserved_target_ids; track target) {
+                  <p>Preserved remote-only assignment · {{ target }}</p>
+                }
+                <button
+                  [disabled]="busy() || !selectedAssignments.length"
+                  (click)="removeSelectedAssignments()"
+                >
+                  Confirm selected removal
+                </button>
+              }
+            </section>
+          }
         </article>
       }
       <article class="pub-card">
@@ -221,6 +296,8 @@ export class ExecutionDetailsComponent implements OnInit {
   readonly busy = signal(false);
   readonly error = signal('');
   readonly reconciliation = signal<PublishingReconciliationResult | null>(null);
+  readonly assignmentPreview = signal<ShopifyAssignmentRemovalPreview | null>(null);
+  selectedAssignments: string[] = [];
   private id = '';
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id') ?? '';
@@ -228,6 +305,32 @@ export class ExecutionDetailsComponent implements OnInit {
   }
   list(value: unknown): string[] {
     return Array.isArray(value) ? value.map(String) : [];
+  }
+  mediaResults(result: Record<string, unknown> | null): Record<string, unknown>[] {
+    const media = result?.['media'];
+    return Array.isArray(media)
+      ? media.filter(
+          (value): value is Record<string, unknown> =>
+            typeof value === 'object' && value !== null && !Array.isArray(value),
+        )
+      : [];
+  }
+  mediaStateLabel(value: unknown): string {
+    const labels: Record<string, string> = {
+      staging: 'Staging',
+      uploading: 'Uploading',
+      uploaded: 'Uploaded',
+      processing: 'Processing',
+      ready: 'Ready',
+      failed: 'Failed',
+      timed_out: 'Timed out',
+      stale: 'Stale',
+      reuploading: 'Re-uploading',
+      reused: 'Reused',
+      unknown: 'Unknown',
+    };
+    const key = typeof value === 'string' ? value.toLowerCase() : 'unknown';
+    return labels[key] ?? 'Unknown';
   }
   private async load() {
     try {
@@ -262,6 +365,38 @@ export class ExecutionDetailsComponent implements OnInit {
     await this.run(async () => {
       this.reconciliation.set(await this.api.reconcile(this.id));
       await this.load();
+    });
+  }
+  async loadAssignmentPreview(type: 'collection' | 'publication') {
+    await this.run(async () => {
+      this.assignmentPreview.set(await this.api.assignmentRemovalPreview(this.id, type));
+      this.selectedAssignments = [];
+    });
+  }
+  toggleAssignment(target: string) {
+    this.selectedAssignments = this.selectedAssignments.includes(target)
+      ? this.selectedAssignments.filter((value) => value !== target)
+      : [...this.selectedAssignments, target];
+  }
+  async removeSelectedAssignments() {
+    const preview = this.assignmentPreview();
+    if (!preview || !this.selectedAssignments.length) return;
+    const label =
+      preview.assignment_type === 'publication'
+        ? 'Unpublish from the selected channel(s)? The Product will not be deleted.'
+        : 'Remove the selected collection membership(s)? Unrelated memberships are preserved.';
+    if (!confirm(label)) return;
+    await this.run(async () => {
+      this.item.set(
+        await this.api.removeAssignments(
+          this.id,
+          preview.assignment_type,
+          this.selectedAssignments,
+        ),
+      );
+      this.assignmentPreview.set(null);
+      this.selectedAssignments = [];
+      this.reconciliation.set(await this.api.reconcile(this.id));
     });
   }
   async keepRemote() {

@@ -399,6 +399,25 @@ class ShopifyOverwriteConfirmation(BaseModel):
     confirmed: Literal[True]
 
 
+class ShopifyAssignmentRemovalRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    assignment_type: Literal["collection", "publication"]
+    remote_target_ids: list[Annotated[str, StringConstraints(min_length=1, max_length=160)]] = (
+        Field(min_length=1, max_length=100)
+    )
+    confirmed: Literal[True]
+
+
+class ShopifyAssignmentRemovalPreview(BaseModel):
+    execution_id: uuid.UUID
+    assignment_type: Literal["collection", "publication"]
+    removable_target_ids: list[str]
+    preserved_target_ids: list[str]
+    required_target_ids: list[str]
+    activation_impact: str
+    correlation_id: str | None
+
+
 class RemoteDriftField(BaseModel):
     field: str
     display_label: str = ""

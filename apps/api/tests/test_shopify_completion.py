@@ -251,6 +251,7 @@ def test_standalone_fake_supports_every_predefined_operation_marker() -> None:
         "unpublish",
         "staged_upload",
         "media_create",
+        "media_status",
         "product_status",
     }
     assert set(OPERATIONS) == expected_markers

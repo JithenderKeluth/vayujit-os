@@ -73,7 +73,7 @@ def response_for_configuration(
         provider_key=PROVIDER_KEY,
         display_name="OpenAI-compatible",
         configured=credential is not None,
-        credential_source=source,  # type: ignore[arg-type]
+        credential_source=source,
         masked_credential=mask_credential(credential) if credential else None,
         base_url=configuration.base_url if configuration else "https://api.openai.com/v1",
         default_model=configuration.default_model if configuration else "",

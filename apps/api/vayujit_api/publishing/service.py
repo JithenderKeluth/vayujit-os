@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from vayujit_api.ai.models import GeneratedArtifact
 from vayujit_api.audit.service import record_event
 from vayujit_api.brands.models import Brand, BrandStatus
-from vayujit_api.core.observability import correlation_id
+from vayujit_api.core.observability import correlation_id, maintenance_enabled
 from vayujit_api.identity.models import User
 from vayujit_api.identity.service import now
 from vayujit_api.media.models import MediaAsset, WordPressMediaMapping
@@ -31,6 +31,7 @@ from vayujit_api.publishing.models import (
     PublishingExecution,
     PublishingExecutionAttempt,
     ShopifyMediaMapping,
+    ShopifyMediaPollAttempt,
     ShopifyProductAssignment,
     ShopifyVariantMapping,
 )
@@ -47,6 +48,8 @@ from vayujit_api.publishing.schemas import (
     ReconciliationResponse,
     RemoteDriftField,
     SanitizationChange,
+    ShopifyAssignmentRemovalPreview,
+    ShopifyAssignmentRemovalRequest,
     ShopifyDestinationConfiguration,
     ShopifyOverwriteConfirmation,
     ShopifyOverwritePreview,
@@ -63,6 +66,12 @@ from vayujit_api.publishing.shopify_connector import (
     ShopifyGraphQLClient,
     shopify_product_input,
     shopify_variant_inputs,
+)
+from vayujit_api.publishing.shopify_media import (
+    MediaPollObservation,
+    MediaPollPolicy,
+    decide_media_reuse,
+    poll_media,
 )
 from vayujit_api.publishing.wordpress import connector_for, owned_configuration
 
@@ -425,7 +434,9 @@ def retry_delay_seconds(
 ) -> float:
     jitter = random.SystemRandom().uniform(0.8, 1.2) if jitter_value is None else jitter_value
     exponential = min(maximum_delay, base_delay * (2 ** max(attempt_number - 1, 0)))
-    return min(maximum_delay, max(exponential * min(max(jitter, 0.8), 1.2), retry_after or 0))
+    return float(
+        min(maximum_delay, max(exponential * min(max(jitter, 0.8), 1.2), retry_after or 0))
+    )
 
 
 def persist_shopify_result_mappings(
@@ -504,11 +515,14 @@ def persist_shopify_result_mappings(
                     ShopifyProductAssignment(
                         owner_id=execution.owner_id,
                         destination_id=execution.destination_id,
+                        product_id=execution.product_id,
                         remote_product_id=remote_product_id,
                         assignment_type=assignment_type,
                         remote_target_id=remote_target_id,
+                        managed_by_vayujit=True,
                         status="assigned",
                         created_at=now(),
+                        updated_at=now(),
                         last_verified_at=now(),
                     )
                 )
@@ -558,12 +572,51 @@ def ensure_shopify_media(
                     ShopifyMediaMapping.media_id == media.id,
                     ShopifyMediaMapping.shop_fingerprint == fingerprint,
                     ShopifyMediaMapping.checksum_sha256 == media.checksum_sha256,
-                    ShopifyMediaMapping.status == "ready",
                 )
             )
             if mapping:
-                remote_id, state = mapping.remote_media_id, "reused"
-            else:
+                try:
+                    remote_state = client.media_status(
+                        product_id=execution.remote_entity_id,
+                        media_id=mapping.remote_media_id,
+                    )
+                    reuse_state = decide_media_reuse(
+                        destination_matches=mapping.destination_id == destination.id,
+                        shop_matches=mapping.shop_fingerprint == fingerprint,
+                        checksum_matches=mapping.checksum_sha256 == media.checksum_sha256,
+                        remote_exists=cast(bool | None, remote_state.get("exists")),
+                        remote_accessible=True,
+                        remote_product_matches=(
+                            mapping.remote_product_id == execution.remote_entity_id
+                        ),
+                        remote_status=remote_state.get("status"),
+                    )
+                except ConnectorFailure:
+                    reuse_state = "inaccessible"
+                    remote_state = {}
+                mapping.reuse_state = reuse_state
+                mapping.last_verified_at = now()
+                mapping.updated_at = mapping.last_verified_at
+                record_event(
+                    db,
+                    actor_id=execution.owner_id,
+                    action=(
+                        "publishing.shopify_media_mapping_verified"
+                        if reuse_state == "reusable"
+                        else "publishing.shopify_media_mapping_stale"
+                    ),
+                    entity_type="shopify_media_mapping",
+                    entity_id=mapping.id,
+                    metadata={"reuse_state": reuse_state},
+                )
+                if reuse_state == "reusable":
+                    remote_id, state = mapping.remote_media_id, "reused"
+                elif reuse_state == "processing":
+                    remote_id, state = mapping.remote_media_id, "processing"
+                else:
+                    mapping.status = reuse_state
+                    mapping = None
+            if not mapping:
                 remote = client.upload_product_media(
                     product_id=execution.remote_entity_id,
                     filename=media.safe_filename,
@@ -582,24 +635,127 @@ def ensure_shopify_media(
                     str(remote.get("status") or "processing").casefold(),
                 )
                 stamp = now()
-                db.add(
-                    ShopifyMediaMapping(
-                        owner_id=execution.owner_id,
-                        destination_id=destination.id,
-                        media_id=media.id,
-                        shop_fingerprint=fingerprint,
-                        remote_product_id=execution.remote_entity_id,
-                        remote_media_id=remote_id,
-                        remote_url=None,
-                        checksum_sha256=media.checksum_sha256,
-                        alt_text=str(selection.get("alt_text") or ""),
-                        position=int(selection.get("position", 0)),
-                        status=state,
-                        created_at=stamp,
-                        updated_at=stamp,
-                        last_verified_at=stamp,
-                    )
+                mapping = ShopifyMediaMapping(
+                    owner_id=execution.owner_id,
+                    destination_id=destination.id,
+                    media_id=media.id,
+                    shop_fingerprint=fingerprint,
+                    remote_product_id=execution.remote_entity_id,
+                    remote_media_id=remote_id,
+                    remote_url=None,
+                    checksum_sha256=media.checksum_sha256,
+                    alt_text=str(selection.get("alt_text") or ""),
+                    position=int(selection.get("position", 0)),
+                    status=state,
+                    reuse_state="processing",
+                    polling_attempt_count=0,
+                    safe_error_message=None,
+                    created_at=stamp,
+                    updated_at=stamp,
+                    last_verified_at=stamp,
                 )
+                db.add(mapping)
+                db.flush()
+            if state not in {"ready", "reused"}:
+                poll_mapping = mapping
+                record_event(
+                    db,
+                    actor_id=execution.owner_id,
+                    action="publishing.shopify_media_poll_started",
+                    entity_type="shopify_media_mapping",
+                    entity_id=mapping.id,
+                    metadata={"maximum_attempts": 12, "maximum_duration_seconds": 60},
+                )
+
+                def persist_observation(
+                    observation: MediaPollObservation,
+                    poll_mapping: ShopifyMediaMapping = poll_mapping,
+                ) -> None:
+                    poll_mapping.polling_attempt_count = observation.attempt
+                    poll_mapping.status = observation.state
+                    poll_mapping.remote_url = observation.remote_url or poll_mapping.remote_url
+                    poll_mapping.safe_error_message = observation.safe_error
+                    poll_mapping.updated_at = now()
+                    db.add(
+                        ShopifyMediaPollAttempt(
+                            owner_id=execution.owner_id,
+                            execution_id=execution.id,
+                            media_mapping_id=poll_mapping.id,
+                            attempt_number=observation.attempt,
+                            remote_status=observation.state,
+                            delay_ms=int(observation.delay_seconds * 1000),
+                            latency_ms=int(observation.latency_seconds * 1000),
+                            correlation_id=execution.correlation_id,
+                            safe_error_message=observation.safe_error,
+                            created_at=now(),
+                        )
+                    )
+                    db.flush()
+
+                def fetch_media_status(
+                    media_id: str = poll_mapping.remote_media_id,
+                ) -> dict[str, object]:
+                    return client.media_status(
+                        product_id=execution.remote_entity_id or "",
+                        media_id=media_id,
+                    )
+
+                def cancellation_requested(execution_id: uuid.UUID = execution.id) -> bool:
+                    return (
+                        db.scalar(
+                            select(PublishingExecution.cancellation_requested_at).where(
+                                PublishingExecution.id == execution_id
+                            )
+                        )
+                        is not None
+                    )
+
+                polled = poll_media(
+                    fetch_media_status,
+                    policy=MediaPollPolicy(),
+                    clock=time.monotonic,
+                    delay=time.sleep,
+                    cancelled=cancellation_requested,
+                    observe=persist_observation,
+                )
+                mapping.status = polled.state
+                mapping.reuse_state = "reusable" if polled.state == "ready" else polled.state
+                mapping.remote_url = polled.remote_url or mapping.remote_url
+                mapping.last_verified_at = now()
+                mapping.updated_at = mapping.last_verified_at
+                state = polled.state
+                record_event(
+                    db,
+                    actor_id=execution.owner_id,
+                    action=(
+                        "publishing.shopify_media_poll_timed_out"
+                        if state == "timed_out"
+                        else "publishing.shopify_media_poll_completed"
+                    ),
+                    entity_type="shopify_media_mapping",
+                    entity_id=mapping.id,
+                    metadata={"status": state, "attempts": mapping.polling_attempt_count},
+                )
+                if state == "cancelled":
+                    raise ConnectorFailure(
+                        "shopify_media_poll_cancelled",
+                        "Local media polling was cancelled; the remote media was not deleted.",
+                        retryable=True,
+                    )
+                if state not in {"ready"}:
+                    raise ConnectorFailure(
+                        (
+                            "shopify_media_processing_timeout"
+                            if state == "timed_out"
+                            else "shopify_media_processing_failed"
+                        ),
+                        (
+                            "Shopify media processing timed out and requires reconciliation."
+                            if state == "timed_out"
+                            else "Shopify could not process the uploaded media."
+                        ),
+                        retryable=True,
+                    )
             results.append(
                 {
                     "media_id": str(media.id),
@@ -1680,6 +1836,135 @@ def confirm_shopify_overwrite(
             }
         ),
     )
+
+
+def shopify_assignment_removal_preview(
+    db: Session,
+    owner: User,
+    execution_id: uuid.UUID,
+    assignment_type: Literal["collection", "publication"],
+) -> ShopifyAssignmentRemovalPreview:
+    execution = owned_execution(db, owner.id, execution_id)
+    if execution.connector_key != "shopify" or not execution.remote_entity_id:
+        raise HTTPException(409, "A mapped Shopify Product is required.")
+    reconcile_execution(db, owner, execution_id)
+    assignments = list(
+        db.scalars(
+            select(ShopifyProductAssignment).where(
+                ShopifyProductAssignment.owner_id == owner.id,
+                ShopifyProductAssignment.destination_id == execution.destination_id,
+                ShopifyProductAssignment.product_id == execution.product_id,
+                ShopifyProductAssignment.assignment_type == assignment_type,
+                ShopifyProductAssignment.status == "assigned",
+            )
+        )
+    )
+    removable = sorted(item.remote_target_id for item in assignments if item.managed_by_vayujit)
+    configuration = execution.request_snapshot_json.get("configuration")
+    settings = configuration if isinstance(configuration, dict) else {}
+    required = (
+        [
+            str(value)
+            for value in settings.get("default_publication_ids", [])
+            if isinstance(value, str)
+        ]
+        if assignment_type == "publication"
+        else []
+    )
+    record_event(
+        db,
+        actor_id=owner.id,
+        action=f"publishing.shopify_{assignment_type}_removal_previewed",
+        entity_type="publishing_execution",
+        entity_id=execution.id,
+        metadata={"managed_count": len(removable)},
+    )
+    db.commit()
+    return ShopifyAssignmentRemovalPreview(
+        execution_id=execution.id,
+        assignment_type=assignment_type,
+        removable_target_ids=removable,
+        preserved_target_ids=[],
+        required_target_ids=required,
+        activation_impact=(
+            "Removing a required publication leaves the Product partially published "
+            "and blocks activation."
+            if assignment_type == "publication" and set(removable) & set(required)
+            else "The remote Product and unrelated assignments are preserved."
+        ),
+        correlation_id=execution.correlation_id,
+    )
+
+
+def confirm_shopify_assignment_removal(
+    db: Session,
+    owner: User,
+    execution_id: uuid.UUID,
+    data: ShopifyAssignmentRemovalRequest,
+) -> ExecutionResponse:
+    if maintenance_enabled():
+        raise HTTPException(503, "Publishing changes are unavailable during maintenance.")
+    execution = owned_execution(db, owner.id, execution_id)
+    artifact = db.get(GeneratedArtifact, execution.artifact_id)
+    destination = owned_destination(db, owner.id, execution.destination_id)
+    if not artifact or artifact.status != "approved":
+        raise HTTPException(409, "The Artifact must remain approved.")
+    if destination.status != "active":
+        raise HTTPException(409, "The Shopify destination must remain enabled.")
+    preview = shopify_assignment_removal_preview(db, owner, execution_id, data.assignment_type)
+    selected = set(data.remote_target_ids)
+    if not selected.issubset(set(preview.removable_target_ids)):
+        raise HTTPException(
+            409, "Only VAYUJIT-managed assignments from the refreshed preview may be removed."
+        )
+    connector_value = shopify_connector_for(
+        owned_shopify_configuration(db, owner.id), resolve_dns=False
+    )
+    for target_id in sorted(selected):
+        assignment = db.scalar(
+            select(ShopifyProductAssignment).where(
+                ShopifyProductAssignment.owner_id == owner.id,
+                ShopifyProductAssignment.destination_id == execution.destination_id,
+                ShopifyProductAssignment.product_id == execution.product_id,
+                ShopifyProductAssignment.assignment_type == data.assignment_type,
+                ShopifyProductAssignment.remote_target_id == target_id,
+                ShopifyProductAssignment.managed_by_vayujit.is_(True),
+            )
+        )
+        if not assignment:
+            raise HTTPException(409, "The selected assignment is no longer removable.")
+        if data.assignment_type == "collection":
+            connector_value.remove_collection_assignment(
+                product_id=execution.remote_entity_id or "", collection_id=target_id
+            )
+        else:
+            connector_value.remove_publication_assignment(
+                product_id=execution.remote_entity_id or "", publication_id=target_id
+            )
+        assignment.status = "removed"
+        assignment.updated_at = now()
+        assignment.last_verified_at = assignment.updated_at
+        record_event(
+            db,
+            actor_id=owner.id,
+            action=f"publishing.shopify_{data.assignment_type}_removed",
+            entity_type="shopify_product_assignment",
+            entity_id=assignment.id,
+            metadata={"remote_target_id": target_id},
+        )
+    if data.assignment_type == "publication" and selected & set(preview.required_target_ids):
+        execution.reconciliation_status = "partially_published"
+        record_event(
+            db,
+            actor_id=owner.id,
+            action="publishing.shopify_partial_publication_detected",
+            entity_type="publishing_execution",
+            entity_id=execution.id,
+            metadata={"missing_required_count": len(selected & set(preview.required_target_ids))},
+        )
+    db.commit()
+    reconcile_execution(db, owner, execution_id)
+    return execution_response(db, owned_execution(db, owner.id, execution_id))
 
 
 def move_execution_to_draft(db: Session, owner: User, execution_id: uuid.UUID) -> ExecutionResponse:

@@ -13,6 +13,10 @@ from typing import Any, cast
 class FakeShopifyState:
     token: str = "test-shopify-token"
     products: dict[str, dict[str, Any]] = field(default_factory=dict)
+    media: dict[str, dict[str, Any]] = field(default_factory=dict)
+    media_sequences: dict[str, list[str]] = field(default_factory=dict)
+    collections_by_product: dict[str, set[str]] = field(default_factory=dict)
+    publications_by_product: dict[str, set[str]] = field(default_factory=dict)
     calls: list[str] = field(default_factory=list)
     throttle_once: bool = False
     unavailable_once: bool = False
@@ -83,6 +87,7 @@ class FakeShopifyServer:
                     ("VayujitUnpublish", "unpublish"),
                     ("VayujitStagedUpload", "staged_upload"),
                     ("VayujitMediaCreate", "media_create"),
+                    ("VayujitMediaStatus", "media_status"),
                     ("VayujitProductStatus", "product_status"),
                 ):
                     if marker in query:
@@ -173,9 +178,27 @@ class FakeShopifyServer:
                         else "collectionRemoveProducts"
                     )
                     data = {key: {"userErrors": []}}
+                    collection_id = str(variables["id"])
+                    for product_id in variables["productIds"]:
+                        membership = state.collections_by_product.setdefault(str(product_id), set())
+                        (
+                            membership.add(collection_id)
+                            if operation == "collection_add"
+                            else membership.discard(collection_id)
+                        )
                 elif operation in {"publish", "unpublish"}:
                     key = "publishablePublish" if operation == "publish" else "publishableUnpublish"
                     data = {key: {"userErrors": []}}
+                    membership = state.publications_by_product.setdefault(
+                        str(variables["id"]), set()
+                    )
+                    for item in variables["input"]:
+                        publication_id = str(item["publicationId"])
+                        (
+                            membership.add(publication_id)
+                            if operation == "publish"
+                            else membership.discard(publication_id)
+                        )
                 elif operation == "staged_upload":
                     data = {
                         "stagedUploadsCreate": {
@@ -190,21 +213,69 @@ class FakeShopifyServer:
                         }
                     }
                 elif operation == "media_create":
+                    media_id = f"gid://shopify/MediaImage/{state.next_media}"
+                    media = {
+                        "id": media_id,
+                        "status": "READY",
+                        "alt": variables["media"][0].get("alt"),
+                        "preview": {
+                            "image": {"url": f"https://cdn.shopify.com/{state.next_media}.jpg"}
+                        },
+                    }
+                    state.media[media_id] = media
                     data = {
                         "productCreateMedia": {
-                            "media": [
-                                {
-                                    "id": f"gid://shopify/MediaImage/{state.next_media}",
-                                    "status": "READY",
-                                    "alt": variables["media"][0].get("alt"),
-                                }
-                            ],
+                            "media": [media],
                             "userErrors": [],
                         }
                     }
                     state.next_media += 1
+                elif operation == "media_status":
+                    media_id = str(variables["mediaId"])
+                    status_media: dict[str, Any] | None = state.media.get(media_id)
+                    sequence = state.media_sequences.get(media_id, [])
+                    if status_media and sequence:
+                        status_media["status"] = sequence.pop(0)
+                    data = {
+                        "product": (
+                            {
+                                "id": variables["productId"],
+                                "media": {"nodes": [status_media] if status_media else []},
+                            }
+                            if str(variables["productId"]) in state.products
+                            else None
+                        )
+                    }
                 else:
                     lookup_product = state.products.get(str(variables["id"]))
+                    if lookup_product:
+                        product_id = str(variables["id"])
+                        lookup_product = {
+                            **lookup_product,
+                            "media": {"nodes": list(state.media.values())},
+                            "collections": {
+                                "nodes": [
+                                    {"id": value}
+                                    for value in sorted(
+                                        state.collections_by_product.get(product_id, set())
+                                    )
+                                ]
+                            },
+                            "resourcePublications": {
+                                "nodes": [
+                                    {
+                                        "publication": {
+                                            "id": value,
+                                            "name": value.rsplit("/", 1)[-1],
+                                        },
+                                        "isPublished": True,
+                                    }
+                                    for value in sorted(
+                                        state.publications_by_product.get(product_id, set())
+                                    )
+                                ]
+                            },
+                        }
                     data = {"product": lookup_product}
                 return {
                     "data": data,

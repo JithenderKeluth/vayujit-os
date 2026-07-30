@@ -75,7 +75,7 @@ def response_for(
     masked = f"{username[:2]}•••{username[-1:]}" if username else None
     return WordPressConnectorResponse(
         configured=bool(site and username and password),
-        credential_source=source,  # type: ignore[arg-type]
+        credential_source=source,
         masked_username=masked,
         site_url=site or "",
         enabled=value.enabled if value else False,

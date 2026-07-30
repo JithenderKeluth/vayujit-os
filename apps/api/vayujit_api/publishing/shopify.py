@@ -73,7 +73,7 @@ def response_for(value: ShopifyConnectorConfiguration | None) -> ShopifyConnecto
     domain, token, api_version, source = credentials_for(value)
     return ShopifyConnectorResponse(
         configured=bool(domain and token),
-        credential_source=source,  # type: ignore[arg-type]
+        credential_source=source,
         shop_domain=domain or "",
         api_version=api_version,
         enabled=bool(value and value.enabled),

@@ -1,6 +1,7 @@
 import argparse
 import json
 import sys
+from typing import Literal, cast
 
 from sqlalchemy import select
 
@@ -68,7 +69,7 @@ def main() -> int:
                 )
                 return 0
             data = client.discover(
-                args.command,  # type: ignore[arg-type]
+                cast(Literal["collections", "publications"], args.command),
                 first=25,
                 after=None,
             )

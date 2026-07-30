@@ -226,6 +226,9 @@ class ShopifyMediaMapping(Base):
     alt_text: Mapped[str] = mapped_column(String(512), default="")
     position: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(30), default="mapped")
+    reuse_state: Mapped[str] = mapped_column(String(30), default="unknown")
+    polling_attempt_count: Mapped[int] = mapped_column(Integer, default=0)
+    safe_error_message: Mapped[str | None] = mapped_column(String(500))
     last_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
@@ -281,9 +284,40 @@ class ShopifyProductAssignment(Base):
     destination_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("publishing_destinations.id", ondelete="CASCADE"), index=True
     )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), index=True
+    )
     remote_product_id: Mapped[str] = mapped_column(String(160))
     assignment_type: Mapped[str] = mapped_column(String(20))
     remote_target_id: Mapped[str] = mapped_column(String(160))
+    managed_by_vayujit: Mapped[bool] = mapped_column(Boolean, default=True)
     status: Mapped[str] = mapped_column(String(30), default="assigned")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     last_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ShopifyMediaPollAttempt(Base):
+    __tablename__ = "shopify_media_poll_attempts"
+    __table_args__ = (
+        UniqueConstraint(
+            "media_mapping_id", "attempt_number", name="uq_shopify_media_poll_attempt"
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    execution_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_executions.id", ondelete="CASCADE"), index=True
+    )
+    media_mapping_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("shopify_media_mappings.id", ondelete="CASCADE"), index=True
+    )
+    attempt_number: Mapped[int] = mapped_column(Integer)
+    remote_status: Mapped[str] = mapped_column(String(30))
+    delay_ms: Mapped[int] = mapped_column(Integer, default=0)
+    latency_ms: Mapped[int] = mapped_column(Integer, default=0)
+    correlation_id: Mapped[str | None] = mapped_column(String(64))
+    safe_error_message: Mapped[str | None] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

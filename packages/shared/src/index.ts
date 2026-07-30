@@ -835,6 +835,15 @@ export interface ShopifyOverwritePreview {
   differences: RemoteDriftField[];
   correlation_id: string | null;
 }
+export interface ShopifyAssignmentRemovalPreview {
+  execution_id: string;
+  assignment_type: 'collection' | 'publication';
+  removable_target_ids: string[];
+  preserved_target_ids: string[];
+  required_target_ids: string[];
+  activation_impact: string;
+  correlation_id: string | null;
+}
 export interface PaginatedPublishingDestinations {
   items: PublishingDestinationSummary[];
   page: number;

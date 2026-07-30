@@ -26,6 +26,8 @@ from vayujit_api.publishing.schemas import (
     PublishingPreviewRequest,
     PublishingPreviewResponse,
     ReconciliationResponse,
+    ShopifyAssignmentRemovalPreview,
+    ShopifyAssignmentRemovalRequest,
     ShopifyConnectorResponse,
     ShopifyConnectorUpdate,
     ShopifyDiscoveryPage,
@@ -40,6 +42,7 @@ from vayujit_api.publishing.schemas import (
 )
 from vayujit_api.publishing.service import (
     cancel_execution,
+    confirm_shopify_assignment_removal,
     confirm_shopify_overwrite,
     create_destination,
     create_execution,
@@ -53,6 +56,7 @@ from vayujit_api.publishing.service import (
     reconcile_execution,
     retry_execution,
     set_destination_status,
+    shopify_assignment_removal_preview,
     shopify_overwrite_preview,
     shopify_publishing_preview,
     update_destination,
@@ -638,6 +642,29 @@ def execution_overwrite(
     owner: Owner,
 ) -> ExecutionResponse:
     return confirm_shopify_overwrite(db, owner, execution_id, data)
+
+
+@router.get(
+    "/executions/{execution_id}/assignment-removal-preview",
+    response_model=ShopifyAssignmentRemovalPreview,
+)
+def execution_assignment_removal_preview(
+    execution_id: uuid.UUID,
+    assignment_type: Annotated[str, Query(pattern="^(collection|publication)$")],
+    db: DB,
+    owner: Owner,
+) -> ShopifyAssignmentRemovalPreview:
+    return shopify_assignment_removal_preview(db, owner, execution_id, cast(Any, assignment_type))
+
+
+@router.post("/executions/{execution_id}/assignment-removal", response_model=ExecutionResponse)
+def execution_assignment_removal(
+    execution_id: uuid.UUID,
+    data: ShopifyAssignmentRemovalRequest,
+    db: DB,
+    owner: Owner,
+) -> ExecutionResponse:
+    return confirm_shopify_assignment_removal(db, owner, execution_id, data)
 
 
 @router.post("/executions/{execution_id}/move-to-draft", response_model=ExecutionResponse)

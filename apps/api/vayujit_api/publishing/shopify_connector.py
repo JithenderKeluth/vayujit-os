@@ -57,6 +57,9 @@ OPERATIONS = {
     "media_create": """mutation VayujitMediaCreate($productId:ID!,$media:[CreateMediaInput!]!) {
       productCreateMedia(productId:$productId,media:$media) {
       media { id status alt preview { image { url } } } userErrors { field message code } } }""",
+    "media_status": """query VayujitMediaStatus($productId:ID!,$mediaId:ID!) {
+      product(id:$productId) { id media(first:1,query:$mediaId) {
+      nodes { id status alt preview { image { url } } } } }""",
     "product_status": """query VayujitProductStatus($id:ID!) {
       product(id:$id) { id title handle status descriptionHtml vendor productType tags
       seo { title description } updatedAt options { id name values }
@@ -603,6 +606,53 @@ class ShopifyGraphQLClient:
             product,
             remote_status=str(product.get("status") or "").casefold() or None,
             remote_slug=str(product.get("handle") or "") or None,
+        )
+
+    def media_status(self, *, product_id: str, media_id: str) -> dict[str, object]:
+        data = self.execute("media_status", {"productId": product_id, "mediaId": media_id})
+        product = data.get("product")
+        if product is None:
+            return {"exists": False, "status": "UNKNOWN"}
+        media = product.get("media") if isinstance(product, dict) else None
+        nodes = media.get("nodes") if isinstance(media, dict) else None
+        if not isinstance(nodes, list):
+            raise ConnectorFailure(
+                "shopify_media_status_invalid",
+                "Shopify returned an invalid media status.",
+                retryable=True,
+            )
+        matching = next(
+            (
+                item
+                for item in nodes
+                if isinstance(item, dict) and str(item.get("id") or "") == media_id
+            ),
+            None,
+        )
+        if matching is None:
+            return {"exists": False, "status": "UNKNOWN"}
+        preview = matching.get("preview")
+        image = preview.get("image") if isinstance(preview, dict) else None
+        return {
+            "exists": True,
+            "id": media_id,
+            "status": matching.get("status") or "UNKNOWN",
+            "alt": matching.get("alt"),
+            "url": image.get("url") if isinstance(image, dict) else None,
+        }
+
+    def remove_collection_assignment(self, *, product_id: str, collection_id: str) -> None:
+        self._mutation(
+            "collection_remove",
+            "collectionRemoveProducts",
+            {"id": collection_id, "productIds": [product_id]},
+        )
+
+    def remove_publication_assignment(self, *, product_id: str, publication_id: str) -> None:
+        self._mutation(
+            "unpublish",
+            "publishableUnpublish",
+            {"id": product_id, "input": [{"publicationId": publication_id}]},
         )
 
     def upload_product_media(

@@ -19,6 +19,11 @@ import type { ShopifyPublishingPreview } from '@vayujit/shared';
 import { PublishingService } from './publishing.service';
 import { OperationsService } from '../operations/operations.service';
 import { MediaService } from '../media/media.service';
+import {
+  generateVariantMatrix,
+  type ShopifyOptionDefinition,
+  validateOptionDefinitions,
+} from './shopify-variant-matrix';
 
 @Component({
   selector: 'app-publish-new',
@@ -130,6 +135,56 @@ import { MediaService } from '../media/media.service';
         </fieldset>
         <fieldset>
           <legend>Shopify variants</legend>
+          <p class="pub-muted">
+            Define up to three option dimensions. Existing rows and stable keys are preserved when
+            combinations remain equivalent.
+          </p>
+          @for (option of shopifyOptions; track $index; let optionIndex = $index) {
+            <div class="pub-card">
+              <label>
+                Option {{ optionIndex + 1 }} name
+                <input
+                  [(ngModel)]="option.name"
+                  [name]="'matrixOptionName' + optionIndex"
+                  (ngModelChange)="matrixChanged()"
+                />
+              </label>
+              @for (value of option.values; track $index; let valueIndex = $index) {
+                <label>
+                  Value {{ valueIndex + 1 }}
+                  <input
+                    [(ngModel)]="option.values[valueIndex]"
+                    [name]="'matrixValue' + optionIndex + '-' + valueIndex"
+                    (ngModelChange)="matrixChanged()"
+                  />
+                  <button
+                    type="button"
+                    [attr.aria-label]="'Remove value ' + (valueIndex + 1)"
+                    (click)="removeOptionValue(optionIndex, valueIndex)"
+                  >
+                    Remove value
+                  </button>
+                </label>
+              }
+              <button type="button" (click)="addOptionValue(optionIndex)">Add value</button>
+              <button type="button" (click)="removeOption(optionIndex)">Remove option</button>
+            </div>
+          }
+          <button type="button" [disabled]="shopifyOptions.length >= 3" (click)="addOption()">
+            Add option
+          </button>
+          <button type="button" (click)="generateMatrix()">Generate variant matrix</button>
+          <p aria-live="polite">Resulting variants: {{ matrixCount }}</p>
+          @if (matrixErrors.length) {
+            <div class="pub-error" role="alert">
+              <strong>Variant validation summary</strong>
+              <ul>
+                @for (message of matrixErrors; track message) {
+                  <li>{{ message }}</li>
+                }
+              </ul>
+            </div>
+          }
           @if (!shopifyVariants.length) {
             <p>
               Default variant · SKU {{ selectedProduct()?.sku || 'not set' }} ·
@@ -296,6 +351,9 @@ export class PublishNewComponent implements OnInit {
   featuredMediaId = '';
   selectedMediaIds: string[] = [];
   shopifyVariants: ShopifyVariantInput[] = [];
+  shopifyOptions: ShopifyOptionDefinition[] = [{ name: 'Option', values: ['Value 1'] }];
+  matrixErrors: string[] = [];
+  matrixCount = 1;
   confirmed = false;
   action: 'create_draft' | 'publish' | 'activate' | 'update' = 'publish';
   private idempotencyKey = '';
@@ -437,6 +495,63 @@ export class PublishNewComponent implements OnInit {
   }
   removeVariant(index: number) {
     this.shopifyVariants.splice(index, 1);
+  }
+  matrixChanged() {
+    this.matrixErrors = validateOptionDefinitions(this.shopifyOptions);
+    this.matrixCount = this.shopifyOptions.reduce(
+      (total, option) => total * option.values.length,
+      1,
+    );
+  }
+  addOption() {
+    if (this.shopifyOptions.length < 3) {
+      this.shopifyOptions.push({
+        name: `Option ${this.shopifyOptions.length + 1}`,
+        values: ['Value 1'],
+      });
+      this.matrixChanged();
+    }
+  }
+  removeOption(index: number) {
+    if (
+      this.shopifyVariants.length &&
+      !confirm('Removing this option may remove entered variant rows. Continue?')
+    )
+      return;
+    this.shopifyOptions.splice(index, 1);
+    this.matrixChanged();
+  }
+  addOptionValue(index: number) {
+    const option = this.shopifyOptions[index];
+    option?.values.push(`Value ${option.values.length + 1}`);
+    this.matrixChanged();
+  }
+  removeOptionValue(optionIndex: number, valueIndex: number) {
+    if (
+      this.shopifyVariants.length &&
+      !confirm('Removing this value may remove entered variant rows. Continue?')
+    )
+      return;
+    this.shopifyOptions[optionIndex]?.values.splice(valueIndex, 1);
+    this.matrixChanged();
+  }
+  generateMatrix() {
+    const generated = generateVariantMatrix(
+      this.shopifyOptions,
+      this.shopifyVariants,
+      this.selectedProduct()?.price_amount ?? null,
+    );
+    this.matrixCount = generated.count;
+    this.matrixErrors = generated.errors;
+    if (generated.errors.length) return;
+    if (
+      generated.removedKeys.length &&
+      !confirm(
+        `Regenerating removes ${generated.removedKeys.length} variant rows. Existing matching rows will be preserved. Continue?`,
+      )
+    )
+      return;
+    this.shopifyVariants = generated.variants;
   }
   async publish() {
     if (!this.artifactId || !this.destinationId || !this.confirmed || this.busy()) return;

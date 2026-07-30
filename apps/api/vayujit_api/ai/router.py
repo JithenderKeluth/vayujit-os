@@ -4,7 +4,7 @@ import math
 import time
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Annotated, Literal
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from sqlalchemy import func, select
@@ -437,7 +437,7 @@ def usage_query(
     product_id: uuid.UUID | None = None,
     date_from: datetime | None = None,
     date_to: datetime | None = None,
-):
+) -> Any:
     filters = [AIGenerationRequest.owner_id == owner_id]
     if provider_key:
         filters.append(AIGenerationRequest.final_provider_key == provider_key)
