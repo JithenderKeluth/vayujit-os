@@ -1465,6 +1465,25 @@ export interface CampaignWorkflowWait {
   safe_failure_message: string | null;
 }
 
+export interface CampaignSelectorItem {
+  id: string;
+  label: string;
+  kind: 'brand' | 'product' | 'artifact' | 'destination' | 'manager' | 'activity';
+  disabled: boolean;
+  disabled_reason: string | null;
+  version: number | null;
+  status: string;
+  connector_key: string | null;
+  product_id: string | null;
+}
+
+export interface CampaignSelectorPage {
+  items: CampaignSelectorItem[];
+  page: number;
+  page_size: number;
+  total: number;
+}
+
 export interface CampaignProgress {
   total: number;
   required: number;

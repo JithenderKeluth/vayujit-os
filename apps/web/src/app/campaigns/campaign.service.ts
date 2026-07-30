@@ -9,6 +9,7 @@ import type {
   CampaignProgress,
   CampaignReadiness,
   CampaignHealth,
+  CampaignSelectorPage,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
 
@@ -39,6 +40,22 @@ export class CampaignService {
   createActivity(id: string, data: Record<string, unknown>): Promise<CampaignActivity> {
     return firstValueFrom(
       this.http.post<CampaignActivity>(`${this.base}/${id}/activities`, data, this.options),
+    );
+  }
+  lookup(
+    kind: string,
+    search = '',
+    filters: { productId?: string; campaignId?: string; connectorKey?: string } = {},
+  ): Promise<CampaignSelectorPage> {
+    let params = new HttpParams().set('search', search).set('page_size', 50);
+    if (filters.productId) params = params.set('product_id', filters.productId);
+    if (filters.campaignId) params = params.set('campaign_id', filters.campaignId);
+    if (filters.connectorKey) params = params.set('connector_key', filters.connectorKey);
+    return firstValueFrom(
+      this.http.get<CampaignSelectorPage>(`${this.base}/lookups/${kind}`, {
+        ...this.options,
+        params,
+      }),
     );
   }
   dependencies(id: string): Promise<Array<Record<string, string | null>>> {

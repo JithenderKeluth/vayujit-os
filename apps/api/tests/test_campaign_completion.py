@@ -5,7 +5,13 @@ from typing import cast
 
 from vayujit_api.campaigns.calendar_service import calendar_projection
 from vayujit_api.campaigns.completion_service import terminal_state
-from vayujit_api.campaigns.schemas import AgendaCalendar, CalendarEvent
+from vayujit_api.campaigns.models import CampaignActivity
+from vayujit_api.campaigns.router import recovery_actions
+from vayujit_api.campaigns.schemas import (
+    AgendaCalendar,
+    CalendarEvent,
+    ValidateCampaignAction,
+)
 
 
 def activity(status: str, *, required: bool = True, enabled: bool = True) -> SimpleNamespace:
@@ -61,3 +67,28 @@ def test_agenda_pagination_is_bounded() -> None:
     )
     assert first.next_offset == 2
     assert sum(len(day.events) for day in first.days) == 2
+
+
+def test_campaign_workflow_action_is_typed_and_closed() -> None:
+    action = ValidateCampaignAction(
+        action="validate_campaign",
+        campaign_id=uuid.uuid4(),
+        correlation_id="correlation-123",
+    )
+    assert action.action == "validate_campaign"
+
+
+def test_recovery_action_eligibility_suppresses_unsafe_actions() -> None:
+    required = SimpleNamespace(
+        product_id=uuid.uuid4(),
+        artifact_id=uuid.uuid4(),
+        destination_id=uuid.uuid4(),
+        job_id=None,
+        publishing_execution_id=None,
+        required=True,
+        status="missed",
+    )
+    optional = SimpleNamespace(**{**required.__dict__, "required": False})
+    assert "skip_optional_activity" not in recovery_actions(cast(CampaignActivity, required))
+    assert "skip_missed_activity" not in recovery_actions(cast(CampaignActivity, required))
+    assert "skip_missed_activity" in recovery_actions(cast(CampaignActivity, optional))

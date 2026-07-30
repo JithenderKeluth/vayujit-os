@@ -39,6 +39,7 @@
     "campaigns:missed": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:PYTHONPATH='apps/api'; & apps/api/.venv/Scripts/python.exe -m vayujit_api.campaigns_cli missed\"",
     "campaigns:recovery": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:PYTHONPATH='apps/api'; & apps/api/.venv/Scripts/python.exe -m vayujit_api.campaigns_cli recovery\"",
     "campaigns:restore-waits": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:PYTHONPATH='apps/api'; & apps/api/.venv/Scripts/python.exe -m vayujit_api.campaigns_cli restore-waits --confirm\"",
+    "campaigns:workflow-actions": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:PYTHONPATH='apps/api'; & apps/api/.venv/Scripts/python.exe -m vayujit_api.campaigns_cli workflow-actions\"",
     "campaigns:validate": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"$env:PYTHONPATH='apps/api'; & apps/api/.venv/Scripts/python.exe -m vayujit_api.campaigns_cli validate\"",
     "test:scheduler": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_scheduler_time.py",
     "test:workers": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_scheduler_worker.py",

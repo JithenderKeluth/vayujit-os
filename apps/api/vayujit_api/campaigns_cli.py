@@ -77,11 +77,31 @@ def main() -> None:
             "recovery",
             "restore-waits",
             "validate",
+            "workflow-actions",
         ],
     )
     parser.add_argument("--campaign-id", type=uuid.UUID)
     parser.add_argument("--confirm", action="store_true")
     args = parser.parse_args()
+    if args.command == "workflow-actions":
+        print(
+            {
+                "actions": [
+                    "create_campaign",
+                    "update_campaign",
+                    "add_campaign_activity",
+                    "add_campaign_dependency",
+                    "validate_campaign",
+                    "release_campaign",
+                    "schedule_campaign",
+                    "pause_campaign",
+                    "resume_campaign",
+                    "cancel_campaign",
+                    "wait_for_campaign",
+                ]
+            }
+        )
+        return
     if args.command == "restore-waits":
         if not args.confirm:
             parser.error("Wait restoration requires --confirm.")

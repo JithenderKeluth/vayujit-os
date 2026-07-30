@@ -1,6 +1,6 @@
 import uuid
 from datetime import date, datetime, time
-from typing import Literal
+from typing import Annotated, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -43,6 +43,7 @@ class CampaignCreate(BaseModel):
     local_start_at: datetime
     local_end_at: datetime
     default_destination_ids: list[uuid.UUID] = Field(default_factory=list, max_length=20)
+    campaign_manager_user_id: uuid.UUID | None = None
     approval_policy: Literal[
         "all_artifacts_preapproved",
         "approve_before_scheduling",
@@ -300,9 +301,212 @@ class ResumePreviewResponse(BaseModel):
     optional_missed: list[uuid.UUID]
     to_skip: list[uuid.UUID]
     catch_up: uuid.UUID | None
+    catch_up_replacement: uuid.UUID | None = None
     next_future: uuid.UUID | None
     blocked_successors: list[uuid.UUID]
     confirmation_required: bool
+
+
+class WorkflowActionBase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    correlation_id: str = Field(min_length=8, max_length=64)
+
+
+class CreateCampaignAction(WorkflowActionBase):
+    action: Literal["create_campaign"]
+    campaign: CampaignCreate
+
+
+class UpdateCampaignAction(WorkflowActionBase):
+    action: Literal["update_campaign"]
+    campaign_id: uuid.UUID
+    changes: CampaignUpdate
+
+
+class AddCampaignActivityAction(WorkflowActionBase):
+    action: Literal["add_campaign_activity"]
+    campaign_id: uuid.UUID
+    activity: ActivityCreate
+
+
+class AddCampaignDependencyAction(WorkflowActionBase):
+    action: Literal["add_campaign_dependency"]
+    campaign_id: uuid.UUID
+    dependency: DependencyCreate
+
+
+class CampaignIdAction(WorkflowActionBase):
+    campaign_id: uuid.UUID
+
+
+class ValidateCampaignAction(CampaignIdAction):
+    action: Literal["validate_campaign"]
+
+
+class ReleaseCampaignAction(CampaignIdAction):
+    action: Literal["release_campaign"]
+    confirm: Literal[True]
+
+
+class ScheduleCampaignAction(CampaignIdAction):
+    action: Literal["schedule_campaign"]
+    request: ScheduleRequest
+
+
+class PauseCampaignAction(CampaignIdAction):
+    action: Literal["pause_campaign"]
+
+
+class ResumeCampaignAction(CampaignIdAction):
+    action: Literal["resume_campaign"]
+    missed_activity_policy: Literal[
+        "skip_missed", "run_next", "one_catch_up", "reschedule_manually"
+    ]
+
+
+class CancelCampaignAction(CampaignIdAction):
+    action: Literal["cancel_campaign"]
+    reason: str = Field(min_length=1, max_length=500)
+
+
+class WaitForCampaignAction(CampaignIdAction):
+    action: Literal["wait_for_campaign"]
+    workflow_instance_id: uuid.UUID
+    workflow_step_id: uuid.UUID
+    expected_state: Literal[
+        "scheduled",
+        "running",
+        "partially_completed",
+        "completed",
+        "failed",
+        "cancelled",
+        "blocked",
+    ] = "completed"
+
+
+CampaignWorkflowAction = Annotated[
+    CreateCampaignAction
+    | UpdateCampaignAction
+    | AddCampaignActivityAction
+    | AddCampaignDependencyAction
+    | ValidateCampaignAction
+    | ReleaseCampaignAction
+    | ScheduleCampaignAction
+    | PauseCampaignAction
+    | ResumeCampaignAction
+    | CancelCampaignAction
+    | WaitForCampaignAction,
+    Field(discriminator="action"),
+]
+
+
+class CampaignWorkflowResult(BaseModel):
+    result: Literal[
+        "campaign_created",
+        "campaign_updated",
+        "activity_created",
+        "dependency_created",
+        "campaign_validated",
+        "campaign_released",
+        "campaign_scheduled",
+        "campaign_paused",
+        "campaign_resumed",
+        "campaign_cancelled",
+        "campaign_wait_created",
+        "campaign_wait_completed",
+        "campaign_wait_failed",
+    ]
+    campaign_id: uuid.UUID
+    correlation_id: str
+    status: str
+    activity_id: uuid.UUID | None = None
+    dependency_id: uuid.UUID | None = None
+    schedule_ids: list[uuid.UUID] = Field(default_factory=list)
+    job_ids: list[uuid.UUID] = Field(default_factory=list)
+    scheduled_activity_ids: list[uuid.UUID] = Field(default_factory=list)
+    blocked_activity_ids: list[uuid.UUID] = Field(default_factory=list)
+    readiness_state: str | None = None
+    blocking_issue_count: int = 0
+    warning_count: int = 0
+    conflict_count: int = 0
+    workflow_wait_id: uuid.UUID | None = None
+
+
+class SelectorItem(BaseModel):
+    id: uuid.UUID
+    label: str
+    kind: Literal["brand", "product", "artifact", "destination", "manager", "activity"]
+    disabled: bool = False
+    disabled_reason: str | None = None
+    version: int | None = None
+    status: str
+    connector_key: str | None = None
+    product_id: uuid.UUID | None = None
+
+
+class SelectorPage(BaseModel):
+    items: list[SelectorItem]
+    page: int
+    page_size: int
+    total: int
+
+
+CampaignRecoveryActionKey = Literal[
+    "retry_activity",
+    "reconcile_activity",
+    "open_campaign",
+    "open_activity",
+    "open_product",
+    "open_artifact",
+    "open_destination",
+    "open_job",
+    "open_publishing_execution",
+    "review_dependency",
+    "release_checkpoint",
+    "replace_with_new_approved_activity",
+    "skip_optional_activity",
+    "reschedule_activity",
+    "create_one_catch_up",
+    "skip_missed_activity",
+    "resume_campaign",
+    "pause_campaign",
+    "cancel_activity",
+    "cancel_campaign",
+    "retry_campaign_workflow_wait",
+]
+
+
+class CampaignRecoveryProjection(BaseModel):
+    recovery_type: str
+    campaign_id: uuid.UUID
+    campaign_name: str
+    campaign_status: str
+    activity_id: uuid.UUID | None
+    activity_name: str | None
+    required: bool | None
+    product_id: uuid.UUID | None
+    artifact_id: uuid.UUID | None
+    artifact_version: int | None
+    destination_id: uuid.UUID | None
+    connector_key: str | None
+    schedule_id: uuid.UUID | None
+    job_id: uuid.UUID | None
+    publishing_execution_id: uuid.UUID | None
+    workflow_wait_id: uuid.UUID | None
+    safe_failure_message: str
+    correlation_id: str | None
+    eligible_actions: list[CampaignRecoveryActionKey]
+
+
+class CampaignRecoveryActionRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    action: CampaignRecoveryActionKey
+    campaign_id: uuid.UUID
+    activity_id: uuid.UUID | None = None
+    workflow_wait_id: uuid.UUID | None = None
+    replacement_artifact_id: uuid.UUID | None = None
+    reason: str = Field(default="Operator recovery action.", max_length=500)
+    confirm: Literal[True]
 
 
 class ProgressResponse(BaseModel):
