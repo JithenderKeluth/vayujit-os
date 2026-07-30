@@ -25,6 +25,10 @@ Check-Command "Worker status" {
     $env:PYTHONPATH = Join-Path $PSScriptRoot "..\apps\api"
     & "$PSScriptRoot\..\apps\api\.venv\Scripts\python.exe" -m vayujit_api.scheduler_cli workers
 }
+Check-Command "Campaign status" {
+    $env:PYTHONPATH = Join-Path $PSScriptRoot "..\apps\api"
+    & "$PSScriptRoot\..\apps\api\.venv\Scripts\python.exe" -m vayujit_api.campaigns_cli status
+}
 if ($env:VAYUJIT_CREDENTIAL_ENCRYPTION_KEY) {
     Write-Host "PASS AI credential encryption key configured"
 } else {

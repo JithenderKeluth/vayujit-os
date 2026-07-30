@@ -32,3 +32,9 @@ For media write failures, enable maintenance mode if integrity is uncertain, ver
 write permission through system health, retain audit correlation IDs, and never copy storage paths
 into tickets. For WordPress drift or missing media, reconcile first and do not automatically
 overwrite or delete remote content.
+# Campaign incidents
+
+Enable maintenance mode, inspect Campaign health and Recovery projections, identify the exact
+activity/schedule/job/execution correlation chain, and reconcile uncertain remote outcomes before
+retrying. Resume requires an explicit missed-activity policy. Never force success, substitute an
+Artifact version, expose connector errors/credentials, or delete remote content.

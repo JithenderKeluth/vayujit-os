@@ -15,6 +15,7 @@ from vayujit_api import __version__
 from vayujit_api.ai.models import AIProviderConfiguration
 from vayujit_api.audit.models import AuditEvent
 from vayujit_api.audit.service import record_event
+from vayujit_api.campaigns.models import Campaign, CampaignActivity
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
 from vayujit_api.core.observability import maintenance_enabled
@@ -99,6 +100,10 @@ class RecoveryItem(BaseModel):
     lease_expiry: datetime | None = None
     next_retry: datetime | None = None
     correlation_id: str | None = None
+    campaign_id: uuid.UUID | None = None
+    campaign_name: str | None = None
+    activity_id: uuid.UUID | None = None
+    activity_name: str | None = None
 
 
 class RecoveryPage(BaseModel):
@@ -343,10 +348,10 @@ def health_details(db: Session) -> SystemHealth:
                 component="Migration",
                 status=(
                     "healthy"
-                    if current in {"20260806_0017", "unmanaged-test-schema"}
+                    if current in {"20260807_0018", "unmanaged-test-schema"}
                     else "degraded"
                 ),
-                message=f"Current {current}; expected 20260806_0017.",
+                message=f"Current {current}; expected 20260807_0018.",
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -419,7 +424,7 @@ def health_details(db: Session) -> SystemHealth:
         status=overall,
         components=components,
         current_migration=current,
-        expected_migration="20260806_0017",
+        expected_migration="20260807_0018",
         application_version=__version__,
         build_identifier=get_settings().build_identifier,
     )
@@ -456,12 +461,69 @@ def maintenance(_user: CurrentUser) -> dict[str, bool]:
 def recovery(
     db: DatabaseSession,
     user: CurrentUser,
-    category: Literal["workflow", "publishing", "media"] | None = None,
+    category: Literal["workflow", "publishing", "media", "campaign"] | None = None,
     retryable: bool | None = None,
     page: Annotated[int, Query(ge=1)] = 1,
     page_size: Annotated[int, Query(ge=1, le=100)] = 25,
 ) -> RecoveryPage:
     items: list[RecoveryItem] = []
+    if category in {None, "campaign"}:
+        campaign_rows = db.execute(
+            select(CampaignActivity, Campaign, Product)
+            .join(Campaign, Campaign.id == CampaignActivity.campaign_id)
+            .outerjoin(Product, Product.id == CampaignActivity.product_id)
+            .where(
+                CampaignActivity.owner_id == user.id,
+                CampaignActivity.status.in_(
+                    [
+                        "blocked",
+                        "failed",
+                        "dead_letter",
+                        "maintenance_blocked",
+                        "reconciliation_required",
+                    ]
+                ),
+            )
+            .order_by(CampaignActivity.updated_at.desc())
+            .limit(100)
+        ).all()
+        for activity, campaign, product in campaign_rows:
+            campaign_capabilities = ["open_campaign", "review_readiness", "review_dependency"]
+            if activity.status in {"failed", "dead_letter"}:
+                campaign_capabilities.extend(["retry_activity", "reconcile_activity"])
+            if not activity.required:
+                campaign_capabilities.append("skip_optional_activity")
+            items.append(
+                RecoveryItem(
+                    id=activity.id,
+                    category="campaign",
+                    entity_type="campaign_activity",
+                    product_id=activity.product_id,
+                    product_name=product.name if product else None,
+                    brand_id=campaign.brand_id,
+                    failure_code=activity.failure_code or activity.readiness_status,
+                    safe_failure_message=activity.safe_failure_message
+                    or "Campaign activity needs review.",
+                    retryable=activity.status in {"failed", "dead_letter"},
+                    attempt_count=0,
+                    failed_at=activity.updated_at,
+                    workflow_id=activity.workflow_instance_id,
+                    capabilities=campaign_capabilities,
+                    related_url=f"/campaigns/{campaign.id}",
+                    schedule_id=activity.schedule_id,
+                    job_state=activity.status,
+                    connector=activity.connector_key,
+                    destination_id=activity.destination_id,
+                    artifact_id=activity.artifact_id,
+                    artifact_version=activity.artifact_version,
+                    scheduled_at=activity.scheduled_at_utc,
+                    correlation_id=activity.correlation_id,
+                    campaign_id=campaign.id,
+                    campaign_name=campaign.name,
+                    activity_id=activity.id,
+                    activity_name=activity.name,
+                )
+            )
     if category in {None, "media"}:
         media_events = db.scalars(
             select(AuditEvent)

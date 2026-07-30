@@ -47,3 +47,10 @@ Commit only S1-01 through S1-04 first as a walking skeleton, then data/auth/busi
 
 - Shopify configuration, validation, discovery, destination, draft, update, activation, execution,
   reconciliation, recovery, health, audit, diagnostics, tests, and documentation.
+# Content Calendar and Campaign follow-up
+
+The Campaign core includes normalized persistence, lifecycle, checkpoints, readiness, conflict
+analysis, durable schedule links, calendar projections, Angular routes, recovery/health
+projections, diagnostics, and guarded tests. Searchable Product/Artifact/destination pickers,
+Campaign-aware Workflow templates/waits, richer Recovery actions, and full fake-connector Campaign
+E2E remain explicit follow-up work.

@@ -23,4 +23,11 @@ describe('windowOptions', () => {
   it('keeps the renderer hidden until it is ready', () => {
     expect(windowOptions.show).toBe(false);
   });
+
+  it('keeps Campaign and calendar rendering inside the isolated Angular renderer', () => {
+    const preferences = windowOptions.webPreferences as Record<string, unknown>;
+    expect(preferences['webSecurity']).toBe(true);
+    expect(preferences['nodeIntegration']).toBe(false);
+    expect(preferences['preload']).toBeUndefined();
+  });
 });

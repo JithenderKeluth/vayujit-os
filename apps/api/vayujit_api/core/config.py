@@ -86,6 +86,12 @@ class Settings(BaseSettings):
     publishing_schedule_max_per_owner: int = Field(default=1000, ge=1, le=100000)
     publishing_job_max_attempts: int = Field(default=5, ge=1, le=10)
     publishing_worker_id: str | None = None
+    campaign_max_active_per_owner: int = Field(default=100, ge=1, le=10000)
+    campaign_max_activities: int = Field(default=500, ge=1, le=5000)
+    campaign_max_dependencies: int = Field(default=1000, ge=1, le=10000)
+    campaign_calendar_max_days: int = Field(default=90, ge=1, le=366)
+    campaign_bulk_schedule_max: int = Field(default=100, ge=1, le=500)
+    campaign_max_duration_days: int = Field(default=365, ge=1, le=3660)
 
     @field_validator("environment")
     @classmethod

@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from vayujit_api import __version__
 from vayujit_api.ai.router import router as ai_router
 from vayujit_api.brands.router import router as brands_router
+from vayujit_api.campaigns.router import router as campaigns_router
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
 from vayujit_api.core.errors import install_exception_handlers
@@ -51,6 +52,7 @@ def create_app() -> FastAPI:
     install_exception_handlers(application)
     application.include_router(auth_router)
     application.include_router(brands_router)
+    application.include_router(campaigns_router)
     application.include_router(products_router)
     application.include_router(ai_router)
     application.include_router(media_router)

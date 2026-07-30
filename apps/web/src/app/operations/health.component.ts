@@ -1,7 +1,13 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import type { OperationalHealth, ReleaseInfo, SchedulerHealth } from '@vayujit/shared';
+import type {
+  CampaignHealth,
+  OperationalHealth,
+  ReleaseInfo,
+  SchedulerHealth,
+} from '@vayujit/shared';
 import { RouterLink } from '@angular/router';
 import { PublishingService } from '../publishing/publishing.service';
+import { CampaignService } from '../campaigns/campaign.service';
 import { OperationsService } from './operations.service';
 
 @Component({
@@ -64,17 +70,28 @@ import { OperationsService } from './operations.service';
         <a routerLink="/operations/workers">Review workers</a>
       </article>
     }
+    @if (campaigns(); as value) {
+      <article class="op-card">
+        <h2>Campaigns</h2>
+        <p>{{ value.active_campaigns }} active · {{ value.upcoming_activities }} upcoming</p>
+        <p>{{ value.blocked_activities }} blocked · {{ value.overdue_activities }} overdue</p>
+        <a routerLink="/campaigns">Review Campaigns</a> ·
+        <a routerLink="/calendar">Open Content Calendar</a>
+      </article>
+    }
   </section>`,
   styleUrl: './operations.css',
 })
 export class HealthComponent implements OnInit {
   private readonly api = inject(OperationsService);
   private readonly publishing = inject(PublishingService);
+  private readonly campaignApi = inject(CampaignService);
   readonly health = signal<OperationalHealth | null>(null);
   readonly release = signal<ReleaseInfo | null>(null);
   readonly loading = signal(true);
   readonly error = signal('');
   readonly scheduler = signal<SchedulerHealth | null>(null);
+  readonly campaigns = signal<CampaignHealth | null>(null);
   ngOnInit() {
     void this.load();
   }
@@ -82,14 +99,16 @@ export class HealthComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const [health, release, scheduler] = await Promise.all([
+      const [health, release, scheduler, campaigns] = await Promise.all([
         this.api.health(),
         this.api.release(),
         this.publishing.schedulerHealth(),
+        this.campaignApi.health(),
       ]);
       this.health.set(health);
       this.release.set(release);
       this.scheduler.set(scheduler);
+      this.campaigns.set(campaigns);
     } catch {
       this.error.set('Health information is unavailable. Run system:doctor.');
     } finally {

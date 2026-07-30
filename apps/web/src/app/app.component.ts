@@ -21,6 +21,8 @@ export class AppComponent {
     ['Dashboard', '/dashboard'],
     ['Brands', '/brands'],
     ['Products', '/products'],
+    ['Campaigns', '/campaigns'],
+    ['Calendar', '/calendar'],
     ['AI Content', '/ai'],
     ['Media', '/media'],
     ['Publishing', '/publishing'],
