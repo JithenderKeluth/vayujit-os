@@ -8,8 +8,9 @@ from vayujit_api import __version__
 from vayujit_api.ai.router import router as ai_router
 from vayujit_api.brands.router import router as brands_router
 from vayujit_api.campaigns.router import router as campaigns_router
+from vayujit_api.campaigns.workflow_service import restore_campaign_waits
 from vayujit_api.core.config import get_settings
-from vayujit_api.core.database import get_session
+from vayujit_api.core.database import SessionFactory, get_session
 from vayujit_api.core.errors import install_exception_handlers
 from vayujit_api.core.logging import configure_logging
 from vayujit_api.core.observability import OperationalMiddleware
@@ -67,6 +68,11 @@ def create_app() -> FastAPI:
     application.include_router(settings_router)
     application.include_router(system_router)
     application.include_router(hardening_system_router)
+
+    @application.on_event("startup")
+    def restore_durable_campaign_waits() -> None:
+        with SessionFactory() as db:
+            restore_campaign_waits(db)
 
     @application.get("/health", response_model=HealthResponse, tags=["health"])
     @application.get("/api/v1/health", response_model=HealthResponse, tags=["health"])

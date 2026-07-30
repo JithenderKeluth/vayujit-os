@@ -30,6 +30,9 @@ import { CampaignService } from './campaign.service';
             <a class="button" [routerLink]="['/calendar']" [queryParams]="{ campaign: value.id }"
               >Calendar</a
             >
+            <a class="button" [routerLink]="['/campaigns', value.id, 'dependencies']"
+              >Dependencies</a
+            >
           </div>
         </header>
         <div class="grid">

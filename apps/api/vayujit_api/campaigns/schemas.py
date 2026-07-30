@@ -249,6 +249,62 @@ class CalendarEvent(BaseModel):
     has_conflict: bool
 
 
+class MonthDay(BaseModel):
+    date: date
+    activity_count: int
+    campaign_count: int
+    status_summary: dict[str, int]
+    conflict_count: int
+    previews: list[CalendarEvent]
+    overflow_count: int
+
+
+class MonthCalendar(BaseModel):
+    view: Literal["month"] = "month"
+    start: datetime
+    end: datetime
+    days: list[MonthDay]
+
+
+class WeekSlot(BaseModel):
+    date: date
+    events: list[CalendarEvent]
+    destination_workload: dict[str, int]
+    overlap_count: int
+
+
+class WeekCalendar(BaseModel):
+    view: Literal["week"] = "week"
+    start: datetime
+    end: datetime
+    timezone_name: str
+    slots: list[WeekSlot]
+
+
+class AgendaDay(BaseModel):
+    date: date
+    events: list[CalendarEvent]
+
+
+class AgendaCalendar(BaseModel):
+    view: Literal["agenda"] = "agenda"
+    start: datetime
+    end: datetime
+    days: list[AgendaDay]
+    next_offset: int | None
+
+
+class ResumePreviewResponse(BaseModel):
+    missed: list[uuid.UUID]
+    required_missed: list[uuid.UUID]
+    optional_missed: list[uuid.UUID]
+    to_skip: list[uuid.UUID]
+    catch_up: uuid.UUID | None
+    next_future: uuid.UUID | None
+    blocked_successors: list[uuid.UUID]
+    confirmation_required: bool
+
+
 class ProgressResponse(BaseModel):
     total: int
     required: int

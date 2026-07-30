@@ -4,7 +4,7 @@ import { firstValueFrom } from 'rxjs';
 import type {
   Campaign,
   CampaignActivity,
-  CampaignCalendarEvent,
+  CampaignCalendar,
   CampaignConflict,
   CampaignProgress,
   CampaignReadiness,
@@ -39,6 +39,24 @@ export class CampaignService {
   createActivity(id: string, data: Record<string, unknown>): Promise<CampaignActivity> {
     return firstValueFrom(
       this.http.post<CampaignActivity>(`${this.base}/${id}/activities`, data, this.options),
+    );
+  }
+  dependencies(id: string): Promise<Array<Record<string, string | null>>> {
+    return firstValueFrom(
+      this.http.get<Array<Record<string, string | null>>>(
+        `${this.base}/${id}/dependencies`,
+        this.options,
+      ),
+    );
+  }
+  addDependency(id: string, data: Record<string, string>): Promise<Record<string, string>> {
+    return firstValueFrom(
+      this.http.post<Record<string, string>>(`${this.base}/${id}/dependencies`, data, this.options),
+    );
+  }
+  removeDependency(id: string, dependencyId: string): Promise<void> {
+    return firstValueFrom(
+      this.http.delete<void>(`${this.base}/${id}/dependencies/${dependencyId}`, this.options),
     );
   }
   readiness(id: string): Promise<CampaignReadiness> {
@@ -80,11 +98,16 @@ export class CampaignService {
       ),
     );
   }
-  calendar(start: string, end: string, campaignId?: string): Promise<CampaignCalendarEvent[]> {
-    let params = new HttpParams().set('start', start).set('end', end);
+  calendar(
+    start: string,
+    end: string,
+    view: 'month' | 'week' | 'agenda',
+    campaignId?: string,
+  ): Promise<CampaignCalendar> {
+    let params = new HttpParams().set('start', start).set('end', end).set('view', view);
     if (campaignId) params = params.set('campaign_id', campaignId);
     return firstValueFrom(
-      this.http.get<CampaignCalendarEvent[]>(`${this.base}/calendar`, {
+      this.http.get<CampaignCalendar>(`${this.base}/calendar`, {
         ...this.options,
         params,
       }),

@@ -32,6 +32,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'campaigns/:id/dependencies',
+    loadComponent: () =>
+      import('./campaigns/dependency-editor.component').then((m) => m.DependencyEditorComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'campaigns/:id',
     loadComponent: () =>
       import('./campaigns/campaign-detail.component').then((m) => m.CampaignDetailComponent),

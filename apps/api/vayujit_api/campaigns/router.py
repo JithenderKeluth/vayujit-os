@@ -12,18 +12,21 @@ from vayujit_api.campaigns.activity_service import (
     owned_activity,
     update_activity,
 )
-from vayujit_api.campaigns.calendar_service import calendar_events, progress
+from vayujit_api.campaigns.calendar_service import calendar_events, calendar_projection, progress
 from vayujit_api.campaigns.campaign_service import (
     create_campaign,
     owned_campaign,
     transition,
     update_campaign,
 )
+from vayujit_api.campaigns.completion_service import resolve_missed, resume_preview
 from vayujit_api.campaigns.conflict_service import detect_conflicts
 from vayujit_api.campaigns.models import (
     Campaign,
     CampaignActivity,
     CampaignActivityDependency,
+    CampaignMissedActivityResolution,
+    CampaignWorkflowWait,
 )
 from vayujit_api.campaigns.readiness_service import activity_readiness, campaign_readiness
 from vayujit_api.campaigns.schedule_service import (
@@ -35,6 +38,7 @@ from vayujit_api.campaigns.schemas import (
     ActivityCreate,
     ActivityResponse,
     ActivityUpdate,
+    AgendaCalendar,
     CalendarEvent,
     CampaignCreate,
     CampaignResponse,
@@ -43,10 +47,13 @@ from vayujit_api.campaigns.schemas import (
     DependencyCreate,
     DependencyResponse,
     LifecycleRequest,
+    MonthCalendar,
     ProgressResponse,
     ReadinessResponse,
     RescheduleRequest,
+    ResumePreviewResponse,
     ScheduleRequest,
+    WeekCalendar,
 )
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
@@ -71,17 +78,23 @@ def campaign_activities(db: Session, campaign_id: uuid.UUID) -> list[CampaignAct
     )
 
 
-@router.get("/calendar", response_model=list[CalendarEvent])
+@router.get("/calendar", response_model=MonthCalendar | WeekCalendar | AgendaCalendar)
 def global_calendar(
     db: DB,
     owner: Owner,
     start: datetime,
     end: datetime,
     campaign_id: uuid.UUID | None = None,
-) -> list[CalendarEvent]:
-    if end <= start or end - start > timedelta(days=get_settings().campaign_calendar_max_days):
+    view: str = Query(default="month", pattern="^(month|week|agenda)$"),
+    timezone_name: str = "UTC",
+    offset: Annotated[int, Query(ge=0)] = 0,
+    limit: Annotated[int, Query(ge=1, le=200)] = 100,
+) -> MonthCalendar | WeekCalendar | AgendaCalendar:
+    maximum = {"month": 62, "week": 21, "agenda": 90}[view]
+    if end <= start or end - start > timedelta(days=maximum):
         raise HTTPException(422, "Calendar range must be positive and within the configured limit.")
-    return calendar_events(db, owner.id, start, end, campaign_id=campaign_id)
+    events = calendar_events(db, owner.id, start, end, campaign_id=campaign_id)
+    return calendar_projection(events, view, start, end, timezone_name, offset=offset, limit=limit)
 
 
 @router.get("/health")
@@ -121,11 +134,44 @@ def health(db: DB, owner: Owner) -> dict[str, object]:
             CampaignActivity.status.in_(["draft", "ready", "scheduled", "queued"]),
         )
     )
+    active_waits = db.scalar(
+        select(func.count())
+        .select_from(CampaignWorkflowWait)
+        .where(
+            CampaignWorkflowWait.owner_id == owner.id,
+            CampaignWorkflowWait.completed_at.is_(None),
+        )
+    )
+    failed_waits = db.scalar(
+        select(func.count())
+        .select_from(CampaignWorkflowWait)
+        .where(
+            CampaignWorkflowWait.owner_id == owner.id,
+            CampaignWorkflowWait.failure_code.is_not(None),
+        )
+    )
+    missed = db.scalar(
+        select(func.count())
+        .select_from(CampaignActivity)
+        .where(CampaignActivity.owner_id == owner.id, CampaignActivity.status == "missed")
+    )
+    catch_ups = db.scalar(
+        select(func.count())
+        .select_from(CampaignMissedActivityResolution)
+        .where(
+            CampaignMissedActivityResolution.owner_id == owner.id,
+            CampaignMissedActivityResolution.resolution_status == "catch_up_created",
+        )
+    )
     return {
         "active_campaigns": active or 0,
         "upcoming_activities": upcoming or 0,
         "blocked_activities": blocked or 0,
         "overdue_activities": overdue or 0,
+        "active_campaign_waits": active_waits or 0,
+        "failed_campaign_waits": failed_waits or 0,
+        "missed_activities": missed or 0,
+        "catch_ups_created": catch_ups or 0,
         "generated_at": timestamp,
     }
 
@@ -211,6 +257,24 @@ def dependency_list(
 ) -> list[CampaignActivityDependency]:
     owned_campaign(db, owner.id, campaign_id)
     return dependencies(db, campaign_id)
+
+
+@router.delete("/{campaign_id}/dependencies/{dependency_id}", status_code=204)
+def dependency_delete(
+    campaign_id: uuid.UUID, dependency_id: uuid.UUID, db: DB, owner: Owner
+) -> None:
+    owned_campaign(db, owner.id, campaign_id)
+    value = db.scalar(
+        select(CampaignActivityDependency).where(
+            CampaignActivityDependency.id == dependency_id,
+            CampaignActivityDependency.campaign_id == campaign_id,
+            CampaignActivityDependency.owner_id == owner.id,
+        )
+    )
+    if value is None:
+        raise HTTPException(404, "Campaign dependency was not found.")
+    db.delete(value)
+    db.commit()
 
 
 @router.post("/{campaign_id}/activities/{activity_id}/validate", response_model=ReadinessResponse)
@@ -507,6 +571,10 @@ def resume(campaign_id: uuid.UUID, request: LifecycleRequest, db: DB, owner: Own
     campaign = owned_campaign(db, owner.id, campaign_id)
     if campaign.status != "paused":
         raise HTTPException(409, "Only paused Campaigns can resume.")
+    try:
+        resolve_missed(db, owner, campaign, request.missed_activity_policy)
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
     future = [
         value
         for value in campaign_activities(db, campaign_id)
@@ -524,6 +592,18 @@ def resume(campaign_id: uuid.UUID, request: LifecycleRequest, db: DB, owner: Own
     value = transition(db, owner, campaign_id, target)
     db.commit()
     return value
+
+
+@router.post("/{campaign_id}/resume-preview", response_model=ResumePreviewResponse)
+def preview_resume(
+    campaign_id: uuid.UUID, request: LifecycleRequest, db: DB, owner: Owner
+) -> object:
+    if not request.missed_activity_policy:
+        raise HTTPException(422, "A missed-activity policy is required.")
+    campaign = owned_campaign(db, owner.id, campaign_id)
+    if campaign.status != "paused":
+        raise HTTPException(409, "Only paused Campaigns have a resume preview.")
+    return resume_preview(db, campaign, request.missed_activity_policy)
 
 
 @router.post("/{campaign_id}/cancel", response_model=CampaignResponse)

@@ -19,6 +19,7 @@ describe('CampaignService', () => {
     const result = service.calendar(
       '2026-08-01T00:00:00.000Z',
       '2026-09-01T00:00:00.000Z',
+      'month',
       'campaign-1',
     );
     const request = http.expectOne(
@@ -27,8 +28,13 @@ describe('CampaignService', () => {
         candidate.params.get('campaign_id') === 'campaign-1',
     );
     expect(request.request.withCredentials).toBe(true);
-    request.flush([]);
-    expect(await result).toEqual([]);
+    request.flush({
+      view: 'month',
+      start: '2026-08-01T00:00:00.000Z',
+      end: '2026-09-01T00:00:00.000Z',
+      days: [],
+    });
+    expect((await result).view).toBe('month');
   });
 
   it('requires explicit confirmation for Campaign scheduling', async () => {

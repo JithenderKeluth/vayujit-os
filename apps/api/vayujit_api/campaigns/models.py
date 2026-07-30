@@ -49,6 +49,8 @@ ACTIVITY_STATUSES = (
     "maintenance_blocked",
     "reconciliation_required",
     "completed_with_warning",
+    "missed",
+    "skipped",
     "archived",
 )
 
@@ -243,3 +245,76 @@ class CampaignScheduleLink(Base):
     )
     occurrence_key: Mapped[str] = mapped_column(String(180))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class CampaignWorkflowWait(Base):
+    __tablename__ = "campaign_workflow_waits"
+    __table_args__ = (
+        UniqueConstraint("workflow_step_id", name="uq_campaign_workflow_wait_step"),
+        CheckConstraint(
+            "current_state IN ('planning','scheduled','running','partially_completed',"
+            "'completed','failed','cancelled','blocked')",
+            name="ck_campaign_workflow_wait_state",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    workflow_instance_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workflow_instances.id", ondelete="CASCADE"), index=True
+    )
+    workflow_step_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("workflow_step_executions.id", ondelete="CASCADE")
+    )
+    campaign_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("campaigns.id", ondelete="CASCADE"), index=True
+    )
+    expected_state: Mapped[str] = mapped_column(String(30))
+    current_state: Mapped[str] = mapped_column(String(30), index=True)
+    terminal_success_states: Mapped[str] = mapped_column(String(160))
+    terminal_failure_states: Mapped[str] = mapped_column(String(160))
+    correlation_id: Mapped[str] = mapped_column(String(64), index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    failure_code: Mapped[str | None] = mapped_column(String(80))
+    safe_failure_message: Mapped[str | None] = mapped_column(String(500))
+    row_version: Mapped[int] = mapped_column(Integer, default=1)
+
+
+class CampaignMissedActivityResolution(Base):
+    __tablename__ = "campaign_missed_activity_resolutions"
+    __table_args__ = (
+        UniqueConstraint("activity_id", "policy", name="uq_campaign_missed_resolution"),
+        CheckConstraint(
+            "policy IN ('skip_missed','run_next','one_catch_up','reschedule_manually')",
+            name="ck_campaign_missed_policy",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    campaign_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("campaigns.id", ondelete="CASCADE"), index=True
+    )
+    activity_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("campaign_activities.id", ondelete="RESTRICT"), index=True
+    )
+    policy: Mapped[str] = mapped_column(String(30))
+    original_scheduled_at_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    resolution_status: Mapped[str] = mapped_column(String(30), index=True)
+    replacement_activity_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("campaign_activities.id", ondelete="SET NULL")
+    )
+    replacement_schedule_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_schedules.id", ondelete="SET NULL")
+    )
+    replacement_job_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_jobs.id", ondelete="SET NULL")
+    )
+    reason: Mapped[str] = mapped_column(String(500))
+    correlation_id: Mapped[str] = mapped_column(String(64), index=True)
+    resolved_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    resolved_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
