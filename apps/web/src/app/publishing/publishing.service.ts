@@ -20,6 +20,7 @@ import type {
   ShopifyDiscoveryPage,
   ShopifyPublishingPreview,
   ShopifyValidationResult,
+  ShopifyOverwritePreview,
   UpdateShopifyConnectorRequest,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
@@ -300,6 +301,24 @@ export class PublishingService {
       this.http.post<PublishingReconciliationResult>(
         `${this.base}/executions/${id}/reconcile`,
         {},
+        this.options,
+      ),
+    );
+  }
+  overwritePreview(id: string) {
+    return firstValueFrom(
+      this.http.post<ShopifyOverwritePreview>(
+        `${this.base}/executions/${id}/overwrite-preview`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  confirmOverwrite(id: string, fields: string[]) {
+    return firstValueFrom(
+      this.http.post<PublishingExecutionDetails>(
+        `${this.base}/executions/${id}/overwrite`,
+        { fields, confirmed: true },
         this.options,
       ),
     );

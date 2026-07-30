@@ -1,5 +1,7 @@
 import hashlib
+import random
 import re
+import time
 import uuid
 from typing import Any, Literal, cast
 
@@ -14,7 +16,7 @@ from vayujit_api.brands.models import Brand, BrandStatus
 from vayujit_api.core.observability import correlation_id
 from vayujit_api.identity.models import User
 from vayujit_api.identity.service import now
-from vayujit_api.media.models import WordPressMediaMapping
+from vayujit_api.media.models import MediaAsset, WordPressMediaMapping
 from vayujit_api.media.service import owned_media, storage_path
 from vayujit_api.products.models import Product, ProductStatus
 from vayujit_api.publishing.connector import (
@@ -28,6 +30,9 @@ from vayujit_api.publishing.models import (
     PublishingDestination,
     PublishingExecution,
     PublishingExecutionAttempt,
+    ShopifyMediaMapping,
+    ShopifyProductAssignment,
+    ShopifyVariantMapping,
 )
 from vayujit_api.publishing.schemas import (
     AttemptResponse,
@@ -43,6 +48,8 @@ from vayujit_api.publishing.schemas import (
     RemoteDriftField,
     SanitizationChange,
     ShopifyDestinationConfiguration,
+    ShopifyOverwriteConfirmation,
+    ShopifyOverwritePreview,
     ShopifyPreviewResponse,
     WordPressDestinationConfiguration,
 )
@@ -52,7 +59,11 @@ from vayujit_api.publishing.shopify import (
 from vayujit_api.publishing.shopify import (
     owned_configuration as owned_shopify_configuration,
 )
-from vayujit_api.publishing.shopify_connector import ShopifyGraphQLClient, shopify_product_input
+from vayujit_api.publishing.shopify_connector import (
+    ShopifyGraphQLClient,
+    shopify_product_input,
+    shopify_variant_inputs,
+)
 from vayujit_api.publishing.wordpress import connector_for, owned_configuration
 
 
@@ -246,6 +257,8 @@ def execution_response(db: Session, value: PublishingExecution) -> ExecutionResp
                 latency_ms=a.latency_ms,
                 response_status=a.response_status,
                 retry_after_seconds=a.retry_after_seconds,
+                calculated_delay_ms=a.calculated_delay_ms,
+                applied_delay_ms=a.applied_delay_ms,
                 ambiguous_result=a.ambiguous_result,
                 correlation_id=a.correlation_id,
             )
@@ -366,6 +379,17 @@ def shopify_request_configuration(
 ) -> dict[str, object]:
     configuration = dict(destination.configuration_json)
     configuration["requested_action"] = execution.requested_action
+    configuration["shopify_variants"] = execution.request_snapshot_json.get("shopify_variants", [])
+    mappings = db.scalars(
+        select(ShopifyVariantMapping).where(
+            ShopifyVariantMapping.destination_id == execution.destination_id,
+            ShopifyVariantMapping.product_id == execution.product_id,
+            ShopifyVariantMapping.owner_id == execution.owner_id,
+        )
+    ).all()
+    configuration["variant_remote_ids"] = {
+        value.local_variant_key: value.remote_variant_id for value in mappings
+    }
     if execution.requested_action in {"update", "activate", "archive"}:
         previous = db.scalar(
             select(PublishingExecution)
@@ -389,6 +413,222 @@ def shopify_request_configuration(
             )
         configuration["remote_product_id"] = previous.remote_entity_id
     return configuration
+
+
+def retry_delay_seconds(
+    attempt_number: int,
+    *,
+    retry_after: int | None = None,
+    jitter_value: float | None = None,
+    base_delay: float = 1.0,
+    maximum_delay: float = 10.0,
+) -> float:
+    jitter = random.SystemRandom().uniform(0.8, 1.2) if jitter_value is None else jitter_value
+    exponential = min(maximum_delay, base_delay * (2 ** max(attempt_number - 1, 0)))
+    return min(maximum_delay, max(exponential * min(max(jitter, 0.8), 1.2), retry_after or 0))
+
+
+def persist_shopify_result_mappings(
+    db: Session,
+    execution: PublishingExecution,
+    payload: dict[str, object],
+) -> None:
+    remote_product_id = execution.remote_entity_id
+    if not remote_product_id:
+        return
+    variants = payload.get("variants")
+    if isinstance(variants, list):
+        for item in variants:
+            if not isinstance(item, dict) or not isinstance(item.get("id"), str):
+                continue
+            local_key = str(item.get("localKey") or "default")
+            mapping = db.scalar(
+                select(ShopifyVariantMapping).where(
+                    ShopifyVariantMapping.destination_id == execution.destination_id,
+                    ShopifyVariantMapping.product_id == execution.product_id,
+                    ShopifyVariantMapping.local_variant_key == local_key,
+                )
+            )
+            inventory = item.get("inventoryItem")
+            values = {
+                "remote_product_id": remote_product_id,
+                "remote_variant_id": str(item["id"]),
+                "remote_inventory_item_id": (
+                    str(inventory.get("id"))
+                    if isinstance(inventory, dict) and inventory.get("id")
+                    else None
+                ),
+                "sku": str(item.get("sku") or "") or None,
+                "option_signature": "|".join(
+                    f"{option.get('name')}={option.get('value')}"
+                    for option in item.get("selectedOptions", [])
+                    if isinstance(option, dict)
+                ),
+                "status": "mapped",
+                "last_verified_at": now(),
+            }
+            if mapping:
+                for key, value in values.items():
+                    setattr(mapping, key, value)
+            else:
+                db.add(
+                    ShopifyVariantMapping(
+                        owner_id=execution.owner_id,
+                        destination_id=execution.destination_id,
+                        product_id=execution.product_id,
+                        local_variant_key=local_key,
+                        created_at=now(),
+                        **values,
+                    )
+                )
+    for assignment_type, key in (
+        ("collection", "collection_ids"),
+        ("publication", "publication_ids"),
+    ):
+        identifiers = payload.get(key)
+        if not isinstance(identifiers, list):
+            continue
+        for remote_target_id in identifiers:
+            if not isinstance(remote_target_id, str):
+                continue
+            existing = db.scalar(
+                select(ShopifyProductAssignment).where(
+                    ShopifyProductAssignment.destination_id == execution.destination_id,
+                    ShopifyProductAssignment.remote_product_id == remote_product_id,
+                    ShopifyProductAssignment.assignment_type == assignment_type,
+                    ShopifyProductAssignment.remote_target_id == remote_target_id,
+                )
+            )
+            if not existing:
+                db.add(
+                    ShopifyProductAssignment(
+                        owner_id=execution.owner_id,
+                        destination_id=execution.destination_id,
+                        remote_product_id=remote_product_id,
+                        assignment_type=assignment_type,
+                        remote_target_id=remote_target_id,
+                        status="assigned",
+                        created_at=now(),
+                        last_verified_at=now(),
+                    )
+                )
+
+
+def ensure_shopify_media(
+    db: Session,
+    execution: PublishingExecution,
+    destination: PublishingDestination,
+    client: ShopifyGraphQLClient,
+    payload: dict[str, object],
+) -> None:
+    selections = execution.request_snapshot_json.get("shopify_media")
+    if not isinstance(selections, list) or not selections:
+        return
+    if not execution.remote_entity_id:
+        raise ConnectorFailure(
+            "shopify_media_product_missing",
+            "A remote draft is required before media can be uploaded.",
+            retryable=False,
+        )
+    policy = str(destination.configuration_json.get("media_policy") or "fail")
+    fingerprint = hashlib.sha256(client.shop_domain.encode()).hexdigest()
+    results: list[dict[str, object]] = []
+    for selection in sorted(
+        (value for value in selections if isinstance(value, dict)),
+        key=lambda value: int(value.get("position", 0)),
+    ):
+        try:
+            media = db.scalar(
+                select(MediaAsset).where(
+                    MediaAsset.id == uuid.UUID(str(selection.get("media_id"))),
+                    MediaAsset.owner_id == execution.owner_id,
+                    MediaAsset.status == "ready",
+                )
+            )
+            if not media:
+                raise ConnectorFailure(
+                    "shopify_media_not_found",
+                    "A selected media asset is unavailable.",
+                    retryable=False,
+                )
+            mapping = db.scalar(
+                select(ShopifyMediaMapping).where(
+                    ShopifyMediaMapping.owner_id == execution.owner_id,
+                    ShopifyMediaMapping.destination_id == destination.id,
+                    ShopifyMediaMapping.media_id == media.id,
+                    ShopifyMediaMapping.shop_fingerprint == fingerprint,
+                    ShopifyMediaMapping.checksum_sha256 == media.checksum_sha256,
+                    ShopifyMediaMapping.status == "ready",
+                )
+            )
+            if mapping:
+                remote_id, state = mapping.remote_media_id, "reused"
+            else:
+                remote = client.upload_product_media(
+                    product_id=execution.remote_entity_id,
+                    filename=media.safe_filename,
+                    mime_type=media.mime_type,
+                    content=storage_path(media.storage_key).read_bytes(),
+                    alt_text=str(selection.get("alt_text") or ""),
+                )
+                if not isinstance(remote.get("id"), str):
+                    raise ConnectorFailure(
+                        "shopify_media_result_invalid",
+                        "Shopify omitted the remote media identifier.",
+                        retryable=False,
+                    )
+                remote_id, state = (
+                    str(remote["id"]),
+                    str(remote.get("status") or "processing").casefold(),
+                )
+                stamp = now()
+                db.add(
+                    ShopifyMediaMapping(
+                        owner_id=execution.owner_id,
+                        destination_id=destination.id,
+                        media_id=media.id,
+                        shop_fingerprint=fingerprint,
+                        remote_product_id=execution.remote_entity_id,
+                        remote_media_id=remote_id,
+                        remote_url=None,
+                        checksum_sha256=media.checksum_sha256,
+                        alt_text=str(selection.get("alt_text") or ""),
+                        position=int(selection.get("position", 0)),
+                        status=state,
+                        created_at=stamp,
+                        updated_at=stamp,
+                        last_verified_at=stamp,
+                    )
+                )
+            results.append(
+                {
+                    "media_id": str(media.id),
+                    "remote_media_id": remote_id,
+                    "status": state,
+                    "position": int(selection.get("position", 0)),
+                    "alt_text": str(selection.get("alt_text") or ""),
+                }
+            )
+        except (ConnectorFailure, ValueError) as error:
+            failure = (
+                error
+                if isinstance(error, ConnectorFailure)
+                else ConnectorFailure(
+                    "shopify_media_invalid", "A selected media asset was invalid.", retryable=False
+                )
+            )
+            if policy == "fail":
+                raise failure from error
+            results.append(
+                {
+                    "media_id": str(selection.get("media_id") or ""),
+                    "status": "omitted" if policy == "draft_without_media" else "failed",
+                    "safe_error": failure.safe_message,
+                }
+            )
+            if policy == "degraded":
+                execution.status, execution.remote_status = "degraded", "draft"
+    payload["media"] = results
 
 
 def ensure_wordpress_media(
@@ -530,6 +770,9 @@ def run_attempt(
                 result.payload,
                 finished,
             )
+            attempt.latency_ms = max(
+                0, round((finished - attempt.started_at).total_seconds() * 1000)
+            )
             execution.status, execution.result_json, execution.completed_at = (
                 "succeeded",
                 result.payload,
@@ -553,6 +796,15 @@ def run_attempt(
             )
             execution.remote_status = result.remote_status
             execution.remote_slug = result.remote_slug
+            if destination.connector_key == "shopify":
+                ensure_shopify_media(
+                    db,
+                    execution,
+                    destination,
+                    cast(ShopifyGraphQLClient, active_connector),
+                    result.payload,
+                )
+                persist_shopify_result_mappings(db, execution, result.payload)
             execution.error_code = execution.safe_error_message = None
             execution.retryable, execution.failed_at, execution.updated_at = False, None, finished
             action = "publishing.execution_succeeded"
@@ -565,6 +817,9 @@ def run_attempt(
                 error.safe_message,
             )
             attempt.retryable, attempt.failed_at = error.retryable, finished
+            attempt.latency_ms = max(
+                0, round((finished - attempt.started_at).total_seconds() * 1000)
+            )
             attempt.response_status = error.status_code
             attempt.retry_after_seconds = error.retry_after
             attempt.ambiguous_result = error.ambiguous
@@ -582,6 +837,26 @@ def run_attempt(
                 execution.reconciliation_status = "reconciliation_required"
             if not error.retryable or error.ambiguous or transport_attempt + 1 >= max_attempts:
                 break
+            delay = retry_delay_seconds(
+                transport_attempt + 1,
+                retry_after=error.retry_after,
+            )
+            attempt.calculated_delay_ms = round(delay * 1000)
+            attempt.applied_delay_ms = round(delay * 1000)
+            record_event(
+                db,
+                actor_id=owner.id,
+                action="publishing.shopify_retry_scheduled",
+                entity_type="publishing_execution",
+                entity_id=execution.id,
+                metadata={
+                    "attempt_number": attempt.attempt_number,
+                    "delay_ms": attempt.applied_delay_ms,
+                    "error_code": error.code,
+                    "correlation_id": execution.correlation_id,
+                },
+            )
+            time.sleep(delay)
     record_event(
         db,
         actor_id=owner.id,
@@ -744,6 +1019,8 @@ def create_execution(db: Session, owner: User, data: CreateExecution) -> Executi
             "destination_name": destination.name,
             "configuration": destination.configuration_json,
             "featured_media_id": str(selected_media_id) if selected_media_id else None,
+            "shopify_variants": [item.model_dump(mode="json") for item in data.shopify_variants],
+            "shopify_media": [item.model_dump(mode="json") for item in data.shopify_media],
         },
         retryable=False,
         created_at=stamp,
@@ -815,6 +1092,15 @@ def content_snapshot(
         "sku": product.sku,
         "price_amount": str(product.price_amount) if product.price_amount is not None else None,
         "price_currency": product.price_currency,
+        "compare_at_price_amount": (
+            str(product.compare_at_price_amount)
+            if product.compare_at_price_amount is not None
+            else None
+        ),
+        "barcode": product.barcode,
+        "weight_value": str(product.weight_value) if product.weight_value is not None else None,
+        "weight_unit": product.weight_unit,
+        "inventory_tracking_enabled": product.inventory_tracking_enabled,
     }
 
 
@@ -1041,21 +1327,122 @@ def reconcile_execution(
             )
             remote_payload = result.payload
             comparisons = {
-                "title": (expected.get("title"), remote_payload.get("title")),
-                "status": (
+                "product.title": (expected.get("title"), remote_payload.get("title")),
+                "product.status": (
                     str(expected.get("status", "")).casefold(),
                     result.remote_status,
                 ),
-                "handle": (None, result.remote_slug),
-                "vendor": (expected.get("vendor"), remote_payload.get("vendor")),
-                "product_type": (
+                "product.handle": (None, result.remote_slug),
+                "product.description": (
+                    expected.get("descriptionHtml"),
+                    remote_payload.get("descriptionHtml"),
+                ),
+                "product.vendor": (expected.get("vendor"), remote_payload.get("vendor")),
+                "product.product_type": (
                     expected.get("productType"),
                     remote_payload.get("productType"),
                 ),
-                "tags": (expected.get("tags"), remote_payload.get("tags")),
-                "seo": (expected.get("seo"), remote_payload.get("seo")),
-                "modified": (None, remote_payload.get("updatedAt")),
+                "product.tags": (expected.get("tags"), remote_payload.get("tags")),
+                "product.seo.title": (
+                    cast(dict[str, object], expected.get("seo", {})).get("title"),
+                    cast(dict[str, object], remote_payload.get("seo", {})).get("title"),
+                ),
+                "product.seo.description": (
+                    cast(dict[str, object], expected.get("seo", {})).get("description"),
+                    cast(dict[str, object], remote_payload.get("seo", {})).get("description"),
+                ),
+                "product.updated_at": (None, remote_payload.get("updatedAt")),
             }
+            expected_variants = shopify_variant_inputs(
+                value.content_snapshot_json,
+                value.request_snapshot_json.get("shopify_variants"),
+                require_price=bool(expected_configuration.get("require_variant_price")),
+                require_sku=bool(expected_configuration.get("require_variant_sku")),
+            )
+            remote_variants_wrapper = remote_payload.get("variants")
+            remote_variants = (
+                remote_variants_wrapper.get("nodes")
+                if isinstance(remote_variants_wrapper, dict)
+                else []
+            )
+            mappings = db.scalars(
+                select(ShopifyVariantMapping).where(
+                    ShopifyVariantMapping.owner_id == owner.id,
+                    ShopifyVariantMapping.destination_id == value.destination_id,
+                    ShopifyVariantMapping.product_id == value.product_id,
+                )
+            ).all()
+            remote_variant_values = remote_variants if isinstance(remote_variants, list) else []
+            remote_by_id = {
+                str(item.get("id")): item
+                for item in remote_variant_values
+                if isinstance(item, dict) and item.get("id")
+            }
+            for local in expected_variants:
+                local_key = str(local["localKey"])
+                mapping = next(
+                    (item for item in mappings if item.local_variant_key == local_key), None
+                )
+                remote_variant = (
+                    remote_by_id.pop(mapping.remote_variant_id, None) if mapping else None
+                )
+                for local_field, remote_field in (
+                    ("sku", "sku"),
+                    ("price", "price"),
+                    ("compareAtPrice", "compareAtPrice"),
+                    ("barcode", "barcode"),
+                    ("optionValues", "selectedOptions"),
+                ):
+                    comparisons[f"variants[{local_key}].{local_field}"] = (
+                        local.get(local_field),
+                        remote_variant.get(remote_field) if remote_variant else None,
+                    )
+            for remote_variant_id, remote_variant in remote_by_id.items():
+                comparisons[f"variants[remote:{remote_variant_id}]"] = (None, remote_variant)
+            expected_media = value.result_json.get("media", []) if value.result_json else []
+            remote_media_wrapper = remote_payload.get("media")
+            remote_media = (
+                remote_media_wrapper.get("nodes") if isinstance(remote_media_wrapper, dict) else []
+            )
+            comparisons["media"] = (expected_media, remote_media)
+            remote_collection_wrapper = remote_payload.get("collections")
+            remote_collection_nodes = (
+                remote_collection_wrapper.get("nodes")
+                if isinstance(remote_collection_wrapper, dict)
+                else []
+            )
+            comparisons["collections"] = (
+                expected_configuration.get("default_collection_ids", []),
+                [
+                    item.get("id")
+                    for item in (
+                        remote_collection_nodes if isinstance(remote_collection_nodes, list) else []
+                    )
+                    if isinstance(item, dict)
+                ],
+            )
+            remote_publication_wrapper = remote_payload.get("resourcePublications")
+            remote_publication_nodes = (
+                remote_publication_wrapper.get("nodes")
+                if isinstance(remote_publication_wrapper, dict)
+                else []
+            )
+            comparisons["publications"] = (
+                (
+                    expected_configuration.get("default_publication_ids", [])
+                    if value.requested_action == "activate"
+                    else []
+                ),
+                [
+                    cast(dict[str, object], item.get("publication", {})).get("id")
+                    for item in (
+                        remote_publication_nodes
+                        if isinstance(remote_publication_nodes, list)
+                        else []
+                    )
+                    if isinstance(item, dict) and item.get("isPublished")
+                ],
+            )
             for field, (expected_value, remote) in comparisons.items():
                 shopify_status: Literal["in_sync", "changed_remotely", "unknown"] = (
                     "unknown"
@@ -1069,9 +1456,26 @@ def reconcile_execution(
                 differences.append(
                     RemoteDriftField(
                         field=field,
+                        display_label=field.replace(".", " ").replace("_", " ").title(),
                         expected=expected_value,
                         remote=remote,
                         status=shopify_status,
+                        drift_type=(
+                            "missing_remote"
+                            if remote is None and expected_value is not None
+                            else (
+                                "extra_remote"
+                                if expected_value is None and remote is not None
+                                else "value_changed"
+                            )
+                        ),
+                        severity=("blocking" if field == "product.status" else "warning"),
+                        resolution=(
+                            "manual" if field.startswith("variants[remote:") else "overwrite"
+                        ),
+                        safe_explanation=(
+                            "Remote Shopify state differs from the approved local mapping."
+                        ),
                     )
                 )
                 if shopify_status == "changed_remotely":
@@ -1188,6 +1592,93 @@ def reconcile_execution(
         drift_fields=drift,
         differences=differences,
         correlation_id=correlation_id(),
+    )
+
+
+def shopify_overwrite_preview(
+    db: Session, owner: User, execution_id: uuid.UUID
+) -> ShopifyOverwritePreview:
+    reconciliation = reconcile_execution(db, owner, execution_id)
+    execution = owned_execution(db, owner.id, execution_id)
+    if execution.connector_key != "shopify":
+        raise HTTPException(409, "Overwrite preview is available only for Shopify executions.")
+    fields = [
+        item.field
+        for item in reconciliation.differences
+        if item.status == "changed_remotely" and item.resolution == "overwrite"
+    ]
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="publishing.shopify_overwrite_previewed",
+        entity_type="publishing_execution",
+        entity_id=execution.id,
+        metadata={"field_count": len(fields), "correlation_id": execution.correlation_id},
+    )
+    db.commit()
+    return ShopifyOverwritePreview(
+        execution_id=execution.id,
+        reconciliation_status=reconciliation.reconciliation_status,
+        fields_available=fields,
+        remote_only_fields_preserved=[
+            "inventory_quantity",
+            "remote_only_variants",
+            "remote_only_media",
+            "unrelated_metafields",
+        ],
+        differences=reconciliation.differences,
+        correlation_id=execution.correlation_id,
+    )
+
+
+def confirm_shopify_overwrite(
+    db: Session,
+    owner: User,
+    execution_id: uuid.UUID,
+    confirmation: ShopifyOverwriteConfirmation,
+) -> ExecutionResponse:
+    preview = shopify_overwrite_preview(db, owner, execution_id)
+    requested = list(dict.fromkeys(confirmation.fields))
+    if any(field not in preview.fields_available for field in requested):
+        raise HTTPException(409, "Overwrite fields must come from the refreshed drift preview.")
+    source = owned_execution(db, owner.id, execution_id)
+    artifact = db.scalar(
+        select(GeneratedArtifact).where(
+            GeneratedArtifact.id == source.artifact_id,
+            GeneratedArtifact.owner_id == owner.id,
+            GeneratedArtifact.status == "approved",
+        )
+    )
+    destination = owned_destination(db, owner.id, source.destination_id)
+    if not artifact or destination.status != "active":
+        raise HTTPException(409, "The approved Artifact and active destination are required.")
+    field_key = hashlib.sha256("|".join(sorted(requested)).encode()).hexdigest()[:16]
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="publishing.shopify_remote_overwrite_confirmed",
+        entity_type="publishing_execution",
+        entity_id=source.id,
+        metadata={
+            "fields": requested,
+            "correlation_id": source.correlation_id,
+            "inventory_quantity_preserved": True,
+        },
+    )
+    db.commit()
+    return create_execution(
+        db,
+        owner,
+        CreateExecution.model_validate(
+            {
+                "artifact_id": source.artifact_id,
+                "destination_id": source.destination_id,
+                "idempotency_key": f"overwrite:{source.id}:{field_key}",
+                "action": "update",
+                "shopify_variants": source.request_snapshot_json.get("shopify_variants", []),
+                "shopify_media": source.request_snapshot_json.get("shopify_media", []),
+            }
+        ),
     )
 
 

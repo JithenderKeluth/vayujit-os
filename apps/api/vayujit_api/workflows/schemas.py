@@ -50,6 +50,13 @@ class CreateWorkflow(BaseModel):
     additional_instructions: (
         Annotated[str, StringConstraints(strip_whitespace=True, max_length=2000)] | None
     ) = None
+    publishing_action: Literal[
+        "default",
+        "shopify_create_draft",
+        "shopify_update_product",
+        "shopify_activate_product",
+        "shopify_archive_product",
+    ] = "default"
 
 
 class StepAttemptDetails(BaseModel):

@@ -1,8 +1,10 @@
 import { Component, input } from '@angular/core';
+import { JsonPipe } from '@angular/common';
 import type { PublishingAttemptDetails } from '@vayujit/shared';
 
 @Component({
   selector: 'app-attempt-timeline',
+  imports: [JsonPipe],
   template: `<div class="pub-timeline" aria-label="Execution attempt timeline">
     @for (item of attempts(); track item.attempt_number) {
       <article>
@@ -21,6 +23,15 @@ import type { PublishingAttemptDetails } from '@vayujit/shared';
           }}
         </p>
         <p>Retryable: {{ item.retryable ? 'Yes' : 'No' }}</p>
+        @if (item.calculated_delay_ms) {
+          <p>
+            Retry delay: {{ item.applied_delay_ms }} ms applied ({{ item.calculated_delay_ms }} ms
+            calculated).
+          </p>
+        }
+        @if (item.result?.['throttle']) {
+          <p>Shopify throttle: {{ item.result['throttle'] | json }}</p>
+        }
         @if (item.error_code) {
           <p>
             <strong>{{ item.error_code }}</strong

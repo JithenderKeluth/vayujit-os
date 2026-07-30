@@ -412,6 +412,8 @@ export class DestinationFormComponent implements OnInit {
                   .map((item) => item.trim())
                   .filter(Boolean),
                 variant_policy: 'default_variant' as const,
+                require_variant_price: false,
+                require_variant_sku: false,
                 inventory_policy: 'no_inventory_write' as const,
                 media_policy: value.shopify_media_policy,
                 update_existing_remote_product: true,

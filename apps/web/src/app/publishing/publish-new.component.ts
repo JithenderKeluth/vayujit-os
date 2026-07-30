@@ -9,6 +9,7 @@ import type {
   PublishingDestinationSummary,
   MediaAsset,
   PublishingPreview,
+  ShopifyVariantInput,
 } from '@vayujit/shared';
 import { AIService } from '../ai/ai.service';
 import { BrandService } from '../brands/brand.service';
@@ -93,10 +94,7 @@ import { MediaService } from '../media/media.service';
           }
         </select></label
       >
-      @if (
-        selectedDestination()?.connector_key === 'wordpress' ||
-        selectedDestination()?.connector_key === 'shopify'
-      ) {
+      @if (selectedDestination()?.connector_key === 'wordpress') {
         <label
           >6. Featured image
           <select
@@ -113,6 +111,69 @@ import { MediaService } from '../media/media.service';
           </select>
         </label>
         <a routerLink="/media/upload">Upload a new image</a>
+      }
+      @if (selectedDestination()?.connector_key === 'shopify') {
+        <fieldset>
+          <legend>Shopify images</legend>
+          <p class="pub-muted">Select images in their intended primary-first order.</p>
+          @for (media of mediaItems(); track media.id) {
+            <label>
+              <input
+                type="checkbox"
+                [checked]="selectedMediaIds.includes(media.id)"
+                (change)="toggleMedia(media.id)"
+              />
+              {{ media.safe_filename }} · {{ media.width }}×{{ media.height }}
+            </label>
+          }
+          <a routerLink="/media/upload">Upload a new image</a>
+        </fieldset>
+        <fieldset>
+          <legend>Shopify variants</legend>
+          @if (!shopifyVariants.length) {
+            <p>
+              Default variant · SKU {{ selectedProduct()?.sku || 'not set' }} ·
+              {{ selectedProduct()?.price_amount || 'price required' }}
+              {{ selectedProduct()?.price_currency || '' }}
+            </p>
+          }
+          @for (variant of shopifyVariants; track variant.local_key; let index = $index) {
+            <div class="pub-card">
+              <label
+                >Key <input [(ngModel)]="variant.local_key" [name]="'variantKey' + index"
+              /></label>
+              <label
+                >Option name
+                <input [(ngModel)]="variant.options[0]!.name" [name]="'optionName' + index"
+              /></label>
+              <label
+                >Option value
+                <input [(ngModel)]="variant.options[0]!.value" [name]="'optionValue' + index"
+              /></label>
+              <label>SKU <input [(ngModel)]="variant.sku" [name]="'variantSku' + index" /></label>
+              <label
+                >Price
+                <input
+                  inputmode="decimal"
+                  [(ngModel)]="variant.price"
+                  [name]="'variantPrice' + index"
+              /></label>
+              <label
+                >Compare-at price
+                <input
+                  inputmode="decimal"
+                  [(ngModel)]="variant.compare_at_price"
+                  [name]="'variantCompare' + index"
+              /></label>
+              <label
+                >Barcode <input [(ngModel)]="variant.barcode" [name]="'variantBarcode' + index"
+              /></label>
+              <button type="button" (click)="removeVariant(index)">Remove variant</button>
+            </div>
+          }
+          <button type="button" (click)="addVariant()">Add structured variant</button>
+          <p class="pub-muted">Inventory quantities are never written.</p>
+        </fieldset>
       }
       @if (productId && !eligibleArtifacts().length) {
         <div class="pub-empty">
@@ -233,6 +294,8 @@ export class PublishNewComponent implements OnInit {
   artifactId = '';
   destinationId = '';
   featuredMediaId = '';
+  selectedMediaIds: string[] = [];
+  shopifyVariants: ShopifyVariantInput[] = [];
   confirmed = false;
   action: 'create_draft' | 'publish' | 'activate' | 'update' = 'publish';
   private idempotencyKey = '';
@@ -352,6 +415,29 @@ export class PublishNewComponent implements OnInit {
       this.error.set(PublishingService.errorMessage(error));
     }
   }
+  toggleMedia(mediaId: string) {
+    this.selectedMediaIds = this.selectedMediaIds.includes(mediaId)
+      ? this.selectedMediaIds.filter((value) => value !== mediaId)
+      : [...this.selectedMediaIds, mediaId];
+  }
+  addVariant() {
+    const index = this.shopifyVariants.length + 1;
+    this.shopifyVariants.push({
+      local_key: `variant-${index}`,
+      options: [{ name: 'Option', value: `Value ${index}` }],
+      sku: null,
+      price: this.selectedProduct()?.price_amount ?? null,
+      compare_at_price: null,
+      barcode: null,
+      weight: null,
+      weight_unit: null,
+      taxable: true,
+      track_inventory: false,
+    });
+  }
+  removeVariant(index: number) {
+    this.shopifyVariants.splice(index, 1);
+  }
   async publish() {
     if (!this.artifactId || !this.destinationId || !this.confirmed || this.busy()) return;
     if (!confirm(`Run ${this.action} for this approved content?`)) return;
@@ -365,6 +451,12 @@ export class PublishNewComponent implements OnInit {
         idempotency_key: this.idempotencyKey,
         action: this.action,
         featured_media_id: this.featuredMediaId || null,
+        shopify_variants: this.shopifyVariants,
+        shopify_media: this.selectedMediaIds.map((media_id, position) => ({
+          media_id,
+          position,
+          alt_text: this.selectedProduct()?.name ?? '',
+        })),
       });
       await this.router.navigate(['/publishing/executions', result.id]);
     } catch (error) {

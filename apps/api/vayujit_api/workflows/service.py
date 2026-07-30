@@ -267,6 +267,7 @@ def create_workflow(db: Session, owner: User, data: CreateWorkflow) -> WorkflowD
         input_json={
             "schema_version": 1,
             "additional_instructions": data.additional_instructions,
+            "publishing_action": data.publishing_action,
         },
         context_json={"schema_version": 1},
         created_at=stamp,
@@ -455,8 +456,18 @@ def continue_workflow(db: Session, owner: User, workflow_id: uuid.UUID) -> Workf
         },
     )
     destination = db.get(PublishingDestination, workflow.destination_id)
-    requested_action: Literal["create_draft", "publish"] = (
-        "create_draft" if destination and destination.connector_key == "shopify" else "publish"
+    configured_action = str(workflow.input_json.get("publishing_action") or "default")
+    shopify_actions: dict[str, Literal["create_draft", "update", "activate", "archive"]] = {
+        "default": "create_draft",
+        "shopify_create_draft": "create_draft",
+        "shopify_update_product": "update",
+        "shopify_activate_product": "activate",
+        "shopify_archive_product": "archive",
+    }
+    requested_action: Literal["create_draft", "publish", "update", "activate", "archive"] = (
+        shopify_actions.get(configured_action, "create_draft")
+        if destination and destination.connector_key == "shopify"
+        else "publish"
     )
     result = create_execution(
         db,

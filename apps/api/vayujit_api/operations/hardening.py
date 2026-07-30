@@ -3,12 +3,12 @@ import os
 import platform
 import shutil
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel
-from sqlalchemy import inspect, select, text
+from sqlalchemy import func, inspect, select, text
 from sqlalchemy.orm import Session
 
 from vayujit_api import __version__
@@ -26,6 +26,7 @@ from vayujit_api.operations.models import BackupRecord
 from vayujit_api.products.models import Product
 from vayujit_api.publishing.models import (
     PublishingExecution,
+    PublishingExecutionAttempt,
     ShopifyConnectorConfiguration,
     WordPressConnectorConfiguration,
 )
@@ -186,6 +187,56 @@ def health_details(db: Session) -> SystemHealth:
     shopify_status: Literal["healthy", "degraded", "unavailable"] = "healthy"
     shopify_message = "Shopify connector is registered and disabled."
     if shopify_configuration:
+        window_start = checked - timedelta(hours=24)
+        recent_count, recent_success, recent_failure = db.execute(
+            select(
+                func.count(PublishingExecution.id),
+                func.count(PublishingExecution.id).filter(
+                    PublishingExecution.status == "succeeded"
+                ),
+                func.count(PublishingExecution.id).filter(
+                    PublishingExecution.status.in_(["failed", "degraded"])
+                ),
+            ).where(
+                PublishingExecution.connector_key == "shopify",
+                PublishingExecution.created_at >= window_start,
+            )
+        ).one()
+        recent_latencies = list(
+            db.scalars(
+                select(PublishingExecutionAttempt.latency_ms)
+                .join(
+                    PublishingExecution,
+                    PublishingExecution.id == PublishingExecutionAttempt.execution_id,
+                )
+                .where(
+                    PublishingExecution.connector_key == "shopify",
+                    PublishingExecutionAttempt.created_at >= window_start,
+                    PublishingExecutionAttempt.latency_ms.is_not(None),
+                )
+                .order_by(PublishingExecutionAttempt.latency_ms)
+                .limit(200)
+            )
+        )
+        median_latency = recent_latencies[len(recent_latencies) // 2] if recent_latencies else None
+        throttle_count = (
+            db.scalar(
+                select(func.count(PublishingExecutionAttempt.id))
+                .join(
+                    PublishingExecution,
+                    PublishingExecution.id == PublishingExecutionAttempt.execution_id,
+                )
+                .where(
+                    PublishingExecution.connector_key == "shopify",
+                    PublishingExecutionAttempt.created_at >= window_start,
+                    PublishingExecutionAttempt.error_code == "shopify_throttled",
+                )
+            )
+            or 0
+        )
+        success_rate = (
+            round(int(recent_success) * 100 / int(recent_count), 1) if recent_count else 100.0
+        )
         shopify_status = (
             "healthy" if shopify_configuration.validation_status == "valid" else "degraded"
         )
@@ -194,6 +245,9 @@ def health_details(db: Session) -> SystemHealth:
             f"validation={shopify_configuration.validation_status}; "
             f"shop={shopify_configuration.shop_domain}; "
             f"api_version={shopify_configuration.api_version}; credentials are redacted."
+            f" recent_24h={recent_count}; successes={recent_success}; failures={recent_failure};"
+            f" success_rate={success_rate}%; median_latency_ms={median_latency};"
+            f" throttles={throttle_count}."
         )
     try:
         media_root = storage_root()
@@ -218,10 +272,10 @@ def health_details(db: Session) -> SystemHealth:
                 component="Migration",
                 status=(
                     "healthy"
-                    if current in {"20260802_0013", "unmanaged-test-schema"}
+                    if current in {"20260803_0014", "unmanaged-test-schema"}
                     else "degraded"
                 ),
-                message=f"Current {current}; expected 20260802_0013.",
+                message=f"Current {current}; expected 20260803_0014.",
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -294,7 +348,7 @@ def health_details(db: Session) -> SystemHealth:
         status=overall,
         components=components,
         current_migration=current,
-        expected_migration="20260802_0013",
+        expected_migration="20260803_0014",
         application_version=__version__,
         build_identifier=get_settings().build_identifier,
     )
@@ -415,6 +469,42 @@ def recovery(
                         + (
                             ["move_to_draft"]
                             if execution.connector_key == "wordpress" and execution.remote_entity_id
+                            else []
+                        )
+                        + (
+                            (
+                                ["review_drift", "keep_remote_changes"]
+                                if execution.reconciliation_status == "changed_remotely"
+                                else []
+                            )
+                            + (
+                                ["retry_media_upload"]
+                                if execution.error_code and "media" in execution.error_code
+                                else []
+                            )
+                            + (
+                                ["retry_variant_mutation"]
+                                if execution.error_code and "variant" in execution.error_code
+                                else []
+                            )
+                            + (
+                                ["retry_publication_assignment"]
+                                if execution.error_code and "publication" in execution.error_code
+                                else []
+                            )
+                            + (
+                                ["activate_product"]
+                                if execution.remote_entity_id and execution.remote_status == "draft"
+                                else []
+                            )
+                            + (
+                                ["archive_product"]
+                                if execution.remote_entity_id
+                                and execution.remote_status not in {"archived", None}
+                                else []
+                            )
+                            + ["open_shopify_admin", "open_destination"]
+                            if execution.connector_key == "shopify"
                             else []
                         )
                     ),

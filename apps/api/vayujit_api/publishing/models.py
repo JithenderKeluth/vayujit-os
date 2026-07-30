@@ -123,6 +123,8 @@ class PublishingExecutionAttempt(Base):
     response_status: Mapped[int | None] = mapped_column(Integer)
     remote_request_id: Mapped[str | None] = mapped_column(String(160))
     retry_after_seconds: Mapped[int | None] = mapped_column(Integer)
+    calculated_delay_ms: Mapped[int | None] = mapped_column(Integer)
+    applied_delay_ms: Mapped[int | None] = mapped_column(Integer)
     ambiguous_result: Mapped[bool] = mapped_column(Boolean, default=False)
     correlation_id: Mapped[str | None] = mapped_column(String(64))
 
@@ -199,7 +201,11 @@ class ShopifyMediaMapping(Base):
     __tablename__ = "shopify_media_mappings"
     __table_args__ = (
         UniqueConstraint(
-            "owner_id", "media_id", "shop_fingerprint", name="uq_shopify_media_mapping"
+            "owner_id",
+            "destination_id",
+            "media_id",
+            "shop_fingerprint",
+            name="uq_shopify_media_mapping",
         ),
     )
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
@@ -209,11 +215,75 @@ class ShopifyMediaMapping(Base):
     media_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("media_assets.id", ondelete="CASCADE"), index=True
     )
+    destination_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_destinations.id", ondelete="CASCADE"), index=True
+    )
     shop_fingerprint: Mapped[str] = mapped_column(String(64))
+    remote_product_id: Mapped[str] = mapped_column(String(160))
     remote_media_id: Mapped[str] = mapped_column(String(160))
     remote_url: Mapped[str | None] = mapped_column(String(500))
     checksum_sha256: Mapped[str] = mapped_column(String(64))
+    alt_text: Mapped[str] = mapped_column(String(512), default="")
+    position: Mapped[int] = mapped_column(Integer, default=0)
     status: Mapped[str] = mapped_column(String(30), default="mapped")
     last_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
+class ShopifyVariantMapping(Base):
+    __tablename__ = "shopify_variant_mappings"
+    __table_args__ = (
+        UniqueConstraint(
+            "destination_id", "product_id", "local_variant_key", name="uq_shopify_variant_mapping"
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    destination_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_destinations.id", ondelete="CASCADE"), index=True
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), index=True
+    )
+    local_variant_key: Mapped[str] = mapped_column(String(100))
+    remote_product_id: Mapped[str] = mapped_column(String(160))
+    remote_variant_id: Mapped[str] = mapped_column(String(160))
+    remote_inventory_item_id: Mapped[str | None] = mapped_column(String(160))
+    sku: Mapped[str | None] = mapped_column(String(100))
+    option_signature: Mapped[str] = mapped_column(String(1000))
+    status: Mapped[str] = mapped_column(String(30), default="mapped")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class ShopifyProductAssignment(Base):
+    __tablename__ = "shopify_product_assignments"
+    __table_args__ = (
+        UniqueConstraint(
+            "destination_id",
+            "remote_product_id",
+            "assignment_type",
+            "remote_target_id",
+            name="uq_shopify_product_assignment",
+        ),
+        CheckConstraint(
+            "assignment_type IN ('collection','publication')",
+            name="ck_shopify_assignment_type",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    destination_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_destinations.id", ondelete="CASCADE"), index=True
+    )
+    remote_product_id: Mapped[str] = mapped_column(String(160))
+    assignment_type: Mapped[str] = mapped_column(String(20))
+    remote_target_id: Mapped[str] = mapped_column(String(160))
+    status: Mapped[str] = mapped_column(String(30), default="assigned")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    last_verified_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

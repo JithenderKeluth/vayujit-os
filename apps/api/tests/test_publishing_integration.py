@@ -534,7 +534,7 @@ def test_shopify_configuration_discovery_draft_idempotency_and_drift(
         headers=ORIGIN,
     )
     assert reconciled.json()["reconciliation_status"] == "changed_remotely"
-    assert "title" in reconciled.json()["drift_fields"]
+    assert "product.title" in reconciled.json()["drift_fields"]
     assert test_factory
     with test_factory() as db:
         configuration = db.scalar(select(ShopifyConnectorConfiguration))

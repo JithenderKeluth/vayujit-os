@@ -150,15 +150,19 @@ import { PublishingService } from './publishing.service';
                   <th>Expected</th>
                   <th>Remote</th>
                   <th>Status</th>
+                  <th>Severity</th>
+                  <th>Resolution</th>
                 </tr>
               </thead>
               <tbody>
                 @for (difference of result.differences; track difference.field) {
                   <tr>
-                    <th>{{ difference.field }}</th>
+                    <th>{{ difference.display_label || difference.field }}</th>
                     <td>{{ display(difference.expected) }}</td>
                     <td>{{ display(difference.remote) }}</td>
                     <td>{{ difference.status }}</td>
+                    <td>{{ difference.severity }}</td>
+                    <td>{{ difference.resolution }}</td>
                   </tr>
                 }
               </tbody>
@@ -272,19 +276,34 @@ export class ExecutionDetailsComponent implements OnInit {
     });
   }
   async overwrite() {
-    if (!confirm('Overwrite reviewed remote changes using the approved immutable Artifact?'))
-      return;
     const value = this.item();
     if (!value) return;
     await this.run(async () => {
-      const result = await this.api.publish({
-        artifact_id: value.artifact_id,
-        destination_id: value.destination_id,
-        idempotency_key: crypto.randomUUID(),
-        action: 'update',
-        featured_media_id: (value.request_snapshot['featured_media_id'] as string | null) ?? null,
-      });
-      this.item.set(result);
+      if (value.connector_key === 'shopify') {
+        const preview = await this.api.overwritePreview(value.id);
+        if (!preview.fields_available.length) return;
+        if (
+          !confirm(
+            `Overwrite ${preview.fields_available.length} reviewed Shopify fields? ` +
+              `Inventory and remote-only variants/media remain untouched.`,
+          )
+        )
+          return;
+        this.item.set(await this.api.confirmOverwrite(value.id, preview.fields_available));
+      } else {
+        if (!confirm('Overwrite reviewed remote changes using the approved immutable Artifact?'))
+          return;
+        this.item.set(
+          await this.api.publish({
+            artifact_id: value.artifact_id,
+            destination_id: value.destination_id,
+            idempotency_key: crypto.randomUUID(),
+            action: 'update',
+            featured_media_id:
+              (value.request_snapshot['featured_media_id'] as string | null) ?? null,
+          }),
+        );
+      }
     });
   }
   private async run(operation: () => Promise<void>) {

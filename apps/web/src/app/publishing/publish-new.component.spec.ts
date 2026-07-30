@@ -57,4 +57,18 @@ describe('PublishNewComponent selection rules', () => {
     expect(component.destinationId).toBe('');
     expect(component.confirmed).toBe(false);
   });
+  it('builds bounded structured variant rows with Product price defaults', () => {
+    component.addVariant();
+    expect(component.shopifyVariants).toHaveLength(1);
+    expect(component.shopifyVariants[0].local_key).toBe('variant-1');
+    component.removeVariant(0);
+    expect(component.shopifyVariants).toEqual([]);
+  });
+  it('preserves Shopify media selection order', () => {
+    component.toggleMedia('media-2');
+    component.toggleMedia('media-1');
+    expect(component.selectedMediaIds).toEqual(['media-2', 'media-1']);
+    component.toggleMedia('media-2');
+    expect(component.selectedMediaIds).toEqual(['media-1']);
+  });
 });

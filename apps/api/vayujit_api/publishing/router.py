@@ -29,6 +29,8 @@ from vayujit_api.publishing.schemas import (
     ShopifyConnectorResponse,
     ShopifyConnectorUpdate,
     ShopifyDiscoveryPage,
+    ShopifyOverwriteConfirmation,
+    ShopifyOverwritePreview,
     ShopifyPreviewResponse,
     ShopifyValidationResult,
     WordPressConnectorResponse,
@@ -38,6 +40,7 @@ from vayujit_api.publishing.schemas import (
 )
 from vayujit_api.publishing.service import (
     cancel_execution,
+    confirm_shopify_overwrite,
     create_destination,
     create_execution,
     destination_response,
@@ -50,6 +53,7 @@ from vayujit_api.publishing.service import (
     reconcile_execution,
     retry_execution,
     set_destination_status,
+    shopify_overwrite_preview,
     shopify_publishing_preview,
     update_destination,
 )
@@ -614,6 +618,26 @@ def execution_cancel(execution_id: uuid.UUID, db: DB, owner: Owner) -> Execution
 @router.post("/executions/{execution_id}/reconcile", response_model=ReconciliationResponse)
 def execution_reconcile(execution_id: uuid.UUID, db: DB, owner: Owner) -> ReconciliationResponse:
     return reconcile_execution(db, owner, execution_id)
+
+
+@router.post(
+    "/executions/{execution_id}/overwrite-preview",
+    response_model=ShopifyOverwritePreview,
+)
+def execution_overwrite_preview(
+    execution_id: uuid.UUID, db: DB, owner: Owner
+) -> ShopifyOverwritePreview:
+    return shopify_overwrite_preview(db, owner, execution_id)
+
+
+@router.post("/executions/{execution_id}/overwrite", response_model=ExecutionResponse)
+def execution_overwrite(
+    execution_id: uuid.UUID,
+    data: ShopifyOverwriteConfirmation,
+    db: DB,
+    owner: Owner,
+) -> ExecutionResponse:
+    return confirm_shopify_overwrite(db, owner, execution_id, data)
 
 
 @router.post("/executions/{execution_id}/move-to-draft", response_model=ExecutionResponse)

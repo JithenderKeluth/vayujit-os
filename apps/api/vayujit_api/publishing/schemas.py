@@ -7,6 +7,53 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints, model_vali
 Name = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=160)]
 
 
+class ShopifyOptionInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]
+    value: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=255)]
+
+
+class ShopifyVariantInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    local_key: Annotated[
+        str, StringConstraints(strip_whitespace=True, pattern=r"^[A-Za-z0-9._:-]{1,100}$")
+    ]
+    options: list[ShopifyOptionInput] = Field(default_factory=list, max_length=3)
+    sku: Annotated[str, StringConstraints(strip_whitespace=True, max_length=100)] | None = None
+    price: Annotated[str, StringConstraints(pattern=r"^\d{1,10}(?:\.\d{1,2})?$")] | None = None
+    compare_at_price: (
+        Annotated[str, StringConstraints(pattern=r"^\d{1,10}(?:\.\d{1,2})?$")] | None
+    ) = None
+    barcode: Annotated[str, StringConstraints(strip_whitespace=True, max_length=100)] | None = None
+    weight: Annotated[str, StringConstraints(pattern=r"^\d{1,9}(?:\.\d{1,3})?$")] | None = None
+    weight_unit: Literal["g", "kg", "oz", "lb"] | None = None
+    taxable: bool = True
+    track_inventory: bool = False
+
+    @model_validator(mode="after")
+    def commerce_values_are_consistent(self) -> "ShopifyVariantInput":
+        from decimal import Decimal
+
+        if self.compare_at_price is not None and self.price is None:
+            raise ValueError("Variant price is required with compare-at price.")
+        if (
+            self.compare_at_price is not None
+            and self.price is not None
+            and Decimal(self.compare_at_price) < Decimal(self.price)
+        ):
+            raise ValueError("Compare-at price cannot be lower than variant price.")
+        if self.weight is not None and self.weight_unit is None:
+            raise ValueError("Weight unit is required with variant weight.")
+        return self
+
+
+class ShopifyMediaSelection(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    media_id: uuid.UUID
+    position: Annotated[int, Field(ge=0, le=99)]
+    alt_text: Annotated[str, StringConstraints(strip_whitespace=True, max_length=512)] = ""
+
+
 class MockConfiguration(BaseModel):
     model_config = ConfigDict(extra="forbid")
     channel_name: Annotated[
@@ -47,6 +94,8 @@ class ShopifyDestinationConfiguration(BaseModel):
         default_factory=list, max_length=100
     )
     variant_policy: Literal["default_variant", "structured_variants"] = "default_variant"
+    require_variant_price: bool = False
+    require_variant_sku: bool = False
     inventory_policy: Literal["no_inventory_write", "track_without_quantity"] = "no_inventory_write"
     media_policy: Literal["fail", "draft_without_media", "degraded"] = "fail"
     update_existing_remote_product: bool = True
@@ -109,6 +158,27 @@ class CreateExecution(BaseModel):
     ) = None
     action: Literal["create_draft", "publish", "activate", "update", "archive"] = "publish"
     featured_media_id: uuid.UUID | None = None
+    shopify_variants: list[ShopifyVariantInput] = Field(default_factory=list, max_length=100)
+    shopify_media: list[ShopifyMediaSelection] = Field(default_factory=list, max_length=20)
+
+    @model_validator(mode="after")
+    def structured_shopify_values_are_unique(self) -> "CreateExecution":
+        keys = [item.local_key.casefold() for item in self.shopify_variants]
+        if len(keys) != len(set(keys)):
+            raise ValueError("Shopify variant local keys must be unique.")
+        signatures = [
+            tuple((option.name.casefold(), option.value.casefold()) for option in item.options)
+            for item in self.shopify_variants
+        ]
+        if len(signatures) != len(set(signatures)):
+            raise ValueError("Shopify variant option combinations must be unique.")
+        skus = [item.sku.casefold() for item in self.shopify_variants if item.sku]
+        if len(skus) != len(set(skus)):
+            raise ValueError("Shopify variant SKUs must be unique.")
+        positions = [item.position for item in self.shopify_media]
+        if len(positions) != len(set(positions)):
+            raise ValueError("Shopify media positions must be unique.")
+        return self
 
 
 class AttemptResponse(BaseModel):
@@ -125,6 +195,8 @@ class AttemptResponse(BaseModel):
     latency_ms: int | None = None
     response_status: int | None = None
     retry_after_seconds: int | None = None
+    calculated_delay_ms: int | None = None
+    applied_delay_ms: int | None = None
     ambiguous_result: bool = False
     correlation_id: str | None = None
 
@@ -310,11 +382,37 @@ class ReconciliationResponse(BaseModel):
     correlation_id: str | None
 
 
+class ShopifyOverwritePreview(BaseModel):
+    execution_id: uuid.UUID
+    reconciliation_status: str
+    fields_available: list[str]
+    remote_only_fields_preserved: list[str]
+    differences: list["RemoteDriftField"]
+    correlation_id: str | None
+
+
+class ShopifyOverwriteConfirmation(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    fields: list[Annotated[str, StringConstraints(min_length=1, max_length=200)]] = Field(
+        min_length=1, max_length=100
+    )
+    confirmed: Literal[True]
+
+
 class RemoteDriftField(BaseModel):
     field: str
+    display_label: str = ""
     expected: object | None
     remote: object | None
+    normalized_expected: object | None = None
+    normalized_remote: object | None = None
     status: Literal["in_sync", "changed_remotely", "unknown"]
+    drift_type: Literal[
+        "value_changed", "missing_remote", "extra_remote", "inaccessible", "unknown", "conflict"
+    ] = "value_changed"
+    severity: Literal["info", "warning", "blocking"] = "warning"
+    resolution: Literal["overwrite", "keep_remote", "manual", "none"] = "keep_remote"
+    safe_explanation: str = ""
 
 
 class SanitizationChange(BaseModel):

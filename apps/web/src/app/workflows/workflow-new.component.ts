@@ -39,6 +39,17 @@ import { WorkflowService } from './workflow.service';
           }
         </select></label
       >
+      @if (selectedDestination()?.connector_key === 'shopify') {
+        <label>
+          Shopify Workflow action
+          <select name="publishingAction" [(ngModel)]="publishingAction">
+            <option value="shopify_create_draft">Create draft</option>
+            <option value="shopify_update_product">Update mapped product</option>
+            <option value="shopify_activate_product">Activate and publish</option>
+            <option value="shopify_archive_product">Archive mapped product</option>
+          </select>
+        </label>
+      }
       <label
         >2. Active Product
         <select required name="product" [(ngModel)]="productId">
@@ -132,6 +143,11 @@ export class WorkflowNewComponent implements OnInit {
   destinationId = '';
   templateId = '';
   instructions = '';
+  publishingAction:
+    | 'shopify_create_draft'
+    | 'shopify_update_product'
+    | 'shopify_activate_product'
+    | 'shopify_archive_product' = 'shopify_create_draft';
   confirmed = false;
   readonly eligibleProducts = computed(() =>
     this.products().filter((item) => item.brand_id === this.brandId && item.status === 'active'),
@@ -140,6 +156,9 @@ export class WorkflowNewComponent implements OnInit {
     this.destinations().filter(
       (item) => item.status === 'active' && (!item.brand_id || item.brand_id === this.brandId),
     ),
+  );
+  readonly selectedDestination = computed(
+    () => this.destinations().find((item) => item.id === this.destinationId) ?? null,
   );
   readonly valid = computed(() =>
     Boolean(
@@ -185,6 +204,10 @@ export class WorkflowNewComponent implements OnInit {
         destination_id: this.destinationId,
         workflow_template_id: this.templateId,
         additional_instructions: this.instructions || null,
+        publishing_action:
+          this.selectedDestination()?.connector_key === 'shopify'
+            ? this.publishingAction
+            : 'default',
       });
       const started = await this.api.start(created.id);
       await this.router.navigate(['/workflows', started.id]);

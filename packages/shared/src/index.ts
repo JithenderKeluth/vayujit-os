@@ -481,6 +481,8 @@ export interface ShopifyDestinationConfiguration {
   default_product_type: string;
   default_tags: string[];
   variant_policy: 'default_variant' | 'structured_variants';
+  require_variant_price: boolean;
+  require_variant_sku: boolean;
   inventory_policy: 'no_inventory_write' | 'track_without_quantity';
   media_policy: 'fail' | 'draft_without_media' | 'degraded';
   update_existing_remote_product: boolean;
@@ -523,6 +525,8 @@ export interface PublishingAttemptDetails {
   latency_ms: number | null;
   response_status: number | null;
   retry_after_seconds: number | null;
+  calculated_delay_ms: number | null;
+  applied_delay_ms: number | null;
   ambiguous_result: boolean;
   correlation_id: string | null;
 }
@@ -566,6 +570,8 @@ export interface CreatePublishingExecutionRequest {
   idempotency_key?: string;
   action?: 'create_draft' | 'publish' | 'activate' | 'update' | 'archive';
   featured_media_id?: string | null;
+  shopify_variants?: ShopifyVariantInput[];
+  shopify_media?: ShopifyMediaSelection[];
 }
 export interface WordPressConnectorConfiguration {
   connector_key: 'wordpress';
@@ -751,11 +757,65 @@ export interface ShopifyPublishingPreview {
   brand_name: string;
   original_text: string;
 }
+export interface ShopifyOptionInput {
+  name: string;
+  value: string;
+}
+export interface ShopifyVariantInput {
+  local_key: string;
+  options: ShopifyOptionInput[];
+  sku: string | null;
+  price: string | null;
+  compare_at_price: string | null;
+  barcode: string | null;
+  weight: string | null;
+  weight_unit: 'g' | 'kg' | 'oz' | 'lb' | null;
+  taxable: boolean;
+  track_inventory: boolean;
+}
+export interface ShopifyMediaSelection {
+  media_id: string;
+  position: number;
+  alt_text: string;
+}
+export interface ShopifyVariantMapping {
+  local_variant_key: string;
+  remote_product_id: string;
+  remote_variant_id: string;
+  remote_inventory_item_id: string | null;
+  sku: string | null;
+  option_signature: string;
+  status: string;
+}
+export interface ShopifyThrottleMetadata {
+  requested_cost: number | null;
+  actual_cost: number | null;
+  currently_available: number | null;
+  restore_rate: number | null;
+}
+export interface ShopifyRetryDelayMetadata {
+  calculated_delay_ms: number | null;
+  applied_delay_ms: number | null;
+  retry_after_seconds: number | null;
+}
 export interface RemoteDriftField {
   field: string;
+  display_label: string;
   expected: unknown;
   remote: unknown;
+  normalized_expected: unknown;
+  normalized_remote: unknown;
   status: 'in_sync' | 'changed_remotely' | 'unknown';
+  drift_type:
+    | 'value_changed'
+    | 'missing_remote'
+    | 'extra_remote'
+    | 'inaccessible'
+    | 'unknown'
+    | 'conflict';
+  severity: 'info' | 'warning' | 'blocking';
+  resolution: 'overwrite' | 'keep_remote' | 'manual' | 'none';
+  safe_explanation: string;
 }
 export interface PublishingReconciliationResult {
   id: string;
@@ -764,6 +824,14 @@ export interface PublishingReconciliationResult {
   remote_slug: string | null;
   remote_url: string | null;
   drift_fields: string[];
+  differences: RemoteDriftField[];
+  correlation_id: string | null;
+}
+export interface ShopifyOverwritePreview {
+  execution_id: string;
+  reconciliation_status: string;
+  fields_available: string[];
+  remote_only_fields_preserved: string[];
   differences: RemoteDriftField[];
   correlation_id: string | null;
 }
@@ -825,6 +893,12 @@ export interface CreateWorkflowRequest {
   destination_id: string;
   workflow_template_id?: string | null;
   additional_instructions?: string | null;
+  publishing_action?:
+    | 'default'
+    | 'shopify_create_draft'
+    | 'shopify_update_product'
+    | 'shopify_activate_product'
+    | 'shopify_archive_product';
 }
 export interface WorkflowStepAttemptDetails {
   id: string;
