@@ -1,0 +1,13 @@
+flowchart LR
+  Owner[Local owner] --> Electron[Electron shell]
+  Electron --> Angular[Angular application]
+  Electron -->|lifecycle| API[FastAPI modular monolith]
+  Angular -->|authenticated loopback HTTP/JSON| API
+  API -->|SQL| DB[(PostgreSQL)]
+  API -->|managed file API| Assets[(Local asset storage)]
+  API --> AI[AI provider adapters]
+  API --> Connectors[Connector adapters]
+  AI --> MockAI[Deterministic mock]
+  AI -.-> Ollama[Ollama-compatible local service]
+  Connectors --> MockM[Mock marketplace]
+  Connectors --> MockP[Mock publisher]

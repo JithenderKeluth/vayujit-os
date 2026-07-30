@@ -1,0 +1,20 @@
+stateDiagram-v2
+  [*] --> pending
+  pending --> running
+  pending --> cancelled
+  running --> waiting_for_approval: valid artifact
+  running --> failed
+  running --> cancelled
+  waiting_for_approval --> approved
+  waiting_for_approval --> rejected
+  waiting_for_approval --> cancelled
+  approved --> publishing
+  approved --> failed
+  publishing --> completed
+  publishing --> failed
+  failed --> running: safe generation retry
+  failed --> publishing: safe publish retry
+  failed --> cancelled
+  completed --> [*]
+  rejected --> [*]
+  cancelled --> [*]

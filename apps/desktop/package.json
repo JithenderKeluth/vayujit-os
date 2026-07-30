@@ -1,0 +1,26 @@
+{
+  "name": "@vayujit/desktop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/main.js",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "npm run build && wait-on http://127.0.0.1:4200 && cross-env VAYUJIT_DESKTOP_DEV_URL=http://127.0.0.1:4200 powershell -NoProfile -ExecutionPolicy Bypass -File ../../scripts/start-desktop.ps1",
+    "start": "powershell -NoProfile -ExecutionPolicy Bypass -File ../../scripts/start-desktop.ps1",
+    "smoke": "cross-env VAYUJIT_DESKTOP_SMOKE=1 powershell -NoProfile -ExecutionPolicy Bypass -File ../../scripts/start-desktop.ps1",
+    "lint": "eslint \"src/**/*.ts\"",
+    "test": "vitest run src"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "24.13.3",
+    "cross-env": "10.0.0",
+    "electron": "43.2.0",
+    "eslint": "10.8.0",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.59.3",
+    "vitest": "4.1.10",
+    "wait-on": "8.0.4"
+  }
+}
