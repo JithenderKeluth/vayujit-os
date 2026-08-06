@@ -1,13 +1,12 @@
 import uuid
 from datetime import datetime, timedelta
-from typing import Annotated, Any
+from typing import Annotated, Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from vayujit_api.ai.models import GeneratedArtifact
-from vayujit_api.audit.service import record_event
 from vayujit_api.brands.models import Brand
 from vayujit_api.campaigns.activity_service import (
     add_dependency,
@@ -32,6 +31,11 @@ from vayujit_api.campaigns.models import (
     CampaignWorkflowWait,
 )
 from vayujit_api.campaigns.readiness_service import activity_readiness, campaign_readiness
+from vayujit_api.campaigns.recovery_service import (
+    RECOVERY_ACTION_REGISTRY,
+    CampaignRecoveryExecutionContext,
+    eligible_recovery_actions,
+)
 from vayujit_api.campaigns.schedule_service import (
     dependencies,
     project_activity_states,
@@ -45,6 +49,7 @@ from vayujit_api.campaigns.schemas import (
     CalendarEvent,
     CampaignCreate,
     CampaignRecoveryActionRequest,
+    CampaignRecoveryActionResult,
     CampaignRecoveryProjection,
     CampaignResponse,
     CampaignUpdate,
@@ -65,14 +70,18 @@ from vayujit_api.campaigns.schemas import (
     WeekCalendar,
 )
 from vayujit_api.campaigns.workflow_executor import execute_campaign_action
-from vayujit_api.campaigns.workflow_service import restore_campaign_waits
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
+from vayujit_api.core.observability import correlation_id
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
 from vayujit_api.identity.service import now
 from vayujit_api.products.models import Product
-from vayujit_api.publishing.models import PublishingDestination, PublishingJob, PublishingSchedule
+from vayujit_api.publishing.models import (
+    PublishingDestination,
+    PublishingJob,
+    PublishingSchedule,
+)
 from vayujit_api.publishing.scheduler_time import local_to_utc, utcnow
 
 router = APIRouter(prefix="/api/v1/campaigns", tags=["campaigns"])
@@ -209,31 +218,8 @@ def lookup(
     return SelectorPage(items=items, page=page, page_size=page_size, total=len(items))
 
 
-def recovery_actions(activity: CampaignActivity) -> list[str]:
-    actions = ["open_campaign", "open_activity"]
-    if activity.product_id:
-        actions.append("open_product")
-    if activity.artifact_id:
-        actions.append("open_artifact")
-    if activity.destination_id:
-        actions.append("open_destination")
-    if activity.job_id:
-        actions.append("open_job")
-    if activity.publishing_execution_id:
-        actions.append("open_publishing_execution")
-    if activity.status in {"failed", "dead_letter"}:
-        actions.append("retry_activity")
-    if activity.status == "reconciliation_required" and activity.publishing_execution_id:
-        actions.append("reconcile_activity")
-    if not activity.required and activity.status not in {"succeeded", "skipped"}:
-        actions.append("skip_optional_activity")
-    if activity.status == "missed":
-        actions.extend(["reschedule_activity", "create_one_catch_up"])
-        if not activity.required:
-            actions.append("skip_missed_activity")
-    if activity.status not in {"succeeded", "cancelled", "archived"}:
-        actions.append("cancel_activity")
-    return actions
+def recovery_actions(activity: CampaignActivity, campaign: Campaign | None = None) -> list[str]:
+    return eligible_recovery_actions(activity, campaign)
 
 
 @router.get("/recovery", response_model=list[CampaignRecoveryProjection])
@@ -281,7 +267,7 @@ def campaign_recovery(db: DB, owner: Owner) -> list[CampaignRecoveryProjection]:
             workflow_wait_id=None,
             safe_failure_message=activity.safe_failure_message or "Campaign activity needs review.",
             correlation_id=activity.correlation_id,
-            eligible_actions=recovery_actions(activity),  # type: ignore[arg-type]
+            eligible_actions=recovery_actions(activity, campaign),
         )
         for activity, campaign in rows
     ]
@@ -291,80 +277,67 @@ def campaign_recovery(db: DB, owner: Owner) -> list[CampaignRecoveryProjection]:
 def execute_recovery_action(
     request: CampaignRecoveryActionRequest, db: DB, owner: Owner
 ) -> dict[str, object]:
+    specification = RECOVERY_ACTION_REGISTRY[request.action]
+    if specification.implementation_status == "unsupported":
+        return {
+            "action": request.action,
+            "outcome": "unsupported",
+            "safe_message": (
+                "Durable Activity rescheduling is not implemented yet."
+                if request.action == "reschedule_activity"
+                else "Catch-up creation is not implemented yet."
+            ),
+            "correlation_id": correlation_id() or str(uuid.uuid4()),
+            "idempotency_result": "not_applicable",
+        }
     campaign = owned_campaign(db, owner.id, request.campaign_id)
-    navigation = {
-        "open_campaign": f"/campaigns/{campaign.id}",
-        "open_activity": f"/campaigns/{campaign.id}",
-    }
     activity = (
         owned_activity(db, owner.id, campaign.id, request.activity_id)
         if request.activity_id
         else None
     )
-    if request.action.startswith("open_"):
-        if activity:
-            navigation.update(
-                {
-                    "open_product": f"/products/{activity.product_id}",
-                    "open_artifact": f"/ai/artifacts/{activity.artifact_id}",
-                    "open_destination": f"/publishing/destinations/{activity.destination_id}",
-                    "open_job": f"/publishing/jobs/{activity.job_id}",
-                    "open_publishing_execution": (
-                        f"/publishing/executions/{activity.publishing_execution_id}"
-                    ),
-                }
-            )
-        target = navigation.get(request.action)
-        if not target:
-            raise HTTPException(409, "Recovery navigation is unavailable.")
-        return {"action": request.action, "navigation_target": target}
-    if activity is None and request.action not in {
-        "resume_campaign",
-        "pause_campaign",
-        "cancel_campaign",
-        "retry_campaign_workflow_wait",
-    }:
-        raise HTTPException(422, "This Recovery action requires an Activity.")
-    if activity and request.action not in recovery_actions(activity):
-        raise HTTPException(409, "Recovery action is not eligible for the current state.")
-    result: Any
-    if request.action == "retry_activity" and activity:
-        result = activity_retry(campaign.id, activity.id, db, owner)
-    elif request.action in {"skip_optional_activity", "skip_missed_activity"} and activity:
-        if activity.required:
-            raise HTTPException(409, "Required Activities cannot be skipped.")
-        activity.status = "skipped"
-        activity.completed_at = activity.updated_at = now()
-        db.commit()
-        result = activity
-    elif request.action == "cancel_activity" and activity:
-        result = activity_cancel(campaign.id, activity.id, db, owner)
-    elif request.action == "pause_campaign":
-        result = pause(campaign.id, db, owner)
-    elif request.action == "resume_campaign":
-        result = resume(
-            campaign.id,
-            LifecycleRequest(missed_activity_policy="reschedule_manually"),
-            db,
-            owner,
+    if specification.implementation_status == "implemented":
+        handler = (
+            specification.navigation_resolver
+            if specification.classification == "navigation_only"
+            else specification.executor
         )
-    elif request.action == "cancel_campaign":
-        result = cancel(campaign.id, LifecycleRequest(reason=request.reason), db, owner)
-    elif request.action == "retry_campaign_workflow_wait":
-        restored = restore_campaign_waits(db, owner_id=owner.id)
-        result = {"restored": restored}
-    else:
-        raise HTTPException(409, "Recovery action is not implemented for the current state.")
-    record_event(
-        db,
-        actor_id=owner.id,
-        action="campaign.recovery_action_executed",
-        entity_type="campaign",
-        entity_id=campaign.id,
-        metadata={"recovery_action": request.action, "activity_id": str(request.activity_id)},
-    )
-    db.commit()
-    return {"action": request.action, "result": result}
+        if handler is None:
+            raise HTTPException(500, "Recovery action handler is unavailable.")
+        if activity and request.action not in recovery_actions(activity, campaign):
+            raise HTTPException(409, "Recovery action is not eligible for the current state.")
+        context = CampaignRecoveryExecutionContext(
+            db=db,
+            owner=owner,
+            campaign=campaign,
+            activity=activity,
+            workflow_wait=None,
+            correlation_id=correlation_id() or str(uuid.uuid4()),
+            now_utc=utcnow(),
+            maintenance_mode=False,
+            action=specification,
+            dispatch=lambda _key, _request: CampaignRecoveryActionResult(
+                action=_request.action,
+                outcome="legacy_dispatch",
+                resource_ids={},
+                safe_message="Legacy dispatch.",
+                navigation_targets={},
+                confirmation_required=False,
+                correlation_id=context.correlation_id,
+                idempotency_result="not_applicable",
+            ),
+        )
+        try:
+            typed_result = handler(context, request)
+        except ValueError as exc:
+            raise HTTPException(409, str(exc)) from exc
+        result_payload = cast(dict[str, object], typed_result.model_dump(mode="json"))
+        if request.action == "reconcile_activity" and typed_result.idempotency_result == "reused":
+            result_payload["idempotent_reuse"] = True
+        return {
+            "action": request.action,
+            "result": result_payload,
+        }
 
 
 def campaign_activities(db: Session, campaign_id: uuid.UUID) -> list[CampaignActivity]:

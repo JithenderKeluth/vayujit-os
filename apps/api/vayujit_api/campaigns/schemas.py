@@ -505,8 +505,30 @@ class CampaignRecoveryActionRequest(BaseModel):
     activity_id: uuid.UUID | None = None
     workflow_wait_id: uuid.UUID | None = None
     replacement_artifact_id: uuid.UUID | None = None
+    replacement_artifact_version: int | None = Field(default=None, ge=1)
+    expected_activity_row_version: int | None = Field(default=None, ge=1)
     reason: str = Field(default="Operator recovery action.", max_length=500)
     confirm: Literal[True]
+
+
+CampaignRecoveryRequest = CampaignRecoveryActionRequest
+
+
+class CampaignRecoveryActionResult(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    action: CampaignRecoveryActionKey
+    outcome: str
+    resource_ids: dict[str, str] = Field(default_factory=dict)
+    safe_message: str
+    navigation_targets: dict[str, str] = Field(default_factory=dict)
+    confirmation_required: bool
+    correlation_id: str
+    idempotency_result: str
+    scheduled: bool = False
+    status: str | None = None
+    idempotent_reuse: bool = False
+    publishing_execution_id: uuid.UUID | None = None
+    reconciliation_status: str | None = None
 
 
 class ProgressResponse(BaseModel):

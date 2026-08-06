@@ -3,6 +3,7 @@ import os
 import uuid
 from collections.abc import Generator
 from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from threading import Barrier
 
@@ -44,6 +45,17 @@ URL = os.getenv("VAYUJIT_TEST_DATABASE_URL")
 pytestmark = pytest.mark.integration
 ORIGIN = {"Origin": "http://127.0.0.1:4200"}
 factory: sessionmaker[Session] | None = None
+
+
+@dataclass
+class FakeConnectorState:
+    wordpress_posts: dict[int, dict[str, object]] = field(default_factory=dict)
+    wordpress_requests: list[tuple[str, str]] = field(default_factory=list)
+    shopify_products: dict[str, dict[str, object]] = field(default_factory=dict)
+    shopify_requests: list[str] = field(default_factory=list)
+
+
+connector_state = FakeConnectorState()
 
 
 @pytest.fixture
@@ -115,9 +127,14 @@ def harness(
     app = create_app()
     app.dependency_overrides[get_session] = session
     monkeypatch.setattr("vayujit_api.publishing.worker.SessionFactory", factory)
-    posts: dict[int, dict[str, object]] = {}
+    connector_state.wordpress_posts.clear()
+    connector_state.wordpress_requests.clear()
+    connector_state.shopify_products.clear()
+    connector_state.shopify_requests.clear()
+    posts = connector_state.wordpress_posts
 
     def wordpress_handler(request: httpx.Request) -> httpx.Response:
+        connector_state.wordpress_requests.append((request.method, request.url.path))
         if request.url.path.endswith("/users/me"):
             return httpx.Response(200, json={"id": 1, "name": "Owner"})
         if request.url.path.endswith("/posts") and request.method == "POST":
@@ -169,6 +186,19 @@ def harness(
         def publish(
             self, destination: dict[str, object], snapshot: dict[str, object]
         ) -> ConnectorResult:
+            connector_state.shopify_requests.append("publish")
+            connector_state.shopify_products.setdefault(
+                "gid://shopify/Product/42",
+                {
+                    "id": "gid://shopify/Product/42",
+                    "title": snapshot["product_name"],
+                    "status": "DRAFT",
+                    "variants": [{"id": "gid://shopify/ProductVariant/42"}],
+                    "media": [],
+                    "collections": [],
+                    "publications": [],
+                },
+            )
             return ConnectorResult(
                 "gid://shopify/Product/42",
                 "https://test-shop.myshopify.com/admin/products/42",
@@ -185,6 +215,7 @@ def harness(
             )
 
         def reconcile(self, remote_id: str) -> ConnectorResult:
+            connector_state.shopify_requests.append("reconcile")
             return ConnectorResult(
                 remote_id,
                 "https://test-shop.myshopify.com/admin/products/42",
