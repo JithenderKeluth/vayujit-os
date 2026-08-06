@@ -1,15 +1,17 @@
 import uuid
 from datetime import UTC, datetime, timedelta
 from types import SimpleNamespace
-from typing import cast
+from typing import cast, get_args
 
 from vayujit_api.campaigns.calendar_service import calendar_projection
 from vayujit_api.campaigns.completion_service import terminal_state
 from vayujit_api.campaigns.models import CampaignActivity
+from vayujit_api.campaigns.recovery_service import RECOVERY_ACTION_REGISTRY
 from vayujit_api.campaigns.router import recovery_actions
 from vayujit_api.campaigns.schemas import (
     AgendaCalendar,
     CalendarEvent,
+    CampaignRecoveryActionKey,
     ValidateCampaignAction,
 )
 
@@ -92,3 +94,32 @@ def test_recovery_action_eligibility_suppresses_unsafe_actions() -> None:
     assert "skip_optional_activity" not in recovery_actions(cast(CampaignActivity, required))
     assert "skip_missed_activity" not in recovery_actions(cast(CampaignActivity, required))
     assert "skip_missed_activity" in recovery_actions(cast(CampaignActivity, optional))
+
+
+def test_recovery_action_registry_is_complete_and_classified() -> None:
+    declared = set(get_args(CampaignRecoveryActionKey))
+    assert set(RECOVERY_ACTION_REGISTRY) == declared
+    for key, spec in RECOVERY_ACTION_REGISTRY.items():
+        assert spec.key == key
+        assert spec.permission
+        assert spec.request_contract
+        assert spec.result_contract
+        assert callable(spec.eligibility_evaluator)
+        assert spec.idempotency
+        assert spec.audit_event
+        assert spec.safe_success_message
+        assert spec.safe_failure_behavior
+        if spec.implementation_status == "unsupported":
+            assert key in {"create_one_catch_up", "reschedule_activity"}
+            assert spec.classification == "mutating"
+            assert spec.executor is None
+            continue
+        if spec.classification == "mutating":
+            assert callable(spec.executor)
+            assert spec.navigation_resolver is None
+            assert spec.confirmation_required
+        else:
+            assert spec.classification == "navigation_only"
+            assert spec.executor is None
+            assert callable(spec.navigation_resolver)
+            assert not spec.confirmation_required

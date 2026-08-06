@@ -75,7 +75,7 @@ def schedule_activities(
                 name=f"{campaign.name}: {activity.name}",
                 artifact_id=activity.artifact_id,
                 destination_id=activity.destination_id,
-                requested_action=activity.requested_action,  # type: ignore[arg-type]
+                requested_action=activity.requested_action,
                 local_scheduled_at=activity.scheduled_at_utc.replace(tzinfo=None),
                 timezone_name="UTC",
                 schedule_type="one_time",
