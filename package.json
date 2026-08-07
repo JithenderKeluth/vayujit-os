@@ -55,6 +55,7 @@
     "test:campaigns:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_campaigns_integration.py",
     "test:campaigns:e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_campaign_connectors_e2e.py",
     "test:campaigns:replacement": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-replacement.ps1",
+    "test:campaigns:rescheduling": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_campaign_activity_rescheduling.py",
     "test:desktop": "npm run test --workspace @vayujit/desktop",
     "test:desktop:smoke": "npm run build && npm run smoke --workspace @vayujit/desktop",
     "build": "npm run build --workspace @vayujit/shared && npm run build --workspace @vayujit/web && npm run build --workspace @vayujit/desktop",

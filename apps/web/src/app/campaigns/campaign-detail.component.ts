@@ -8,12 +8,14 @@ import type {
   CampaignConflict,
   CampaignProgress,
   CampaignReadiness,
+  CampaignRecoveryProjection,
 } from '@vayujit/shared';
 import { CampaignService } from './campaign.service';
+import { RescheduleDialogComponent } from './reschedule-dialog.component';
 
 @Component({
   selector: 'app-campaign-detail',
-  imports: [DatePipe, FormsModule, RouterLink],
+  imports: [DatePipe, FormsModule, RouterLink, RescheduleDialogComponent],
   template: `
     <section class="page">
       @if (campaign(); as value) {
@@ -136,6 +138,22 @@ import { CampaignService } from './campaign.service';
                   {{ activity.scheduled_at_utc | date: 'medium' }} · {{ activity.timezone_name }}
                 </p>
                 <p>Readiness: {{ activity.readiness_status }}</p>
+                @if (rescheduleAction(activity); as action) {
+                  @if (action.eligible_actions.includes('reschedule_activity')) {
+                    <button type="button" (click)="reschedulingActivityId.set(activity.id)">
+                      Reschedule Activity
+                    </button>
+                  } @else if (action.safe_failure_message) {
+                    <p class="op-muted">Rescheduling unavailable: {{ action.safe_failure_message }}</p>
+                  }
+                }
+                @if (reschedulingActivityId() === activity.id) {
+                  <app-reschedule-dialog
+                    [campaignId]="value.id"
+                    [activity]="activity"
+                    (completed)="closeReschedule()"
+                  />
+                }
                 @if (activity.job_id) {
                   <a [routerLink]="['/publishing/jobs', activity.job_id]">Open job</a>
                 }
@@ -164,6 +182,8 @@ export class CampaignDetailComponent {
   readonly readiness = signal<CampaignReadiness | null>(null);
   readonly conflicts = signal<CampaignConflict[]>([]);
   readonly progress = signal<CampaignProgress | null>(null);
+  readonly recovery = signal<CampaignRecoveryProjection[]>([]);
+  readonly reschedulingActivityId = signal<string | null>(null);
   readonly message = signal('');
   resumePolicy = 'skip_missed';
   constructor() {
@@ -180,6 +200,12 @@ export class CampaignDetailComponent {
     this.activities.set(activities);
     this.conflicts.set(conflicts);
     this.progress.set(progress);
+    try {
+      const recovery = await this.api.recovery();
+      this.recovery.set(recovery.filter((item) => item.campaign_id === this.id));
+    } catch {
+      this.recovery.set([]);
+    }
   }
   async validate(): Promise<void> {
     this.readiness.set(await this.api.readiness(this.id));
@@ -202,5 +228,12 @@ export class CampaignDetailComponent {
   async cancel(): Promise<void> {
     const reason = globalThis.prompt('Cancellation reason');
     if (reason) this.campaign.set(await this.api.cancel(this.id, reason));
+  }
+  rescheduleAction(activity: CampaignActivity): CampaignRecoveryProjection | null {
+    return this.recovery().find((item) => item.activity_id === activity.id) || null;
+  }
+  closeReschedule(): void {
+    this.reschedulingActivityId.set(null);
+    void this.load();
   }
 }

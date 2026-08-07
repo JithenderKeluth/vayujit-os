@@ -36,6 +36,12 @@ class OperationalItem(BaseModel):
     safe_summary: str
     related_url: str | None = None
     correlation_id: str | None = None
+    actor_id: uuid.UUID | None = None
+    campaign_id: str | None = None
+    activity_id: str | None = None
+    original_scheduled_at_utc: str | None = None
+    new_scheduled_at_utc: str | None = None
+    reason: str | None = None
 
 
 class DashboardResponse(BaseModel):

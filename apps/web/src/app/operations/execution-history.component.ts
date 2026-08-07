@@ -72,6 +72,18 @@ import { OperationsService } from './operations.service';
               @if (item.correlation_id) {
                 <p class="op-muted">Correlation: {{ item.correlation_id }}</p>
               }
+              @if (item.event_name === 'campaign.activity_rescheduled' && item.actor_id) {
+                <p class="op-muted">Actor: {{ item.actor_id }}</p>
+              }
+              @if (item.event_name === 'campaign.activity_rescheduled') {
+                <p>
+                  Campaign Activity rescheduled
+                  @if (item.original_scheduled_at_utc && item.new_scheduled_at_utc) {
+                    - {{ item.original_scheduled_at_utc }} to {{ item.new_scheduled_at_utc }}
+                  }
+                </p>
+                @if (item.reason) { <p class="op-muted">Reason: {{ item.reason }}</p> }
+              }
             </div>
             <span class="op-status">{{ item.status || 'recorded' }}</span>
           </div>

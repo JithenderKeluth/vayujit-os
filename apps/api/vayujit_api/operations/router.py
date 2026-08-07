@@ -49,11 +49,12 @@ def event_category(action: str) -> str:
         "publishing": "Publishing",
         "workflow": "Workflow",
         "product": "Product",
+        "campaign": "Campaign",
         "settings": "System",
     }.get(prefix, "System")
 
 
-def event_url(event: AuditEvent) -> str | None:
+def event_url(event: AuditEvent, metadata: dict[str, Any]) -> str | None:
     routes = {
         "generated_artifact": "/approvals/",
         "publishing_execution": "/publishing/executions/",
@@ -61,6 +62,14 @@ def event_url(event: AuditEvent) -> str | None:
         "product": "/products/",
         "brand": "/brands/",
     }
+    if event.entity_type == "campaign_activity":
+        campaign_id = metadata.get("campaign_id")
+        if isinstance(campaign_id, str):
+            try:
+                return f"/campaigns/{uuid.UUID(campaign_id)}"
+            except ValueError:
+                return None
+        return None
     root = routes.get(event.entity_type)
     return f"{root}{event.entity_id}" if root else None
 
@@ -91,8 +100,26 @@ def safe_event(
         product_name=product.name if product else None,
         status=str(status) if status else None,
         safe_summary=summary,
-        related_url=event_url(event),
+        related_url=event_url(event, metadata),
         correlation_id=event.correlation_id,
+        actor_id=event.actor_id,
+        campaign_id=str(metadata["campaign_id"])
+        if isinstance(metadata.get("campaign_id"), str)
+        else None,
+        activity_id=str(metadata["activity_id"])
+        if isinstance(metadata.get("activity_id"), str)
+        else None,
+        original_scheduled_at_utc=(
+            str(metadata["old_scheduled_at_utc"])
+            if isinstance(metadata.get("old_scheduled_at_utc"), str)
+            else None
+        ),
+        new_scheduled_at_utc=(
+            str(metadata["new_scheduled_at_utc"])
+            if isinstance(metadata.get("new_scheduled_at_utc"), str)
+            else None
+        ),
+        reason=str(metadata["reason"])[:500] if isinstance(metadata.get("reason"), str) else None,
     )
 
 

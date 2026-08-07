@@ -74,3 +74,10 @@ lifecycle/action bounds, cycle detection, conflicts, normalized persistence, rea
 checkpoint scheduling, progress, calendar projections, migration downgrade/re-upgrade, and
 regressions for the existing scheduler/connectors. Production WordPress and Shopify services are
 never contacted by automated tests.
+## Campaign rescheduling acceptance
+
+Frontend tests cover authoritative eligibility, preview/confirmation separation, fingerprint
+handling, DST gap/fold rendering, stale-preview recovery, keyboard access, safe error rendering,
+and duplicate-submit prevention. Guarded PostgreSQL integration tests cover durable schedule/job
+supersession, idempotent replay, lease safety, readiness, workflow waits, audit safety, and
+owner/Origin protection. No real connector is contacted.

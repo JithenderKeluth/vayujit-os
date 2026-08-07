@@ -10,6 +10,12 @@ import type {
   CampaignReadiness,
   CampaignHealth,
   CampaignSelectorPage,
+  CampaignRecoveryProjection,
+  CampaignReschedulePreviewRequest,
+  CampaignReschedulePreviewResponse,
+  CampaignRescheduleConfirmationRequest,
+  CampaignRescheduleConfirmationResult,
+  CampaignRescheduleHistoryItem,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
 
@@ -35,6 +41,45 @@ export class CampaignService {
   activities(id: string): Promise<CampaignActivity[]> {
     return firstValueFrom(
       this.http.get<CampaignActivity[]>(`${this.base}/${id}/activities`, this.options),
+    );
+  }
+  recovery(): Promise<CampaignRecoveryProjection[]> {
+    return firstValueFrom(
+      this.http.get<CampaignRecoveryProjection[]>(`${this.base}/recovery`, this.options),
+    );
+  }
+  previewActivityReschedule(
+    campaignId: string,
+    request: CampaignReschedulePreviewRequest,
+  ): Promise<CampaignReschedulePreviewResponse> {
+    return firstValueFrom(
+      this.http.post<CampaignReschedulePreviewResponse>(
+        `${this.base}/${campaignId}/recovery/reschedule-activity/preview`,
+        request,
+        this.options,
+      ),
+    );
+  }
+  confirmActivityReschedule(
+    request: CampaignRescheduleConfirmationRequest,
+  ): Promise<{ action: string; result: CampaignRescheduleConfirmationResult }> {
+    return firstValueFrom(
+      this.http.post<{ action: string; result: CampaignRescheduleConfirmationResult }>(
+        `${this.base}/recovery/actions`,
+        request,
+        this.options,
+      ),
+    );
+  }
+  getActivityRescheduleHistory(
+    campaignId: string,
+    activityId: string,
+  ): Promise<CampaignRescheduleHistoryItem[]> {
+    return firstValueFrom(
+      this.http.get<CampaignRescheduleHistoryItem[]>(
+        `${this.base}/${campaignId}/activities/${activityId}/reschedules`,
+        this.options,
+      ),
     );
   }
   createActivity(id: string, data: Record<string, unknown>): Promise<CampaignActivity> {

@@ -71,4 +71,67 @@ describe('CampaignService', () => {
     request.flush({ id: 'campaign-1', status: 'draft' });
     expect((await result).id).toBe('campaign-1');
   });
+
+  it('previews and confirms rescheduling with credentials and the exact fingerprint', async () => {
+    const previewResult = service.previewActivityReschedule('campaign-1', {
+      activity_id: 'activity-1',
+      proposed_local_datetime: '2026-11-01T01:30:00',
+      proposed_timezone: 'America/New_York',
+      expected_activity_row_version: 4,
+      fold: 1,
+    });
+    const previewRequest = http.expectOne(
+      'http://127.0.0.1:8000/api/v1/campaigns/campaign-1/recovery/reschedule-activity/preview',
+    );
+    expect(previewRequest.request.withCredentials).toBe(true);
+    previewRequest.flush({
+      campaign_id: 'campaign-1',
+      activity_id: 'activity-1',
+      original_scheduled_at_utc: '2026-10-01T12:00:00Z',
+      proposed_local_datetime: '2026-11-01T01:30:00',
+      proposed_scheduled_at_utc: '2026-11-01T06:30:00Z',
+      timezone: 'America/New_York',
+      confirmation_required: true,
+      preview_fingerprint: 'fp-1',
+      safe_message: 'Review',
+      correlation_id: 'corr-1',
+      dst_classification: 'ambiguous_local_time',
+      utc_offset: '-04:00',
+      fold: 1,
+      issue_code: null,
+      warnings: [],
+      readiness_issues: [],
+      conflicts: [],
+      current_schedule_status: 'active',
+      current_job_status: 'pending',
+    });
+    expect((await previewResult).preview_fingerprint).toBe('fp-1');
+    const confirmation = service.confirmActivityReschedule({
+      action: 'reschedule_activity',
+      campaign_id: 'campaign-1',
+      activity_id: 'activity-1',
+      expected_activity_row_version: 4,
+      proposed_local_datetime: '2026-11-01T01:30:00',
+      proposed_timezone: 'America/New_York',
+      preview_fingerprint: 'fp-1',
+      fold: 1,
+      confirm: true,
+    });
+    const confirmationRequest = http.expectOne(
+      'http://127.0.0.1:8000/api/v1/campaigns/recovery/actions',
+    );
+    expect(confirmationRequest.request.withCredentials).toBe(true);
+    expect(confirmationRequest.request.body.preview_fingerprint).toBe('fp-1');
+    confirmationRequest.flush({ action: 'reschedule_activity', result: { outcome: 'succeeded' } });
+    expect((await confirmation).result.outcome).toBe('succeeded');
+  });
+
+  it('loads reschedule history through the shared contract', async () => {
+    const result = service.getActivityRescheduleHistory('campaign-1', 'activity-1');
+    const request = http.expectOne(
+      'http://127.0.0.1:8000/api/v1/campaigns/campaign-1/activities/activity-1/reschedules',
+    );
+    request.flush([]);
+    expect(await result).toEqual([]);
+  });
 });

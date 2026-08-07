@@ -142,7 +142,7 @@ def update_schedule(
     return value
 
 
-def materialize_due_schedules(db: Session) -> int:
+def materialize_due_schedules(db: Session, *, commit: bool = True) -> int:
     timestamp = utcnow()
     horizon = timestamp + timedelta(days=get_settings().publishing_schedule_horizon_days)
     schedules = list(
@@ -225,7 +225,8 @@ def materialize_due_schedules(db: Session) -> int:
                 schedule.next_run_at_utc = None
                 break
             schedule.next_run_at_utc = next_value
-    db.commit()
+    if commit:
+        db.commit()
     return created
 
 

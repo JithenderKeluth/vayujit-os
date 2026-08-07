@@ -1,5 +1,12 @@
 # Operations Guide
 
+## Campaign Activity rescheduling
+
+Use Recovery to open an eligible missed Activity and choose **Reschedule Activity**. Review the
+server preview, including timezone/DST, readiness, dependency, conflict, schedule, and job state,
+then confirm explicitly. Never bypass a stale preview or select a DST fold by guesswork. The
+Activity, schedule, job, and global history views retain original and replacement references.
+
 AI operations are detailed in `ai-operations-guide.md`. Status and usage
 commands are safe routine diagnostics. Validation makes an explicit provider
 request and should use the local fake provider first; any paid call requires an

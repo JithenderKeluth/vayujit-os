@@ -42,6 +42,21 @@ maintenance-mode middleware, correlation IDs, and append-only Audit events.
 
 ## Campaign lifecycle
 
+### Durable Activity rescheduling
+
+Missed Campaign Activities expose a server-authoritative **Reschedule Activity** action. The UI
+first requests a non-mutating preview with the proposed local date/time, IANA timezone, optional
+reason, and expected Activity row version. The preview returns the resolved UTC instant, DST
+classification, offset, readiness/conflict warnings, and a one-use fingerprint. Confirmation is a
+separate explicit request and must echo that fingerprint. Ambiguous DST times require an explicit
+fold; nonexistent local times are rejected without shifting the requested time. A confirmed change
+archives the original schedule, supersedes its pending job, creates one replacement schedule/job,
+and records an append-only reschedule history row. Repeated confirmations reuse the durable result.
+
+Campaign Activity details and Operations Recovery link to this flow. Original and replacement
+schedule/job references remain visible for audit and troubleshooting; superseded jobs are retained
+for history and are not retryable.
+
 The central transition map permits:
 
 `draft → planning → ready → scheduled → running → completed → archived`

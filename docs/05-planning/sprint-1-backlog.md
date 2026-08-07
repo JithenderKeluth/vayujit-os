@@ -49,6 +49,12 @@ Commit only S1-01 through S1-04 first as a walking skeleton, then data/auth/busi
   reconciliation, recovery, health, audit, diagnostics, tests, and documentation.
 # Content Calendar and Campaign follow-up
 
+## Durable Activity rescheduling follow-up
+
+**Complete:** server-authoritative preview/confirmation, DST fold/gap handling, durable
+schedule/job supersession, idempotent confirmation, Recovery action exposure, Campaign Activity
+history, Operations links, responsive Angular flow, shared contracts, and guarded acceptance tests.
+
 The Campaign core includes normalized persistence, lifecycle, checkpoints, readiness, conflict
 analysis, durable schedule links, calendar projections, Angular routes, recovery/health
 projections, diagnostics, and guarded tests. Searchable Product/Artifact/destination pickers,
