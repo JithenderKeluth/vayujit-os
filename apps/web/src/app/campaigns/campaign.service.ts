@@ -5,6 +5,8 @@ import type {
   Campaign,
   CampaignActivity,
   CampaignCalendar,
+  CampaignCatchUpPreviewRequest,
+  CampaignCatchUpPreviewResponse,
   CampaignConflict,
   CampaignProgress,
   CampaignReadiness,
@@ -55,6 +57,18 @@ export class CampaignService {
     return firstValueFrom(
       this.http.post<CampaignReschedulePreviewResponse>(
         `${this.base}/${campaignId}/recovery/reschedule-activity/preview`,
+        request,
+        this.options,
+      ),
+    );
+  }
+  previewCreateCatchUp(
+    campaignId: string,
+    request: CampaignCatchUpPreviewRequest,
+  ): Promise<CampaignCatchUpPreviewResponse> {
+    return firstValueFrom(
+      this.http.post<CampaignCatchUpPreviewResponse>(
+        `${this.base}/${campaignId}/recovery/create-one-catch-up/preview`,
         request,
         this.options,
       ),

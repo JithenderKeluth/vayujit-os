@@ -60,3 +60,8 @@ analysis, durable schedule links, calendar projections, Angular routes, recovery
 projections, diagnostics, and guarded tests. Searchable Product/Artifact/destination pickers,
 Campaign-aware Workflow templates/waits, richer Recovery actions, and full fake-connector Campaign
 E2E remain explicit follow-up work.
+
+## Durable one-catch-up Recovery action
+
+Implemented the final Recovery action with fingerprinted preview/confirmation, additive missed
+Activity persistence, scheduler idempotency, and Operations history integration.

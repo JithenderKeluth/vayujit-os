@@ -162,6 +162,10 @@ class ActivityResponse(BaseModel):
     failure_code: str | None
     safe_failure_message: str | None
     correlation_id: str | None
+    replaces_activity_id: uuid.UUID | None = None
+    replaced_by_activity_id: uuid.UUID | None = None
+    replacement_reason: str | None = None
+    replacement_created_at: datetime | None = None
     row_version: int
 
 
@@ -496,6 +500,10 @@ class CampaignRecoveryProjection(BaseModel):
     safe_failure_message: str
     correlation_id: str | None
     eligible_actions: list[CampaignRecoveryActionKey]
+    catch_up_activity_id: uuid.UUID | None = None
+    catch_up_schedule_id: uuid.UUID | None = None
+    catch_up_job_id: uuid.UUID | None = None
+    catch_up_status: str | None = None
 
 
 class CampaignRecoveryActionRequest(BaseModel):
@@ -548,6 +556,21 @@ class ReschedulePreviewResponse(BaseModel):
     conflicts: list[Conflict] = Field(default_factory=list)
     current_schedule_status: str | None = None
     current_job_status: str | None = None
+
+
+class CatchUpPreviewRequest(ReschedulePreviewRequest):
+    """Preview input for creating one durable catch-up occurrence."""
+
+
+class CatchUpPreviewResponse(ReschedulePreviewResponse):
+    original_activity_name: str
+    original_activity_status: str
+    artifact_id: uuid.UUID | None = None
+    artifact_version: int | None = None
+    artifact_status: str | None = None
+    destination_id: uuid.UUID | None = None
+    destination_status: str | None = None
+    dependency_warnings: list[str] = Field(default_factory=list)
 
 
 class RescheduleHistoryResponse(BaseModel):

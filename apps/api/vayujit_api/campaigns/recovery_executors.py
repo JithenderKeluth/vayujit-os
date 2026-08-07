@@ -15,10 +15,12 @@ from vayujit_api.campaigns.models import (
     CampaignActivity,
     CampaignActivityDependency,
     CampaignActivityReschedule,
+    CampaignMissedActivityResolution,
     CampaignScheduleLink,
 )
 from vayujit_api.campaigns.recovery_service import (
     CampaignRecoveryExecutionContext,
+    catch_up_fingerprint,
     reschedule_fingerprint,
 )
 from vayujit_api.campaigns.schemas import (
@@ -200,6 +202,7 @@ def execute_release_checkpoint(
     from vayujit_api.campaigns.schedule_service import project_activity_states
 
     project_activity_states(context.db, context.campaign.id)
+    restore_campaign_waits(context.db, owner_id=context.owner.id)
     record_event(
         context.db,
         actor_id=context.owner.id,
@@ -438,9 +441,6 @@ def execute_reschedule_activity(
         updated_at=stamp,
     )
     context.db.add(record)
-    from vayujit_api.campaigns.schedule_service import project_activity_states
-
-    project_activity_states(context.db, context.campaign.id)
     record_event(
         context.db,
         actor_id=context.owner.id,
@@ -976,7 +976,369 @@ def execute_create_one_catch_up(
     context: CampaignRecoveryExecutionContext,
     request: CampaignRecoveryRequest,
 ) -> CampaignRecoveryActionResult:
-    raise ValueError("Catch-up creation requires the existing missed-resolution workflow.")
+    if context.maintenance_mode:
+        raise HTTPException(503, "Campaign changes are unavailable during maintenance.")
+    if context.campaign.status not in {
+        "ready",
+        "scheduled",
+        "running",
+        "paused",
+        "partially_completed",
+        "failed",
+    }:
+        raise HTTPException(409, "Catch-up is unavailable in the current Campaign state.")
+    activity = context.activity
+    if activity is None:
+        raise HTTPException(404, "Missed Activity not found.")
+    if activity.status != "missed":
+        raise HTTPException(409, "Catch-up is available only for missed Activities.")
+    if request.proposed_local_datetime is None or not request.proposed_timezone:
+        raise HTTPException(422, "Catch-up requires a proposed local time and timezone.")
+    if request.expected_activity_row_version is None:
+        raise HTTPException(409, "A current Activity row version is required.")
+    original = context.db.scalar(
+        select(CampaignActivity)
+        .where(
+            CampaignActivity.id == activity.id,
+            CampaignActivity.owner_id == context.owner.id,
+            CampaignActivity.campaign_id == context.campaign.id,
+        )
+        .with_for_update()
+    )
+    if original is None:
+        raise HTTPException(404, "Missed Activity not found.")
+    resolution = context.db.scalar(
+        select(CampaignMissedActivityResolution)
+        .where(
+            CampaignMissedActivityResolution.owner_id == context.owner.id,
+            CampaignMissedActivityResolution.campaign_id == context.campaign.id,
+            CampaignMissedActivityResolution.activity_id == original.id,
+            CampaignMissedActivityResolution.policy == "one_catch_up",
+        )
+        .with_for_update()
+    )
+    try:
+        resolved_zero = local_to_utc(request.proposed_local_datetime, request.proposed_timezone, 0)
+        resolved_one = local_to_utc(request.proposed_local_datetime, request.proposed_timezone, 1)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    ambiguous = resolved_zero != resolved_one
+    if ambiguous and request.fold is None:
+        raise HTTPException(422, "An explicit DST fold is required for this local time.")
+    if not ambiguous and request.fold not in {None, 0}:
+        raise HTTPException(422, "The selected DST fold is not valid for this local time.")
+    resolved = resolved_one if request.fold == 1 else resolved_zero
+    fingerprint = catch_up_fingerprint(
+        context.owner.id,
+        context.campaign,
+        original,
+        request.proposed_local_datetime,
+        request.proposed_timezone,
+        request.reason,
+        request.fold,
+        request.expected_activity_row_version,
+    )
+    if not request.preview_fingerprint or request.preview_fingerprint != fingerprint:
+        raise HTTPException(409, "The catch-up preview is stale or invalid.")
+    if resolution and resolution.replacement_activity_id:
+        if resolution.preview_fingerprint == fingerprint:
+            replacement = context.db.get(CampaignActivity, resolution.replacement_activity_id)
+            if replacement:
+                record_event(
+                    context.db,
+                    actor_id=context.owner.id,
+                    action="campaign.catch_up_reused",
+                    entity_type="campaign_activity",
+                    entity_id=replacement.id,
+                    metadata={
+                        "campaign_id": str(context.campaign.id),
+                        "original_activity_id": str(original.id),
+                        "catch_up_activity_id": str(replacement.id),
+                        "reason": request.reason.strip(),
+                    },
+                )
+                context.db.commit()
+                return CampaignRecoveryActionResult(
+                    action=request.action,
+                    outcome="reused",
+                    resource_ids={
+                        "original_activity_id": str(original.id),
+                        "activity_id": str(replacement.id),
+                        "schedule_id": str(replacement.schedule_id or ""),
+                        "job_id": str(replacement.job_id or ""),
+                        "resolution_id": str(resolution.id),
+                    },
+                    safe_message="The existing catch-up Activity was reused.",
+                    navigation_targets={
+                        "original_activity": (
+                            f"/campaigns/{context.campaign.id}?activity={original.id}"
+                        ),
+                        "activity": f"/campaigns/{context.campaign.id}?activity={replacement.id}",
+                        "schedule": f"/publishing/schedules/{replacement.schedule_id}",
+                        "job": f"/publishing/jobs/{replacement.job_id}",
+                    },
+                    confirmation_required=False,
+                    correlation_id=context.correlation_id,
+                    idempotency_result="reused",
+                    scheduled=True,
+                    status="scheduled",
+                    idempotent_reuse=True,
+                )
+        raise HTTPException(409, "This missed Activity already has a catch-up Activity.")
+    if original.row_version != request.expected_activity_row_version:
+        raise HTTPException(409, "The Activity changed; refresh before creating catch-up.")
+    if original.publishing_execution_id:
+        raise HTTPException(409, "An Activity with a Publishing execution cannot create catch-up.")
+    artifact = (
+        context.db.scalar(
+            select(GeneratedArtifact).where(
+                GeneratedArtifact.id == original.artifact_id,
+                GeneratedArtifact.owner_id == context.owner.id,
+            )
+        )
+        if original.artifact_id
+        else None
+    )
+    destination = (
+        context.db.scalar(
+            select(PublishingDestination).where(
+                PublishingDestination.id == original.destination_id,
+                PublishingDestination.owner_id == context.owner.id,
+            )
+        )
+        if original.destination_id
+        else None
+    )
+    if (
+        not artifact
+        or artifact.status != "approved"
+        or artifact.version_number != original.artifact_version
+    ):
+        raise HTTPException(409, "The exact Activity Artifact must remain approved.")
+    if not destination or destination.status != "active":
+        raise HTTPException(409, "The Activity destination must remain active.")
+    if (
+        not original.connector_key
+        or not original.requested_action
+        or destination.connector_key != original.connector_key
+    ):
+        raise HTTPException(409, "The Activity has no supported publishing action.")
+    stamp = context.now_utc
+    if original.job_id:
+        original_job = context.db.scalar(
+            select(PublishingJob).where(PublishingJob.id == original.job_id).with_for_update()
+        )
+        if original_job and (
+            original_job.state in {"claimed", "running"}
+            or (
+                original_job.lease_owner
+                and original_job.lease_expires_at
+                and original_job.lease_expires_at > stamp
+            )
+        ):
+            raise HTTPException(409, "Catch-up is blocked while the original job is active.")
+    sequence = (
+        context.db.scalar(
+            select(func.max(CampaignActivity.sequence)).where(
+                CampaignActivity.campaign_id == context.campaign.id
+            )
+        )
+        or 0
+    ) + 1
+    replacement = CampaignActivity(
+        owner_id=original.owner_id,
+        campaign_id=original.campaign_id,
+        product_id=original.product_id,
+        artifact_id=original.artifact_id,
+        artifact_version=original.artifact_version,
+        destination_id=original.destination_id,
+        connector_key=original.connector_key,
+        requested_action=original.requested_action,
+        activity_type=original.activity_type,
+        name=f"{original.name} (catch-up)",
+        description=original.description,
+        sequence=sequence,
+        dependency_policy=original.dependency_policy,
+        scheduled_local_date=request.proposed_local_datetime.date(),
+        scheduled_local_time=request.proposed_local_datetime.time(),
+        timezone_name=request.proposed_timezone,
+        scheduled_at_utc=resolved,
+        duration_minutes=original.duration_minutes,
+        status="ready",
+        readiness_status="ready",
+        required=original.required,
+        enabled=True,
+        created_by=context.owner.id,
+        created_at=stamp,
+        updated_at=stamp,
+        correlation_id=context.correlation_id,
+        idempotency_key=f"catch-up:{original.id}:{fingerprint}",
+        replaces_activity_id=original.id,
+        replacement_reason=request.reason.strip(),
+        replacement_created_at=stamp,
+        row_version=1,
+    )
+    context.db.add(replacement)
+    context.db.flush()
+    linked_edges = list(
+        context.db.scalars(
+            select(CampaignActivityDependency).where(
+                CampaignActivityDependency.campaign_id == context.campaign.id,
+                (CampaignActivityDependency.predecessor_activity_id == original.id)
+                | (CampaignActivityDependency.successor_activity_id == original.id),
+            )
+        )
+    )
+    for edge in linked_edges:
+        predecessor_id = (
+            edge.predecessor_activity_id
+            if edge.successor_activity_id == original.id
+            else replacement.id
+        )
+        successor_id = (
+            replacement.id
+            if edge.successor_activity_id == original.id
+            else edge.successor_activity_id
+        )
+        context.db.add(
+            CampaignActivityDependency(
+                owner_id=edge.owner_id,
+                campaign_id=edge.campaign_id,
+                predecessor_activity_id=predecessor_id,
+                successor_activity_id=successor_id,
+                dependency_type=edge.dependency_type,
+                released_at=edge.released_at,
+                created_at=stamp,
+            )
+        )
+    schedule = PublishingSchedule(
+        owner_id=context.owner.id,
+        brand_id=artifact.brand_id,
+        product_id=original.product_id,
+        artifact_id=artifact.id,
+        artifact_version=artifact.version_number,
+        destination_id=destination.id,
+        connector_key=destination.connector_key,
+        requested_action=original.requested_action,
+        name=f"{context.campaign.name}: {replacement.name}",
+        schedule_type="one_time",
+        scheduled_at_utc=resolved,
+        timezone_name=request.proposed_timezone,
+        local_scheduled_at=request.proposed_local_datetime.replace(tzinfo=None),
+        recurrence_json=None,
+        recurrence_end_at=None,
+        enabled=True,
+        paused=False,
+        archived=False,
+        approval_snapshot_json={
+            "artifact_status": artifact.status,
+            "artifact_version": artifact.version_number,
+        },
+        destination_snapshot_version=destination.updated_at.isoformat(),
+        created_by=context.owner.id,
+        created_at=stamp,
+        updated_at=stamp,
+        next_run_at_utc=resolved,
+        missed_occurrence_policy="next_occurrence",
+        max_occurrences=1,
+        materialized_occurrence_count=0,
+    )
+    context.db.add(schedule)
+    context.db.flush()
+    from vayujit_api.publishing.scheduler_service import materialize_due_schedules
+
+    materialize_due_schedules(context.db, commit=False)
+    catch_up_job = context.db.scalar(
+        select(PublishingJob).where(PublishingJob.schedule_id == schedule.id)
+    )
+    replacement.schedule_id = schedule.id
+    replacement.job_id = catch_up_job.id if catch_up_job else None
+    replacement.status = "scheduled"
+    replacement.updated_at = stamp
+    link = CampaignScheduleLink(
+        owner_id=context.owner.id,
+        campaign_id=context.campaign.id,
+        activity_id=replacement.id,
+        schedule_id=schedule.id,
+        job_id=catch_up_job.id if catch_up_job else None,
+        occurrence_key=f"campaign:{context.campaign.id}:catch-up:{fingerprint}",
+        created_at=stamp,
+    )
+    context.db.add(link)
+    if resolution is None:
+        resolution = CampaignMissedActivityResolution(
+            owner_id=context.owner.id,
+            campaign_id=context.campaign.id,
+            activity_id=original.id,
+            policy="one_catch_up",
+            original_scheduled_at_utc=original.scheduled_at_utc,
+            resolution_status="catch_up_created",
+            replacement_activity_id=replacement.id,
+            replacement_schedule_id=schedule.id,
+            replacement_job_id=catch_up_job.id if catch_up_job else None,
+            original_schedule_id=original.schedule_id,
+            original_job_id=original.job_id,
+            preview_fingerprint=fingerprint,
+            requested_local_datetime=request.proposed_local_datetime.replace(tzinfo=None),
+            requested_timezone=request.proposed_timezone,
+            resolved_scheduled_for_utc=resolved,
+            fold=request.fold,
+            reason=request.reason.strip(),
+            correlation_id=context.correlation_id,
+            resolved_by=context.owner.id,
+            resolved_at=stamp,
+        )
+        context.db.add(resolution)
+    context.db.flush()
+    record_event(
+        context.db,
+        actor_id=context.owner.id,
+        action="campaign.catch_up_created",
+        entity_type="campaign_activity",
+        entity_id=replacement.id,
+        metadata={
+            "campaign_id": str(context.campaign.id),
+            "original_activity_id": str(original.id),
+            "catch_up_activity_id": str(replacement.id),
+            "original_schedule_id": str(original.schedule_id) if original.schedule_id else None,
+            "catch_up_schedule_id": str(schedule.id),
+            "original_job_id": str(original.job_id) if original.job_id else None,
+            "catch_up_job_id": str(catch_up_job.id) if catch_up_job else None,
+            "artifact_id": str(artifact.id),
+            "product_id": str(original.product_id),
+            "brand_id": str(artifact.brand_id) if artifact.brand_id else None,
+            "artifact_version": artifact.version_number,
+            "destination_id": str(destination.id),
+            "old_scheduled_at_utc": original.scheduled_at_utc.isoformat(),
+            "new_scheduled_at_utc": resolved.isoformat(),
+            "timezone": request.proposed_timezone,
+            "reason": request.reason.strip(),
+        },
+    )
+    context.db.commit()
+    return CampaignRecoveryActionResult(
+        action=request.action,
+        outcome="succeeded",
+        resource_ids={
+            "original_activity_id": str(original.id),
+            "activity_id": str(replacement.id),
+            "schedule_id": str(schedule.id),
+            "job_id": str(catch_up_job.id) if catch_up_job else "",
+            "resolution_id": str(resolution.id),
+        },
+        safe_message="One catch-up Activity was created.",
+        navigation_targets={
+            "original_activity": f"/campaigns/{context.campaign.id}?activity={original.id}",
+            "activity": f"/campaigns/{context.campaign.id}?activity={replacement.id}",
+            "schedule": f"/publishing/schedules/{schedule.id}",
+            "job": f"/publishing/jobs/{catch_up_job.id}" if catch_up_job else "",
+        },
+        confirmation_required=False,
+        correlation_id=context.correlation_id,
+        idempotency_result="created",
+        scheduled=True,
+        status="scheduled",
+    )
 
 
 def execute_retry_activity(

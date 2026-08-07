@@ -45,6 +45,8 @@ analytics.
 
 - [Architecture Decision Records](docs/04-decisions)
 - [Sprint 1 Backlog](docs/05-planning/sprint-1-backlog.md)
+- [Campaign and catch-up architecture](docs/content-calendar-campaigns.md)
+- [Publishing scheduler](docs/publishing-scheduler.md)
 
 The Product Vision defines the intended users, value proposition, principles,
 MVP boundaries, and long-term direction. The Product Requirements Document
@@ -62,8 +64,9 @@ The initial monorepo contains:
 - `infrastructure`: PostgreSQL-only Docker Compose configuration
 - `scripts`: Windows setup, migration, validation, and development commands
 
-No authentication, business features, AI providers, workflows, or connectors are
-implemented yet.
+The foundation now includes Campaign scheduling, durable Activity rescheduling, one-catch-up
+Recovery, and guarded PostgreSQL scheduler workflows. External connector calls remain explicit and
+are not performed by Recovery requests.
 
 ### Prerequisites
 

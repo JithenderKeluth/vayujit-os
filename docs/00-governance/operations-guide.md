@@ -7,6 +7,10 @@ server preview, including timezone/DST, readiness, dependency, conflict, schedul
 then confirm explicitly. Never bypass a stale preview or select a DST fold by guesswork. The
 Activity, schedule, job, and global history views retain original and replacement references.
 
+For missed work, use **Create one catch-up** from the missed Activity. The original missed record
+is read-only history. Review the exact Artifact version, destination, dependency warnings, and
+proposed local/UTC time before confirming. Recovery is idempotent and never publishes remotely.
+
 AI operations are detailed in `ai-operations-guide.md`. Status and usage
 commands are safe routine diagnostics. Validation makes an explicit provider
 request and should use the local fake provider first; any paid call requires an

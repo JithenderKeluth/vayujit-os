@@ -1159,6 +1159,10 @@ export interface RecoveryItem {
   campaign_name?: string | null;
   activity_id?: string | null;
   activity_name?: string | null;
+  catch_up_activity_id?: string | null;
+  catch_up_schedule_id?: string | null;
+  catch_up_job_id?: string | null;
+  catch_up_status?: string | null;
 }
 export interface RecoveryPage {
   items: RecoveryItem[];
@@ -1188,6 +1192,10 @@ export interface CampaignRecoveryProjection {
   safe_failure_message: string;
   correlation_id: string | null;
   eligible_actions: string[];
+  catch_up_activity_id?: string | null;
+  catch_up_schedule_id?: string | null;
+  catch_up_job_id?: string | null;
+  catch_up_status?: string | null;
 }
 export interface BackupSummary {
   id: string;
@@ -1386,6 +1394,10 @@ export interface CampaignActivity {
   failure_code: string | null;
   safe_failure_message: string | null;
   correlation_id: string | null;
+  replaces_activity_id?: string | null;
+  replaced_by_activity_id?: string | null;
+  replacement_reason?: string | null;
+  replacement_created_at?: string | null;
   row_version: number;
 }
 
@@ -1425,8 +1437,21 @@ export interface CampaignReschedulePreviewResponse {
   current_job_status: string | null;
 }
 
+export type CampaignCatchUpPreviewRequest = CampaignReschedulePreviewRequest;
+
+export interface CampaignCatchUpPreviewResponse extends CampaignReschedulePreviewResponse {
+  original_activity_name: string;
+  original_activity_status: string;
+  artifact_id: string | null;
+  artifact_version: number | null;
+  artifact_status: string | null;
+  destination_id: string | null;
+  destination_status: string | null;
+  dependency_warnings: string[];
+}
+
 export interface CampaignRescheduleConfirmationRequest {
-  action: 'reschedule_activity';
+  action: 'reschedule_activity' | 'create_one_catch_up';
   campaign_id: string;
   activity_id: string;
   expected_activity_row_version: number;
@@ -1439,7 +1464,7 @@ export interface CampaignRescheduleConfirmationRequest {
 }
 
 export interface CampaignRescheduleConfirmationResult {
-  action: 'reschedule_activity';
+  action: 'reschedule_activity' | 'create_one_catch_up';
   outcome: string;
   resource_ids: Record<string, string>;
   safe_message: string;
