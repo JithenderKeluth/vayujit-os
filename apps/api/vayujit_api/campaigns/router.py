@@ -27,6 +27,7 @@ from vayujit_api.campaigns.models import (
     Campaign,
     CampaignActivity,
     CampaignActivityDependency,
+    CampaignActivityReschedule,
     CampaignMissedActivityResolution,
     CampaignWorkflowWait,
 )
@@ -35,6 +36,7 @@ from vayujit_api.campaigns.recovery_service import (
     RECOVERY_ACTION_REGISTRY,
     CampaignRecoveryExecutionContext,
     eligible_recovery_actions,
+    reschedule_fingerprint,
 )
 from vayujit_api.campaigns.schedule_service import (
     dependencies,
@@ -62,6 +64,9 @@ from vayujit_api.campaigns.schemas import (
     MonthCalendar,
     ProgressResponse,
     ReadinessResponse,
+    RescheduleHistoryResponse,
+    ReschedulePreviewRequest,
+    ReschedulePreviewResponse,
     RescheduleRequest,
     ResumePreviewResponse,
     ScheduleRequest,
@@ -72,7 +77,7 @@ from vayujit_api.campaigns.schemas import (
 from vayujit_api.campaigns.workflow_executor import execute_campaign_action
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
-from vayujit_api.core.observability import correlation_id
+from vayujit_api.core.observability import correlation_id, maintenance_enabled
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
 from vayujit_api.identity.service import now
@@ -82,11 +87,17 @@ from vayujit_api.publishing.models import (
     PublishingJob,
     PublishingSchedule,
 )
-from vayujit_api.publishing.scheduler_time import local_to_utc, utcnow
+from vayujit_api.publishing.scheduler_time import local_to_utc, timezone_for, utcnow
 
 router = APIRouter(prefix="/api/v1/campaigns", tags=["campaigns"])
 DB = Annotated[Session, Depends(get_session)]
 Owner = Annotated[User, Depends(current_user)]
+
+
+def _registry_dispatch_guard(
+    _key: str, _request: CampaignRecoveryActionRequest
+) -> CampaignRecoveryActionResult:
+    raise RuntimeError("Recovery registry dispatch was unexpectedly requested.")
 
 
 @router.post("/workflow-actions", response_model=CampaignWorkflowResult)
@@ -273,6 +284,108 @@ def campaign_recovery(db: DB, owner: Owner) -> list[CampaignRecoveryProjection]:
     ]
 
 
+@router.post(
+    "/{campaign_id}/recovery/reschedule-activity/preview", response_model=ReschedulePreviewResponse
+)
+def preview_reschedule_activity(
+    campaign_id: uuid.UUID,
+    request: ReschedulePreviewRequest,
+    db: DB,
+    owner: Owner,
+) -> ReschedulePreviewResponse:
+    campaign = owned_campaign(db, owner.id, campaign_id)
+    activity = owned_activity(db, owner.id, campaign.id, request.activity_id)
+    if activity is None:
+        raise HTTPException(404, "Activity not found.")
+    if activity.row_version != request.expected_activity_row_version:
+        raise HTTPException(409, "The Activity changed; refresh before rescheduling it.")
+    try:
+        zone = timezone_for(request.proposed_timezone)
+        fold_zero = request.proposed_local_datetime.replace(tzinfo=zone, fold=0)
+        fold_one = request.proposed_local_datetime.replace(tzinfo=zone, fold=1)
+        utc_zero = local_to_utc(request.proposed_local_datetime, request.proposed_timezone, 0)
+        utc_one = local_to_utc(request.proposed_local_datetime, request.proposed_timezone, 1)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    ambiguous = utc_zero != utc_one and fold_zero.utcoffset() != fold_one.utcoffset()
+    selected_fold = request.fold if request.fold is not None else 0
+    proposed_utc = utc_one if selected_fold == 1 else utc_zero
+    if not ambiguous and request.fold not in {None, 0}:
+        raise HTTPException(422, "The selected DST fold is not valid for this local time.")
+    fingerprint = reschedule_fingerprint(
+        db,
+        owner.id,
+        campaign,
+        activity,
+        request.proposed_local_datetime,
+        request.proposed_timezone,
+        request.reason,
+        request.fold,
+    )
+    readiness = activity_readiness(db, campaign, activity)
+    conflict_items = detect_conflicts(campaign, [activity], dependencies(db, campaign.id))
+    current_schedule = (
+        db.get(PublishingSchedule, activity.schedule_id) if activity.schedule_id else None
+    )
+    current_job = db.get(PublishingJob, activity.job_id) if activity.job_id else None
+    warnings = [issue.safe_message for issue in readiness.issues]
+    warnings.extend(item.safe_explanation for item in conflict_items)
+    return ReschedulePreviewResponse(
+        campaign_id=campaign.id,
+        activity_id=activity.id,
+        original_scheduled_at_utc=activity.scheduled_at_utc,
+        proposed_local_datetime=request.proposed_local_datetime,
+        proposed_scheduled_at_utc=proposed_utc,
+        timezone=request.proposed_timezone,
+        confirmation_required=not ambiguous or request.fold is not None,
+        preview_fingerprint=fingerprint,
+        safe_message="Review the proposed Activity reschedule and confirm it explicitly.",
+        correlation_id=correlation_id() or str(uuid.uuid4()),
+        dst_classification="ambiguous_local_time" if ambiguous else "normal",
+        utc_offset=str((fold_one if selected_fold == 1 else fold_zero).utcoffset()),
+        fold=request.fold if ambiguous else None,
+        issue_code="ambiguous_local_time" if ambiguous and request.fold is None else None,
+        warnings=warnings,
+        readiness_issues=readiness.issues,
+        conflicts=conflict_items,
+        current_schedule_status=(
+            "superseded"
+            if current_schedule and current_schedule.archived
+            else "active"
+            if current_schedule
+            else None
+        ),
+        current_job_status=current_job.state if current_job else None,
+    )
+
+
+@router.get(
+    "/{campaign_id}/activities/{activity_id}/reschedules",
+    response_model=list[RescheduleHistoryResponse],
+)
+def activity_reschedule_history(
+    campaign_id: uuid.UUID,
+    activity_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+) -> list[CampaignActivityReschedule]:
+    campaign = owned_campaign(db, owner.id, campaign_id)
+    activity = owned_activity(db, owner.id, campaign.id, activity_id)
+    if activity is None:
+        raise HTTPException(404, "Activity not found.")
+    return list(
+        db.scalars(
+            select(CampaignActivityReschedule)
+            .where(
+                CampaignActivityReschedule.owner_id == owner.id,
+                CampaignActivityReschedule.campaign_id == campaign.id,
+                CampaignActivityReschedule.activity_id == activity.id,
+            )
+            .order_by(CampaignActivityReschedule.requested_at)
+        )
+    )
+
+
 @router.post("/recovery/actions")
 def execute_recovery_action(
     request: CampaignRecoveryActionRequest, db: DB, owner: Owner
@@ -282,11 +395,7 @@ def execute_recovery_action(
         return {
             "action": request.action,
             "outcome": "unsupported",
-            "safe_message": (
-                "Durable Activity rescheduling is not implemented yet."
-                if request.action == "reschedule_activity"
-                else "Catch-up creation is not implemented yet."
-            ),
+            "safe_message": "Catch-up creation is not implemented yet.",
             "correlation_id": correlation_id() or str(uuid.uuid4()),
             "idempotency_result": "not_applicable",
         }
@@ -304,7 +413,25 @@ def execute_recovery_action(
         )
         if handler is None:
             raise HTTPException(500, "Recovery action handler is unavailable.")
-        if activity and request.action not in recovery_actions(activity, campaign):
+        existing_reschedule = bool(
+            request.action == "reschedule_activity"
+            and activity is not None
+            and request.preview_fingerprint
+            and db.scalar(
+                select(CampaignActivityReschedule.id).where(
+                    CampaignActivityReschedule.owner_id == owner.id,
+                    CampaignActivityReschedule.campaign_id == campaign.id,
+                    CampaignActivityReschedule.activity_id == activity.id,
+                    CampaignActivityReschedule.preview_fingerprint == request.preview_fingerprint,
+                    CampaignActivityReschedule.status == "confirmed",
+                )
+            )
+        )
+        if (
+            activity
+            and not existing_reschedule
+            and request.action not in recovery_actions(activity, campaign)
+        ):
             raise HTTPException(409, "Recovery action is not eligible for the current state.")
         context = CampaignRecoveryExecutionContext(
             db=db,
@@ -314,26 +441,15 @@ def execute_recovery_action(
             workflow_wait=None,
             correlation_id=correlation_id() or str(uuid.uuid4()),
             now_utc=utcnow(),
-            maintenance_mode=False,
+            maintenance_mode=maintenance_enabled(),
             action=specification,
-            dispatch=lambda _key, _request: CampaignRecoveryActionResult(
-                action=_request.action,
-                outcome="legacy_dispatch",
-                resource_ids={},
-                safe_message="Legacy dispatch.",
-                navigation_targets={},
-                confirmation_required=False,
-                correlation_id=context.correlation_id,
-                idempotency_result="not_applicable",
-            ),
+            dispatch=_registry_dispatch_guard,
         )
         try:
             typed_result = handler(context, request)
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from exc
         result_payload = cast(dict[str, object], typed_result.model_dump(mode="json"))
-        if request.action == "reconcile_activity" and typed_result.idempotency_result == "reused":
-            result_payload["idempotent_reuse"] = True
         return {
             "action": request.action,
             "result": result_payload,

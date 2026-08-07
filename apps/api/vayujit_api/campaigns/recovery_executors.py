@@ -11,8 +11,16 @@ from vayujit_api.ai.models import GeneratedArtifact
 from vayujit_api.audit.service import record_event
 from vayujit_api.campaigns.campaign_service import transition
 from vayujit_api.campaigns.completion_service import resolve_missed
-from vayujit_api.campaigns.models import CampaignActivity, CampaignActivityDependency
-from vayujit_api.campaigns.recovery_service import CampaignRecoveryExecutionContext
+from vayujit_api.campaigns.models import (
+    CampaignActivity,
+    CampaignActivityDependency,
+    CampaignActivityReschedule,
+    CampaignScheduleLink,
+)
+from vayujit_api.campaigns.recovery_service import (
+    CampaignRecoveryExecutionContext,
+    reschedule_fingerprint,
+)
 from vayujit_api.campaigns.schemas import (
     CampaignRecoveryActionResult,
     CampaignRecoveryRequest,
@@ -25,6 +33,7 @@ from vayujit_api.publishing.models import (
     PublishingRecoveryRecord,
     PublishingSchedule,
 )
+from vayujit_api.publishing.scheduler_time import local_to_utc
 from vayujit_api.publishing.service import reconcile_execution
 
 
@@ -144,6 +153,7 @@ def execute_replace_with_new_approved_activity(
             "artifact_version": artifact.version_number,
         },
     )
+    context.db.commit()
     return CampaignRecoveryActionResult(
         action=request.action,
         outcome="succeeded",
@@ -198,12 +208,289 @@ def execute_release_checkpoint(
         entity_id=activity.id,
         metadata={"campaign_id": str(context.campaign.id), "activity_id": str(activity.id)},
     )
+
+
+def execute_reschedule_activity(
+    context: CampaignRecoveryExecutionContext,
+    request: CampaignRecoveryRequest,
+) -> CampaignRecoveryActionResult:
+    if context.maintenance_mode:
+        raise HTTPException(503, "Campaign changes are unavailable during maintenance.")
+    if context.campaign.status in {"cancelled", "archived"}:
+        raise HTTPException(409, "Cancelled or archived Campaigns cannot be rescheduled.")
+    activity = context.activity
+    if activity is None or request.proposed_local_datetime is None or not request.proposed_timezone:
+        raise HTTPException(422, "Rescheduling requires a proposed local time and timezone.")
+    if request.expected_activity_row_version is None:
+        raise HTTPException(409, "A current Activity row version is required.")
+    expected_row_version = request.expected_activity_row_version
+    activity = context.db.scalar(
+        select(CampaignActivity)
+        .where(
+            CampaignActivity.id == activity.id,
+            CampaignActivity.owner_id == context.owner.id,
+            CampaignActivity.campaign_id == context.campaign.id,
+        )
+        .with_for_update()
+    )
+    if activity is None:
+        raise HTTPException(404, "Activity not found.")
+    if not request.preview_fingerprint:
+        raise HTTPException(409, "A valid reschedule preview fingerprint is required.")
+    try:
+        resolved_zero = local_to_utc(request.proposed_local_datetime, request.proposed_timezone, 0)
+        resolved_one = local_to_utc(request.proposed_local_datetime, request.proposed_timezone, 1)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    ambiguous = resolved_zero != resolved_one
+    if ambiguous and request.fold is None:
+        raise HTTPException(422, "An explicit DST fold is required for this local time.")
+    if not ambiguous and request.fold not in {None, 0}:
+        raise HTTPException(422, "The selected DST fold is not valid for this local time.")
+    selected_fold = request.fold if request.fold is not None else 0
+    resolved = resolved_one if selected_fold == 1 else resolved_zero
+    existing = context.db.scalar(
+        select(CampaignActivityReschedule)
+        .where(
+            CampaignActivityReschedule.owner_id == context.owner.id,
+            CampaignActivityReschedule.campaign_id == context.campaign.id,
+            CampaignActivityReschedule.activity_id == activity.id,
+            CampaignActivityReschedule.preview_fingerprint == request.preview_fingerprint,
+            CampaignActivityReschedule.status == "confirmed",
+        )
+        .with_for_update()
+    )
+    if existing:
+        return CampaignRecoveryActionResult(
+            action=request.action,
+            outcome="reused",
+            resource_ids={"activity_id": str(activity.id), "reschedule_id": str(existing.id)},
+            safe_message="The existing Activity reschedule was reused.",
+            confirmation_required=False,
+            correlation_id=context.correlation_id,
+            idempotency_result="reused",
+            idempotent_reuse=True,
+        )
+    fingerprint = reschedule_fingerprint(
+        context.db,
+        context.owner.id,
+        context.campaign,
+        activity,
+        request.proposed_local_datetime,
+        request.proposed_timezone,
+        request.reason,
+        request.fold,
+        expected_row_version,
+    )
+    if request.preview_fingerprint != fingerprint:
+        raise HTTPException(409, "The reschedule preview is stale or invalid.")
+    if activity.status not in {"missed", "scheduled", "retry_wait", "paused", "failed"}:
+        raise HTTPException(409, "The Activity is not eligible for rescheduling.")
+    if activity.row_version != expected_row_version:
+        raise HTTPException(409, "The Activity changed; refresh before rescheduling it.")
+    stamp = context.now_utc
+    original_schedule_id = activity.schedule_id
+    original_job_id = activity.job_id
+    original_scheduled_for_utc = activity.scheduled_at_utc
+    old_job = context.db.get(PublishingJob, original_job_id) if original_job_id else None
+    if old_job is not None:
+        old_job = context.db.scalar(
+            select(PublishingJob).where(PublishingJob.id == old_job.id).with_for_update()
+        )
+        active_lease = (
+            old_job.lease_owner is not None
+            and old_job.lease_expires_at is not None
+            and old_job.lease_expires_at > stamp
+        )
+        if old_job is not None and (
+            active_lease or (old_job.state == "running" and not old_job.lease_expires_at)
+        ):
+            raise HTTPException(409, "The Activity job is actively leased or running.")
+    artifact = (
+        context.db.scalar(
+            select(GeneratedArtifact).where(
+                GeneratedArtifact.id == activity.artifact_id,
+                GeneratedArtifact.owner_id == context.owner.id,
+            )
+        )
+        if activity.artifact_id
+        else None
+    )
+    destination = (
+        context.db.scalar(
+            select(PublishingDestination).where(
+                PublishingDestination.id == activity.destination_id,
+                PublishingDestination.owner_id == context.owner.id,
+            )
+        )
+        if activity.destination_id
+        else None
+    )
+    if (
+        not artifact
+        or artifact.status != "approved"
+        or artifact.version_number != activity.artifact_version
+    ):
+        raise HTTPException(409, "The Activity Artifact approval is no longer valid.")
+    if not destination or destination.status != "active":
+        raise HTTPException(409, "The Activity destination is no longer active.")
+    if original_schedule_id:
+        old_schedule = context.db.get(PublishingSchedule, original_schedule_id)
+        if old_schedule:
+            old_schedule.enabled = False
+            old_schedule.archived = True
+            old_schedule.cancellation_reason = "Superseded by Activity reschedule."
+    if old_job is not None and old_job.state not in {
+        "succeeded",
+        "failed",
+        "cancelled",
+        "dead_letter",
+    }:
+        old_job.state = "cancelled"
+        old_job.recovery_state = "superseded"
+        old_job.recovery_reason = "Superseded by Activity reschedule."
+        old_job.lease_owner = None
+        old_job.lease_expires_at = None
+        old_job.updated_at = stamp
+        old_job.row_version += 1
+    artifact_id = artifact.id
+    destination_id = destination.id
+    schedule = PublishingSchedule(
+        owner_id=context.owner.id,
+        brand_id=artifact.brand_id,
+        product_id=activity.product_id,
+        artifact_id=artifact_id,
+        artifact_version=artifact.version_number,
+        destination_id=destination_id,
+        connector_key=destination.connector_key,
+        requested_action=activity.requested_action or "publish",
+        name=f"{activity.name} (rescheduled)",
+        schedule_type="one_time",
+        scheduled_at_utc=resolved,
+        timezone_name=request.proposed_timezone,
+        local_scheduled_at=request.proposed_local_datetime.replace(tzinfo=None),
+        recurrence_json=None,
+        recurrence_end_at=None,
+        enabled=True,
+        paused=False,
+        archived=False,
+        approval_snapshot_json={
+            "artifact_status": artifact.status,
+            "approved_at": artifact.approved_at.isoformat() if artifact.approved_at else None,
+            "approved_by": str(artifact.approved_by) if artifact.approved_by else None,
+        },
+        destination_snapshot_version=destination.updated_at.isoformat(),
+        created_by=context.owner.id,
+        created_at=stamp,
+        updated_at=stamp,
+        next_run_at_utc=resolved,
+        missed_occurrence_policy="next_occurrence",
+        max_occurrences=1,
+        materialized_occurrence_count=0,
+    )
+    context.db.add(schedule)
+    context.db.flush()
+    from vayujit_api.publishing.scheduler_service import materialize_due_schedules
+
+    materialize_due_schedules(context.db, commit=False)
+    replacement_job = context.db.scalar(
+        select(PublishingJob).where(PublishingJob.schedule_id == schedule.id)
+    )
+    link = CampaignScheduleLink(
+        owner_id=context.owner.id,
+        campaign_id=context.campaign.id,
+        activity_id=activity.id,
+        schedule_id=schedule.id,
+        job_id=replacement_job.id if replacement_job else None,
+        occurrence_key=f"reschedule:{activity.id}:{fingerprint}",
+        created_at=stamp,
+    )
+    context.db.add(link)
+    activity.scheduled_local_date = request.proposed_local_datetime.date()
+    activity.scheduled_local_time = request.proposed_local_datetime.time()
+    activity.timezone_name = request.proposed_timezone
+    activity.scheduled_at_utc = resolved
+    activity.schedule_id = schedule.id
+    activity.job_id = replacement_job.id if replacement_job else None
+    activity.status = "scheduled"
+    activity.updated_at = stamp
+    activity.row_version += 1
+    record = CampaignActivityReschedule(
+        owner_id=context.owner.id,
+        campaign_id=context.campaign.id,
+        activity_id=activity.id,
+        original_schedule_id=original_schedule_id,
+        replacement_schedule_id=schedule.id,
+        original_job_id=original_job_id,
+        replacement_job_id=replacement_job.id if replacement_job else None,
+        original_scheduled_for_utc=original_scheduled_for_utc,
+        requested_local_datetime=request.proposed_local_datetime.replace(tzinfo=None),
+        requested_timezone=request.proposed_timezone,
+        resolved_scheduled_for_utc=resolved,
+        reason=request.reason.strip(),
+        preview_fingerprint=fingerprint,
+        status="confirmed",
+        requested_by=context.owner.id,
+        requested_at=stamp,
+        confirmed_by=context.owner.id,
+        confirmed_at=stamp,
+        created_at=stamp,
+        updated_at=stamp,
+    )
+    context.db.add(record)
+    from vayujit_api.campaigns.schedule_service import project_activity_states
+
+    project_activity_states(context.db, context.campaign.id)
+    record_event(
+        context.db,
+        actor_id=context.owner.id,
+        action="campaign.activity_rescheduled",
+        entity_type="campaign_activity",
+        entity_id=activity.id,
+        metadata={
+            "campaign_id": str(context.campaign.id),
+            "activity_id": str(activity.id),
+            "original_schedule_id": str(original_schedule_id) if original_schedule_id else None,
+            "replacement_schedule_id": str(schedule.id),
+            "original_job_id": str(original_job_id) if original_job_id else None,
+            "replacement_job_id": str(replacement_job.id) if replacement_job else None,
+            "old_scheduled_at_utc": original_scheduled_for_utc.isoformat()
+            if original_scheduled_for_utc
+            else None,
+            "new_scheduled_at_utc": resolved.isoformat(),
+            "timezone": request.proposed_timezone,
+            "reason": request.reason.strip(),
+        },
+    )
     context.db.commit()
     return CampaignRecoveryActionResult(
         action=request.action,
         outcome="succeeded",
-        resource_ids={"activity_id": str(activity.id)},
-        safe_message="The checkpoint was released.",
+        resource_ids={
+            "activity_id": str(activity.id),
+            "schedule_id": str(schedule.id),
+            "replacement_schedule_id": str(schedule.id),
+            "replacement_job_id": str(replacement_job.id) if replacement_job else "",
+            "original_schedule_id": str(original_schedule_id) if original_schedule_id else "",
+            "original_job_id": str(original_job_id) if original_job_id else "",
+            "reschedule_id": str(record.id),
+        },
+        safe_message="The Activity was rescheduled.",
+        navigation_targets={
+            "activity": f"/campaigns/{context.campaign.id}?activity={activity.id}",
+            "replacement_schedule": f"/publishing/schedules/{schedule.id}",
+            **(
+                {"replacement_job": f"/publishing/jobs/{replacement_job.id}"}
+                if replacement_job
+                else {}
+            ),
+            **(
+                {"original_schedule": f"/publishing/schedules/{original_schedule_id}"}
+                if original_schedule_id
+                else {}
+            ),
+            **({"original_job": f"/publishing/jobs/{original_job_id}"} if original_job_id else {}),
+        },
         confirmation_required=False,
         correlation_id=context.correlation_id,
         idempotency_result="created",

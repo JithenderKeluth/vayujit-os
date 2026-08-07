@@ -22,6 +22,10 @@ import { PublishingService } from './publishing.service';
           Next {{ value.next_run_at_utc | date: 'medium' }} · Occurrences
           {{ value.materialized_occurrence_count }} / {{ value.max_occurrences }}
         </p>
+        @if (value.archived) {
+          <p class="op-error">Superseded by an Activity reschedule.</p>
+          <p>Original schedule history is preserved.</p>
+        }
         <p>Missed policy {{ value.missed_occurrence_policy }}</p>
         <a [routerLink]="['/publishing/jobs']" [queryParams]="{ schedule_id: value.id }"
           >View jobs</a

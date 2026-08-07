@@ -52,6 +52,9 @@ import { OperationsService } from './operations.service';
           <p>{{ item.connector || 'checkpoint' }} · Artifact v{{ item.artifact_version }}</p>
         }
         <p>Available actions: {{ item.capabilities.join(', ') || 'Review only' }}</p>
+        @if (item.capabilities.includes('reschedule_activity')) {
+          <p class="op-muted">Reschedule Activity is available from the Activity details.</p>
+        }
         <a [routerLink]="item.related_url">Open details and available actions</a>
       </article>
     }

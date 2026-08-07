@@ -1010,6 +1010,12 @@ export interface OperationalItem {
   safe_summary: string;
   related_url: string | null;
   correlation_id: string | null;
+  actor_id?: string | null;
+  campaign_id?: string | null;
+  activity_id?: string | null;
+  original_scheduled_at_utc?: string | null;
+  new_scheduled_at_utc?: string | null;
+  reason?: string | null;
 }
 export interface DashboardResponse {
   metrics: DashboardMetrics;
@@ -1160,6 +1166,28 @@ export interface RecoveryPage {
   page_size: number;
   total: number;
   pages: number;
+}
+
+export interface CampaignRecoveryProjection {
+  recovery_type: string;
+  campaign_id: string;
+  campaign_name: string;
+  campaign_status: CampaignStatus;
+  activity_id: string | null;
+  activity_name: string | null;
+  required: boolean | null;
+  product_id: string | null;
+  artifact_id: string | null;
+  artifact_version: number | null;
+  destination_id: string | null;
+  connector_key: string | null;
+  schedule_id: string | null;
+  job_id: string | null;
+  publishing_execution_id: string | null;
+  workflow_wait_id: string | null;
+  safe_failure_message: string;
+  correlation_id: string | null;
+  eligible_actions: string[];
 }
 export interface BackupSummary {
   id: string;
@@ -1359,6 +1387,87 @@ export interface CampaignActivity {
   safe_failure_message: string | null;
   correlation_id: string | null;
   row_version: number;
+}
+
+export type CampaignDstClassification =
+  | 'normal'
+  | 'nonexistent_local_time'
+  | 'ambiguous_local_time';
+
+export interface CampaignReschedulePreviewRequest {
+  activity_id: string;
+  proposed_local_datetime: string;
+  proposed_timezone: string;
+  reason?: string;
+  expected_activity_row_version: number;
+  fold?: 0 | 1 | null;
+}
+
+export interface CampaignReschedulePreviewResponse {
+  campaign_id: string;
+  activity_id: string;
+  original_scheduled_at_utc: string;
+  proposed_local_datetime: string;
+  proposed_scheduled_at_utc: string;
+  timezone: string;
+  confirmation_required: boolean;
+  preview_fingerprint: string;
+  safe_message: string;
+  correlation_id: string;
+  dst_classification: CampaignDstClassification;
+  utc_offset: string | null;
+  fold: 0 | 1 | null;
+  issue_code: string | null;
+  warnings: string[];
+  readiness_issues: CampaignReadinessIssue[];
+  conflicts: CampaignConflict[];
+  current_schedule_status: string | null;
+  current_job_status: string | null;
+}
+
+export interface CampaignRescheduleConfirmationRequest {
+  action: 'reschedule_activity';
+  campaign_id: string;
+  activity_id: string;
+  expected_activity_row_version: number;
+  proposed_local_datetime: string;
+  proposed_timezone: string;
+  reason?: string;
+  preview_fingerprint: string;
+  confirm: true;
+  fold?: 0 | 1;
+}
+
+export interface CampaignRescheduleConfirmationResult {
+  action: 'reschedule_activity';
+  outcome: string;
+  resource_ids: Record<string, string>;
+  safe_message: string;
+  navigation_targets: Record<string, string>;
+  confirmation_required: boolean;
+  correlation_id: string;
+  idempotency_result: string;
+  scheduled: boolean;
+  idempotent_reuse: boolean;
+}
+
+export interface CampaignRescheduleHistoryItem {
+  id: string;
+  campaign_id: string;
+  activity_id: string;
+  original_schedule_id: string | null;
+  replacement_schedule_id: string | null;
+  original_job_id: string | null;
+  replacement_job_id: string | null;
+  original_scheduled_for_utc: string | null;
+  requested_local_datetime: string;
+  requested_timezone: string;
+  resolved_scheduled_for_utc: string;
+  reason: string;
+  status: string;
+  requested_at: string;
+  confirmed_at: string | null;
+  confirmed_by: string | null;
 }
 
 export interface CampaignReadinessIssue {

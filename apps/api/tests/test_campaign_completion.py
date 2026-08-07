@@ -110,7 +110,7 @@ def test_recovery_action_registry_is_complete_and_classified() -> None:
         assert spec.safe_success_message
         assert spec.safe_failure_behavior
         if spec.implementation_status == "unsupported":
-            assert key in {"create_one_catch_up", "reschedule_activity"}
+            assert key == "create_one_catch_up"
             assert spec.classification == "mutating"
             assert spec.executor is None
             continue

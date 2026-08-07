@@ -262,6 +262,57 @@ class CampaignScheduleLink(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
 
+class CampaignActivityReschedule(Base):
+    __tablename__ = "campaign_activity_reschedules"
+    __table_args__ = (
+        UniqueConstraint("owner_id", "preview_fingerprint", name="uq_reschedule_owner_fingerprint"),
+        UniqueConstraint(
+            "activity_id", "replacement_schedule_id", name="uq_reschedule_activity_schedule"
+        ),
+        CheckConstraint(
+            "status IN ('previewed','confirmed','superseded','cancelled','failed')",
+            name="ck_campaign_reschedule_status",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    campaign_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("campaigns.id", ondelete="CASCADE"), index=True
+    )
+    activity_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("campaign_activities.id", ondelete="CASCADE"), index=True
+    )
+    original_schedule_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_schedules.id", ondelete="SET NULL")
+    )
+    replacement_schedule_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_schedules.id", ondelete="SET NULL")
+    )
+    original_job_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_jobs.id", ondelete="SET NULL")
+    )
+    replacement_job_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_jobs.id", ondelete="SET NULL")
+    )
+    original_scheduled_for_utc: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    requested_local_datetime: Mapped[datetime] = mapped_column(DateTime(timezone=False))
+    requested_timezone: Mapped[str] = mapped_column(String(100))
+    resolved_scheduled_for_utc: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    reason: Mapped[str] = mapped_column(String(500), default="")
+    preview_fingerprint: Mapped[str] = mapped_column(String(128), index=True)
+    status: Mapped[str] = mapped_column(String(20), index=True)
+    requested_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    confirmed_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id")
+    )
+    confirmed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class CampaignWorkflowWait(Base):
     __tablename__ = "campaign_workflow_waits"
     __table_args__ = (

@@ -509,9 +509,65 @@ class CampaignRecoveryActionRequest(BaseModel):
     expected_activity_row_version: int | None = Field(default=None, ge=1)
     reason: str = Field(default="Operator recovery action.", max_length=500)
     confirm: Literal[True]
+    proposed_local_datetime: datetime | None = None
+    proposed_timezone: str | None = Field(default=None, max_length=100)
+    fold: Literal[0, 1] | None = None
+    preview_fingerprint: str | None = Field(default=None, max_length=128)
 
 
 CampaignRecoveryRequest = CampaignRecoveryActionRequest
+
+
+class ReschedulePreviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    activity_id: uuid.UUID
+    proposed_local_datetime: datetime
+    proposed_timezone: str = Field(min_length=1, max_length=100)
+    reason: str = Field(default="", max_length=500)
+    expected_activity_row_version: int = Field(ge=1)
+    fold: Literal[0, 1] | None = None
+
+
+class ReschedulePreviewResponse(BaseModel):
+    campaign_id: uuid.UUID
+    activity_id: uuid.UUID
+    original_scheduled_at_utc: datetime
+    proposed_local_datetime: datetime
+    proposed_scheduled_at_utc: datetime
+    timezone: str
+    confirmation_required: bool
+    preview_fingerprint: str
+    safe_message: str
+    correlation_id: str
+    dst_classification: str = "normal"
+    utc_offset: str | None = None
+    fold: int | None = None
+    issue_code: str | None = None
+    warnings: list[str] = Field(default_factory=list)
+    readiness_issues: list[ReadinessIssue] = Field(default_factory=list)
+    conflicts: list[Conflict] = Field(default_factory=list)
+    current_schedule_status: str | None = None
+    current_job_status: str | None = None
+
+
+class RescheduleHistoryResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: uuid.UUID
+    campaign_id: uuid.UUID
+    activity_id: uuid.UUID
+    original_schedule_id: uuid.UUID | None
+    replacement_schedule_id: uuid.UUID | None
+    original_job_id: uuid.UUID | None
+    replacement_job_id: uuid.UUID | None
+    original_scheduled_for_utc: datetime | None
+    requested_local_datetime: datetime
+    requested_timezone: str
+    resolved_scheduled_for_utc: datetime
+    reason: str
+    status: str
+    requested_at: datetime
+    confirmed_at: datetime | None
+    confirmed_by: uuid.UUID | None
 
 
 class CampaignRecoveryActionResult(BaseModel):

@@ -18,7 +18,7 @@ def test_recovery_registry_inventory_is_callable_or_explicitly_unsupported():
         for key, spec in RECOVERY_ACTION_REGISTRY.items()
         if spec.implementation_status == "unsupported"
     }
-    assert unsupported == {"create_one_catch_up", "reschedule_activity"}
+    assert unsupported == {"create_one_catch_up"}
     for key, spec in RECOVERY_ACTION_REGISTRY.items():
         if key in unsupported:
             assert spec.executor is None
@@ -46,7 +46,6 @@ def test_recovery_router_uses_registry_dispatch_path():
     ("action", "message"),
     [
         ("create_one_catch_up", "Catch-up creation is not implemented yet."),
-        ("reschedule_activity", "Durable Activity rescheduling is not implemented yet."),
     ],
 )
 def test_unsupported_recovery_actions_are_safe_and_non_mutating(harness, action, message):

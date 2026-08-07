@@ -93,3 +93,8 @@ display-only and should never be navigated.
 Default Brand, prompt-template, and Publishing-destination choices are persisted by the API, not
 only browser storage. Refresh Settings and the consuming AI or Publishing flow to validate
 server persistence and compatibility fallback.
+## Rescheduling UI smoke path
+
+Start the API and Angular web app, open a missed Campaign Activity, and select **Reschedule
+Activity**. Preview a UTC time before confirming. For DST coverage use an IANA zone such as
+`America/New_York`: a spring gap must be rejected and a fall fold requires an explicit choice.

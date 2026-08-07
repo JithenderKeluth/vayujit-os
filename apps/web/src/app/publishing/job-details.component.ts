@@ -16,6 +16,10 @@ import { PublishingService } from './publishing.service';
     @if (job(); as value) {
       <article class="op-card">
         <p><strong>State:</strong> {{ value.state }}</p>
+        @if (value.recovery_state === 'superseded') {
+          <p class="op-error">Superseded by Activity rescheduling.</p>
+          <p>{{ value.recovery_reason || 'This job is retained for history and is not retryable.' }}</p>
+        }
         <p><strong>Correlation:</strong> {{ value.correlation_id || 'Not recorded' }}</p>
         <p>
           <strong>Lease:</strong> {{ value.lease_owner || 'None' }}

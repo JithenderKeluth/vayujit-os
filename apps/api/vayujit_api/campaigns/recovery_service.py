@@ -2,16 +2,20 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 from collections.abc import Callable
 from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Literal, Protocol
 
+from vayujit_api.ai.models import GeneratedArtifact
 from vayujit_api.campaigns.models import Campaign, CampaignActivity
 from vayujit_api.campaigns.schemas import (
     CampaignRecoveryActionResult,
     CampaignRecoveryRequest,
 )
+from vayujit_api.publishing.models import PublishingDestination, PublishingJob, PublishingSchedule
 
 
 @dataclass(frozen=True)
@@ -25,6 +29,51 @@ class RecoveryDecision:
 
 
 CampaignRecoveryResult = CampaignRecoveryActionResult
+
+
+def reschedule_fingerprint(
+    db: Any,
+    owner_id: Any,
+    campaign: Campaign,
+    activity: CampaignActivity,
+    proposed_local_datetime: Any,
+    proposed_timezone: str,
+    reason: str,
+    fold: int | None,
+    row_version: int | None = None,
+) -> str:
+    schedule = db.get(PublishingSchedule, activity.schedule_id) if activity.schedule_id else None
+    job = db.get(PublishingJob, activity.job_id) if activity.job_id else None
+    artifact = db.get(GeneratedArtifact, activity.artifact_id) if activity.artifact_id else None
+    destination = (
+        db.get(PublishingDestination, activity.destination_id) if activity.destination_id else None
+    )
+    payload = {
+        "owner": str(owner_id),
+        "campaign": str(campaign.id),
+        "campaign_status": campaign.status,
+        "activity": str(activity.id),
+        "row_version": activity.row_version if row_version is None else row_version,
+        "local": proposed_local_datetime.isoformat(),
+        "timezone": proposed_timezone,
+        "reason": reason.strip(),
+        "fold": fold,
+        "schedule_id": str(activity.schedule_id) if activity.schedule_id else None,
+        "schedule_enabled": schedule.enabled if schedule else None,
+        "schedule_archived": schedule.archived if schedule else None,
+        "job_id": str(activity.job_id) if activity.job_id else None,
+        "job_state": job.state if job else None,
+        "job_lease_owner": job.lease_owner if job else None,
+        "job_lease_expires_at": job.lease_expires_at.isoformat()
+        if job and job.lease_expires_at
+        else None,
+        "artifact_id": str(activity.artifact_id) if activity.artifact_id else None,
+        "artifact_version": activity.artifact_version,
+        "artifact_status": artifact.status if artifact else None,
+        "destination_id": str(activity.destination_id) if activity.destination_id else None,
+        "destination_status": destination.status if destination else None,
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
 
 @dataclass(frozen=True)
@@ -94,6 +143,14 @@ def _release_checkpoint_handler(
     from vayujit_api.campaigns.recovery_executors import execute_release_checkpoint
 
     return execute_release_checkpoint(context, request)
+
+
+def _reschedule_activity_handler(
+    context: CampaignRecoveryExecutionContext, request: CampaignRecoveryRequest
+) -> CampaignRecoveryResult:
+    from vayujit_api.campaigns.recovery_executors import execute_reschedule_activity
+
+    return execute_reschedule_activity(context, request)
 
 
 def _pause_campaign_handler(
@@ -341,7 +398,7 @@ RECOVERY_ACTION_REGISTRY = MappingProxyType(
                 "mutating",
                 executor=(
                     None
-                    if key in {"create_one_catch_up", "reschedule_activity"}
+                    if key == "create_one_catch_up"
                     else _pause_campaign_handler
                     if key == "pause_campaign"
                     else _retry_activity_handler
@@ -352,6 +409,8 @@ RECOVERY_ACTION_REGISTRY = MappingProxyType(
                     if key == "replace_with_new_approved_activity"
                     else _release_checkpoint_handler
                     if key == "release_checkpoint"
+                    else _reschedule_activity_handler
+                    if key == "reschedule_activity"
                     else _resume_campaign_handler
                     if key == "resume_campaign"
                     else _cancel_activity_handler
@@ -374,9 +433,7 @@ RECOVERY_ACTION_REGISTRY = MappingProxyType(
                     else "campaign.recovery_action_executed"
                 ),
                 implementation_status=(
-                    "unsupported"
-                    if key in {"create_one_catch_up", "reschedule_activity"}
-                    else "implemented"
+                    "unsupported" if key == "create_one_catch_up" else "implemented"
                 ),
             )
             for key, executor in _MUTATING.items()

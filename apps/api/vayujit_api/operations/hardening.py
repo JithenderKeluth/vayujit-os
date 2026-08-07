@@ -493,6 +493,8 @@ def recovery(
                 campaign_capabilities.extend(["retry_activity", "reconcile_activity"])
             if not activity.required:
                 campaign_capabilities.append("skip_optional_activity")
+            if activity.status == "missed":
+                campaign_capabilities.append("reschedule_activity")
             items.append(
                 RecoveryItem(
                     id=activity.id,
