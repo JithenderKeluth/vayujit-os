@@ -81,3 +81,7 @@ handling, DST gap/fold rendering, stale-preview recovery, keyboard access, safe 
 and duplicate-submit prevention. Guarded PostgreSQL integration tests cover durable schedule/job
 supersession, idempotent replay, lease safety, readiness, workflow waits, audit safety, and
 owner/Origin protection. No real connector is contacted.
+
+Catch-up acceptance covers additive Activity identity, exact Artifact preservation, one schedule
+and job, repeated/concurrent confirmation, scheduler recovery, dependency and Workflow wait
+projection, audit safety, and original missed-history preservation.

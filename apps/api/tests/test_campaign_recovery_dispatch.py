@@ -1,5 +1,4 @@
 from typing import get_args
-from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
@@ -10,7 +9,7 @@ from vayujit_api.campaigns.schemas import CampaignRecoveryActionKey, CampaignRec
 pytest_plugins = ("test_scheduler_integration",)
 
 
-def test_recovery_registry_inventory_is_callable_or_explicitly_unsupported():
+def test_recovery_registry_inventory_is_fully_implemented():
     declared = set(get_args(CampaignRecoveryActionKey))
     assert set(RECOVERY_ACTION_REGISTRY) == declared
     unsupported = {
@@ -18,11 +17,10 @@ def test_recovery_registry_inventory_is_callable_or_explicitly_unsupported():
         for key, spec in RECOVERY_ACTION_REGISTRY.items()
         if spec.implementation_status == "unsupported"
     }
-    assert unsupported == {"create_one_catch_up"}
-    for key, spec in RECOVERY_ACTION_REGISTRY.items():
-        if key in unsupported:
-            assert spec.executor is None
-        elif spec.classification == "mutating":
+    assert unsupported == set()
+    assert len(RECOVERY_ACTION_REGISTRY) == 21
+    for _key, spec in RECOVERY_ACTION_REGISTRY.items():
+        if spec.classification == "mutating":
             assert callable(spec.executor)
         else:
             assert callable(spec.navigation_resolver)
@@ -40,31 +38,6 @@ def test_recovery_router_uses_registry_dispatch_path():
     assert "implementation_status" in route
     assert "RECOVERY_ACTION_REGISTRY" in route
     assert "typed_result" in route
-
-
-@pytest.mark.parametrize(
-    ("action", "message"),
-    [
-        ("create_one_catch_up", "Catch-up creation is not implemented yet."),
-    ],
-)
-def test_unsupported_recovery_actions_are_safe_and_non_mutating(harness, action, message):
-    client, _sessions = harness
-    response = client.post(
-        "/api/v1/campaigns/recovery/actions",
-        json={
-            "action": action,
-            "campaign_id": str(uuid4()),
-            "reason": "Unsupported action characterization.",
-            "confirm": True,
-        },
-        headers={"Origin": "http://localhost:4200"},
-    )
-    assert response.status_code == 200, response.text
-    payload = response.json()
-    assert payload["outcome"] == "unsupported"
-    assert payload["safe_message"] == message
-    assert payload.get("correlation_id")
 
 
 def test_recovery_result_contract_rejects_malformed_executor_output():

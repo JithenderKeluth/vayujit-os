@@ -35,6 +35,7 @@ from vayujit_api.campaigns.readiness_service import activity_readiness, campaign
 from vayujit_api.campaigns.recovery_service import (
     RECOVERY_ACTION_REGISTRY,
     CampaignRecoveryExecutionContext,
+    catch_up_fingerprint,
     eligible_recovery_actions,
     reschedule_fingerprint,
 )
@@ -57,6 +58,8 @@ from vayujit_api.campaigns.schemas import (
     CampaignUpdate,
     CampaignWorkflowAction,
     CampaignWorkflowResult,
+    CatchUpPreviewRequest,
+    CatchUpPreviewResponse,
     Conflict,
     DependencyCreate,
     DependencyResponse,
@@ -229,8 +232,29 @@ def lookup(
     return SelectorPage(items=items, page=page, page_size=page_size, total=len(items))
 
 
-def recovery_actions(activity: CampaignActivity, campaign: Campaign | None = None) -> list[str]:
-    return eligible_recovery_actions(activity, campaign)
+def recovery_actions(
+    activity: CampaignActivity, campaign: Campaign | None = None, db: Session | None = None
+) -> list[str]:
+    return eligible_recovery_actions(activity, campaign, db)
+
+
+def catch_up_projection(
+    db: Session, activity: CampaignActivity
+) -> tuple[uuid.UUID | None, uuid.UUID | None, uuid.UUID | None, str | None]:
+    resolution = db.scalar(
+        select(CampaignMissedActivityResolution).where(
+            CampaignMissedActivityResolution.activity_id == activity.id,
+            CampaignMissedActivityResolution.policy == "one_catch_up",
+        )
+    )
+    if resolution is None:
+        return None, None, None, None
+    return (
+        resolution.replacement_activity_id,
+        resolution.replacement_schedule_id,
+        resolution.replacement_job_id,
+        resolution.resolution_status,
+    )
 
 
 @router.get("/recovery", response_model=list[CampaignRecoveryProjection])
@@ -258,30 +282,40 @@ def campaign_recovery(db: DB, owner: Owner) -> list[CampaignRecoveryProjection]:
             .limit(200)
         )
     )
-    return [
-        CampaignRecoveryProjection(
-            recovery_type=f"activity_{activity.status}",
-            campaign_id=campaign.id,
-            campaign_name=campaign.name,
-            campaign_status=campaign.status,
-            activity_id=activity.id,
-            activity_name=activity.name,
-            required=activity.required,
-            product_id=activity.product_id,
-            artifact_id=activity.artifact_id,
-            artifact_version=activity.artifact_version,
-            destination_id=activity.destination_id,
-            connector_key=activity.connector_key,
-            schedule_id=activity.schedule_id,
-            job_id=activity.job_id,
-            publishing_execution_id=activity.publishing_execution_id,
-            workflow_wait_id=None,
-            safe_failure_message=activity.safe_failure_message or "Campaign activity needs review.",
-            correlation_id=activity.correlation_id,
-            eligible_actions=recovery_actions(activity, campaign),
+    projections: list[CampaignRecoveryProjection] = []
+    for activity, campaign in rows:
+        catch_up_activity_id, catch_up_schedule_id, catch_up_job_id, catch_up_status = (
+            catch_up_projection(db, activity)
         )
-        for activity, campaign in rows
-    ]
+        projections.append(
+            CampaignRecoveryProjection(
+                recovery_type=f"activity_{activity.status}",
+                campaign_id=campaign.id,
+                campaign_name=campaign.name,
+                campaign_status=campaign.status,
+                activity_id=activity.id,
+                activity_name=activity.name,
+                required=activity.required,
+                product_id=activity.product_id,
+                artifact_id=activity.artifact_id,
+                artifact_version=activity.artifact_version,
+                destination_id=activity.destination_id,
+                connector_key=activity.connector_key,
+                schedule_id=activity.schedule_id,
+                job_id=activity.job_id,
+                publishing_execution_id=activity.publishing_execution_id,
+                workflow_wait_id=None,
+                safe_failure_message=activity.safe_failure_message
+                or "Campaign activity needs review.",
+                correlation_id=activity.correlation_id,
+                eligible_actions=recovery_actions(activity, campaign, db),
+                catch_up_activity_id=catch_up_activity_id,
+                catch_up_schedule_id=catch_up_schedule_id,
+                catch_up_job_id=catch_up_job_id,
+                catch_up_status=catch_up_status,
+            )
+        )
+    return projections
 
 
 @router.post(
@@ -359,6 +393,98 @@ def preview_reschedule_activity(
     )
 
 
+@router.post(
+    "/{campaign_id}/recovery/create-one-catch-up/preview",
+    response_model=CatchUpPreviewResponse,
+)
+def preview_create_one_catch_up(
+    campaign_id: uuid.UUID,
+    request: CatchUpPreviewRequest,
+    db: DB,
+    owner: Owner,
+) -> CatchUpPreviewResponse:
+    campaign = owned_campaign(db, owner.id, campaign_id)
+    activity = owned_activity(db, owner.id, campaign.id, request.activity_id)
+    if activity.status != "missed":
+        raise HTTPException(409, "Catch-up is available only for missed Activities.")
+    if activity.row_version != request.expected_activity_row_version:
+        raise HTTPException(409, "The Activity changed; refresh before creating catch-up.")
+    try:
+        zone = timezone_for(request.proposed_timezone)
+        fold_zero = request.proposed_local_datetime.replace(tzinfo=zone, fold=0)
+        fold_one = request.proposed_local_datetime.replace(tzinfo=zone, fold=1)
+        utc_zero = local_to_utc(request.proposed_local_datetime, request.proposed_timezone, 0)
+        utc_one = local_to_utc(request.proposed_local_datetime, request.proposed_timezone, 1)
+    except ValueError as error:
+        raise HTTPException(422, str(error)) from error
+    ambiguous = utc_zero != utc_one and fold_zero.utcoffset() != fold_one.utcoffset()
+    if not ambiguous and request.fold not in {None, 0}:
+        raise HTTPException(422, "The selected DST fold is not valid for this local time.")
+    selected_fold = request.fold if request.fold is not None else 0
+    proposed = utc_one if selected_fold == 1 else utc_zero
+    readiness = activity_readiness(db, campaign, activity)
+    conflicts = detect_conflicts(campaign, [activity], dependencies(db, campaign.id))
+    artifact = db.get(GeneratedArtifact, activity.artifact_id) if activity.artifact_id else None
+    destination = (
+        db.get(PublishingDestination, activity.destination_id) if activity.destination_id else None
+    )
+    warnings = [issue.safe_message for issue in readiness.issues]
+    warnings.extend(item.safe_explanation for item in conflicts)
+    fingerprint = catch_up_fingerprint(
+        owner.id,
+        campaign,
+        activity,
+        request.proposed_local_datetime,
+        request.proposed_timezone,
+        request.reason,
+        request.fold,
+        request.expected_activity_row_version,
+    )
+    current_schedule = (
+        db.get(PublishingSchedule, activity.schedule_id) if activity.schedule_id else None
+    )
+    current_job = db.get(PublishingJob, activity.job_id) if activity.job_id else None
+    return CatchUpPreviewResponse(
+        campaign_id=campaign.id,
+        activity_id=activity.id,
+        original_scheduled_at_utc=activity.scheduled_at_utc,
+        proposed_local_datetime=request.proposed_local_datetime,
+        proposed_scheduled_at_utc=proposed,
+        timezone=request.proposed_timezone,
+        confirmation_required=not ambiguous or request.fold is not None,
+        preview_fingerprint=fingerprint,
+        safe_message="Review the proposed catch-up Activity and confirm it explicitly.",
+        correlation_id=correlation_id() or str(uuid.uuid4()),
+        dst_classification="ambiguous_local_time" if ambiguous else "normal",
+        utc_offset=str((fold_one if selected_fold == 1 else fold_zero).utcoffset()),
+        fold=request.fold if ambiguous else None,
+        issue_code="ambiguous_local_time" if ambiguous and request.fold is None else None,
+        warnings=warnings,
+        readiness_issues=readiness.issues,
+        conflicts=conflicts,
+        current_schedule_status=(
+            "superseded"
+            if current_schedule and current_schedule.archived
+            else "active"
+            if current_schedule
+            else None
+        ),
+        current_job_status=current_job.state if current_job else None,
+        original_activity_name=activity.name,
+        original_activity_status=activity.status,
+        artifact_id=artifact.id if artifact else activity.artifact_id,
+        artifact_version=activity.artifact_version,
+        artifact_status=artifact.status if artifact else None,
+        destination_id=destination.id if destination else activity.destination_id,
+        destination_status=destination.status if destination else None,
+        dependency_warnings=[
+            issue.safe_message
+            for issue in readiness.issues
+            if issue.code == "dependency_unsatisfied"
+        ],
+    )
+
+
 @router.get(
     "/{campaign_id}/activities/{activity_id}/reschedules",
     response_model=list[RescheduleHistoryResponse],
@@ -430,7 +556,7 @@ def execute_recovery_action(
         if (
             activity
             and not existing_reschedule
-            and request.action not in recovery_actions(activity, campaign)
+            and request.action not in recovery_actions(activity, campaign, db)
         ):
             raise HTTPException(409, "Recovery action is not eligible for the current state.")
         context = CampaignRecoveryExecutionContext(

@@ -380,6 +380,17 @@ class CampaignMissedActivityResolution(Base):
     replacement_job_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("publishing_jobs.id", ondelete="SET NULL")
     )
+    original_schedule_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_schedules.id", ondelete="SET NULL")
+    )
+    original_job_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("publishing_jobs.id", ondelete="SET NULL")
+    )
+    preview_fingerprint: Mapped[str | None] = mapped_column(String(128), index=True)
+    requested_local_datetime: Mapped[datetime | None] = mapped_column(DateTime(timezone=False))
+    requested_timezone: Mapped[str | None] = mapped_column(String(100))
+    resolved_scheduled_for_utc: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    fold: Mapped[int | None] = mapped_column(Integer)
     reason: Mapped[str] = mapped_column(String(500))
     correlation_id: Mapped[str] = mapped_column(String(64), index=True)
     resolved_by: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("users.id"))

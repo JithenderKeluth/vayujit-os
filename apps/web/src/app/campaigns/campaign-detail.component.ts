@@ -11,11 +11,12 @@ import type {
   CampaignRecoveryProjection,
 } from '@vayujit/shared';
 import { CampaignService } from './campaign.service';
+import { CatchUpDialogComponent } from './catch-up-dialog.component';
 import { RescheduleDialogComponent } from './reschedule-dialog.component';
 
 @Component({
   selector: 'app-campaign-detail',
-  imports: [DatePipe, FormsModule, RouterLink, RescheduleDialogComponent],
+  imports: [DatePipe, FormsModule, RouterLink, RescheduleDialogComponent, CatchUpDialogComponent],
   template: `
     <section class="page">
       @if (campaign(); as value) {
@@ -138,6 +139,15 @@ import { RescheduleDialogComponent } from './reschedule-dialog.component';
                   {{ activity.scheduled_at_utc | date: 'medium' }} · {{ activity.timezone_name }}
                 </p>
                 <p>Readiness: {{ activity.readiness_status }}</p>
+                @if (activity.replaces_activity_id) {
+                  <p class="op-muted">Catch-up Activity for missed original {{ activity.replaces_activity_id }}</p>
+                }
+                @if (activity.replaced_by_activity_id) {
+                  <p class="op-muted">Original Activity replaced by {{ activity.replaced_by_activity_id }}</p>
+                }
+                @if (activity.replacement_reason) {
+                  <p class="op-muted">Reason: {{ activity.replacement_reason }}</p>
+                }
                 @if (rescheduleAction(activity); as action) {
                   @if (action.eligible_actions.includes('reschedule_activity')) {
                     <button type="button" (click)="reschedulingActivityId.set(activity.id)">
@@ -146,12 +156,24 @@ import { RescheduleDialogComponent } from './reschedule-dialog.component';
                   } @else if (action.safe_failure_message) {
                     <p class="op-muted">Rescheduling unavailable: {{ action.safe_failure_message }}</p>
                   }
+                  @if (action.eligible_actions.includes('create_one_catch_up')) {
+                    <button type="button" (click)="catchingUpActivityId.set(activity.id)">
+                      Create one catch-up
+                    </button>
+                  }
                 }
                 @if (reschedulingActivityId() === activity.id) {
                   <app-reschedule-dialog
                     [campaignId]="value.id"
                     [activity]="activity"
                     (completed)="closeReschedule()"
+                  />
+                }
+                @if (catchingUpActivityId() === activity.id) {
+                  <app-catch-up-dialog
+                    [campaignId]="value.id"
+                    [activity]="activity"
+                    (completed)="closeCatchUp()"
                   />
                 }
                 @if (activity.job_id) {
@@ -184,6 +206,7 @@ export class CampaignDetailComponent {
   readonly progress = signal<CampaignProgress | null>(null);
   readonly recovery = signal<CampaignRecoveryProjection[]>([]);
   readonly reschedulingActivityId = signal<string | null>(null);
+  readonly catchingUpActivityId = signal<string | null>(null);
   readonly message = signal('');
   resumePolicy = 'skip_missed';
   constructor() {
@@ -234,6 +257,10 @@ export class CampaignDetailComponent {
   }
   closeReschedule(): void {
     this.reschedulingActivityId.set(null);
+    void this.load();
+  }
+  closeCatchUp(): void {
+    this.catchingUpActivityId.set(null);
     void this.load();
   }
 }

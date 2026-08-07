@@ -55,6 +55,15 @@ import { OperationsService } from './operations.service';
         @if (item.capabilities.includes('reschedule_activity')) {
           <p class="op-muted">Reschedule Activity is available from the Activity details.</p>
         }
+        @if (item.capabilities.includes('create_one_catch_up')) {
+          <p class="op-muted">Create one catch-up is available from the missed Activity details.</p>
+        }
+        @if (item.catch_up_status) {
+          <p>Catch-up status: {{ item.catch_up_status }}</p>
+          @if (item.catch_up_activity_id) {
+            <a [routerLink]="['/campaigns', item.campaign_id]">Open catch-up Activity</a>
+          }
+        }
         <a [routerLink]="item.related_url">Open details and available actions</a>
       </article>
     }

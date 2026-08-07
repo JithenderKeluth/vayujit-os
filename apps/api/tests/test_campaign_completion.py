@@ -109,11 +109,7 @@ def test_recovery_action_registry_is_complete_and_classified() -> None:
         assert spec.audit_event
         assert spec.safe_success_message
         assert spec.safe_failure_behavior
-        if spec.implementation_status == "unsupported":
-            assert key == "create_one_catch_up"
-            assert spec.classification == "mutating"
-            assert spec.executor is None
-            continue
+        assert spec.implementation_status == "implemented"
         if spec.classification == "mutating":
             assert callable(spec.executor)
             assert spec.navigation_resolver is None

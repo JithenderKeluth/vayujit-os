@@ -71,6 +71,14 @@ Publishing activities bind one exact approved Artifact version to one compatible
 Shopify destination and a bounded action. Review and approval checkpoints do not publish.
 WordPress and Shopify default to draft creation in the editor.
 
+### One durable catch-up
+
+For genuinely missed work, Recovery can create one additive catch-up Activity. The original
+Activity, schedule, job, attempts, and missed-resolution history remain unchanged. The catch-up
+preserves the exact approved Artifact version, destination, connector action, and dependency
+intent, then creates one durable schedule/job through the existing scheduler. Preview and explicit
+confirmation are fingerprint-protected; repeated confirmations reuse the same catch-up.
+
 Dependencies are normalized directed edges supporting finish-to-start, success-required,
 completion-required, and manual-release semantics. Edges must remain inside one owner and
 Campaign. Duplicate edges, self-edges, and deterministic graph cycles are rejected. Campaigns are

@@ -15,7 +15,11 @@ from vayujit_api import __version__
 from vayujit_api.ai.models import AIProviderConfiguration
 from vayujit_api.audit.models import AuditEvent
 from vayujit_api.audit.service import record_event
-from vayujit_api.campaigns.models import Campaign, CampaignActivity
+from vayujit_api.campaigns.models import (
+    Campaign,
+    CampaignActivity,
+    CampaignMissedActivityResolution,
+)
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
 from vayujit_api.core.observability import maintenance_enabled
@@ -104,6 +108,10 @@ class RecoveryItem(BaseModel):
     campaign_name: str | None = None
     activity_id: uuid.UUID | None = None
     activity_name: str | None = None
+    catch_up_activity_id: uuid.UUID | None = None
+    catch_up_schedule_id: uuid.UUID | None = None
+    catch_up_job_id: uuid.UUID | None = None
+    catch_up_status: str | None = None
 
 
 class RecoveryPage(BaseModel):
@@ -348,10 +356,10 @@ def health_details(db: Session) -> SystemHealth:
                 component="Migration",
                 status=(
                     "healthy"
-                    if current in {"20260808_0019", "unmanaged-test-schema"}
+                    if current in {"20260812_0022", "unmanaged-test-schema"}
                     else "degraded"
                 ),
-                message=f"Current {current}; expected 20260808_0019.",
+                message=f"Current {current}; expected 20260812_0022.",
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -424,7 +432,7 @@ def health_details(db: Session) -> SystemHealth:
         status=overall,
         components=components,
         current_migration=current,
-        expected_migration="20260808_0019",
+        expected_migration="20260812_0022",
         application_version=__version__,
         build_identifier=get_settings().build_identifier,
     )
@@ -481,6 +489,7 @@ def recovery(
                         "dead_letter",
                         "maintenance_blocked",
                         "reconciliation_required",
+                        "missed",
                     ]
                 ),
             )
@@ -488,13 +497,21 @@ def recovery(
             .limit(100)
         ).all()
         for activity, campaign, product in campaign_rows:
+            catch_up = db.scalar(
+                select(CampaignMissedActivityResolution).where(
+                    CampaignMissedActivityResolution.owner_id == user.id,
+                    CampaignMissedActivityResolution.campaign_id == campaign.id,
+                    CampaignMissedActivityResolution.activity_id == activity.id,
+                    CampaignMissedActivityResolution.policy == "one_catch_up",
+                )
+            )
             campaign_capabilities = ["open_campaign", "review_readiness", "review_dependency"]
             if activity.status in {"failed", "dead_letter"}:
                 campaign_capabilities.extend(["retry_activity", "reconcile_activity"])
             if not activity.required:
                 campaign_capabilities.append("skip_optional_activity")
             if activity.status == "missed":
-                campaign_capabilities.append("reschedule_activity")
+                campaign_capabilities.extend(["reschedule_activity", "create_one_catch_up"])
             items.append(
                 RecoveryItem(
                     id=activity.id,
@@ -524,6 +541,10 @@ def recovery(
                     campaign_name=campaign.name,
                     activity_id=activity.id,
                     activity_name=activity.name,
+                    catch_up_activity_id=(catch_up.replacement_activity_id if catch_up else None),
+                    catch_up_schedule_id=(catch_up.replacement_schedule_id if catch_up else None),
+                    catch_up_job_id=(catch_up.replacement_job_id if catch_up else None),
+                    catch_up_status=(catch_up.resolution_status if catch_up else None),
                 )
             )
     if category in {None, "media"}:

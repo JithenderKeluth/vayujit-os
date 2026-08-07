@@ -6,11 +6,18 @@ import hashlib
 import json
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from types import MappingProxyType
 from typing import Any, Literal, Protocol
 
+from sqlalchemy import select
+
 from vayujit_api.ai.models import GeneratedArtifact
-from vayujit_api.campaigns.models import Campaign, CampaignActivity
+from vayujit_api.campaigns.models import (
+    Campaign,
+    CampaignActivity,
+    CampaignMissedActivityResolution,
+)
 from vayujit_api.campaigns.schemas import (
     CampaignRecoveryActionResult,
     CampaignRecoveryRequest,
@@ -72,6 +79,35 @@ def reschedule_fingerprint(
         "artifact_status": artifact.status if artifact else None,
         "destination_id": str(activity.destination_id) if activity.destination_id else None,
         "destination_status": destination.status if destination else None,
+    }
+    return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
+
+
+def catch_up_fingerprint(
+    owner_id: Any,
+    campaign: Campaign,
+    activity: CampaignActivity,
+    proposed_local_datetime: Any,
+    proposed_timezone: str,
+    reason: str,
+    fold: int | None,
+    row_version: int,
+) -> str:
+    payload = {
+        "owner": str(owner_id),
+        "campaign": str(campaign.id),
+        "activity": str(activity.id),
+        "row_version": row_version,
+        "original_scheduled_at_utc": activity.scheduled_at_utc.isoformat(),
+        "local": proposed_local_datetime.isoformat(),
+        "timezone": proposed_timezone,
+        "reason": reason.strip(),
+        "fold": fold,
+        "artifact_id": str(activity.artifact_id) if activity.artifact_id else None,
+        "artifact_version": activity.artifact_version,
+        "destination_id": str(activity.destination_id) if activity.destination_id else None,
+        "connector_key": activity.connector_key,
+        "requested_action": activity.requested_action,
     }
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 
@@ -397,9 +433,7 @@ RECOVERY_ACTION_REGISTRY = MappingProxyType(
                 key.replace("_", " ").title(),
                 "mutating",
                 executor=(
-                    None
-                    if key == "create_one_catch_up"
-                    else _pause_campaign_handler
+                    _pause_campaign_handler
                     if key == "pause_campaign"
                     else _retry_activity_handler
                     if key == "retry_activity"
@@ -432,9 +466,7 @@ RECOVERY_ACTION_REGISTRY = MappingProxyType(
                     if key == "reconcile_activity"
                     else "campaign.recovery_action_executed"
                 ),
-                implementation_status=(
-                    "unsupported" if key == "create_one_catch_up" else "implemented"
-                ),
+                implementation_status=("implemented"),
             )
             for key, executor in _MUTATING.items()
         },
@@ -491,12 +523,93 @@ def _decision(
 def recovery_eligibility(
     campaign: Campaign | None,
     activity: CampaignActivity,
+    *,
+    db: Any | None = None,
 ) -> list[RecoveryDecision]:
     """Return every Activity-scoped action with an explicit safe reason."""
     campaign_id = str(getattr(activity, "campaign_id", ""))
     activity_id = str(getattr(activity, "id", ""))
     terminal = activity.status in {"succeeded", "skipped", "cancelled", "archived"}
     missed = activity.status == "missed"
+    catch_up_eligible = missed
+    catch_up_reason = "activity_missed" if missed else "activity_not_missed"
+    catch_up_explanation = (
+        "Create or reuse one catch-up Activity."
+        if missed
+        else "Catch-up is available only for missed Activities."
+    )
+    if missed and campaign is not None:
+        if campaign.status not in {
+            "ready",
+            "scheduled",
+            "running",
+            "paused",
+            "partially_completed",
+            "failed",
+        }:
+            catch_up_eligible = False
+            catch_up_reason = "campaign_not_active"
+            catch_up_explanation = "Catch-up is unavailable in the current Campaign state."
+        elif db is not None:
+            existing = db.scalar(
+                select(CampaignMissedActivityResolution.id).where(
+                    CampaignMissedActivityResolution.owner_id == activity.owner_id,
+                    CampaignMissedActivityResolution.campaign_id == campaign.id,
+                    CampaignMissedActivityResolution.activity_id == activity.id,
+                    CampaignMissedActivityResolution.policy == "one_catch_up",
+                    CampaignMissedActivityResolution.replacement_activity_id.is_not(None),
+                )
+            )
+            if existing:
+                catch_up_eligible = True
+                catch_up_reason = "catch_up_exists_reusable"
+                catch_up_explanation = "The existing catch-up Activity can be reused."
+            else:
+                artifact = (
+                    db.get(GeneratedArtifact, activity.artifact_id)
+                    if activity.artifact_id
+                    else None
+                )
+                destination = (
+                    db.get(PublishingDestination, activity.destination_id)
+                    if activity.destination_id
+                    else None
+                )
+                if (
+                    not artifact
+                    or artifact.status != "approved"
+                    or artifact.version_number != activity.artifact_version
+                ):
+                    catch_up_eligible = False
+                    catch_up_reason = "artifact_not_approved"
+                    catch_up_explanation = "The exact Activity Artifact must remain approved."
+                elif not destination or destination.status != "active":
+                    catch_up_eligible = False
+                    catch_up_reason = "destination_inactive"
+                    catch_up_explanation = "The Activity destination must remain active."
+                elif (
+                    activity.connector_key is None
+                    or not activity.requested_action
+                    or destination.connector_key != activity.connector_key
+                ):
+                    catch_up_eligible = False
+                    catch_up_reason = "connector_action_unavailable"
+                    catch_up_explanation = "The Activity has no supported publishing action."
+                elif activity.job_id:
+                    job = db.get(PublishingJob, activity.job_id)
+                    if job and (
+                        job.state in {"claimed", "running"}
+                        or (
+                            job.lease_owner
+                            and job.lease_expires_at
+                            and job.lease_expires_at > datetime.now(UTC)
+                        )
+                    ):
+                        catch_up_eligible = False
+                        catch_up_reason = "active_job_lease"
+                        catch_up_explanation = (
+                            "Catch-up is blocked while the original job is active."
+                        )
     decisions = [
         _decision(
             "open_campaign",
@@ -646,13 +759,9 @@ def recovery_eligibility(
         ),
         _decision(
             "create_one_catch_up",
-            missed,
-            "activity_missed" if missed else "activity_not_missed",
-            (
-                "Create or reuse one catch-up Activity."
-                if missed
-                else "Catch-up is available only for missed Activities."
-            ),
+            catch_up_eligible,
+            catch_up_reason,
+            catch_up_explanation,
             confirmation=True,
         ),
         _decision(
@@ -754,11 +863,11 @@ def recovery_eligibility(
 
 
 def eligible_recovery_actions(
-    activity: CampaignActivity, campaign: Campaign | None = None
+    activity: CampaignActivity, campaign: Campaign | None = None, db: Any | None = None
 ) -> list[str]:
     return [
         decision.action
-        for decision in recovery_eligibility(campaign, activity)
+        for decision in recovery_eligibility(campaign, activity, db=db)
         if decision.eligible
         and RECOVERY_ACTION_REGISTRY[decision.action].implementation_status == "implemented"
     ]

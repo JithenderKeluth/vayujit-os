@@ -66,6 +66,9 @@ preview is read-only; confirmation archives the superseded schedule and cancels 
 then materializes a replacement occurrence with stable idempotency. Schedule and job detail pages
 mark superseded records while retaining attempts/history and links from the Campaign Activity.
 
+Catch-up Activities use the same occurrence identity and materialization path. Recovery creates no
+Publishing execution and makes no connector call; the worker later claims the single durable job.
+
 Recovery Center projects retry-wait, failed, dead-letter, cancellation, expired-lease, and
 ambiguous jobs with state-aware actions. Operations Health exposes bounded counts and safe worker
 summaries. It never returns credentials, database URLs, host environment, local paths, Artifact
