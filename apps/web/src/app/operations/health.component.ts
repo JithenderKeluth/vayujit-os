@@ -55,12 +55,16 @@ import { OperationsService } from './operations.service';
       <article class="op-card">
         <h2>Scheduler and workers</h2>
         <p>
-          {{ value.maintenance_blocked ? 'Maintenance blocked' : 'Dispatch available' }} ·
-          {{ value.active_schedule_count }} active · {{ value.paused_schedule_count }} paused
+          {{
+            value.maintenance_blocked
+              ? 'Maintenance mode is blocking dispatch'
+              : 'Scheduling available'
+          }}
+          · {{ value.active_schedule_count }} active · {{ value.paused_schedule_count }} paused
         </p>
         <p>
-          {{ value.due_job_count }} due · {{ value.retry_wait_count }} retrying ·
-          {{ value.dead_letter_count }} dead letter
+          {{ value.due_job_count }} ready to run · {{ value.retry_wait_count }} waiting to retry ·
+          {{ value.dead_letter_count }} permanently failed
         </p>
         <p>
           {{ value.workers.length }} registered workers · oldest overdue

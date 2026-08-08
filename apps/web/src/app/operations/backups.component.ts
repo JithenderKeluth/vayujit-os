@@ -19,6 +19,16 @@ import { OperationsService } from './operations.service';
     @if (message()) {
       <p class="op-success" role="status">{{ message() }}</p>
     }
+    @if (!loading() && items().length) {
+      <article class="op-card">
+        <h2>Backup habit</h2>
+        <p>Latest backup: {{ items()[0].created_at }}</p>
+        <p>
+          Verification: {{ items()[0].verification_status }}. Verify a fresh backup before relying
+          on it.
+        </p>
+      </article>
+    }
     @if (!loading() && !items().length) {
       <article class="op-card">
         <h2>No backups</h2>
@@ -28,7 +38,10 @@ import { OperationsService } from './operations.service';
     @for (item of items(); track item.id) {
       <article class="op-card">
         <h2>{{ item.backup_key }}</h2>
-        <p>{{ item.status }} · {{ item.verification_status }} · {{ item.size_bytes }} bytes</p>
+        <p>
+          {{ item.status }} · {{ item.verification_status }} · {{ item.size_bytes }} bytes · created
+          {{ item.created_at }}
+        </p>
         <p>Migration {{ item.migration_revision }} · {{ item.encryption_status }}</p>
         <div class="op-actions">
           <button [disabled]="busy()" (click)="verify(item.id)">Verify</button>
