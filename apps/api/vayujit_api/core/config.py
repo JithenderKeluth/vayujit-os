@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     session_secure_cookie: bool = False
     revoked_session_retention_hours: int = 24
     backup_directory: str = "../../var/backups"
+    pg_dump_path: str | None = None
     backup_retention_count: int = Field(default=10, ge=1, le=100)
     backup_retention_days: int = Field(default=30, ge=1, le=3650)
     export_retention_hours: int = Field(default=24, ge=1, le=720)

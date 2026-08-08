@@ -118,7 +118,7 @@ def update_schedule(
     if "timezone_name" in values:
         value.timezone_name = str(values["timezone_name"])
     if "local_scheduled_at" in values:
-        value.local_scheduled_at = values["local_scheduled_at"]  # type: ignore[assignment]
+        value.local_scheduled_at = values["local_scheduled_at"]
     if "recurrence" in values:
         recurrence = data.recurrence
         value.recurrence_json = recurrence.model_dump() if recurrence else None

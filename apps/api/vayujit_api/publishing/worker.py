@@ -13,6 +13,7 @@ import time
 import uuid
 from concurrent.futures import Future, ThreadPoolExecutor
 from pathlib import Path
+from typing import Literal, cast
 
 from fastapi import HTTPException
 from sqlalchemy.dialects.postgresql import insert
@@ -134,11 +135,14 @@ def execute_job(job_id: uuid.UUID, worker_id: str) -> None:
                 execution_id = response.id
                 succeeded = True
             else:
-                action = {
-                    "update_product": "update",
-                    "activate_product": "activate",
-                    "archive_product": "archive",
-                }.get(job.requested_action, job.requested_action)
+                action = cast(
+                    Literal["create_draft", "publish", "activate", "update", "archive"],
+                    {
+                        "update_product": "update",
+                        "activate_product": "activate",
+                        "archive_product": "archive",
+                    }.get(job.requested_action, job.requested_action),
+                )
                 response = create_execution(
                     db,
                     owner,
@@ -146,7 +150,7 @@ def execute_job(job_id: uuid.UUID, worker_id: str) -> None:
                         artifact_id=job.artifact_id,
                         destination_id=job.destination_id,
                         idempotency_key=f"job:{job.id}",
-                        action=action,  # type: ignore[arg-type]
+                        action=action,
                     ),
                 )
                 execution_id = response.id

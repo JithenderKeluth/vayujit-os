@@ -24,7 +24,7 @@ CLAIMABLE_STATES = {"pending", "scheduled", "retry_wait"}
 
 
 def retry_delay(attempt: int, *, jitter: bool = True) -> int:
-    base = min(30 * (2 ** max(attempt - 1, 0)), 3600)
+    base: int = min(30 * (2 ** max(attempt - 1, 0)), 3600)
     return base + (random.randint(0, max(base // 4, 1)) if jitter else 0)
 
 
