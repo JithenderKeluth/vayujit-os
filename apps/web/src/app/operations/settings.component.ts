@@ -174,8 +174,9 @@ import { OperationsService } from './operations.service';
             Confirm before retry</label
           >
           <p class="op-muted">
-            AI provider: deterministic local mock. Publishing connector: local mock. Unsupported
-            controls and credentials are intentionally not exposed.
+            AI uses the deterministic local provider by default. Publishing uses local mock
+            destinations for safe testing. Configure external providers and connectors from their
+            dedicated settings pages when you are ready.
           </p>
           <button [disabled]="busy()">Save preferences</button>
         </form>

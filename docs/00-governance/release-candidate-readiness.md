@@ -16,8 +16,7 @@ remote deletion, or marketplace functionality is in scope.
 
 ## Validated by repository inspection, runtime checks, and static checks
 
-- Recovery registry contains 21 declared actions: 19 implemented and 2 explicitly unsupported,
-  with no legacy dispatch path in the router.
+- Recovery registry contains 21 declared actions: all 21 implemented, with no unsupported actions and no legacy dispatch path in the router.
 - Catch-up persistence, preview/confirmation, exact Artifact/version checks, idempotency, and
   PostgreSQL integration tests are present.
 - Rescheduling and catch-up preserve the original Activity identity and use durable schedules/jobs.
