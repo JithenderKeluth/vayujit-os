@@ -1,5 +1,6 @@
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import Any, cast
 
 import pytest
 from fastapi.testclient import TestClient
@@ -229,7 +230,7 @@ def test_campaign_fake_connectors_two_workers_and_duplicate_prevention(
                 artifact_id=remote_success_job.artifact_id,
                 destination_id=remote_success_job.destination_id,
                 idempotency_key=f"job:{remote_success_job.id}",
-                action=remote_success_job.requested_action,
+                action=cast(Any, remote_success_job.requested_action),
             ),
         )
         assert remote_success.status == "succeeded"
@@ -258,7 +259,7 @@ def test_campaign_fake_connectors_two_workers_and_duplicate_prevention(
     shopify_product = connector_state.shopify_products["gid://shopify/Product/42"]
     assert wordpress_post["status"] == "draft"
     assert shopify_product["status"] == "DRAFT"
-    assert len(shopify_product["variants"]) == 1
+    assert len(cast(list[object], shopify_product["variants"])) == 1
     assert shopify_product["media"] == []
     assert shopify_product["collections"] == []
     assert shopify_product["publications"] == []

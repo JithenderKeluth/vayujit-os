@@ -36,14 +36,23 @@ import { CampaignService } from './campaign.service';
         <label>Local time <input type="time" formControlName="time" required /></label>
         <label
           >IANA timezone
-          <input formControlName="timezone" list="iana-timezones" required aria-describedby="timezone-help" />
+          <input
+            formControlName="timezone"
+            list="iana-timezones"
+            required
+            aria-describedby="timezone-help"
+          />
         </label>
         <datalist id="iana-timezones">
-          <option value="UTC"></option><option value="America/New_York"></option>
-          <option value="Europe/London"></option><option value="Asia/Kolkata"></option>
+          <option value="UTC"></option>
+          <option value="America/New_York"></option>
+          <option value="Europe/London"></option>
+          <option value="Asia/Kolkata"></option>
         </datalist>
         <p id="timezone-help">Use an IANA timezone such as America/New_York.</p>
-        <label>Reason <textarea formControlName="reason" maxlength="500" rows="3"></textarea></label>
+        <label
+          >Reason <textarea formControlName="reason" maxlength="500" rows="3"></textarea>
+        </label>
         @if (error()) {
           <p #errorRegion class="op-error" role="alert" tabindex="-1">{{ error() }}</p>
         }
@@ -54,41 +63,79 @@ import { CampaignService } from './campaign.service';
         <article class="reschedule-preview" aria-live="polite">
           <h4>Review impact</h4>
           <dl>
-            <dt>Original local</dt><dd>{{ activity.scheduled_local_date }} {{ activity.scheduled_local_time }} ({{ activity.timezone_name }})</dd>
-            <dt>Original UTC</dt><dd>{{ value.original_scheduled_at_utc | date: 'medium' : 'UTC' }}</dd>
-            <dt>Proposed local</dt><dd>{{ value.proposed_local_datetime }} ({{ value.timezone }})</dd>
-            <dt>Proposed UTC</dt><dd>{{ value.proposed_scheduled_at_utc | date: 'medium' : 'UTC' }}</dd>
-            <dt>UTC offset</dt><dd>{{ value.utc_offset || 'Not resolved' }}</dd>
-            <dt>DST classification</dt><dd>{{ value.dst_classification }}</dd>
-            <dt>Current schedule/job</dt><dd>{{ value.current_schedule_status || 'None' }} / {{ value.current_job_status || 'None' }}</dd>
+            <dt>Original local</dt>
+            <dd>
+              {{ activity.scheduled_local_date }} {{ activity.scheduled_local_time }} ({{
+                activity.timezone_name
+              }})
+            </dd>
+            <dt>Original UTC</dt>
+            <dd>{{ value.original_scheduled_at_utc | date: 'medium' : 'UTC' }}</dd>
+            <dt>Proposed local</dt>
+            <dd>{{ value.proposed_local_datetime }} ({{ value.timezone }})</dd>
+            <dt>Proposed UTC</dt>
+            <dd>{{ value.proposed_scheduled_at_utc | date: 'medium' : 'UTC' }}</dd>
+            <dt>UTC offset</dt>
+            <dd>{{ value.utc_offset || 'Not resolved' }}</dd>
+            <dt>DST classification</dt>
+            <dd>{{ value.dst_classification }}</dd>
+            <dt>Current schedule/job</dt>
+            <dd>
+              {{ value.current_schedule_status || 'None' }} /
+              {{ value.current_job_status || 'None' }}
+            </dd>
           </dl>
           @if (value.dst_classification === 'ambiguous_local_time') {
             <label
               >Choose DST interpretation
-              <select [value]="selectedFold()" (change)="selectFold($event)" aria-describedby="fold-help">
+              <select
+                [value]="selectedFold()"
+                (change)="selectFold($event)"
+                aria-describedby="fold-help"
+              >
                 <option value="">Choose a fold</option>
                 <option value="0">Fold 0 · first occurrence · refresh preview</option>
                 <option value="1">Fold 1 · second occurrence · refresh preview</option>
               </select>
             </label>
-            <p id="fold-help">Both interpretations are shown by the refreshed preview; no fold is guessed.</p>
+            <p id="fold-help">
+              Both interpretations are shown by the refreshed preview; no fold is guessed.
+            </p>
           }
           @if (value.dst_classification === 'nonexistent_local_time') {
-            <p class="op-error">This local time does not exist because of a daylight-saving transition. Choose another time.</p>
+            <p class="op-error">
+              This local time does not exist because of a daylight-saving transition. Choose another
+              time.
+            </p>
           }
-          @for (warning of value.warnings; track warning) { <p class="warning">{{ warning }}</p> }
+          @for (warning of value.warnings; track warning) {
+            <p class="warning">{{ warning }}</p>
+          }
           @for (issue of value.readiness_issues; track issue.code + issue.activity_id) {
             <p class="warning">{{ issue.code }}: {{ issue.safe_message }}</p>
           }
-          @for (conflict of value.conflicts; track conflict.conflict_type + conflict.activity_ids.join()) {
+          @for (
+            conflict of value.conflicts;
+            track conflict.conflict_type + conflict.activity_ids.join()
+          ) {
             <p class="warning">{{ conflict.conflict_type }}: {{ conflict.safe_explanation }}</p>
           }
           <p>{{ value.safe_message }}</p>
           <div class="reschedule-actions">
-            <button type="button" (click)="confirm()" [disabled]="pending() || !value.confirmation_required || value.dst_classification === 'ambiguous_local_time' && selectedFold() === null">
+            <button
+              type="button"
+              (click)="confirm()"
+              [disabled]="
+                pending() ||
+                !value.confirmation_required ||
+                (value.dst_classification === 'ambiguous_local_time' && selectedFold() === null)
+              "
+            >
               {{ pending() ? 'Confirming…' : 'Confirm reschedule' }}
             </button>
-            <button type="button" class="secondary" (click)="preview()" [disabled]="pending()">Refresh preview</button>
+            <button type="button" class="secondary" (click)="preview()" [disabled]="pending()">
+              Refresh preview
+            </button>
           </div>
         </article>
       }
@@ -99,12 +146,28 @@ import { CampaignService } from './campaign.service';
           <ol>
             @for (item of history(); track item.id) {
               <li>
-                <strong>{{ item.status }}</strong> · {{ item.requested_local_datetime }} ({{ item.requested_timezone }})
+                <strong>{{ item.status }}</strong> · {{ item.requested_local_datetime }} ({{
+                  item.requested_timezone
+                }})
                 <span>{{ item.reason }}</span>
-                @if (item.original_schedule_id) { <a [routerLink]="'/publishing/schedules/' + item.original_schedule_id">Original schedule</a> }
-                @if (item.replacement_schedule_id) { <a [routerLink]="'/publishing/schedules/' + item.replacement_schedule_id">Replacement schedule</a> }
-                @if (item.original_job_id) { <a [routerLink]="'/publishing/jobs/' + item.original_job_id">Original job</a> }
-                @if (item.replacement_job_id) { <a [routerLink]="'/publishing/jobs/' + item.replacement_job_id">Replacement job</a> }
+                @if (item.original_schedule_id) {
+                  <a [routerLink]="'/publishing/schedules/' + item.original_schedule_id"
+                    >Original schedule</a
+                  >
+                }
+                @if (item.replacement_schedule_id) {
+                  <a [routerLink]="'/publishing/schedules/' + item.replacement_schedule_id"
+                    >Replacement schedule</a
+                  >
+                }
+                @if (item.original_job_id) {
+                  <a [routerLink]="'/publishing/jobs/' + item.original_job_id">Original job</a>
+                }
+                @if (item.replacement_job_id) {
+                  <a [routerLink]="'/publishing/jobs/' + item.replacement_job_id"
+                    >Replacement job</a
+                  >
+                }
               </li>
             }
           </ol>
@@ -114,11 +177,21 @@ import { CampaignService } from './campaign.service';
         <section class="reschedule-success" aria-live="polite">
           <h4>Reschedule confirmed</h4>
           <p>{{ result.safe_message }}</p>
-          @if (target(result, 'activity'); as link) { <a [routerLink]="link">View Activity</a> }
-          @if (target(result, 'replacement_schedule'); as link) { <a [routerLink]="link">View replacement schedule</a> }
-          @if (target(result, 'replacement_job'); as link) { <a [routerLink]="link">View replacement job</a> }
-          @if (target(result, 'original_schedule'); as link) { <a [routerLink]="link">View original schedule history</a> }
-          @if (target(result, 'original_job'); as link) { <a [routerLink]="link">View original job history</a> }
+          @if (target(result, 'activity'); as link) {
+            <a [routerLink]="link">View Activity</a>
+          }
+          @if (target(result, 'replacement_schedule'); as link) {
+            <a [routerLink]="link">View replacement schedule</a>
+          }
+          @if (target(result, 'replacement_job'); as link) {
+            <a [routerLink]="link">View replacement job</a>
+          }
+          @if (target(result, 'original_schedule'); as link) {
+            <a [routerLink]="link">View original schedule history</a>
+          }
+          @if (target(result, 'original_job'); as link) {
+            <a [routerLink]="link">View original job history</a>
+          }
           <p class="op-muted">Correlation: {{ result.correlation_id }}</p>
           <button type="button" class="secondary" (click)="completed.emit()">Close</button>
         </section>
@@ -151,7 +224,11 @@ export class RescheduleDialogComponent {
   ngOnInit(): void {
     void this.loadHistory();
     const local = this.activity.scheduled_local_date;
-    this.form.patchValue({ date: local, time: this.activity.scheduled_local_time.slice(0, 5), timezone: this.activity.timezone_name });
+    this.form.patchValue({
+      date: local,
+      time: this.activity.scheduled_local_time.slice(0, 5),
+      timezone: this.activity.timezone_name,
+    });
   }
 
   async preview(): Promise<void> {
@@ -159,7 +236,10 @@ export class RescheduleDialogComponent {
     this.previewResult.set(null);
     this.confirmationResult.set(null);
     this.fingerprint = '';
-    if (this.form.invalid) { this.form.markAllAsTouched(); return; }
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
     const value = this.form.getRawValue();
     this.pending.set(true);
     try {
@@ -175,7 +255,9 @@ export class RescheduleDialogComponent {
       this.fingerprint = result.preview_fingerprint;
     } catch (error) {
       this.showError(this.safeError(error, 'Unable to preview this reschedule.'));
-    } finally { this.pending.set(false); }
+    } finally {
+      this.pending.set(false);
+    }
   }
 
   selectFold(event: Event): void {
@@ -207,17 +289,38 @@ export class RescheduleDialogComponent {
       await this.loadHistory();
     } catch (error) {
       this.fingerprint = '';
-      this.showError(this.safeError(error, 'The reschedule could not be confirmed. Refresh the preview and try again.'));
-    } finally { this.pending.set(false); }
+      this.showError(
+        this.safeError(
+          error,
+          'The reschedule could not be confirmed. Refresh the preview and try again.',
+        ),
+      );
+    } finally {
+      this.pending.set(false);
+    }
   }
 
   private async loadHistory(): Promise<void> {
-    try { this.history.set(await this.api.getActivityRescheduleHistory(this.campaignId, this.activity.id)); } catch { this.history.set([]); }
+    try {
+      this.history.set(
+        await this.api.getActivityRescheduleHistory(this.campaignId, this.activity.id),
+      );
+    } catch {
+      this.history.set([]);
+    }
   }
 
   private safeError(error: unknown, fallback: string): string {
-    if (error instanceof HttpErrorResponse && typeof error.error?.detail === 'string') {
-      return error.error.detail;
+    if (error instanceof Error && error.message) return error.message;
+    if (error instanceof HttpErrorResponse) {
+      const payload: unknown = error.error;
+      if (
+        typeof payload === 'object' &&
+        payload !== null &&
+        typeof (payload as { detail?: unknown }).detail === 'string'
+      ) {
+        return (payload as { detail: string }).detail;
+      }
     }
     if (typeof error === 'object' && error !== null) {
       const detail = (error as { error?: unknown }).error;

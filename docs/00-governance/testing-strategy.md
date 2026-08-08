@@ -3,8 +3,8 @@
 Real-provider tests never contact a paid external service. Unit coverage uses
 HTTP mock transports; guarded integration coverage uses a deterministic local
 fake OpenAI-compatible server and marked PostgreSQL test database. Migration
-validation cycles from a clean database through `0010`, down to `0009`, and
-back to `0010`.
+validation cycles from a clean database through the current migration head `20260812_0022`,
+down to `20260811_0021`, and back to `20260812_0022`.
 
 ## Database separation
 

@@ -2,8 +2,9 @@
 
 ## Completion additions
 
-Migration `20260808_0019` adds durable Campaign Workflow waits and append-only missed-Activity
-resolutions. Wait restoration uses row locking and a unique Workflow-step constraint to prevent
+Migration `20260812_0022` is the current Campaign schema head. It includes durable Campaign
+Workflow waits, append-only missed-Activity resolutions, durable rescheduling, and one-catch-up
+records. Wait restoration uses row locking and a unique Workflow-step constraint to prevent
 duplicate continuation. Terminal state is derived from required and optional Activity outcomes.
 
 Resume policies now produce an explicit preview. Optional missed Activities may be skipped;
@@ -14,9 +15,9 @@ Calendar API view bounds are month 62 days, week 21 days, and agenda 90 days. Mo
 counts and previews, week returns slots/workload/overlaps, and agenda returns paginated day groups.
 The Angular UI renders these as distinct views and provides an accessible dependency editor.
 
-The guarded, coherent two-worker fake WordPress/Shopify Campaign E2E and full typed Campaign
-Workflow action executor remain known limitations; existing connector and Workflow regression
-suites do not substitute for those acceptance tests.
+The guarded fake WordPress/Shopify Campaign E2E and the release-candidate journey are provided as
+integration suites. They require the disposable PostgreSQL test database and controlled connector
+transports; they never contact real services.
 
 ## Final-acceptance additions
 
@@ -25,8 +26,8 @@ lookups, typed Recovery projections/actions, and durable one-catch-up materializ
 existing scheduler. Brand, Product, exact approved Artifact version, destination, and manager
 selectors use safe display metadata rather than raw identifiers.
 
-The coherent fake WordPress/Shopify two-worker Campaign scenario and actual-window browser/Electron
-acceptance remain pending and must not be inferred from the passing component regression suites.
+Actual-window browser/Electron acceptance remains an environment-gated release check and must not
+be inferred from component regression suites alone.
 
 ## Architecture
 
@@ -167,7 +168,7 @@ scheduler, worker, WordPress, and Shopify readiness.
 ## Testing and incident response
 
 Use only the guarded PostgreSQL database. The migration test performs clean upgrade, downgrade to
-0017, and re-upgrade to 0018. Unit tests cover bounded actions, lifecycle transitions, cycle
+0021, and re-upgrade to 0022. Unit tests cover bounded actions, lifecycle transitions, cycle
 detection, duplicates, and time-window conflicts. Integration tests exercise persisted lifecycle,
 dependencies, readiness, scheduling checkpoints, progress, calendar projections, and data counts.
 
@@ -180,6 +181,5 @@ success, mutate arbitrary job state, expose credentials, or delete remote conten
 
 Campaign templates and drag-and-drop rescheduling are intentionally deferred. The current editor
 uses explicit identifiers for Product, Artifact, and destination selection; richer searchable
-pickers can be layered on the same safe APIs. Workflow Campaign actions and Campaign-specific
-Recovery Center action cards require a subsequent hardening slice; existing durable
-schedule/publishing Recovery remains available through linked jobs and executions.
+pickers can be layered on the same safe APIs. Real external connector calls, remote deletion,
+multi-user authorization, and cloud deployment remain outside the local-owner MVP.

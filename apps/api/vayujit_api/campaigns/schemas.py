@@ -18,6 +18,7 @@ CampaignStatus = Literal[
     "archived",
 ]
 ActivityType = Literal[
+    "mock_publish",
     "wordpress_create_draft",
     "wordpress_publish",
     "wordpress_update",
@@ -513,7 +514,7 @@ class CampaignRecoveryActionRequest(BaseModel):
     activity_id: uuid.UUID | None = None
     workflow_wait_id: uuid.UUID | None = None
     replacement_artifact_id: uuid.UUID | None = None
-    replacement_artifact_version: int | None = Field(default=None, ge=1)
+    replacement_artifact_version: int | None = Field(default=None, ge=1, le=2_147_483_647)
     expected_activity_row_version: int | None = Field(default=None, ge=1)
     reason: str = Field(default="Operator recovery action.", max_length=500)
     confirm: Literal[True]

@@ -33,27 +33,45 @@ import { CampaignService } from './campaign.service';
       <form [formGroup]="form" (ngSubmit)="preview()" novalidate>
         <label>Catch-up date <input type="date" formControlName="date" required /></label>
         <label>Catch-up time <input type="time" formControlName="time" required /></label>
-        <label>IANA timezone <input formControlName="timezone" required aria-describedby="catch-up-timezone-help" /></label>
+        <label
+          >IANA timezone
+          <input formControlName="timezone" required aria-describedby="catch-up-timezone-help"
+        /></label>
         <p id="catch-up-timezone-help">Use an IANA timezone such as America/New_York.</p>
-        <label>Reason <textarea formControlName="reason" maxlength="500" rows="3"></textarea></label>
-        @if (error()) { <p #errorRegion class="op-error" role="alert" tabindex="-1">{{ error() }}</p> }
+        <label
+          >Reason <textarea formControlName="reason" maxlength="500" rows="3"></textarea>
+        </label>
+        @if (error()) {
+          <p #errorRegion class="op-error" role="alert" tabindex="-1">{{ error() }}</p>
+        }
         <button type="submit" [disabled]="pending() || form.invalid">Preview catch-up</button>
       </form>
       @if (previewResult(); as value) {
         <article class="reschedule-preview" aria-live="polite">
           <h4>Review catch-up impact</h4>
           <p><strong>Original missed Activity:</strong> {{ value.original_activity_name }}</p>
-          <p><strong>Artifact:</strong> {{ value.artifact_version ? ('Version ' + value.artifact_version) : 'Unavailable' }} ({{ value.artifact_status || 'unknown' }})</p>
+          <p>
+            <strong>Artifact:</strong>
+            {{ value.artifact_version ? 'Version ' + value.artifact_version : 'Unavailable' }} ({{
+              value.artifact_status || 'unknown'
+            }})
+          </p>
           <p><strong>Destination:</strong> {{ value.destination_status || 'Unavailable' }}</p>
           <dl>
-            <dt>Original UTC</dt><dd>{{ value.original_scheduled_at_utc | date: 'medium' : 'UTC' }}</dd>
-            <dt>Catch-up local</dt><dd>{{ value.proposed_local_datetime }} ({{ value.timezone }})</dd>
-            <dt>Catch-up UTC</dt><dd>{{ value.proposed_scheduled_at_utc | date: 'medium' : 'UTC' }}</dd>
-            <dt>UTC offset</dt><dd>{{ value.utc_offset || 'Not resolved' }}</dd>
-            <dt>DST classification</dt><dd>{{ value.dst_classification }}</dd>
+            <dt>Original UTC</dt>
+            <dd>{{ value.original_scheduled_at_utc | date: 'medium' : 'UTC' }}</dd>
+            <dt>Catch-up local</dt>
+            <dd>{{ value.proposed_local_datetime }} ({{ value.timezone }})</dd>
+            <dt>Catch-up UTC</dt>
+            <dd>{{ value.proposed_scheduled_at_utc | date: 'medium' : 'UTC' }}</dd>
+            <dt>UTC offset</dt>
+            <dd>{{ value.utc_offset || 'Not resolved' }}</dd>
+            <dt>DST classification</dt>
+            <dd>{{ value.dst_classification }}</dd>
           </dl>
           @if (value.dst_classification === 'ambiguous_local_time') {
-            <label>Choose DST interpretation
+            <label
+              >Choose DST interpretation
               <select [value]="selectedFold()" (change)="selectFold($event)">
                 <option value="">Choose a fold</option>
                 <option value="0">Fold 0 - first occurrence</option>
@@ -62,15 +80,36 @@ import { CampaignService } from './campaign.service';
             </label>
           }
           @if (value.dst_classification === 'nonexistent_local_time') {
-            <p class="op-error">This local time does not exist because of a daylight-saving transition. Choose another time.</p>
+            <p class="op-error">
+              This local time does not exist because of a daylight-saving transition. Choose another
+              time.
+            </p>
           }
-          @for (warning of value.warnings; track warning) { <p class="warning">{{ warning }}</p> }
-          @for (warning of value.dependency_warnings; track warning) { <p class="warning">Dependency: {{ warning }}</p> }
-          @for (issue of value.readiness_issues; track issue.code + issue.activity_id) { <p class="warning">{{ issue.code }}: {{ issue.safe_message }}</p> }
+          @for (warning of value.warnings; track warning) {
+            <p class="warning">{{ warning }}</p>
+          }
+          @for (warning of value.dependency_warnings; track warning) {
+            <p class="warning">Dependency: {{ warning }}</p>
+          }
+          @for (issue of value.readiness_issues; track issue.code + issue.activity_id) {
+            <p class="warning">{{ issue.code }}: {{ issue.safe_message }}</p>
+          }
           <p>{{ value.safe_message }}</p>
           <div class="reschedule-actions">
-            <button type="button" (click)="confirm()" [disabled]="pending() || !value.confirmation_required || (value.dst_classification === 'ambiguous_local_time' && selectedFold() === null)">{{ pending() ? 'Confirming...' : 'Confirm catch-up' }}</button>
-            <button type="button" class="secondary" (click)="preview()" [disabled]="pending()">Refresh preview</button>
+            <button
+              type="button"
+              (click)="confirm()"
+              [disabled]="
+                pending() ||
+                !value.confirmation_required ||
+                (value.dst_classification === 'ambiguous_local_time' && selectedFold() === null)
+              "
+            >
+              {{ pending() ? 'Confirming...' : 'Confirm catch-up' }}
+            </button>
+            <button type="button" class="secondary" (click)="preview()" [disabled]="pending()">
+              Refresh preview
+            </button>
           </div>
         </article>
       }
@@ -78,9 +117,15 @@ import { CampaignService } from './campaign.service';
         <section class="reschedule-success" aria-live="polite">
           <h4>Catch-up created</h4>
           <p>{{ value.safe_message }}</p>
-          @if (value.navigation_targets['activity']) { <a [routerLink]="value.navigation_targets['activity']">View catch-up Activity</a> }
-          @if (value.navigation_targets['schedule']) { <a [routerLink]="value.navigation_targets['schedule']">View schedule</a> }
-          @if (value.navigation_targets['job']) { <a [routerLink]="value.navigation_targets['job']">View job</a> }
+          @if (value.navigation_targets['activity']) {
+            <a [routerLink]="value.navigation_targets['activity']">View catch-up Activity</a>
+          }
+          @if (value.navigation_targets['schedule']) {
+            <a [routerLink]="value.navigation_targets['schedule']">View schedule</a>
+          }
+          @if (value.navigation_targets['job']) {
+            <a [routerLink]="value.navigation_targets['job']">View job</a>
+          }
           <p class="op-muted">Correlation: {{ value.correlation_id }}</p>
           <button type="button" class="secondary" (click)="completed.emit()">Close</button>
         </section>
@@ -173,7 +218,12 @@ export class CatchUpDialogComponent {
       this.result.set(response.result);
     } catch (error) {
       this.fingerprint = '';
-      this.showError(this.safeError(error, 'The catch-up could not be created. Refresh the preview and try again.'));
+      this.showError(
+        this.safeError(
+          error,
+          'The catch-up could not be created. Refresh the preview and try again.',
+        ),
+      );
     } finally {
       this.pending.set(false);
     }
@@ -185,10 +235,23 @@ export class CatchUpDialogComponent {
   }
 
   private safeError(error: unknown, fallback: string): string {
-    if (error instanceof HttpErrorResponse && typeof error.error?.detail === 'string') return error.error.detail;
+    if (error instanceof HttpErrorResponse) {
+      const payload: unknown = error.error;
+      if (
+        typeof payload === 'object' &&
+        payload !== null &&
+        typeof (payload as { detail?: unknown }).detail === 'string'
+      ) {
+        return (payload as { detail: string }).detail;
+      }
+    }
     if (typeof error === 'object' && error !== null) {
       const detail = (error as { error?: unknown }).error;
-      if (typeof detail === 'object' && detail !== null && typeof (detail as { detail?: unknown }).detail === 'string') {
+      if (
+        typeof detail === 'object' &&
+        detail !== null &&
+        typeof (detail as { detail?: unknown }).detail === 'string'
+      ) {
         return (detail as { detail: string }).detail;
       }
     }

@@ -1,5 +1,7 @@
 """Focused successful Artifact replacement characterization."""
 
+from uuid import uuid4
+
 import pytest
 from helpers.campaign_replacement_fixture import (
     assert_replacement_side_effects_unchanged,
@@ -15,6 +17,7 @@ from test_scheduler_integration import ORIGIN
 
 from vayujit_api.campaigns.models import CampaignActivity
 
+pytestmark = pytest.mark.integration
 pytest_plugins = ("test_scheduler_integration",)
 
 
@@ -191,6 +194,7 @@ def test_replacement_rejects_activity_from_different_campaign(harness):
             "/api/v1/campaigns/workflow-actions",
             json={
                 "action": "create_campaign",
+                "correlation_id": str(uuid4()),
                 "campaign": {
                     "brand_id": str(scenario.brand_id),
                     "name": "Wrong campaign",

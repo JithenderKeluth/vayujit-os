@@ -6,6 +6,7 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import cast
 
 import pytest
 from fastapi.testclient import TestClient
@@ -64,12 +65,14 @@ def create_reschedule_scenario(
     *,
     activity_status: str = "missed",
     due: bool = True,
+    include_successor: bool = False,
 ) -> RescheduleScenario:
     product, artifact, destination = business(client)
     stamp = datetime.now(UTC).replace(microsecond=0)
     campaign_response = client.post(
         "/api/v1/campaigns/workflow-actions",
         json={
+            "correlation_id": f"reschedule-{uuid.uuid4().hex[:12]}",
             "action": "create_campaign",
             "campaign": {
                 "brand_id": destination["brand_id"],
@@ -87,13 +90,14 @@ def create_reschedule_scenario(
     activity_response = client.post(
         "/api/v1/campaigns/workflow-actions",
         json={
+            "correlation_id": f"reschedule-{uuid.uuid4().hex[:12]}",
             "action": "add_campaign_activity",
             "campaign_id": str(campaign_id),
             "activity": {
                 "product_id": product["id"],
                 "artifact_id": artifact["id"],
                 "destination_id": destination["id"],
-                "activity_type": "wordpress_create_draft",
+                "activity_type": "mock_publish",
                 "name": "Durable rescheduling activity",
                 "sequence": 1,
                 "scheduled_local_date": scheduled.date().isoformat(),
@@ -105,6 +109,45 @@ def create_reschedule_scenario(
     )
     assert activity_response.status_code == 200, activity_response.text
     activity_id = uuid.UUID(str(activity_response.json()["activity_id"]))
+    if include_successor:
+        successor_time = stamp + timedelta(hours=1)
+        successor_response = client.post(
+            "/api/v1/campaigns/workflow-actions",
+            json={
+                "correlation_id": f"reschedule-{uuid.uuid4().hex[:12]}",
+                "action": "add_campaign_activity",
+                "campaign_id": str(campaign_id),
+                "activity": {
+                    "product_id": str(product["id"]),
+                    "artifact_id": str(artifact["id"]),
+                    "destination_id": str(destination["id"]),
+                    "activity_type": "mock_publish",
+                    "name": "Rescheduling successor",
+                    "sequence": 2,
+                    "scheduled_local_date": successor_time.date().isoformat(),
+                    "scheduled_local_time": successor_time.time().isoformat(),
+                    "timezone_name": "UTC",
+                },
+            },
+            headers=ORIGIN,
+        )
+        assert successor_response.status_code == 200, successor_response.text
+        successor_id = successor_response.json()["activity_id"]
+        dependency_response = client.post(
+            "/api/v1/campaigns/workflow-actions",
+            json={
+                "correlation_id": f"reschedule-{uuid.uuid4().hex[:12]}",
+                "action": "add_campaign_dependency",
+                "campaign_id": str(campaign_id),
+                "dependency": {
+                    "predecessor_activity_id": str(activity_id),
+                    "successor_activity_id": str(successor_id),
+                    "dependency_type": "success_required",
+                },
+            },
+            headers=ORIGIN,
+        )
+        assert dependency_response.status_code == 200, dependency_response.text
     assert (
         client.post(f"/api/v1/campaigns/{campaign_id}/validate", headers=ORIGIN).status_code == 200
     )
@@ -130,12 +173,12 @@ def create_reschedule_scenario(
             owner_id=activity.owner_id,
             product_id=uuid.UUID(str(product["id"])),
             artifact_id=uuid.UUID(str(artifact["id"])),
-            artifact_version=int(artifact["version_number"]),
+            artifact_version=int(cast(int, artifact["version_number"])),
             destination_id=uuid.UUID(str(destination["id"])),
             expected_row_version=activity.row_version,
             original_schedule_id=activity.schedule_id,
             original_job_id=activity.job_id,
-            proposed_local_datetime=stamp + timedelta(minutes=1),
+            proposed_local_datetime=(stamp + timedelta(minutes=1)).replace(tzinfo=None),
         )
 
 
@@ -270,50 +313,30 @@ def test_readiness_and_successor_timing_are_recomputed_without_auto_reschedule(
     reschedule_harness,
 ) -> None:
     client, sessions = reschedule_harness
-    scenario = create_reschedule_scenario(client, sessions)
-    successor_time = scenario.proposed_local_datetime + timedelta(hours=1)
-    successor_response = client.post(
-        "/api/v1/campaigns/workflow-actions",
-        json={
-            "action": "add_campaign_activity",
-            "campaign_id": str(scenario.campaign_id),
-            "activity": {
-                "product_id": str(scenario.product_id),
-                "artifact_id": str(scenario.artifact_id),
-                "destination_id": str(scenario.destination_id),
-                "activity_type": "wordpress_create_draft",
-                "name": "Rescheduling successor",
-                "sequence": 2,
-                "scheduled_local_date": successor_time.date().isoformat(),
-                "scheduled_local_time": successor_time.time().isoformat(),
-                "timezone_name": "UTC",
-            },
-        },
-        headers=ORIGIN,
-    )
-    assert successor_response.status_code == 200, successor_response.text
-    successor_id = uuid.UUID(str(successor_response.json()["activity_id"]))
-    dependency_response = client.post(
-        "/api/v1/campaigns/workflow-actions",
-        json={
-            "action": "add_campaign_dependency",
-            "campaign_id": str(scenario.campaign_id),
-            "dependency": {
-                "predecessor_activity_id": str(scenario.activity_id),
-                "successor_activity_id": str(successor_id),
-                "dependency_type": "success_required",
-            },
-        },
-        headers=ORIGIN,
-    )
-    assert dependency_response.status_code == 200, dependency_response.text
+    scenario = create_reschedule_scenario(client, sessions, include_successor=True)
+    with sessions() as db:
+        successor = db.scalar(
+            select(CampaignActivity).where(
+                CampaignActivity.campaign_id == scenario.campaign_id,
+                CampaignActivity.sequence == 2,
+            )
+        )
+        assert successor is not None
+        successor_schedule = (successor.scheduled_local_date, successor.scheduled_local_time)
     body = preview(client, scenario).json()
     assert confirm(client, scenario, body).status_code == 200
     with sessions() as db:
-        successor = db.get(CampaignActivity, successor_id)
+        successor = db.scalar(
+            select(CampaignActivity).where(
+                CampaignActivity.campaign_id == scenario.campaign_id,
+                CampaignActivity.sequence == 2,
+            )
+        )
         assert successor is not None
-        assert successor.scheduled_local_date == successor_time.date()
-        assert successor.scheduled_local_time == successor_time.time()
+        assert (
+            successor.scheduled_local_date,
+            successor.scheduled_local_time,
+        ) == successor_schedule
     validated = client.post(f"/api/v1/campaigns/{scenario.campaign_id}/validate", headers=ORIGIN)
     assert validated.status_code == 200, validated.text
 
@@ -550,6 +573,13 @@ def test_replacement_job_is_claimable_once_and_recovery_does_not_revive_original
     body = preview(client, scenario).json()
     assert confirm(client, scenario, body).status_code == 200
     with sessions() as db:
+        replacement_job = db.scalar(
+            select(PublishingJob).where(PublishingJob.id != scenario.original_job_id)
+        )
+        assert replacement_job is not None
+        replacement_job.available_at_utc = now() - timedelta(seconds=1)
+        replacement_job.scheduled_at_utc = replacement_job.available_at_utc
+        db.commit()
         assert claim_jobs(db, "reschedule-worker", 10, 60)
         assert claim_jobs(db, "reschedule-worker-2", 10, 60) == []
         old = db.get(PublishingJob, scenario.original_job_id)
@@ -557,7 +587,7 @@ def test_replacement_job_is_claimable_once_and_recovery_does_not_revive_original
         assert materialize_due_schedules(db) == 0
 
 
-def test_registry_has_twenty_implemented_and_one_unsupported() -> None:
+def test_registry_has_twenty_one_implemented_and_no_unsupported() -> None:
     unsupported = {
         key
         for key, spec in RECOVERY_ACTION_REGISTRY.items()
@@ -568,9 +598,12 @@ def test_registry_has_twenty_implemented_and_one_unsupported() -> None:
         for key, spec in RECOVERY_ACTION_REGISTRY.items()
         if spec.implementation_status == "implemented"
     }
-    assert len(implemented) == 20
-    assert unsupported == {"create_one_catch_up"}
+    assert len(implemented) == 21
+    assert unsupported == set()
     spec = RECOVERY_ACTION_REGISTRY["reschedule_activity"]
     assert spec.classification == "mutating"
     assert callable(spec.executor)
     assert spec.confirmation_required
+    catch_up = RECOVERY_ACTION_REGISTRY["create_one_catch_up"]
+    assert catch_up.classification == "mutating"
+    assert callable(catch_up.executor)

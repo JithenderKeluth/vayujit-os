@@ -71,9 +71,9 @@ def reschedule_fingerprint(
         "job_id": str(activity.job_id) if activity.job_id else None,
         "job_state": job.state if job else None,
         "job_lease_owner": job.lease_owner if job else None,
-        "job_lease_expires_at": job.lease_expires_at.isoformat()
-        if job and job.lease_expires_at
-        else None,
+        "job_lease_expires_at": (
+            job.lease_expires_at.isoformat() if job and job.lease_expires_at else None
+        ),
         "artifact_id": str(activity.artifact_id) if activity.artifact_id else None,
         "artifact_version": activity.artifact_version,
         "artifact_status": artifact.status if artifact else None,
@@ -435,31 +435,57 @@ RECOVERY_ACTION_REGISTRY = MappingProxyType(
                 executor=(
                     _pause_campaign_handler
                     if key == "pause_campaign"
-                    else _retry_activity_handler
-                    if key == "retry_activity"
-                    else _reconcile_activity_handler
-                    if key == "reconcile_activity"
-                    else _replace_activity_handler
-                    if key == "replace_with_new_approved_activity"
-                    else _release_checkpoint_handler
-                    if key == "release_checkpoint"
-                    else _reschedule_activity_handler
-                    if key == "reschedule_activity"
-                    else _resume_campaign_handler
-                    if key == "resume_campaign"
-                    else _cancel_activity_handler
-                    if key == "cancel_activity"
-                    else _cancel_campaign_handler
-                    if key == "cancel_campaign"
-                    else _retry_wait_handler
-                    if key == "retry_campaign_workflow_wait"
-                    else _skip_optional_handler
-                    if key == "skip_optional_activity"
-                    else _skip_missed_handler
-                    if key == "skip_missed_activity"
-                    else _catch_up_handler
-                    if key == "create_one_catch_up"
-                    else _RegisteredCallable(executor)
+                    else (
+                        _retry_activity_handler
+                        if key == "retry_activity"
+                        else (
+                            _reconcile_activity_handler
+                            if key == "reconcile_activity"
+                            else (
+                                _replace_activity_handler
+                                if key == "replace_with_new_approved_activity"
+                                else (
+                                    _release_checkpoint_handler
+                                    if key == "release_checkpoint"
+                                    else (
+                                        _reschedule_activity_handler
+                                        if key == "reschedule_activity"
+                                        else (
+                                            _resume_campaign_handler
+                                            if key == "resume_campaign"
+                                            else (
+                                                _cancel_activity_handler
+                                                if key == "cancel_activity"
+                                                else (
+                                                    _cancel_campaign_handler
+                                                    if key == "cancel_campaign"
+                                                    else (
+                                                        _retry_wait_handler
+                                                        if key == "retry_campaign_workflow_wait"
+                                                        else (
+                                                            _skip_optional_handler
+                                                            if key == "skip_optional_activity"
+                                                            else (
+                                                                _skip_missed_handler
+                                                                if key == "skip_missed_activity"
+                                                                else (
+                                                                    _catch_up_handler
+                                                                    if key == "create_one_catch_up"
+                                                                    else _RegisteredCallable(
+                                                                        executor
+                                                                    )
+                                                                )
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
                 ),
                 audit=(
                     "campaign.activity_reconciled"
@@ -478,21 +504,35 @@ RECOVERY_ACTION_REGISTRY = MappingProxyType(
                 resolver=(
                     _open_campaign_handler
                     if key == "open_campaign"
-                    else _open_activity_handler
-                    if key == "open_activity"
-                    else _open_product_handler
-                    if key == "open_product"
-                    else _open_artifact_handler
-                    if key == "open_artifact"
-                    else _open_destination_handler
-                    if key == "open_destination"
-                    else _open_job_handler
-                    if key == "open_job"
-                    else _open_execution_handler
-                    if key == "open_publishing_execution"
-                    else _review_dependency_handler
-                    if key == "review_dependency"
-                    else None
+                    else (
+                        _open_activity_handler
+                        if key == "open_activity"
+                        else (
+                            _open_product_handler
+                            if key == "open_product"
+                            else (
+                                _open_artifact_handler
+                                if key == "open_artifact"
+                                else (
+                                    _open_destination_handler
+                                    if key == "open_destination"
+                                    else (
+                                        _open_job_handler
+                                        if key == "open_job"
+                                        else (
+                                            _open_execution_handler
+                                            if key == "open_publishing_execution"
+                                            else (
+                                                _review_dependency_handler
+                                                if key == "review_dependency"
+                                                else None
+                                            )
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
                 ),
             )
             for key, label in _NAVIGATION.items()

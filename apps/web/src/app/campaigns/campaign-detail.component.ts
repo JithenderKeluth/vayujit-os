@@ -140,10 +140,14 @@ import { RescheduleDialogComponent } from './reschedule-dialog.component';
                 </p>
                 <p>Readiness: {{ activity.readiness_status }}</p>
                 @if (activity.replaces_activity_id) {
-                  <p class="op-muted">Catch-up Activity for missed original {{ activity.replaces_activity_id }}</p>
+                  <p class="op-muted">
+                    Catch-up Activity for missed original {{ activity.replaces_activity_id }}
+                  </p>
                 }
                 @if (activity.replaced_by_activity_id) {
-                  <p class="op-muted">Original Activity replaced by {{ activity.replaced_by_activity_id }}</p>
+                  <p class="op-muted">
+                    Original Activity replaced by {{ activity.replaced_by_activity_id }}
+                  </p>
                 }
                 @if (activity.replacement_reason) {
                   <p class="op-muted">Reason: {{ activity.replacement_reason }}</p>
@@ -154,7 +158,9 @@ import { RescheduleDialogComponent } from './reschedule-dialog.component';
                       Reschedule Activity
                     </button>
                   } @else if (action.safe_failure_message) {
-                    <p class="op-muted">Rescheduling unavailable: {{ action.safe_failure_message }}</p>
+                    <p class="op-muted">
+                      Rescheduling unavailable: {{ action.safe_failure_message }}
+                    </p>
                   }
                   @if (action.eligible_actions.includes('create_one_catch_up')) {
                     <button type="button" (click)="catchingUpActivityId.set(activity.id)">

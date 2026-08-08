@@ -15,17 +15,25 @@ from vayujit_api.campaigns.models import (
     CampaignMissedActivityResolution,
     CampaignScheduleLink,
 )
+from vayujit_api.campaigns.schedule_service import project_activity_states
+from vayujit_api.publishing.job_queue import claim_jobs
 from vayujit_api.publishing.models import PublishingExecution, PublishingJob, PublishingSchedule
+from vayujit_api.publishing.worker import execute_job
 
 pytestmark = pytest.mark.integration
 pytest_plugins = ("test_scheduler_integration",)
+
+
+@pytest.fixture
+def reschedule_harness(harness):
+    return harness
 
 
 def preview(client, scenario, **overrides: object):
     payload: dict[str, object] = {
         "activity_id": str(scenario.activity_id),
         "proposed_local_datetime": (datetime.now(UTC) + timedelta(minutes=2))
-        .replace(microsecond=0)
+        .replace(microsecond=0, tzinfo=None)
         .isoformat(),
         "proposed_timezone": "UTC",
         "reason": "Catch-up acceptance.",
@@ -155,6 +163,40 @@ def test_repeated_catch_up_confirmation_reuses_existing_result(reschedule_harnes
             )
             == 1
         )
+
+
+def test_catch_up_job_executes_once_without_duplicate_execution(reschedule_harness) -> None:
+    client, sessions = reschedule_harness
+    scenario = create_reschedule_scenario(client, sessions)
+    body = preview(client, scenario).json()
+    response = confirm(client, scenario, body)
+    assert response.status_code == 200, response.text
+    catch_up_id = response.json()["result"]["resource_ids"]["activity_id"]
+    with sessions() as db:
+        replacement = db.get(CampaignActivity, catch_up_id)
+        assert replacement and replacement.job_id
+        job = db.get(PublishingJob, replacement.job_id)
+        assert job
+        original_job = db.get(PublishingJob, scenario.original_job_id)
+        assert original_job
+        original_job.available_at_utc = datetime.now(UTC) + timedelta(days=1)
+        original_job.scheduled_at_utc = original_job.available_at_utc
+        job.available_at_utc = datetime.now(UTC) - timedelta(seconds=1)
+        job.scheduled_at_utc = job.available_at_utc
+        db.commit()
+        claimed = claim_jobs(db, "catch-up-worker", 1, 60)
+        assert claimed == [job.id]
+    execute_job(claimed[0], "catch-up-worker")
+    execute_job(claimed[0], "catch-up-worker")
+    with sessions() as db:
+        replacement = db.get(CampaignActivity, catch_up_id)
+        assert replacement
+        assert project_activity_states(db, scenario.campaign_id) >= 1
+        db.refresh(replacement)
+        assert replacement.status == "succeeded"
+        assert db.scalar(select(func.count()).select_from(PublishingExecution)) == 1
+        job = db.get(PublishingJob, claimed[0])
+        assert job and job.state == "succeeded"
 
 
 @pytest.mark.parametrize("status", ["scheduled", "succeeded", "cancelled"])
