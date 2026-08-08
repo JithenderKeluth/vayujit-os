@@ -1,7 +1,7 @@
 # VAYUJIT OS Release-Candidate Readiness
 
-Date: 2026-08-08  
-Branch: `feature/KAN-release-candidate-readiness`  
+Date: 2026-08-08
+Branch: `feature/KAN-windows-final-acceptance`
 Source milestone: `5434558 feat(KAN): add durable campaign catch-up recovery`
 
 ## Release scope
@@ -31,23 +31,14 @@ remote deletion, or marketplace functionality is in scope.
 
 ## Runtime validation status
 
-Node 24.19.0/npm 11.17.0, Python 3.12.10, Docker Desktop 29.6.2, and PostgreSQL 17 are
-available. The repository-local API virtual environment was recreated against Python 3.12 and
-the disposable PostgreSQL test database was recreated with its safety marker.
+Node 24.19.0/npm 11.17.0, Python 3.12.10, Docker Desktop 29.6.2, PostgreSQL 17, and official PostgreSQL 17.10 host client tools (`pg_dump`, `pg_restore`, `psql`) are available. Docker Desktop was started through the supported CLI and the documented `infrastructure-postgres-1` container reached healthy state. The disposable PostgreSQL test database was recreated with its safety marker.
 
 ## Test results
 
-Runtime validation passed: 18 rescheduling tests, 8 catch-up tests plus 1 skip, 20 replacement
-tests, 2 connector E2E tests, 5 workflow tests, 7 scheduler integration tests, 2 worker unit
-tests, 111 backend unit tests, 87 backend integration tests plus 1 skip, and 1 release-candidate
-journey test. Angular passed 62 tests across 18 files; Electron passed 4 unit tests.
-
+Runtime validation passed: 18 rescheduling tests, 8 catch-up tests plus 1 skip, 20 replacement tests, 2 connector E2E tests, 5 workflow tests, 7 scheduler integration tests, 2 worker unit tests, 111 backend unit tests, 87 backend integration tests plus 1 skip, and 1 release-candidate journey test. The complete `test:all` matrix passed. Angular passed 62 tests across 18 files; Electron passed 4 unit tests and packaged smoke exited successfully.
 ## Migration and backup result
 
-The migration chain reached `20260812_0022`; the disposable upgrade/downgrade/re-upgrade cycle
-passed. Backup creation and checksum verification passed for backup
-`20260807T220205Z-9fcfa55a`.
-
+The migration chain reached `20260812_0022`; the disposable upgrade/downgrade/re-upgrade cycle passed. A marked `vayujit_upgrade_test` database was migrated from `20260810_0020` through `20260812_0022` after a byte-verified custom-format backup (SHA-256 `f618fe28cfb89049c2a05ed6088bdcb910495b7f26027f3206be10d0a167fc06`, 227181 bytes) with safe metadata. Backup-failure protection was verified: the packaged preflight exited non-zero and the database remained at `20260810_0020`; optional restore into a separate marked database preserved representative row counts. A host `pg_dump` backup was created successfully (226111 bytes, SHA-256 `765ee1c421a9beb1d95f4c858ae20d634d9ca21e2d84a9ff84e6caa386d768fe`); `pg_restore --list` completed with 447 entries, and the packaged launcher reached `/health/ready` against a marked disposable database.
 ## Security and dependency result
 
 The repository contains tests and implementation for Origin protection, HttpOnly/SameSite cookies,
@@ -92,10 +83,20 @@ runtime dashboard and log inspection remain **unverified**.
 6. Worker crash/lease recovery, maintenance mode, backup/restore, migration upgrade/downgrade, and
    Electron runtime smoke.
 
+## Windows packaging acceptance
+
+PASS: the unsigned per-user NSIS installer installed silently, created one Start Menu shortcut and
+one desktop shortcut, launched the installed Electron executable in smoke mode, and exited cleanly.
+PASS: uninstall removed binaries and shortcuts while preserving a disposable data marker; reinstall
+reused the preserved marker. PASS: package checksum/content scan and production npm audit (0
+vulnerabilities) passed. The installer is `release/VAYUJIT-OS-0.1.0-rc.1-Setup.exe` (102946245 bytes,
+SHA-256 `765ee1c421a9beb1d95f4c858ae20d634d9ca21e2d84a9ff84e6caa386d768fe`).
 ## Release blockers
 
-None identified for the local MVP gate. Visual contrast and screen-reader review should still be
-repeated in the target release environment.
+- PASS: positive packaged API backup-before-upgrade execution used official PostgreSQL 17.10 host tools resolved through `VAYUJIT_PG_DUMP_PATH`; `pg_dump`, `pg_restore`, and `psql` major-version checks passed without changing global PATH.
+- PASS: marked disposable upgrade simulation from `20260810_0020` through `20260812_0022` preserved representative data, scheduler history, audit history, and authenticated API reads.
+- KNOWN LIMITATION: visual contrast and screen-reader review remains release-environment work.
+- PUBLIC BLOCKER: installer is unsigned.
 
 ## Deferred items
 
@@ -105,10 +106,7 @@ repeated in the target release environment.
 
 ## Recommendation
 
-**GO for the local MVP release-candidate gate.** Core runtime, database, migration, backup,
-security, backend, frontend, Electron smoke, accessibility lint/keyboard checks, performance
-baseline, and E2E checks pass locally. The visual accessibility limitation remains documented for
-the target release environment.
+**GO for final internal Windows acceptance.** The representative disposable upgrade proof, host backup/restore preflight, packaged launcher positive path, invalid-tool negative guard, post-upgrade API/authentication, regressions, System Doctor, package scan, and security checks pass. Public distribution remains NO-GO while the installer is unsigned.
 
 ## Required release commands
 

@@ -49,8 +49,14 @@ def create_backup(db: Session, owner_id: uuid.UUID) -> BackupRecord:
     environment = os.environ.copy()
     if url.password:
         environment["PGPASSWORD"] = url.password
+    pg_dump_command = "pg_dump"
+    if settings.pg_dump_path:
+        configured = Path(settings.pg_dump_path).expanduser()
+        if configured.name.lower() != "pg_dump.exe" or not configured.is_file():
+            raise RuntimeError("Configured PostgreSQL backup executable is invalid.")
+        pg_dump_command = str(configured.resolve())
     args = [
-        "pg_dump",
+        pg_dump_command,
         "-Fc",
         "--no-owner",
         "--no-privileges",

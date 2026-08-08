@@ -6,9 +6,17 @@
 - PostgreSQL 17 reachable at `127.0.0.1:5432` with a database and user matching the configured
   `VAYUJIT_DATABASE_URL`.
 - Python 3.12 available as `py -3.12` or `python`.
-- pg_dump available on PATH for the mandatory pre-upgrade backup.
+- PostgreSQL 17 client tools installed so `pg_dump.exe`, `pg_restore.exe`, and `psql.exe` are available on PATH, or an optional
+  `VAYUJIT_PG_DUMP_PATH` points to a trusted `pg_dump.exe`; sibling tools are resolved from the same directory or standard PostgreSQL install locations.
 
-Run `npm.cmd run release:prerequisites` from the repository before packaging or use the equivalent checks on an installed machine.
+Install the standard client tools with `winget install --exact --id PostgreSQL.PostgreSQL.17`, then run `npm.cmd run release:prerequisites` from the repository (or use the equivalent checks on an installed machine). The resolver checks
+`VAYUJIT_PG_DUMP_PATH`, PATH, and `C:\Program Files\PostgreSQL\*\bin` without modifying global PATH. Confirm all three tools before release:
+
+```powershell
+pg_dump.exe --version
+pg_restore.exe --version
+psql.exe --version
+```
 
 The installer does not bundle PostgreSQL, Redis, Python, test databases, `.env` files, or
 connector credentials.
@@ -31,13 +39,13 @@ connector credentials.
 
 `%LOCALAPPDATA%\VAYUJIT OS` is preserved across upgrades and contains:
 
-- `config\credential-encryption.key` — random, stable AES-GCM key material protected for the
+- `config\credential-encryption.key` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â random, stable AES-GCM key material protected for the
   current Windows user.
-- `logs\` — API and launcher logs.
-- `backups\` — verified pre-upgrade backups.
-- `media\` — local media files.
-- `runtime\api-venv\` — the per-user API runtime.
-- `tmp\` — disposable runtime files.
+- `logs\` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â API and launcher logs.
+- `backups\` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â verified pre-upgrade backups.
+- `media\` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â local media files.
+- `runtime\api-venv\` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â the per-user API runtime.
+- `tmp\` ÃƒÂ¢Ã¢â€šÂ¬Ã¢â‚¬Â disposable runtime files.
 
 The installer directory contains only application files and immutable API/migration resources. The release scripts are `npm.cmd run package:windows`, `npm.cmd run package:checksum`, `npm.cmd run package:verify`, and `npm.cmd run release:verify`.
 

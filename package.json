@@ -151,6 +151,10 @@
         "to": "scripts/backup-packaged-api.ps1"
       },
       {
+        "from": "scripts/resolve-pg-dump.ps1",
+        "to": "scripts/resolve-pg-dump.ps1"
+      },
+      {
         "from": "scripts/initialize-packaged-config.ps1",
         "to": "scripts/initialize-packaged-config.ps1"
       },
