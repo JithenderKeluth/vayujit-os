@@ -496,6 +496,10 @@ class MarketplaceSettlement(CommerceBase):
     tax_withholding_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
     net_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
     currency: Mapped[str] = mapped_column(String(3), default="INR")
+    status: Mapped[str] = mapped_column(String(30), default="settled")
+    other_adjustment_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0)
+    remote_generated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    imported_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class MarketplaceSettlementLine(CommerceBase):

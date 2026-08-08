@@ -19,6 +19,7 @@ from fastapi import HTTPException
 from sqlalchemy.dialects.postgresql import insert
 
 from vayujit_api import __version__
+from vayujit_api.commerce.amazon_worker import execute_amazon_job, parse_account_id
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import SessionFactory
 from vayujit_api.identity.models import User
@@ -119,7 +120,14 @@ def execute_job(job_id: uuid.UUID, worker_id: str) -> None:
             owner = db.get(User, job.owner_id)
             if not owner:
                 raise ValueError("Publishing job owner no longer exists.")
-            if job.requested_action in {"move_to_draft", "reconcile"}:
+            amazon_account_id = parse_account_id(job.connector_key)
+            if amazon_account_id is not None:
+                amazon_result = execute_amazon_job(db, job, account_id=amazon_account_id)
+                succeeded = amazon_result.status == "succeeded"
+                retryable = amazon_result.retryable
+                error_code = amazon_result.error_code
+                safe_message = amazon_result.safe_message
+            elif job.requested_action in {"move_to_draft", "reconcile"}:
                 execution = (
                     db.get(PublishingExecution, job.publishing_execution_id)
                     if job.publishing_execution_id
