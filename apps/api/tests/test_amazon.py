@@ -72,3 +72,28 @@ def test_fake_transport_safe_failure_classification() -> None:
     )
     assert rejected.status == "rejected"
     assert rejected.payload == {}
+
+
+def test_fake_financial_events_cover_normalized_category_matrix() -> None:
+    events = FakeAmazonSPAPITransport().financial_events(
+        seller_id="seller-finance",
+        marketplace_id=amazon_marketplace("IN").marketplace_id,
+    )
+    categories = {str(event["type"]) for event in events}
+    assert {
+        "Commission",
+        "Referral_Commission",
+        "Fulfilment_Fee",
+        "Shipping_Fee",
+        "Storage_Fee",
+        "Closing_Fee",
+        "Refund",
+        "Refund_Fee",
+        "Promotion",
+        "Advertising",
+        "Tax",
+        "Withholding",
+        "Chargeback",
+        "Adjustment",
+        "Unknown_Remote_Category",
+    } <= categories

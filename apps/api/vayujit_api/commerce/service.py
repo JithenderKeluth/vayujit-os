@@ -189,6 +189,10 @@ def import_fake_settlement(db: Session, account: MarketplaceAccount) -> Marketpl
             tax_withholding_amount=Decimal("0"),
             net_amount=net,
             currency="INR",
+            status="settled",
+            other_adjustment_amount=Decimal("0"),
+            remote_generated_at=stamp,
+            imported_at=stamp,
             created_at=stamp,
             updated_at=stamp,
         )

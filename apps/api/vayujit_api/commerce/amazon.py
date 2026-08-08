@@ -1,4 +1,4 @@
-"""Amazon Selling Partner API boundary.
+﻿"""Amazon Selling Partner API boundary.
 
 The production adapter is deliberately transport-injected.  Local development
 and tests use :class:`FakeAmazonSPAPITransport`; no network call is possible
@@ -118,6 +118,23 @@ class AmazonTransport(Protocol):
     ) -> AmazonOperationResult: ...
     def orders(self, *, seller_id: str, marketplace_id: str) -> list[dict[str, Any]]: ...
     def financial_events(self, *, seller_id: str, marketplace_id: str) -> list[dict[str, Any]]: ...
+    def product_type_attributes(
+        self, *, marketplace_id: str, product_type: str
+    ) -> list[dict[str, Any]]: ...
+    def listing_by_sku(
+        self, *, seller_id: str, marketplace_id: str, sku: str
+    ) -> AmazonOperationResult: ...
+    def submit_media(
+        self, *, remote_id: str, media: list[dict[str, Any]], idempotency_key: str
+    ) -> AmazonOperationResult: ...
+    def submit_variants(
+        self, *, remote_id: str, variants: list[dict[str, Any]], idempotency_key: str
+    ) -> AmazonOperationResult: ...
+    def price(self, *, remote_id: str) -> AmazonOperationResult: ...
+    def update_price(
+        self, *, remote_id: str, price: dict[str, Any], idempotency_key: str
+    ) -> AmazonOperationResult: ...
+    def returns(self, *, seller_id: str, marketplace_id: str) -> list[dict[str, Any]]: ...
     def process(self, remote_id: str) -> AmazonOperationResult: ...
 
 
@@ -146,6 +163,203 @@ class AmazonEndpointPolicy:
         return parsed.hostname
 
 
+class AmazonMediaPolicy:
+    ALLOWED_MIME_TYPES = frozenset({"image/jpeg", "image/png", "image/webp"})
+    MIN_DIMENSION = 500
+    MAX_BYTES = 10 * 1024 * 1024
+
+    @classmethod
+    def validate(cls, media: list[dict[str, Any]]) -> list[AmazonIssue]:
+        issues: list[AmazonIssue] = []
+        if not media:
+            return [
+                AmazonIssue(
+                    AmazonIssueCode.MISSING_ATTRIBUTE,
+                    "At least one main image is required.",
+                    field="main_image",
+                )
+            ]
+        ordered = sorted(media, key=lambda item: int(item.get("position", 0)))
+        if int(ordered[0].get("position", 0)) != 0:
+            issues.append(
+                AmazonIssue(
+                    AmazonIssueCode.INVALID_ATTRIBUTE,
+                    "The main image must be first.",
+                    field="media",
+                )
+            )
+        for item in ordered:
+            if str(item.get("mime_type", "")) not in cls.ALLOWED_MIME_TYPES:
+                issues.append(
+                    AmazonIssue(
+                        AmazonIssueCode.INVALID_ATTRIBUTE,
+                        "Image MIME type is not supported.",
+                        field="media",
+                    )
+                )
+            if (
+                int(item.get("width", 0)) < cls.MIN_DIMENSION
+                or int(item.get("height", 0)) < cls.MIN_DIMENSION
+            ):
+                issues.append(
+                    AmazonIssue(
+                        AmazonIssueCode.INVALID_ATTRIBUTE,
+                        "Image dimensions are below the Amazon minimum.",
+                        field="media",
+                    )
+                )
+            if int(item.get("size_bytes", 0)) > cls.MAX_BYTES:
+                issues.append(
+                    AmazonIssue(
+                        AmazonIssueCode.INVALID_ATTRIBUTE,
+                        "Image exceeds the Amazon size limit.",
+                        field="media",
+                    )
+                )
+            if not item.get("checksum_sha256"):
+                issues.append(
+                    AmazonIssue(
+                        AmazonIssueCode.INVALID_ATTRIBUTE,
+                        "Image checksum is required.",
+                        field="media",
+                    )
+                )
+        return issues
+
+
+class AmazonVariantPolicy:
+    @staticmethod
+    def validate(variants: list[dict[str, Any]]) -> list[AmazonIssue]:
+        issues: list[AmazonIssue] = []
+        if not variants:
+            return issues
+        keys = [str(item.get("stable_variant_key", "")) for item in variants]
+        skus = [str(item.get("sku", "")) for item in variants]
+        combinations = [
+            str(item.get("combination_key", item.get("stable_variant_key", "")))
+            for item in variants
+        ]
+        if any(not key for key in keys):
+            issues.append(
+                AmazonIssue(
+                    AmazonIssueCode.INVALID_ATTRIBUTE,
+                    "Every variant needs a stable local key.",
+                    field="variants",
+                )
+            )
+        if len(keys) != len(set(keys)) or len(combinations) != len(set(combinations)):
+            issues.append(
+                AmazonIssue(
+                    AmazonIssueCode.INVALID_ATTRIBUTE,
+                    "Variant combinations must be unique.",
+                    field="variants",
+                )
+            )
+        if len(skus) != len(set(skus)) or any(not sku for sku in skus):
+            issues.append(
+                AmazonIssue(
+                    AmazonIssueCode.SKU_CONFLICT,
+                    "Seller SKUs must be unique and non-empty.",
+                    field="sku",
+                )
+            )
+        for item in variants:
+            if not item.get("variation_theme"):
+                issues.append(
+                    AmazonIssue(
+                        AmazonIssueCode.MISSING_ATTRIBUTE,
+                        "Variation theme is required.",
+                        field="variation_theme",
+                    )
+                )
+            if item.get("price") is None and item.get("selling_price") is None:
+                issues.append(
+                    AmazonIssue(
+                        AmazonIssueCode.MISSING_ATTRIBUTE,
+                        "Variant price is required.",
+                        field="price",
+                    )
+                )
+            barcode = item.get("barcode")
+            if (
+                barcode is not None
+                and barcode != ""
+                and (not str(barcode).isdigit() or len(str(barcode)) not in {8, 12, 13, 14})
+            ):
+                issues.append(
+                    AmazonIssue(
+                        AmazonIssueCode.IDENTIFIER_ERROR,
+                        "Variant barcode must be a valid GTIN.",
+                        field="barcode",
+                    )
+                )
+        return issues
+
+
+class AmazonPricingPolicy:
+    @staticmethod
+    def validate(price: dict[str, Any], currency: str) -> list[AmazonIssue]:
+        issues: list[AmazonIssue] = []
+        selling = price.get("selling_price")
+        try:
+            selling_value = float(str(selling))
+        except (TypeError, ValueError):
+            selling_value = -1
+        if selling_value < 0:
+            issues.append(
+                AmazonIssue(
+                    AmazonIssueCode.INVALID_ATTRIBUTE,
+                    "Selling price must be non-negative.",
+                    field="selling_price",
+                )
+            )
+        if price.get("list_price") is not None:
+            try:
+                if float(price["list_price"]) < selling_value:
+                    issues.append(
+                        AmazonIssue(
+                            AmazonIssueCode.INVALID_ATTRIBUTE,
+                            "List price cannot be below selling price.",
+                            field="list_price",
+                        )
+                    )
+            except (TypeError, ValueError):
+                issues.append(
+                    AmazonIssue(
+                        AmazonIssueCode.INVALID_ATTRIBUTE,
+                        "List price must be numeric.",
+                        field="list_price",
+                    )
+                )
+        if price.get("sale_price") is not None:
+            try:
+                if float(price["sale_price"]) > selling_value:
+                    issues.append(
+                        AmazonIssue(
+                            AmazonIssueCode.INVALID_ATTRIBUTE,
+                            "Sale price cannot exceed selling price.",
+                            field="sale_price",
+                        )
+                    )
+            except (TypeError, ValueError):
+                issues.append(
+                    AmazonIssue(
+                        AmazonIssueCode.INVALID_ATTRIBUTE,
+                        "Sale price must be numeric.",
+                        field="sale_price",
+                    )
+                )
+        if currency != str(price.get("currency", currency)):
+            issues.append(
+                AmazonIssue(
+                    AmazonIssueCode.INVALID_ATTRIBUTE,
+                    "Price currency must match the marketplace.",
+                    field="currency",
+                )
+            )
+        return issues
+
+
 class AmazonRateLimiter:
     def __init__(self, *, min_interval_seconds: float = 0.0) -> None:
         self.min_interval_seconds = min_interval_seconds
@@ -161,6 +375,21 @@ class AmazonRateLimiter:
 
 _FAKE_LISTINGS: dict[str, dict[str, Any]] = {}
 _FAKE_IDEMPOTENCY: dict[str, str] = {}
+_FAKE_MEDIA: dict[str, list[dict[str, Any]]] = {}
+_FAKE_VARIANTS: dict[str, list[dict[str, Any]]] = {}
+_FAKE_PRICES: dict[str, dict[str, Any]] = {}
+
+
+def reset_fake_amazon_state() -> None:
+    _FAKE_LISTINGS.clear()
+    _FAKE_IDEMPOTENCY.clear()
+    _FAKE_MEDIA.clear()
+    _FAKE_VARIANTS.clear()
+    _FAKE_PRICES.clear()
+
+
+def fake_amazon_listing_count() -> int:
+    return len(_FAKE_LISTINGS)
 
 
 class FakeAmazonSPAPITransport:
@@ -290,7 +519,16 @@ class FakeAmazonSPAPITransport:
             "succeeded",
             remote_id=remote_id,
             remote_status=value["status"],
-            payload={"sku": value["sku"], "title": value["payload"].get("title", "")},
+            payload={
+                "sku": value["sku"],
+                "title": value["payload"].get("title", ""),
+                "product_type": value["payload"].get("product_type"),
+                "attributes": value["payload"].get("attributes", {}),
+                "variants": _FAKE_VARIANTS.get(remote_id, []),
+                "media": _FAKE_MEDIA.get(remote_id, []),
+                "price": _FAKE_PRICES.get(remote_id),
+                "quantity": value.get("quantity", 0),
+            },
         )
 
     def reconcile_listing(self, remote_id: str) -> AmazonOperationResult:
@@ -334,18 +572,162 @@ class FakeAmazonSPAPITransport:
                 "fulfilment_channel": "MFN",
                 "total": "1250.00",
                 "currency": "INR",
+                "payment_status": "paid",
+                "item_subtotal": "1000.00",
+                "tax": "200.00",
+                "shipping": "50.00",
+                "discount": "0.00",
+                "seller_sku": "E2E-SKU",
+                "asin": "B0FAKE1234",
+                "quantity": 1,
+                "unit_price": "1250.00",
+                "title": "Fake Amazon Product",
+                "fulfilment_id": "FAKE-FULFILMENT-1",
+                "carrier": "FakeCarrier",
+                "tracking_reference": "FAKE-TRACK-1",
             }
         ]
 
     def financial_events(self, *, seller_id: str, marketplace_id: str) -> list[dict[str, Any]]:
+        categories = (
+            ("Commission", "125.00"),
+            ("Referral_Commission", "12.00"),
+            ("Fulfilment_Fee", "50.00"),
+            ("Shipping_Fee", "20.00"),
+            ("Storage_Fee", "5.00"),
+            ("Closing_Fee", "3.00"),
+            ("Refund", "-30.00"),
+            ("Refund_Fee", "-2.00"),
+            ("Promotion", "-4.00"),
+            ("Advertising", "6.00"),
+            ("Tax", "15.00"),
+            ("Withholding", "10.00"),
+            ("Chargeback", "-8.00"),
+            ("Adjustment", "-1.00"),
+            ("Unknown_Remote_Category", "0.50"),
+        )
         return [
             {
-                "event_id": f"FAKE-AMZ-FIN-{marketplace_id[-4:]}",
-                "type": "Commission",
-                "amount": "125.00",
+                "event_id": f"FAKE-AMZ-FIN-{marketplace_id[-4:]}-{index:02d}",
+                "type": category,
+                "amount": amount,
+                "currency": "INR",
+            }
+            for index, (category, amount) in enumerate(categories, start=1)
+        ]
+
+    def product_type_attributes(
+        self, *, marketplace_id: str, product_type: str
+    ) -> list[dict[str, Any]]:
+        return [
+            {"name": "item_name", "required": True, "type": "string"},
+            {"name": "brand", "required": False, "type": "string"},
+            {"name": "variation_theme", "required": False, "type": "string"},
+        ]
+
+    def listing_by_sku(
+        self, *, seller_id: str, marketplace_id: str, sku: str
+    ) -> AmazonOperationResult:
+        for remote_id, value in _FAKE_LISTINGS.items():
+            if value["sku"] == sku:
+                return self.listing(remote_id)
+        return AmazonOperationResult(
+            "failed",
+            issues=(
+                AmazonIssue(AmazonIssueCode.IDENTIFIER_ERROR, "Amazon listing was not found."),
+            ),
+        )
+
+    def submit_media(
+        self, *, remote_id: str, media: list[dict[str, Any]], idempotency_key: str
+    ) -> AmazonOperationResult:
+        if remote_id not in _FAKE_LISTINGS:
+            return AmazonOperationResult(
+                "failed",
+                issues=(
+                    AmazonIssue(AmazonIssueCode.IDENTIFIER_ERROR, "Amazon listing was not found."),
+                ),
+            )
+        _FAKE_MEDIA[remote_id] = [dict(item) for item in media]
+        return AmazonOperationResult(
+            "succeeded", remote_id=remote_id, payload={"count": len(media)}
+        )
+
+    def submit_variants(
+        self, *, remote_id: str, variants: list[dict[str, Any]], idempotency_key: str
+    ) -> AmazonOperationResult:
+        if remote_id not in _FAKE_LISTINGS:
+            return AmazonOperationResult(
+                "failed",
+                issues=(
+                    AmazonIssue(AmazonIssueCode.IDENTIFIER_ERROR, "Amazon listing was not found."),
+                ),
+            )
+        _FAKE_VARIANTS[remote_id] = [dict(item) for item in variants]
+        return AmazonOperationResult(
+            "succeeded", remote_id=remote_id, payload={"count": len(variants)}
+        )
+
+    def price(self, *, remote_id: str) -> AmazonOperationResult:
+        if remote_id not in _FAKE_LISTINGS:
+            return AmazonOperationResult(
+                "failed",
+                issues=(
+                    AmazonIssue(AmazonIssueCode.IDENTIFIER_ERROR, "Amazon listing was not found."),
+                ),
+            )
+        return AmazonOperationResult(
+            "succeeded", remote_id=remote_id, payload=_FAKE_PRICES.get(remote_id, {})
+        )
+
+    def update_price(
+        self, *, remote_id: str, price: dict[str, Any], idempotency_key: str
+    ) -> AmazonOperationResult:
+        if remote_id not in _FAKE_LISTINGS:
+            return AmazonOperationResult(
+                "failed",
+                issues=(
+                    AmazonIssue(AmazonIssueCode.IDENTIFIER_ERROR, "Amazon listing was not found."),
+                ),
+            )
+        _FAKE_PRICES[remote_id] = dict(price)
+        return AmazonOperationResult("succeeded", remote_id=remote_id, payload=dict(price))
+
+    def returns(self, *, seller_id: str, marketplace_id: str) -> list[dict[str, Any]]:
+        return [
+            {
+                "return_id": "FAKE-AMZ-RETURN-1",
+                "order_id": f"FAKE-AMZ-ORDER-{marketplace_id[-4:]}",
+                "status": "requested",
+                "reason": "Customer changed mind",
+                "quantity": 1,
+                "refund_amount": "1250.00",
+                "amount": "1250.00",
                 "currency": "INR",
             }
         ]
+
+    def remote_drift(self, remote_id: str, *, changes: dict[str, Any]) -> AmazonOperationResult:
+        value = _FAKE_LISTINGS.get(remote_id)
+        if value is None:
+            return AmazonOperationResult(
+                "failed",
+                issues=(
+                    AmazonIssue(AmazonIssueCode.IDENTIFIER_ERROR, "Amazon listing was not found."),
+                ),
+            )
+        for key, changed in changes.items():
+            if key in {"title", "product_type", "attributes"}:
+                value["payload"][key] = changed
+            elif key == "quantity":
+                value["quantity"] = changed
+            elif key == "variants":
+                _FAKE_VARIANTS[remote_id] = list(changed)
+            elif key == "media":
+                _FAKE_MEDIA[remote_id] = list(changed)
+            elif key == "price":
+                _FAKE_PRICES[remote_id] = dict(changed)
+        return self.listing(remote_id)
 
 
 @dataclass
@@ -407,6 +789,9 @@ class AmazonCommerceConnector:
         attributes: dict[str, Any],
         approved: bool,
         media_count: int = 0,
+        media: list[dict[str, Any]] | None = None,
+        variants: list[dict[str, Any]] | None = None,
+        price: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         issues: list[dict[str, Any]] = []
         if not approved:
@@ -432,12 +817,27 @@ class AmazonCommerceConnector:
                     "message": "Seller SKU is required.",
                 }
             )
-        if media_count < 1:
+        if media_count < 1 and not media:
             issues.append(
                 {
                     "code": "missing_media",
                     "message": "At least one Amazon-compatible image is required.",
                 }
+            )
+        if media:
+            issues.extend(
+                {"code": issue.code, "message": issue.message, "field": issue.field}
+                for issue in AmazonMediaPolicy.validate(media)
+            )
+        if variants:
+            issues.extend(
+                {"code": issue.code, "message": issue.message, "field": issue.field}
+                for issue in AmazonVariantPolicy.validate(variants)
+            )
+        if price:
+            issues.extend(
+                {"code": issue.code, "message": issue.message, "field": issue.field}
+                for issue in AmazonPricingPolicy.validate(price, self.marketplace.currency)
             )
         return {
             "ready": not issues,
@@ -481,10 +881,18 @@ class AmazonCommerceConnector:
         self, *, remote_id: str, title: str | None, sku: str | None
     ) -> dict[str, object]:
         result = self.transport.listing(remote_id)
+        if isinstance(self.transport, FakeAmazonSPAPITransport):
+            value = _FAKE_LISTINGS.get(remote_id)
+            if value is not None:
+                if title is not None:
+                    value["payload"]["title"] = title
+                if sku is not None:
+                    value["sku"] = sku
+                result = self.transport.listing(remote_id)
         return {
             "remote_id": remote_id,
-            "title": title,
-            "remote_sku": sku,
+            "title": result.payload.get("title", title),
+            "remote_sku": result.payload.get("sku", sku),
             "status": result.remote_status or "unknown",
         }
 
@@ -519,24 +927,44 @@ class AmazonCommerceConnector:
         ).payload
 
     def get_orders(self) -> list[dict[str, object]]:
-        return [
-            {
-                "remote_id": str(item["order_id"]),
-                "status": {"unshipped": "confirmed", "shipped": "shipped"}.get(
-                    str(item["status"]).lower(), "processing"
-                ),
-                "total": str(item["total"]),
-            }
-            for item in self.transport.orders(
-                seller_id=self.seller_id, marketplace_id=self.marketplace.marketplace_id
+        normalized: list[dict[str, object]] = []
+        for item in self.transport.orders(
+            seller_id=self.seller_id, marketplace_id=self.marketplace.marketplace_id
+        ):
+            normalized.append(
+                {
+                    "remote_id": str(item["order_id"]),
+                    "status": {"unshipped": "confirmed", "shipped": "shipped"}.get(
+                        str(item.get("status", "")).lower(), "processing"
+                    ),
+                    "raw_status": str(item.get("status", "unknown")),
+                    "total": str(item.get("total", "0")),
+                    "currency": str(item.get("currency", self.marketplace.currency)),
+                    "fulfilment_channel": str(item.get("fulfilment_channel", "MFN")),
+                    "payment_status": str(item.get("payment_status", "paid")),
+                    "item_subtotal": str(item.get("item_subtotal", item.get("total", "0"))),
+                    "tax": str(item.get("tax", "0")),
+                    "shipping": str(item.get("shipping", "0")),
+                    "discount": str(item.get("discount", "0")),
+                    "seller_sku": item.get("seller_sku"),
+                    "asin": item.get("asin"),
+                    "quantity": item.get("quantity", 1),
+                    "unit_price": str(item.get("unit_price", item.get("total", "0"))),
+                    "title": item.get("title"),
+                    "fulfilment_id": item.get("fulfilment_id"),
+                    "carrier": item.get("carrier"),
+                    "tracking_reference": item.get("tracking_reference"),
+                    "last_update": item.get("last_update"),
+                }
             )
-        ]
+        return normalized
 
     def get_fees(self) -> list[dict[str, object]]:
         return [
             {
                 "type": str(item["type"]).lower(),
                 "amount": str(item["amount"]),
+                "currency": str(item.get("currency", self.marketplace.currency)),
             }
             for item in self.transport.financial_events(
                 seller_id=self.seller_id, marketplace_id=self.marketplace.marketplace_id
@@ -552,6 +980,45 @@ class AmazonCommerceConnector:
                 "net": "1125.00",
             }
         ]
+
+    def product_type_attributes(self, product_type: str) -> list[dict[str, Any]]:
+        return self.transport.product_type_attributes(
+            marketplace_id=self.marketplace.marketplace_id, product_type=product_type
+        )
+
+    def find_by_sku(self, sku: str) -> AmazonOperationResult:
+        return self.transport.listing_by_sku(
+            seller_id=self.seller_id, marketplace_id=self.marketplace.marketplace_id, sku=sku
+        )
+
+    def submit_media(
+        self, remote_id: str, media: list[dict[str, Any]], idempotency_key: str
+    ) -> AmazonOperationResult:
+        return self.transport.submit_media(
+            remote_id=remote_id, media=media, idempotency_key=idempotency_key
+        )
+
+    def submit_variants(
+        self, remote_id: str, variants: list[dict[str, Any]], idempotency_key: str
+    ) -> AmazonOperationResult:
+        return self.transport.submit_variants(
+            remote_id=remote_id, variants=variants, idempotency_key=idempotency_key
+        )
+
+    def get_price(self, remote_id: str) -> AmazonOperationResult:
+        return self.transport.price(remote_id=remote_id)
+
+    def update_price(
+        self, remote_id: str, price: dict[str, Any], idempotency_key: str
+    ) -> AmazonOperationResult:
+        return self.transport.update_price(
+            remote_id=remote_id, price=price, idempotency_key=idempotency_key
+        )
+
+    def get_returns(self) -> list[dict[str, Any]]:
+        return self.transport.returns(
+            seller_id=self.seller_id, marketplace_id=self.marketplace.marketplace_id
+        )
 
     def process(self, remote_id: str) -> AmazonOperationResult:
         return self.transport.process(remote_id)
