@@ -8,6 +8,7 @@ from fastapi import APIRouter, Cookie, Depends, HTTPException, Response
 from sqlalchemy import inspect, select, text
 from sqlalchemy.orm import Session
 
+from vayujit_api import __version__
 from vayujit_api.ai.models import PromptTemplate
 from vayujit_api.audit.service import record_event
 from vayujit_api.brands.models import Brand
@@ -253,7 +254,7 @@ def system_status(db: DatabaseSession, _user: CurrentUser) -> SystemStatus:
         else "unmanaged-test-schema"
     )
     return SystemStatus(
-        application_version="0.1.0",
+        application_version=__version__,
         environment=application_settings().environment,
         api_status="ok",
         database_status=database_status,

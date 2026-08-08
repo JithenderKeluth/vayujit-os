@@ -35,3 +35,7 @@ backups/
 var/backups/
 var/maintenance/
 var/exports/
+
+# Windows packaging outputs
+release/
+release-*/
