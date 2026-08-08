@@ -28,3 +28,24 @@
 - Verify exact Artifact approval, owner isolation, exact-Origin, maintenance, bounded calendar and
   dependency-cycle rejection.
 - Record browser and Electron manual acceptance honestly.
+
+## Public Windows release gate
+
+- [PASS] Internal/local Windows RC gate is GO.
+- [FAIL] Approved Windows code-signing certificate or approved signing-service configuration is available.
+- [FAIL] Signed installer signature, trusted chain, and timestamp are verified.
+- [PASS] Unsigned package checksum and forbidden-content scan pass; regenerate the checksum after signing.
+- [PASS] Production dependency audit reports zero vulnerabilities; license visibility warnings remain documented.
+- [PASS] Electron unit tests, packaged smoke, migration, backup/upgrade, and regression suites pass.
+- [FAIL] Signed-installer acceptance, trusted publisher display, and no-unsigned-publisher-warning validation.
+- [WARN] SmartScreen reputation is separate from signature validity and may require post-release reputation building.
+- [NO-GO] Public distribution until signing, timestamp, publisher identity, and signed-installer acceptance pass.
+
+## Required signing evidence
+
+Use electron-builder's external signing inputs through a secure CI or release workstation. Do not commit
+certificate files, private keys, passwords, or signing-service tokens. Supported examples are
+`CSC_LINK` and `CSC_KEY_PASSWORD`; inject them only for the packaging process and remove them afterward.
+The signing provider must apply a trusted timestamp. Verify the installer and packaged executable with
+`Get-AuthenticodeSignature` and, where available, `signtool verify /pa /v`; public release requires
+`Status = Valid`, a trusted chain, and a valid timestamp.
