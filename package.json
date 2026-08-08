@@ -111,7 +111,9 @@
     "publishing:shopify:validate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 validate",
     "publishing:shopify:collections": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 collections",
     "publishing:shopify:publications": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 publications",
-    "publishing:shopify:executions": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 executions"
+    "publishing:shopify:executions": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 executions",
+    "test:commerce": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_commerce.py",
+    "test:commerce:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_commerce_integration.py"
   },
   "devDependencies": {
     "concurrently": "9.2.4",

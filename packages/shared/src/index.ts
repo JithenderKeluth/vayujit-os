@@ -1646,3 +1646,81 @@ export interface CampaignHealth {
   catch_ups_created: number;
   generated_at: string;
 }
+
+export type MarketplaceId = 'amazon' | 'flipkart' | 'meesho' | 'shopify';
+export type MarketplaceListingLifecycle =
+  | 'draft'
+  | 'ready'
+  | 'submitting'
+  | 'active'
+  | 'paused'
+  | 'rejected'
+  | 'error'
+  | 'archived';
+export interface MarketplaceAccountSummary {
+  id: string;
+  marketplace: MarketplaceId;
+  display_name: string;
+  seller_account_id: string;
+  environment: 'sandbox' | 'production';
+  enabled: boolean;
+  credential_status: string;
+  validation_status: string;
+  last_validated_at: string | null;
+  capabilities: string[];
+}
+export interface MarketplaceListingSummary {
+  id: string;
+  marketplace: MarketplaceId;
+  product_id: string;
+  account_id: string;
+  title: string;
+  marketplace_sku: string | null;
+  status: MarketplaceListingLifecycle;
+  publication_state: string;
+  drift_state: string;
+}
+export interface MarketplaceInventorySummary {
+  id: string;
+  listing_id: string;
+  product_id: string;
+  available_quantity: number;
+  marketplace_reported_quantity: number | null;
+  synchronization_status: string;
+  last_synchronized_at: string | null;
+}
+export interface MarketplaceOrderSummary {
+  id: string;
+  marketplace: MarketplaceId;
+  remote_order_id: string;
+  status: string;
+  fulfilment_status: string;
+  totals: Record<string, string>;
+  ordered_at: string;
+  buyer_summary: { display_name: string };
+}
+export interface MarketplaceSettlementSummary {
+  id: string;
+  marketplace: MarketplaceId;
+  remote_settlement_id: string;
+  period_start: string;
+  period_end: string;
+  gross_amount: string;
+  fee_amount: string;
+  refund_amount: string;
+  tax_withholding_amount: string;
+  net_amount: string;
+  currency: string;
+}
+export interface MarketplaceAnalyticsSummary {
+  gross_sales: string;
+  fees: string;
+  refunds: string;
+  net_contribution: string;
+  estimated_profit: string | null;
+  profit_status: 'available' | 'unavailable';
+  order_count: number;
+  active_listing_count: number;
+  low_stock_count: number;
+  sales_by_marketplace: Record<string, string>;
+}

@@ -9,6 +9,7 @@ from vayujit_api.ai.router import router as ai_router
 from vayujit_api.brands.router import router as brands_router
 from vayujit_api.campaigns.router import router as campaigns_router
 from vayujit_api.campaigns.workflow_service import restore_campaign_waits
+from vayujit_api.commerce.router import router as commerce_router
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import SessionFactory, get_session
 from vayujit_api.core.errors import install_exception_handlers
@@ -54,6 +55,7 @@ def create_app() -> FastAPI:
     application.include_router(auth_router)
     application.include_router(brands_router)
     application.include_router(campaigns_router)
+    application.include_router(commerce_router)
     application.include_router(products_router)
     application.include_router(ai_router)
     application.include_router(media_router)
