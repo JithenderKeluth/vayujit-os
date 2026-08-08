@@ -64,3 +64,13 @@ The installer directory contains only application files and immutable API/migrat
 Uninstall removes binaries and shortcuts but preserves `%LOCALAPPDATA%\VAYUJIT OS`, PostgreSQL
 data, backups, media, and encryption material. To remove all data, stop the services, export or
 verify backups, uninstall, and explicitly delete that directory and the PostgreSQL database.
+
+## Public signing and SmartScreen
+
+The published installer must be signed by an approved certificate or trusted signing service. Release
+workstations inject electron-builder signing inputs (`CSC_LINK`, `CSC_KEY_PASSWORD`, or the approved
+certificate-store/service integration) through secure secret management only. Do not commit or package
+certificates, private keys, passwords, or signing tokens. Require a trusted timestamp, verify both the
+installer and packaged executable with `Get-AuthenticodeSignature`/`signtool verify /pa /v`, and generate
+the SHA-256 sidecar after signing. A valid signature and trusted publisher chain are separate from
+Microsoft SmartScreen reputation; a new publisher may still receive a reputation warning.
