@@ -1,6 +1,10 @@
 {
   "name": "vayujit-os",
-  "version": "0.1.0",
+  "version": "0.1.0-rc.1",
+  "description": "VAYUJIT OS local content operations platform",
+  "author": "VAYUJIT OS",
+  "main": "apps/desktop/dist/main.js",
+  "type": "module",
   "private": true,
   "engines": {
     "node": "22.x || 24.x",
@@ -78,6 +82,11 @@
     "security:audit:prod": "npm audit --omit=dev --audit-level=high",
     "security:licenses": "node scripts/dependency-licenses.mjs",
     "security:check": "npm run security:audit:prod && npm run security:licenses",
+    "package:windows": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/package-windows.ps1",
+    "package:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/verify-windows-package.ps1",
+    "package:checksum": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/checksum-release.ps1",
+    "release:prerequisites": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-prerequisites.ps1",
+    "release:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-verify.ps1",
     "system:doctor": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/system-doctor.ps1",
     "performance:baseline": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/performance-baseline.ps1",
     "backup:create": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 backup-create",
@@ -106,6 +115,74 @@
   },
   "devDependencies": {
     "concurrently": "9.2.4",
+    "electron-builder": "26.0.12",
     "prettier": "3.6.2"
+  },
+  "build": {
+    "appId": "com.vayujit.os",
+    "productName": "VAYUJIT OS",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "artifactName": "VAYUJIT-OS-${version}-Setup.${ext}",
+    "files": [
+      "apps/desktop/dist/**/*",
+      "dist/apps/web/browser/**/*",
+      "version.json"
+    ],
+    "extraResources": [
+      {
+        "from": "apps/api",
+        "to": "api",
+        "filter": [
+          "vayujit_api/**/*",
+          "alembic/**/*",
+          "alembic.ini",
+          "pyproject.toml"
+        ]
+      },
+      {
+        "from": "scripts/start-packaged-api.ps1",
+        "to": "scripts/start-packaged-api.ps1"
+      },
+      {
+        "from": "scripts/backup-packaged-api.ps1",
+        "to": "scripts/backup-packaged-api.ps1"
+      },
+      {
+        "from": "scripts/initialize-packaged-config.ps1",
+        "to": "scripts/initialize-packaged-config.ps1"
+      },
+      {
+        "from": "scripts/install-packaged-api.ps1",
+        "to": "scripts/install-packaged-api.ps1"
+      },
+      {
+        "from": "docs/releases",
+        "to": "docs/releases"
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "signAndEditExecutable": false,
+      "artifactName": "VAYUJIT-OS-${version}-Setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "VAYUJIT OS",
+      "deleteAppDataOnUninstall": false
+    }
   }
 }
