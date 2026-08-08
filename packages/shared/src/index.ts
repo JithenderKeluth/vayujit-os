@@ -1473,7 +1473,10 @@ export interface CampaignRescheduleConfirmationResult {
   correlation_id: string;
   idempotency_result: string;
   scheduled: boolean;
+  status?: string | null;
   idempotent_reuse: boolean;
+  publishing_execution_id?: string | null;
+  reconciliation_status?: string | null;
 }
 
 export interface CampaignRescheduleHistoryItem {

@@ -2,7 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from uuid import UUID
+from typing import cast
+from uuid import UUID, uuid4
 
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
@@ -122,7 +123,7 @@ def create_approved_artifact_for_other_product(
     generation = client.post(
         "/api/v1/ai/generations", json={"product_id": product["id"]}, headers={"Origin": origin}
     )
-    assert generation.status_code == 200, generation.text
+    assert generation.status_code in {200, 201}, generation.text
     artifact_id = generation.json()["artifact_id"]
     approval = client.post(
         f"/api/v1/ai/artifacts/{artifact_id}/approve", headers={"Origin": origin}
@@ -140,7 +141,7 @@ def create_pending_artifact(
         json={"product_id": str(scenario.product_id)},
         headers=ORIGIN,
     )
-    assert response.status_code == 200, response.text
+    assert response.status_code in {200, 201}, response.text
     artifact_id = UUID(str(response.json()["artifact_id"]))
     artifact = db_session.get(GeneratedArtifact, artifact_id)
     assert artifact is not None
@@ -169,12 +170,10 @@ def create_superseded_artifact(
     *, client: TestClient, db_session: Session, scenario: CampaignReplacementScenario
 ) -> GeneratedArtifact:
     first = create_pending_artifact(client=client, db_session=db_session, scenario=scenario)
-    approved = client.post(f"/api/v1/ai/artifacts/{first.id}/approve", headers=ORIGIN)
-    assert approved.status_code == 200, approved.text
     newer = client.post(
         "/api/v1/ai/generations", json={"product_id": str(scenario.product_id)}, headers=ORIGIN
     )
-    assert newer.status_code == 200, newer.text
+    assert newer.status_code in {200, 201}, newer.text
     newer_approved = client.post(
         f"/api/v1/ai/artifacts/{newer.json()['artifact_id']}/approve", headers=ORIGIN
     )
@@ -186,7 +185,7 @@ def create_superseded_artifact(
 
 
 def create_campaign_replacement_scenario(
-    *, client: TestClient, db_session: Session, origin: str = ORIGIN["Origin"]
+    client: TestClient, db_session: Session, *, origin: str = ORIGIN["Origin"]
 ) -> CampaignReplacementScenario:
     product, original_artifact, destination = business(client)
     destination_row = db_session.get(PublishingDestination, UUID(str(destination["id"])))
@@ -205,6 +204,7 @@ def create_campaign_replacement_scenario(
         client,
         {
             "action": "create_campaign",
+            "correlation_id": str(uuid4()),
             "campaign": {
                 "brand_id": destination["brand_id"],
                 "name": "Replacement fixture",
@@ -218,6 +218,7 @@ def create_campaign_replacement_scenario(
         client,
         {
             "action": "add_campaign_activity",
+            "correlation_id": str(uuid4()),
             "campaign_id": campaign["campaign_id"],
             "activity": {
                 "product_id": product["id"],
@@ -246,16 +247,16 @@ def create_campaign_replacement_scenario(
         campaign_id=UUID(str(campaign["campaign_id"])),
         original_activity_id=value.id,
         original_artifact_id=UUID(str(original_artifact["id"])),
-        original_artifact_version=int(original_artifact["version_number"]),
+        original_artifact_version=int(cast(int, original_artifact["version_number"])),
         replacement_artifact_id=UUID(str(replacement["id"])),
-        replacement_artifact_version=int(replacement["version_number"]),
+        replacement_artifact_version=int(cast(int, replacement["version_number"])),
         destination_id=UUID(str(destination["id"])),
         expected_activity_row_version=value.row_version,
     )
 
 
 def invoke_successful_replacement(
-    *, client: TestClient, scenario: CampaignReplacementScenario, origin: str = ORIGIN["Origin"]
+    client: TestClient, scenario: CampaignReplacementScenario, *, origin: str = ORIGIN["Origin"]
 ):
     return client.post(
         "/api/v1/campaigns/recovery/actions",

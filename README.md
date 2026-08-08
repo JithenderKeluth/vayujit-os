@@ -57,7 +57,7 @@ criteria, and release priorities.
 
 The initial monorepo contains:
 
-- `apps/web`: strict Angular application shell and placeholder routes
+- `apps/web`: strict Angular application shell with routed operational screens
 - `apps/api`: Python 3.12 FastAPI modular-monolith foundation
 - `apps/desktop`: secure Electron development shell
 - `packages/shared`: frontend/desktop TypeScript contracts

@@ -82,11 +82,21 @@ import { OperationsService } from './operations.service';
                     - {{ item.original_scheduled_at_utc }} to {{ item.new_scheduled_at_utc }}
                   }
                 </p>
-                @if (item.reason) { <p class="op-muted">Reason: {{ item.reason }}</p> }
+                @if (item.reason) {
+                  <p class="op-muted">Reason: {{ item.reason }}</p>
+                }
               }
-              @if (item.event_name === 'campaign.catch_up_created' || item.event_name === 'campaign.catch_up_reused') {
-                <p>Campaign catch-up Activity {{ item.event_name.endsWith('reused') ? 'reused' : 'created' }}.</p>
-                @if (item.reason) { <p class="op-muted">Reason: {{ item.reason }}</p> }
+              @if (
+                item.event_name === 'campaign.catch_up_created' ||
+                item.event_name === 'campaign.catch_up_reused'
+              ) {
+                <p>
+                  Campaign catch-up Activity
+                  {{ item.event_name.endsWith('reused') ? 'reused' : 'created' }}.
+                </p>
+                @if (item.reason) {
+                  <p class="op-muted">Reason: {{ item.reason }}</p>
+                }
               }
             </div>
             <span class="op-status">{{ item.status || 'recorded' }}</span>
@@ -120,7 +130,14 @@ export class ExecutionHistoryComponent implements OnInit {
   readonly timeline = signal(false);
   readonly page = signal(1);
   readonly pages = signal(0);
-  readonly categories = ['Product', 'AI Generation', 'Publishing', 'Campaign', 'Workflow', 'System'];
+  readonly categories = [
+    'Product',
+    'AI Generation',
+    'Publishing',
+    'Campaign',
+    'Workflow',
+    'System',
+  ];
   brandId = '';
   productId = '';
   category = '';

@@ -103,12 +103,12 @@ def safe_event(
         related_url=event_url(event, metadata),
         correlation_id=event.correlation_id,
         actor_id=event.actor_id,
-        campaign_id=str(metadata["campaign_id"])
-        if isinstance(metadata.get("campaign_id"), str)
-        else None,
-        activity_id=str(metadata["activity_id"])
-        if isinstance(metadata.get("activity_id"), str)
-        else None,
+        campaign_id=(
+            str(metadata["campaign_id"]) if isinstance(metadata.get("campaign_id"), str) else None
+        ),
+        activity_id=(
+            str(metadata["activity_id"]) if isinstance(metadata.get("activity_id"), str) else None
+        ),
         original_scheduled_at_utc=(
             str(metadata["old_scheduled_at_utc"])
             if isinstance(metadata.get("old_scheduled_at_utc"), str)

@@ -51,6 +51,7 @@ from vayujit_api.campaigns.schemas import (
     AgendaCalendar,
     CalendarEvent,
     CampaignCreate,
+    CampaignRecoveryActionKey,
     CampaignRecoveryActionRequest,
     CampaignRecoveryActionResult,
     CampaignRecoveryProjection,
@@ -308,7 +309,9 @@ def campaign_recovery(db: DB, owner: Owner) -> list[CampaignRecoveryProjection]:
                 safe_failure_message=activity.safe_failure_message
                 or "Campaign activity needs review.",
                 correlation_id=activity.correlation_id,
-                eligible_actions=recovery_actions(activity, campaign, db),
+                eligible_actions=cast(
+                    list[CampaignRecoveryActionKey], recovery_actions(activity, campaign, db)
+                ),
                 catch_up_activity_id=catch_up_activity_id,
                 catch_up_schedule_id=catch_up_schedule_id,
                 catch_up_job_id=catch_up_job_id,
@@ -385,9 +388,7 @@ def preview_reschedule_activity(
         current_schedule_status=(
             "superseded"
             if current_schedule and current_schedule.archived
-            else "active"
-            if current_schedule
-            else None
+            else "active" if current_schedule else None
         ),
         current_job_status=current_job.state if current_job else None,
     )
@@ -465,9 +466,7 @@ def preview_create_one_catch_up(
         current_schedule_status=(
             "superseded"
             if current_schedule and current_schedule.archived
-            else "active"
-            if current_schedule
-            else None
+            else "active" if current_schedule else None
         ),
         current_job_status=current_job.state if current_job else None,
         original_activity_name=activity.name,
@@ -521,7 +520,7 @@ def execute_recovery_action(
         return {
             "action": request.action,
             "outcome": "unsupported",
-            "safe_message": "Catch-up creation is not implemented yet.",
+            "safe_message": "This Recovery action is currently unavailable.",
             "correlation_id": correlation_id() or str(uuid.uuid4()),
             "idempotency_result": "not_applicable",
         }
@@ -576,6 +575,9 @@ def execute_recovery_action(
         except ValueError as exc:
             raise HTTPException(409, str(exc)) from exc
         result_payload = cast(dict[str, object], typed_result.model_dump(mode="json"))
+        resource_ids = result_payload.get("resource_ids")
+        if isinstance(resource_ids, dict):
+            result_payload.update(resource_ids)
         return {
             "action": request.action,
             "result": result_payload,

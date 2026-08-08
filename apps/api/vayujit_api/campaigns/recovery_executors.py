@@ -93,6 +93,7 @@ def execute_replace_with_new_approved_activity(
             correlation_id=context.correlation_id,
             idempotency_result="reused",
             idempotent_reuse=True,
+            status="succeeded",
         )
     if activity.row_version != request.expected_activity_row_version:
         raise HTTPException(409, "The Activity changed; refresh before replacing it.")
@@ -169,6 +170,7 @@ def execute_replace_with_new_approved_activity(
         correlation_id=context.correlation_id,
         idempotency_result="created",
         idempotent_reuse=False,
+        status="succeeded",
     )
 
 
@@ -210,6 +212,17 @@ def execute_release_checkpoint(
         entity_type="campaign_activity",
         entity_id=activity.id,
         metadata={"campaign_id": str(context.campaign.id), "activity_id": str(activity.id)},
+    )
+    context.db.commit()
+    return CampaignRecoveryActionResult(
+        action=request.action,
+        outcome="succeeded",
+        resource_ids={"activity_id": str(activity.id)},
+        safe_message="The checkpoint was released.",
+        confirmation_required=False,
+        correlation_id=context.correlation_id,
+        idempotency_result="released",
+        status="succeeded",
     )
 
 
@@ -454,9 +467,9 @@ def execute_reschedule_activity(
             "replacement_schedule_id": str(schedule.id),
             "original_job_id": str(original_job_id) if original_job_id else None,
             "replacement_job_id": str(replacement_job.id) if replacement_job else None,
-            "old_scheduled_at_utc": original_scheduled_for_utc.isoformat()
-            if original_scheduled_for_utc
-            else None,
+            "old_scheduled_at_utc": (
+                original_scheduled_for_utc.isoformat() if original_scheduled_for_utc else None
+            ),
             "new_scheduled_at_utc": resolved.isoformat(),
             "timezone": request.proposed_timezone,
             "reason": request.reason.strip(),

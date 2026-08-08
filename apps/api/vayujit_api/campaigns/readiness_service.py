@@ -108,6 +108,7 @@ def activity_readiness(
         "completed_with_warning",
         "failed",
         "dead_letter",
+        "missed",
         "cancelled",
         "archived",
     }:
@@ -133,8 +134,6 @@ def campaign_readiness(
     state: Literal["ready", "blocked", "warning"] = (
         "blocked"
         if any(item.severity == "error" for item in issues)
-        else "warning"
-        if issues
-        else "ready"
+        else "warning" if issues else "ready"
     )
     return ReadinessResponse(state=state, issues=issues)

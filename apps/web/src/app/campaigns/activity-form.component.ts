@@ -16,6 +16,9 @@ import { CampaignService } from './campaign.service';
       <form [formGroup]="form" (ngSubmit)="save()">
         <label
           >Activity type<select formControlName="activity_type" required>
+            <optgroup label="Local mock publisher">
+              <option value="mock_publish">Publish with local mock</option>
+            </optgroup>
             <optgroup label="WordPress">
               <option value="wordpress_create_draft">Create draft</option>
               <option value="wordpress_publish">Publish</option>
@@ -135,11 +138,14 @@ export class ActivityFormComponent {
   }
   async searchDestinations(event?: Event): Promise<void> {
     const search = event ? (event.target as HTMLInputElement).value : '';
-    const connectorKey = this.form.controls.activity_type.value.startsWith('wordpress')
-      ? 'wordpress'
-      : this.form.controls.activity_type.value.startsWith('shopify')
-        ? 'shopify'
-        : undefined;
+    const connectorKey =
+      this.form.controls.activity_type.value === 'mock_publish'
+        ? 'mock_publisher_v1'
+        : this.form.controls.activity_type.value.startsWith('wordpress')
+          ? 'wordpress'
+          : this.form.controls.activity_type.value.startsWith('shopify')
+            ? 'shopify'
+            : undefined;
     this.destinations.set((await this.api.lookup('destination', search, { connectorKey })).items);
   }
   async save(): Promise<void> {

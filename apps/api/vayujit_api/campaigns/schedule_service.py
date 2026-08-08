@@ -1,4 +1,5 @@
 import uuid
+from typing import Any, cast
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -75,7 +76,7 @@ def schedule_activities(
                 name=f"{campaign.name}: {activity.name}",
                 artifact_id=activity.artifact_id,
                 destination_id=activity.destination_id,
-                requested_action=activity.requested_action,
+                requested_action=cast(Any, activity.requested_action),
                 local_scheduled_at=activity.scheduled_at_utc.replace(tzinfo=None),
                 timezone_name="UTC",
                 schedule_type="one_time",
@@ -132,6 +133,10 @@ def project_activity_states(db: Session, campaign_id: uuid.UUID) -> int:
         "expired": "reconciliation_required",
     }
     for activity in activities:
+        if activity.status == "missed":
+            # A missed Activity is an explicit operator state. Its historical job may
+            # still exist for audit/recovery, but must not project back to queued.
+            continue
         if not activity.schedule_id:
             continue
         job = db.scalar(

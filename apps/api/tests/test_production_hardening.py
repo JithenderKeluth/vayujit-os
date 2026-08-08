@@ -73,7 +73,7 @@ def test_backup_paths_and_checksum_verification(tmp_path: Path, monkeypatch) -> 
         size_bytes=path.stat().st_size,
         checksum_sha256=hashlib.sha256(path.read_bytes()).hexdigest(),
         application_version="0.1.0",
-        migration_revision="20260729_0009",
+        migration_revision="20260812_0022",
         database_name="restore_test",
         created_at=datetime.now(UTC),
         verification_status="pending",
