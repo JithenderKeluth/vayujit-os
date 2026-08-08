@@ -113,6 +113,9 @@
     "publishing:shopify:publications": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 publications",
     "publishing:shopify:executions": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/shopify-diagnostics.ps1 executions",
     "test:commerce": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_commerce.py",
+    "test:amazon": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_amazon.py",
+    "test:amazon:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_amazon_integration.py",
+    "test:amazon:e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_amazon_integration.py",
     "test:commerce:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_commerce_integration.py"
   },
   "devDependencies": {

@@ -8,6 +8,11 @@ CommerceJobType = Literal[
     "commerce.inventory_sync",
     "commerce.order_sync",
     "commerce.settlement_sync",
+    "amazon.submit_listing",
+    "amazon.reconcile_listing",
+    "amazon.inventory_sync",
+    "amazon.order_sync",
+    "amazon.financial_event_sync",
 ]
 
 COMMERCE_JOB_TYPES: tuple[CommerceJobType, ...] = (
@@ -16,6 +21,11 @@ COMMERCE_JOB_TYPES: tuple[CommerceJobType, ...] = (
     "commerce.inventory_sync",
     "commerce.order_sync",
     "commerce.settlement_sync",
+    "amazon.submit_listing",
+    "amazon.reconcile_listing",
+    "amazon.inventory_sync",
+    "amazon.order_sync",
+    "amazon.financial_event_sync",
 )
 
 

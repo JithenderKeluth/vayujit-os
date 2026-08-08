@@ -57,6 +57,18 @@ export const routes: Routes = [
   },
   { path: 'marketplaces/overview', redirectTo: 'marketplaces', pathMatch: 'full' },
   {
+    path: 'marketplaces/amazon',
+    loadComponent: () =>
+      import('./marketplaces/amazon-workspace.component').then((m) => m.AmazonWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'marketplaces/listings/:id/amazon',
+    loadComponent: () =>
+      import('./marketplaces/amazon-workspace.component').then((m) => m.AmazonWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'marketplaces/accounts',
     loadComponent: () =>
       import('./marketplaces/marketplace-accounts.component').then(

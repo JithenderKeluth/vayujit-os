@@ -1724,3 +1724,33 @@ export interface MarketplaceAnalyticsSummary {
   low_stock_count: number;
   sales_by_marketplace: Record<string, string>;
 }
+
+export interface AmazonMarketplaceSummary {
+  country_code: string;
+  marketplace_id: string;
+  currency: string;
+  locale: string;
+  endpoint_region: string;
+}
+export interface AmazonListingPreview {
+  ready: boolean;
+  blocking_issues: Array<{ code: string; field?: string; message: string }>;
+  warnings: string[];
+  marketplace_id: string;
+  product_type: string | null;
+  title: string;
+  sku: string | null;
+}
+export interface AmazonOperationIssue {
+  code: string;
+  message: string;
+  retryable: boolean;
+}
+export interface AmazonSubmitResult {
+  status: string;
+  remote_listing_id: string | null;
+  remote_status: string | null;
+  retryable: boolean;
+  ambiguous: boolean;
+  issues: AmazonOperationIssue[];
+}
