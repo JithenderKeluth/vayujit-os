@@ -16,6 +16,9 @@ CommerceFailureKind = Literal[
     "inventory_write_failed",
     "order_sync_failed",
     "settlement_import_failed",
+    "amazon_throttled",
+    "amazon_policy_rejection",
+    "amazon_ambiguous_result",
 ]
 
 
@@ -28,7 +31,11 @@ class CommerceFailureProjection:
 
 
 def project_failure(kind: CommerceFailureKind) -> CommerceFailureProjection:
-    retryable = kind not in {"listing_rejected", "authentication_expired"}
+    retryable = kind not in {
+        "listing_rejected",
+        "authentication_expired",
+        "amazon_policy_rejection",
+    }
     return CommerceFailureProjection(
         kind=kind,
         safe_reason_code=f"commerce.{kind}",

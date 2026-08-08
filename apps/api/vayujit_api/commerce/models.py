@@ -110,6 +110,7 @@ class MarketplaceAccount(CommerceBase):
     validation_status: Mapped[str] = mapped_column(String(20), default="unknown")
     last_validated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     capabilities_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    configuration_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
 
 
 class MarketplaceCategory(CommerceBase):

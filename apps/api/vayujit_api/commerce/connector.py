@@ -4,6 +4,13 @@ import hashlib
 from dataclasses import dataclass
 from typing import Protocol
 
+from vayujit_api.commerce.amazon import (
+    AmazonCommerceConnector,
+    AmazonTransport,
+    FakeAmazonSPAPITransport,
+    amazon_marketplace,
+)
+
 
 class CommerceConnector(Protocol):
     def validate_account(self, seller_account_id: str) -> dict[str, object]: ...
@@ -107,6 +114,17 @@ class DeterministicFakeCommerceConnector:
         ]
 
 
-def connector_for(marketplace: str) -> CommerceConnector:
-    # Real adapters intentionally do not exist in this core milestone.
+def connector_for(
+    marketplace: str,
+    *,
+    seller_id: str | None = None,
+    country_code: str = "IN",
+    transport: AmazonTransport | None = None,
+) -> CommerceConnector:
+    if marketplace == "amazon":
+        return AmazonCommerceConnector(
+            seller_id=seller_id or "fake-seller",
+            marketplace=amazon_marketplace(country_code),
+            transport=transport or FakeAmazonSPAPITransport(),
+        )
     return DeterministicFakeCommerceConnector(marketplace)
