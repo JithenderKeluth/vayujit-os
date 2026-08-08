@@ -1,0 +1,91 @@
+.marketplace-page {
+  display: grid;
+  gap: 1.25rem;
+  max-width: 1200px;
+}
+.marketplace-grid,
+.marketplace-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+}
+.marketplace-grid a,
+.marketplace-stats article {
+  background: #fff;
+  border: 1px solid #d3dde2;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  color: inherit;
+  text-decoration: none;
+}
+.marketplace-grid a:hover {
+  border-color: #14566f;
+}
+.marketplace-stats article {
+  display: grid;
+  gap: 0.35rem;
+}
+.marketplace-stats strong {
+  font-size: 1.6rem;
+}
+.marketplace-form {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: end;
+}
+.marketplace-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 650;
+}
+.marketplace-form input,
+.marketplace-form select {
+  padding: 0.6rem;
+  border: 1px solid #91a4ad;
+  border-radius: 0.4rem;
+  font: inherit;
+}
+.marketplace-form button,
+.marketplace-table button {
+  padding: 0.55rem 0.8rem;
+  border: 0;
+  border-radius: 0.4rem;
+  background: #14566f;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  margin-right: 0.35rem;
+}
+.marketplace-table {
+  overflow-x: auto;
+  background: #fff;
+  border: 1px solid #d3dde2;
+  border-radius: 0.75rem;
+}
+.marketplace-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.marketplace-table th,
+.marketplace-table td {
+  text-align: left;
+  padding: 0.7rem;
+  border-bottom: 1px solid #dfe6e9;
+  vertical-align: top;
+}
+.marketplace-status {
+  font-weight: 700;
+}
+.marketplace-error {
+  background: #fff1f1;
+  border-left: 4px solid #912020;
+  padding: 0.75rem;
+  color: #812020;
+}
+.marketplace-empty {
+  text-align: center;
+  border: 1px dashed #91a4ad;
+  border-radius: 0.75rem;
+  padding: 2rem;
+}

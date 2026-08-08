@@ -50,6 +50,61 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'marketplaces',
+    loadComponent: () =>
+      import('./marketplaces/marketplace-home.component').then((m) => m.MarketplaceHomeComponent),
+    canActivate: [authGuard],
+  },
+  { path: 'marketplaces/overview', redirectTo: 'marketplaces', pathMatch: 'full' },
+  {
+    path: 'marketplaces/accounts',
+    loadComponent: () =>
+      import('./marketplaces/marketplace-accounts.component').then(
+        (m) => m.MarketplaceAccountsComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'marketplaces/listings',
+    loadComponent: () =>
+      import('./marketplaces/marketplace-listings.component').then(
+        (m) => m.MarketplaceListingsComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'marketplaces/inventory',
+    loadComponent: () =>
+      import('./marketplaces/marketplace-inventory.component').then(
+        (m) => m.MarketplaceInventoryComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'marketplaces/orders',
+    loadComponent: () =>
+      import('./marketplaces/marketplace-orders.component').then(
+        (m) => m.MarketplaceOrdersComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'marketplaces/settlements',
+    loadComponent: () =>
+      import('./marketplaces/marketplace-settlements.component').then(
+        (m) => m.MarketplaceSettlementsComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'marketplaces/analytics',
+    loadComponent: () =>
+      import('./marketplaces/marketplace-analytics.component').then(
+        (m) => m.MarketplaceAnalyticsComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'brands',
     loadComponent: () =>
       import('./brands/brand-list.component').then((module) => module.BrandListComponent),
