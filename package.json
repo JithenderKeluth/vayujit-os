@@ -71,6 +71,9 @@
     "test:web": "npm run test --workspace @vayujit/web -- --watch=false",
     "test:api": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1",
     "test:api:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1",
+    "test:api:integration:core": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration-split.ps1 -Group core",
+    "test:api:integration:commerce": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration-split.ps1 -Group commerce",
+    "test:api:integration:campaigns": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration-split.ps1 -Group campaigns",
     "test:api:migrations": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-migrations.ps1",
     "test:workflow": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_workflows_integration.py",
     "format": "prettier --write . && powershell -NoProfile -ExecutionPolicy Bypass -Command \"& apps/api/.venv/Scripts/black.exe apps/api\"",
@@ -117,7 +120,12 @@
     "test:amazon:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_amazon_integration.py",
     "test:amazon:workers": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_amazon_workers.py",
     "test:amazon:e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_amazon_e2e.py",
-    "test:commerce:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_commerce_integration.py"
+    "test:commerce:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_commerce_integration.py",
+    "test:flipkart": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_flipkart.py",
+    "test:flipkart:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_flipkart_integration.py",
+    "test:flipkart:e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_flipkart_e2e.py",
+    "test:flipkart:workers": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_flipkart_workers.py",
+    "test:commerce:cross-marketplace": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_cross_marketplace_e2e.py"
   },
   "devDependencies": {
     "concurrently": "9.2.4",

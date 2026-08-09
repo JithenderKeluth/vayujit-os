@@ -15,6 +15,12 @@ from sqlalchemy.orm import Session, sessionmaker
 
 from vayujit_api.ai.models import PromptTemplate
 from vayujit_api.audit.models import AuditEvent
+from vayujit_api.commerce.flipkart import (
+    FlipkartCommerceConnector,
+    fake_flipkart_listing_count,
+    reset_fake_flipkart_state,
+)
+from vayujit_api.commerce.models import MarketplaceAccount
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import Base, get_session
 from vayujit_api.core.test_database import reset_test_schema
@@ -22,9 +28,11 @@ from vayujit_api.identity.models import User
 from vayujit_api.identity.router import attempts
 from vayujit_api.identity.service import now
 from vayujit_api.main import create_app
+from vayujit_api.products.models import Product
 from vayujit_api.publishing.connector import ConnectorResult, WordPressConnector
 from vayujit_api.publishing.job_queue import (
     claim_jobs,
+    finish_job,
     recover_expired_leases,
     start_attempt,
 )
@@ -581,3 +589,129 @@ def test_fake_shopify_scheduled_draft_is_idempotent(
         assert job and job.state == "succeeded"
         assert execution and execution.remote_entity_id == "gid://shopify/Product/42"
         assert db.scalar(select(func.count()).select_from(PublishingExecution)) == 1
+
+
+def _create_flipkart_worker_account(client: TestClient) -> str:
+    created = client.post(
+        "/api/v1/marketplaces/flipkart/accounts",
+        json={
+            "display_name": "Worker Flipkart",
+            "seller_account_id": "worker-flipkart",
+            "credentials": {},
+        },
+        headers=ORIGIN,
+    )
+    assert created.status_code == 201, created.text
+    account_id = str(created.json()["id"])
+    assert (
+        client.post(
+            f"/api/v1/marketplaces/flipkart/accounts/{account_id}/validate", headers=ORIGIN
+        ).status_code
+        == 200
+    )
+    enabled = client.post(
+        f"/api/v1/marketplaces/flipkart/accounts/{account_id}/enable",
+        json={"confirm": True},
+        headers=ORIGIN,
+    )
+    assert enabled.status_code == 200, enabled.text
+    return account_id
+
+
+def test_flipkart_crash_before_connector_lease_recovery_is_exactly_once(
+    harness: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, sessions = harness
+    _, artifact, destination = business(client)
+    account_id = _create_flipkart_worker_account(client)
+    schedule(client, artifact["id"], destination["id"], "Flipkart crash before")
+    reset_fake_flipkart_state()
+    with sessions() as db:
+        assert materialize_due_schedules(db) == 1
+        job = db.scalar(select(PublishingJob))
+        assert job
+        job.connector_key = f"flipkart:{account_id}"
+        job.requested_action = "listing_submission"
+        db.commit()
+        first = claim_jobs(db, "flipkart-crashed-worker", 1, 60)
+        assert first == [job.id]
+        assert start_attempt(db, job.id, "flipkart-crashed-worker")
+        job.lease_expires_at = now() - timedelta(seconds=1)
+        db.commit()
+        assert recover_expired_leases(db) == 1
+        assert finish_job(db, job.id, "flipkart-crashed-worker", succeeded=True) == "lease_lost"
+        job.available_at_utc = now() - timedelta(seconds=1)
+        db.commit()
+        second = claim_jobs(db, "flipkart-recovery-worker", 1, 60)
+        assert second == [job.id]
+    execute_job(second[0], "flipkart-recovery-worker")
+    with sessions() as db:
+        job = db.get(PublishingJob, second[0])
+        assert job and job.state == "succeeded"
+        assert db.scalar(select(func.count()).select_from(PublishingJobAttempt)) == 2
+    assert fake_flipkart_listing_count() == 1
+
+
+def test_flipkart_crash_after_remote_success_reconciles_without_duplicate(
+    harness: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, sessions = harness
+    _, artifact, destination = business(client)
+    account_id = _create_flipkart_worker_account(client)
+    schedule(client, artifact["id"], destination["id"], "Flipkart crash after")
+    reset_fake_flipkart_state()
+    with sessions() as db:
+        assert materialize_due_schedules(db) == 1
+        job = db.scalar(select(PublishingJob))
+        assert job
+        job.connector_key = f"flipkart:{account_id}"
+        job.requested_action = "listing_submission"
+        db.commit()
+        claimed = claim_jobs(db, "flipkart-crash-after-worker", 1, 60)
+        assert claimed == [job.id]
+        assert start_attempt(db, job.id, "flipkart-crash-after-worker")
+        account = db.get(MarketplaceAccount, uuid.UUID(account_id))
+        assert account
+        connector = FlipkartCommerceConnector(seller_id=account.seller_account_id)
+        remote = connector.submit(
+            sku=job.idempotency_key,
+            payload={"title": "Durable Flipkart listing"},
+            idempotency_key=job.idempotency_key,
+        )
+        assert remote.remote_id
+        stamp = now()
+        db.add(
+            PublishingExecution(
+                owner_id=job.owner_id,
+                brand_id=db.scalar(select(Product.brand_id).where(Product.id == job.product_id)),
+                product_id=job.product_id,
+                artifact_id=job.artifact_id,
+                destination_id=job.destination_id,
+                connector_key="flipkart",
+                status="succeeded",
+                idempotency_key=f"job:{job.id}",
+                attempt_count=1,
+                content_snapshot_json={},
+                request_snapshot_json={},
+                result_json={"remote_id": remote.remote_id},
+                external_reference=remote.remote_id,
+                external_url=None,
+                error_code=None,
+                safe_error_message=None,
+                retryable=False,
+                started_at=stamp,
+                completed_at=stamp,
+                failed_at=None,
+                created_at=stamp,
+                updated_at=stamp,
+                requested_action="listing_submission",
+            )
+        )
+        job.lease_expires_at = now() - timedelta(seconds=1)
+        db.commit()
+        assert recover_expired_leases(db) == 1
+        db.refresh(job)
+        assert job.state == "succeeded"
+        assert job.publishing_execution_id is not None
+        assert finish_job(db, job.id, "flipkart-crash-after-worker", succeeded=True) == "lease_lost"
+    assert fake_flipkart_listing_count() == 1

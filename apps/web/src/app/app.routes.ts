@@ -57,6 +57,22 @@ export const routes: Routes = [
   },
   { path: 'marketplaces/overview', redirectTo: 'marketplaces', pathMatch: 'full' },
   {
+    path: 'marketplaces/flipkart',
+    loadComponent: () =>
+      import('./marketplaces/flipkart-workspace.component').then(
+        (m) => m.FlipkartWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'marketplaces/listings/:id/flipkart',
+    loadComponent: () =>
+      import('./marketplaces/flipkart-workspace.component').then(
+        (m) => m.FlipkartWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'marketplaces/amazon',
     loadComponent: () =>
       import('./marketplaces/amazon-workspace.component').then((m) => m.AmazonWorkspaceComponent),
@@ -156,6 +172,14 @@ export const routes: Routes = [
     path: 'products/:id/edit',
     loadComponent: () =>
       import('./products/product-form.component').then((module) => module.ProductFormComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'products/:id/channels',
+    loadComponent: () =>
+      import('./marketplaces/product-channel-view.component').then(
+        (m) => m.ProductChannelViewComponent,
+      ),
     canActivate: [authGuard],
   },
   {

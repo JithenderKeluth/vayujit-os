@@ -53,7 +53,7 @@ def amazon_idempotency_key(
 def retry_delay_seconds(attempt: int, retry_after_seconds: int | None = None) -> int:
     if retry_after_seconds is not None:
         return min(max(retry_after_seconds, 1), 3600)
-    return min(30 * (2 ** max(attempt - 1, 0)), 3600)
+    return int(min(30 * (2 ** max(attempt - 1, 0)), 3600))
 
 
 def _connector(

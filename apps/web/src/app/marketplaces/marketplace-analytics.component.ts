@@ -33,6 +33,27 @@ import { MarketplaceAnalytics, MarketplaceService } from './marketplace.service'
           }}</strong>
         </article>
       </div>
+      <div class="marketplace-table">
+        <table>
+          <caption>
+            Sales by marketplace
+          </caption>
+          <thead>
+            <tr>
+              <th>Marketplace</th>
+              <th>Gross sales</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (entry of salesByMarketplace(value); track entry[0]) {
+              <tr>
+                <td>{{ entry[0] }}</td>
+                <td>{{ entry[1] }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     } @else if (!loading()) {
       <p class="marketplace-empty">Analytics are not available yet.</p>
     }
@@ -46,6 +67,9 @@ export class MarketplaceAnalyticsComponent {
   readonly error = signal('');
   constructor() {
     void this.load();
+  }
+  salesByMarketplace(value: MarketplaceAnalytics): Array<[string, string]> {
+    return Object.entries(value.sales_by_marketplace);
   }
   async load(): Promise<void> {
     try {
