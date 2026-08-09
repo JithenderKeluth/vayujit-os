@@ -4,7 +4,7 @@ Marketplace Commerce Core is the shared foundation for Amazon, Flipkart, Shopify
 
 ## Current implementation
 
-Amazon and Flipkart each have transport-injected, deterministic, network-free adapters. Their account lifecycle, listing draft/readiness/submit/reconcile flow, idempotency, inventory/order/settlement projections, drift handling, safe diagnostics, and fake-worker paths are covered by focused tests. Live seller certification and production credentials are intentionally not claimed.
+Amazon, Flipkart, and Meesho each have transport-injected, deterministic, network-free adapters. Their account lifecycle, listing draft/readiness/submit/reconcile flow, idempotency, inventory/order/settlement projections, drift handling, safe diagnostics, and fake-worker paths are covered by focused tests. Live seller certification and production credentials are intentionally not claimed.
 
 The shared Angular marketplace workspace provides:
 
@@ -24,4 +24,4 @@ Connector credentials are encrypted, write-only, removable, and never returned i
 
 Migration 20260813_0023 creates the normalized commerce tables as one logical boundary.
 
-Future phases intentionally deferred: Meesho transport and live seller certification, continuous inventory synchronization, remote fulfilment mutations, refund initiation, automatic repricing, and production activation of marketplace credentials.
+Future phases intentionally deferred: Meesho live transport and seller certification, continuous inventory synchronization, remote fulfilment mutations, refund initiation, automatic repricing, and production activation of marketplace credentials.

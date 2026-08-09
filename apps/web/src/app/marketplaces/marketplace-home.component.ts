@@ -1,4 +1,4 @@
-﻿import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import {
@@ -163,6 +163,7 @@ export class MarketplaceHomeComponent {
   private readonly channelRegistry: Record<string, string> = {
     amazon: '/marketplaces/amazon',
     flipkart: '/marketplaces/flipkart',
+    meesho: '/marketplaces/meesho',
   };
 
   constructor() {
