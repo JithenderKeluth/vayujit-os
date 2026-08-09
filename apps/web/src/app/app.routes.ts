@@ -73,6 +73,18 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'marketplaces/meesho',
+    loadComponent: () =>
+      import('./marketplaces/meesho-workspace.component').then((m) => m.MeeshoWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'marketplaces/listings/:id/meesho',
+    loadComponent: () =>
+      import('./marketplaces/meesho-workspace.component').then((m) => m.MeeshoWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'marketplaces/amazon',
     loadComponent: () =>
       import('./marketplaces/amazon-workspace.component').then((m) => m.AmazonWorkspaceComponent),

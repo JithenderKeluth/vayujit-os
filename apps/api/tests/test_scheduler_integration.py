@@ -20,6 +20,11 @@ from vayujit_api.commerce.flipkart import (
     fake_flipkart_listing_count,
     reset_fake_flipkart_state,
 )
+from vayujit_api.commerce.meesho import (
+    MeeshoCommerceConnector,
+    fake_meesho_listing_count,
+    reset_fake_meesho_state,
+)
 from vayujit_api.commerce.models import MarketplaceAccount
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import Base, get_session
@@ -715,3 +720,129 @@ def test_flipkart_crash_after_remote_success_reconciles_without_duplicate(
         assert job.publishing_execution_id is not None
         assert finish_job(db, job.id, "flipkart-crash-after-worker", succeeded=True) == "lease_lost"
     assert fake_flipkart_listing_count() == 1
+
+
+def _create_meesho_worker_account(client: TestClient) -> str:
+    created = client.post(
+        "/api/v1/marketplaces/meesho/accounts",
+        json={
+            "display_name": "Worker Meesho",
+            "seller_account_id": "worker-meesho",
+            "credentials": {},
+        },
+        headers=ORIGIN,
+    )
+    assert created.status_code == 201, created.text
+    account_id = str(created.json()["id"])
+    assert (
+        client.post(
+            f"/api/v1/marketplaces/meesho/accounts/{account_id}/validate", headers=ORIGIN
+        ).status_code
+        == 200
+    )
+    enabled = client.post(
+        f"/api/v1/marketplaces/meesho/accounts/{account_id}/enable",
+        json={"confirm": True},
+        headers=ORIGIN,
+    )
+    assert enabled.status_code == 200, enabled.text
+    return account_id
+
+
+def test_meesho_crash_before_connector_lease_recovery_is_exactly_once(
+    harness: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, sessions = harness
+    _, artifact, destination = business(client)
+    account_id = _create_meesho_worker_account(client)
+    schedule(client, artifact["id"], destination["id"], "Meesho crash before")
+    reset_fake_meesho_state()
+    with sessions() as db:
+        assert materialize_due_schedules(db) == 1
+        job = db.scalar(select(PublishingJob))
+        assert job
+        job.connector_key = f"meesho:{account_id}"
+        job.requested_action = "listing_submission"
+        db.commit()
+        first = claim_jobs(db, "meesho-crashed-worker", 1, 60)
+        assert first == [job.id]
+        assert start_attempt(db, job.id, "meesho-crashed-worker")
+        job.lease_expires_at = now() - timedelta(seconds=1)
+        db.commit()
+        assert recover_expired_leases(db) == 1
+        assert finish_job(db, job.id, "meesho-crashed-worker", succeeded=True) == "lease_lost"
+        job.available_at_utc = now() - timedelta(seconds=1)
+        db.commit()
+        second = claim_jobs(db, "meesho-recovery-worker", 1, 60)
+        assert second == [job.id]
+    execute_job(second[0], "meesho-recovery-worker")
+    with sessions() as db:
+        job = db.get(PublishingJob, second[0])
+        assert job and job.state == "succeeded"
+        assert db.scalar(select(func.count()).select_from(PublishingJobAttempt)) == 2
+    assert fake_meesho_listing_count() == 1
+
+
+def test_meesho_crash_after_remote_success_reconciles_without_duplicate(
+    harness: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    client, sessions = harness
+    _, artifact, destination = business(client)
+    account_id = _create_meesho_worker_account(client)
+    schedule(client, artifact["id"], destination["id"], "Meesho crash after")
+    reset_fake_meesho_state()
+    with sessions() as db:
+        assert materialize_due_schedules(db) == 1
+        job = db.scalar(select(PublishingJob))
+        assert job
+        job.connector_key = f"meesho:{account_id}"
+        job.requested_action = "listing_submission"
+        db.commit()
+        claimed = claim_jobs(db, "meesho-crash-after-worker", 1, 60)
+        assert claimed == [job.id]
+        assert start_attempt(db, job.id, "meesho-crash-after-worker")
+        account = db.get(MarketplaceAccount, uuid.UUID(account_id))
+        assert account
+        connector = MeeshoCommerceConnector(seller_id=account.seller_account_id)
+        remote = connector.submit(
+            sku=job.idempotency_key,
+            payload={"title": "Durable Meesho listing"},
+            idempotency_key=job.idempotency_key,
+        )
+        assert remote.remote_id
+        stamp = now()
+        db.add(
+            PublishingExecution(
+                owner_id=job.owner_id,
+                brand_id=db.scalar(select(Product.brand_id).where(Product.id == job.product_id)),
+                product_id=job.product_id,
+                artifact_id=job.artifact_id,
+                destination_id=job.destination_id,
+                connector_key="meesho",
+                status="succeeded",
+                idempotency_key=f"job:{job.id}",
+                attempt_count=1,
+                content_snapshot_json={},
+                request_snapshot_json={},
+                result_json={"remote_id": remote.remote_id},
+                external_reference=remote.remote_id,
+                external_url=None,
+                error_code=None,
+                safe_error_message=None,
+                retryable=False,
+                started_at=stamp,
+                completed_at=stamp,
+                failed_at=None,
+                created_at=stamp,
+                updated_at=stamp,
+                requested_action="listing_submission",
+            )
+        )
+        job.lease_expires_at = now() - timedelta(seconds=1)
+        db.commit()
+        assert recover_expired_leases(db) == 1
+        db.refresh(job)
+        assert job.state == "succeeded"
+        assert job.publishing_execution_id is not None
+        assert finish_job(db, job.id, "meesho-crash-after-worker", succeeded=True) == "lease_lost"
+    assert fake_meesho_listing_count() == 1

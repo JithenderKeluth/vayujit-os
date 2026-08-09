@@ -15,6 +15,11 @@ from vayujit_api.commerce.flipkart import (
     FlipkartCommerceConnector,
     FlipkartTransport,
 )
+from vayujit_api.commerce.meesho import (
+    FakeMeeshoTransport,
+    MeeshoCommerceConnector,
+    MeeshoTransport,
+)
 
 
 class CommerceConnector(Protocol):
@@ -124,7 +129,7 @@ def connector_for(
     *,
     seller_id: str | None = None,
     country_code: str = "IN",
-    transport: AmazonTransport | FlipkartTransport | None = None,
+    transport: AmazonTransport | FlipkartTransport | MeeshoTransport | None = None,
 ) -> CommerceConnector:
     if marketplace == "amazon":
         return AmazonCommerceConnector(
@@ -145,6 +150,18 @@ def connector_for(
                     cast(FlipkartTransport, transport)
                     if transport is not None
                     else FakeFlipkartTransport()
+                ),
+            ),
+        )
+    if marketplace == "meesho":
+        return cast(
+            CommerceConnector,
+            MeeshoCommerceConnector(
+                seller_id=seller_id or "fake-meesho-seller",
+                transport=(
+                    cast(MeeshoTransport, transport)
+                    if transport is not None
+                    else FakeMeeshoTransport()
                 ),
             ),
         )

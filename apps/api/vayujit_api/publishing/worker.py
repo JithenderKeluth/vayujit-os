@@ -26,6 +26,12 @@ from vayujit_api.commerce.flipkart_worker import (
 from vayujit_api.commerce.flipkart_worker import (
     parse_account_id as parse_flipkart_account_id,
 )
+from vayujit_api.commerce.meesho_worker import (
+    execute_meesho_job,
+)
+from vayujit_api.commerce.meesho_worker import (
+    parse_account_id as parse_meesho_account_id,
+)
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import SessionFactory
 from vayujit_api.identity.models import User
@@ -128,12 +134,19 @@ def execute_job(job_id: uuid.UUID, worker_id: str) -> None:
                 raise ValueError("Publishing job owner no longer exists.")
             amazon_account_id = parse_account_id(job.connector_key)
             flipkart_account_id = parse_flipkart_account_id(job.connector_key)
+            meesho_account_id = parse_meesho_account_id(job.connector_key)
             if amazon_account_id is not None:
                 amazon_result = execute_amazon_job(db, job, account_id=amazon_account_id)
                 succeeded = amazon_result.status == "succeeded"
                 retryable = amazon_result.retryable
                 error_code = amazon_result.error_code
                 safe_message = amazon_result.safe_message
+            elif meesho_account_id is not None:
+                meesho_result = execute_meesho_job(db, job, account_id=meesho_account_id)
+                succeeded = meesho_result.status == "succeeded"
+                retryable = meesho_result.retryable
+                error_code = meesho_result.error_code
+                safe_message = meesho_result.safe_message
             elif flipkart_account_id is not None:
                 flipkart_result = execute_flipkart_job(db, job, account_id=flipkart_account_id)
                 succeeded = flipkart_result.status == "succeeded"

@@ -85,6 +85,7 @@ export class ProductChannelViewComponent {
   private readonly registry: Record<string, string> = {
     amazon: '/marketplaces/amazon',
     flipkart: '/marketplaces/flipkart',
+    meesho: '/marketplaces/meesho',
   };
   constructor() {
     void this.load();

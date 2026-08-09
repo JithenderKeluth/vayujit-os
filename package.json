@@ -122,10 +122,15 @@
     "test:amazon:e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_amazon_e2e.py",
     "test:commerce:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_commerce_integration.py",
     "test:flipkart": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_flipkart.py",
+    "test:meesho": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_meesho.py",
+    "test:meesho:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_meesho_integration.py",
+    "test:meesho:e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_meesho_e2e.py",
+    "test:meesho:workers": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_meesho_workers.py",
     "test:flipkart:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_flipkart_integration.py",
     "test:flipkart:e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_flipkart_e2e.py",
     "test:flipkart:workers": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_flipkart_workers.py",
-    "test:commerce:cross-marketplace": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_cross_marketplace_e2e.py"
+    "test:commerce:cross-marketplace": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_cross_marketplace_e2e.py",
+    "test:commerce:three-marketplace": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_three_marketplace_e2e.py"
   },
   "devDependencies": {
     "concurrently": "9.2.4",
