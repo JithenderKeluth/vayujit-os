@@ -2,13 +2,18 @@
 
 import hashlib
 from dataclasses import dataclass
-from typing import Protocol
+from typing import Protocol, cast
 
 from vayujit_api.commerce.amazon import (
     AmazonCommerceConnector,
     AmazonTransport,
     FakeAmazonSPAPITransport,
     amazon_marketplace,
+)
+from vayujit_api.commerce.flipkart import (
+    FakeFlipkartTransport,
+    FlipkartCommerceConnector,
+    FlipkartTransport,
 )
 
 
@@ -119,12 +124,28 @@ def connector_for(
     *,
     seller_id: str | None = None,
     country_code: str = "IN",
-    transport: AmazonTransport | None = None,
+    transport: AmazonTransport | FlipkartTransport | None = None,
 ) -> CommerceConnector:
     if marketplace == "amazon":
         return AmazonCommerceConnector(
             seller_id=seller_id or "fake-seller",
             marketplace=amazon_marketplace(country_code),
-            transport=transport or FakeAmazonSPAPITransport(),
+            transport=(
+                cast(AmazonTransport, transport)
+                if transport is not None
+                else FakeAmazonSPAPITransport()
+            ),
+        )
+    if marketplace == "flipkart":
+        return cast(
+            CommerceConnector,
+            FlipkartCommerceConnector(
+                seller_id=seller_id or "fake-flipkart-seller",
+                transport=(
+                    cast(FlipkartTransport, transport)
+                    if transport is not None
+                    else FakeFlipkartTransport()
+                ),
+            ),
         )
     return DeterministicFakeCommerceConnector(marketplace)

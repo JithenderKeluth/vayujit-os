@@ -29,6 +29,7 @@ export interface MarketplaceListing {
   external_url: string | null;
 }
 export interface MarketplaceInventory {
+  marketplace?: string;
   id: string;
   listing_id: string;
   product_id: string;
@@ -51,6 +52,7 @@ export interface MarketplaceSettlement {
   id: string;
   marketplace: string;
   remote_settlement_id: string;
+  status?: string;
   period_start: string;
   period_end: string;
   gross_amount: string;

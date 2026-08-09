@@ -10,6 +10,7 @@ from vayujit_api.brands.router import router as brands_router
 from vayujit_api.campaigns.router import router as campaigns_router
 from vayujit_api.campaigns.workflow_service import restore_campaign_waits
 from vayujit_api.commerce.amazon_router import router as amazon_router
+from vayujit_api.commerce.flipkart_router import router as flipkart_router
 from vayujit_api.commerce.router import router as commerce_router
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import SessionFactory, get_session
@@ -58,6 +59,7 @@ def create_app() -> FastAPI:
     application.include_router(campaigns_router)
     application.include_router(commerce_router)
     application.include_router(amazon_router)
+    application.include_router(flipkart_router)
     application.include_router(products_router)
     application.include_router(ai_router)
     application.include_router(media_router)

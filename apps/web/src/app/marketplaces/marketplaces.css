@@ -196,3 +196,64 @@
     white-space: nowrap;
   }
 }
+.workspace-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 1rem 0;
+}
+.workspace-tabs button {
+  border: 1px solid #9ab4c4;
+  border-radius: 0.35rem;
+  padding: 0.55rem 0.8rem;
+  background: #fff;
+  color: #12313b;
+  cursor: pointer;
+}
+.workspace-tabs .active-tab {
+  background: #145d76;
+  color: #fff;
+}
+.inner-tabs {
+  border-bottom: 1px solid #d5e0e5;
+  padding-bottom: 0.65rem;
+}
+.workspace-account {
+  border: 1px solid #d5e0e5;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1rem;
+  display: grid;
+  gap: 0.6rem;
+}
+.workspace-account > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: center;
+}
+.workspace-badges span {
+  border-radius: 999px;
+  background: #eef4f6;
+  padding: 0.25rem 0.55rem;
+  font-size: 0.85rem;
+}
+.workspace-grid-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.8rem;
+  align-items: end;
+}
+.workspace-attribute-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.8rem;
+}
+@media (max-width: 640px) {
+  .workspace-tabs button {
+    flex: 1 1 45%;
+  }
+  .marketplace-table {
+    overflow-x: auto;
+  }
+}

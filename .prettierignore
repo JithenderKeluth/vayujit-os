@@ -3,3 +3,4 @@ dist/
 node_modules/
 apps/api/
 package-lock.json
+scripts/test-api-integration-split.ps1
