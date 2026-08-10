@@ -25,8 +25,11 @@ import { AIService } from './ai.service';
       <p class="ai-error">{{ error() }}</p>
     }
     <nav class="ai-tabs">
-      <a href="#generate">Generate</a><a href="#artifacts">Artifacts</a><a href="#seo">SEO Studio</a
-      ><a href="#brand-voice">Brand Voice</a><a href="#diagnostics">Diagnostics</a>
+      <a routerLink="/ai/studio" fragment="generate">Generate</a
+      ><a routerLink="/ai/studio" fragment="artifacts">Artifacts</a
+      ><a routerLink="/ai/studio" fragment="seo">SEO Studio</a
+      ><a routerLink="/ai/studio" fragment="brand-voice">Brand Voice</a
+      ><a routerLink="/ai/studio" fragment="diagnostics">Diagnostics</a>
     </nav>
     <article class="ai-card" id="generate">
       <h2>Generate content</h2>

@@ -214,6 +214,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'ai/studio',
+    loadComponent: () => import('./ai/ai-studio.component').then((m) => m.AIStudioComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'ai/studio/seo',
     loadComponent: () => import('./ai/ai-seo.component').then((m) => m.AISeoComponent),
     canActivate: [authGuard],
