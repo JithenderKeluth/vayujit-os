@@ -214,6 +214,22 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'ai/studio/seo',
+    loadComponent: () => import('./ai/ai-seo.component').then((m) => m.AISeoComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ai/studio/bulk',
+    loadComponent: () => import('./ai/ai-bulk.component').then((m) => m.AIBulkComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ai/studio/artifacts/:id/compare',
+    loadComponent: () =>
+      import('./ai/ai-artifact.component').then((module) => module.AIArtifactComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'ai/artifacts/:id',
     loadComponent: () =>
       import('./ai/ai-artifact.component').then((module) => module.AIArtifactComponent),
@@ -223,6 +239,18 @@ export const routes: Routes = [
     path: 'ai/history',
     loadComponent: () =>
       import('./ai/ai-history.component').then((module) => module.AIHistoryComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ai/brand-voices',
+    loadComponent: () =>
+      import('./ai/brand-voice-workspace.component').then((m) => m.BrandVoiceWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ai/presets',
+    loadComponent: () =>
+      import('./ai/preset-workspace.component').then((m) => m.PresetWorkspaceComponent),
     canActivate: [authGuard],
   },
   {

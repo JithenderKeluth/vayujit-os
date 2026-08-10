@@ -27,6 +27,8 @@ export interface MarketplaceListing {
   publication_state: string;
   drift_state: string;
   external_url: string | null;
+  content_artifact_id: string | null;
+  content_artifact_version: number | null;
 }
 export interface MarketplaceInventory {
   marketplace?: string;
@@ -62,6 +64,21 @@ export interface MarketplaceSettlement {
   net_amount: string;
   currency: string;
 }
+export interface ProductChannelIntelligence {
+  channel: string;
+  approved_artifact_id: string | null;
+  approved_version: number | null;
+  locale: string | null;
+  content_quality_score: number | null;
+  search_score: number | null;
+  listing_used_version: number | null;
+  blockers: string[];
+  warnings: string[];
+  analysis_stale: boolean;
+  update_available: boolean;
+  readiness: string;
+}
+
 export interface MarketplaceAnalytics {
   gross_sales: string;
   fees: string;
@@ -135,6 +152,14 @@ export class MarketplaceService {
   settlements(): Promise<MarketplaceSettlement[]> {
     return firstValueFrom(
       this.http.get<MarketplaceSettlement[]>(`${this.baseUrl}/settlements`, this.options),
+    );
+  }
+  productChannelIntelligence(productId: string): Promise<ProductChannelIntelligence[]> {
+    return firstValueFrom(
+      this.http.get<ProductChannelIntelligence[]>(
+        `${environment.apiUrl}/ai/seo/products/${productId}/channels`,
+        this.options,
+      ),
     );
   }
   analytics(): Promise<MarketplaceAnalytics> {

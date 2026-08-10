@@ -71,6 +71,12 @@ import { AIService } from './ai.service';
               </select></label
             >
           </div>
+          @if (differentLocale()) {
+            <p class="ai-muted" role="status">
+              Different locales: comparison shows structural content changes only and does not score
+              translation quality.
+            </p>
+          }
           <div class="ai-compare" aria-label="Artifact version comparison">
             @for (field of scalarFields; track field[0]) {
               <section [attr.data-state]="scalar(field[1]).state">
@@ -115,6 +121,24 @@ import { AIService } from './ai.service';
           <p>No previous eligible version exists for this Product and prompt template.</p>
         }
       </article>
+      <article class="ai-card ai-form" aria-labelledby="locale-actions-title">
+        <h2 id="locale-actions-title">Locale actions</h2>
+        <p>
+          Localized generation uses Product facts. Translation creates a new version from this exact
+          Artifact.
+        </p>
+        <label
+          >Target locale
+          <select [(ngModel)]="translationLocale" aria-label="Translation target locale">
+            <option value="en-IN">en-IN</option>
+            <option value="hi-IN">hi-IN</option>
+            <option value="te-IN">te-IN</option>
+          </select>
+        </label>
+        <button type="button" [disabled]="busy()" (click)="translate(item)">
+          Translate exact Artifact
+        </button>
+      </article>
       <article class="ai-card">
         <p class="ai-status">Status: {{ item.status }}</p>
         <h2>{{ item.content.product_title }}</h2>
@@ -147,6 +171,46 @@ import { AIService } from './ai.service';
           · {{ item.provider_key }}
         </p>
       </article>
+      @if (editing()) {
+        <article class="ai-card ai-form" aria-labelledby="edit-title">
+          <h2 id="edit-title">Edit structured content</h2>
+          <label>Title <input name="editTitle" [(ngModel)]="draftTitle" /></label>
+          <label
+            >Description
+            <textarea name="editDescription" rows="6" [(ngModel)]="draftDescription"></textarea>
+          </label>
+          <label
+            >Bullets / highlights
+            <textarea name="editBullets" rows="5" [(ngModel)]="draftBullets"></textarea>
+          </label>
+          <button [disabled]="busy()" (click)="saveEdit()">Save as new version</button>
+          <button class="ai-secondary" type="button" (click)="editing.set(false)">Cancel</button>
+        </article>
+      } @else {
+        <button class="ai-secondary" type="button" (click)="beginEdit(item)">
+          Edit structured content
+        </button>
+      }
+      @if (item.status === 'approved') {
+        <article class="ai-card ai-form" aria-labelledby="handoff-title">
+          <h2 id="handoff-title">Approved handoff</h2>
+          <p>
+            Use this exact approved Artifact version. Existing listing and Campaign bindings never
+            move automatically.
+          </p>
+          <div class="ai-actions">
+            <button [disabled]="busy()" (click)="handoffMarketplace(item)">
+              Use in Marketplace Listing
+            </button>
+            <button class="ai-secondary" [disabled]="busy()" (click)="handoffCampaign(item)">
+              Use in Campaign
+            </button>
+          </div>
+          @if (handoffStatus()) {
+            <p class="ai-muted" role="status">{{ handoffStatus() }}</p>
+          }
+        </article>
+      }
       @if (item.status === 'pending_review') {
         <article class="ai-card ai-form">
           <div class="ai-actions">
@@ -192,8 +256,14 @@ export class AIArtifactComponent implements OnInit {
     () => this.versions().find((item) => item.artifact.id === this.rightId()) ?? null,
   );
   readonly busy = signal(false);
+  readonly editing = signal(false);
+  draftTitle = '';
+  draftDescription = '';
+  draftBullets = '';
   readonly error = signal('');
+  readonly handoffStatus = signal('');
   reason = '';
+  translationLocale = 'hi-IN';
   readonly workflowId = this.route.snapshot.queryParamMap.get('workflow') ?? '';
   readonly scalarFields = [
     ['Generated title', 'product_title'],
@@ -211,6 +281,66 @@ export class AIArtifactComponent implements OnInit {
   ngOnInit(): void {
     void this.load();
   }
+  beginEdit(item: AIArtifactDetails): void {
+    this.draftTitle = item.content.product_title;
+    this.draftDescription = item.content.long_description;
+    this.draftBullets = item.content.key_features.join('\n');
+    this.editing.set(true);
+  }
+  async saveEdit(): Promise<void> {
+    const current = this.artifact();
+    if (!current) return;
+    const content = { ...current.content };
+    content.product_title = this.draftTitle.trim();
+    content.long_description = this.draftDescription.trim();
+    content.key_features = this.draftBullets
+      .split('\n')
+      .map((value) => value.trim())
+      .filter(Boolean);
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      await this.ai.studioEdit(current.id, content);
+      this.editing.set(false);
+      await this.load();
+    } catch (error) {
+      this.error.set(AIService.errorMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  async handoffMarketplace(item: AIArtifactDetails): Promise<void> {
+    if (
+      !window.confirm(
+        `Use approved Artifact version ${item.version_number} for the selected marketplace?`,
+      )
+    )
+      return;
+    await this.runHandoff(() => this.ai.studioListingHandoff(item.id));
+  }
+  async handoffCampaign(item: AIArtifactDetails): Promise<void> {
+    if (
+      !window.confirm(
+        `Use approved Artifact version ${item.version_number} in a Campaign Activity?`,
+      )
+    )
+      return;
+    await this.runHandoff(() => this.ai.studioCampaignHandoff(item.id));
+  }
+  private async runHandoff(action: () => Promise<Record<string, unknown>>): Promise<void> {
+    this.busy.set(true);
+    this.error.set('');
+    this.handoffStatus.set('');
+    try {
+      const result = await action();
+      const status = result['status'];
+      this.handoffStatus.set(typeof status === 'string' ? status : 'Handoff ready.');
+    } catch (error) {
+      this.error.set(AIService.errorMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
+  }
   async approve(): Promise<void> {
     if (
       !window.confirm(
@@ -227,6 +357,44 @@ export class AIArtifactComponent implements OnInit {
     }
     await this.reviewAndContinue(() => this.ai.reject(this.rightId() || this.id, this.reason));
   }
+  async translate(item: AIArtifactDetails): Promise<void> {
+    if (item.locale === this.translationLocale) {
+      this.error.set('Translation target locale must differ from the source locale.');
+      return;
+    }
+    if (
+      !window.confirm(
+        'Translate Artifact version ' +
+          item.version_number +
+          ' to ' +
+          this.translationLocale +
+          ' for review?',
+      )
+    ) {
+      return;
+    }
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      await this.ai.studioGenerate({
+        product_ids: [item.product_id],
+        channels: [item.channel] as never,
+        content_types: [item.content_type] as never,
+        locale: this.translationLocale,
+        provider_key: 'deterministic_mock_v1',
+        generation_reason: 'translation',
+        operation: 'translation',
+        source_artifact_id: item.id,
+        source_artifact_version: item.version_number,
+      });
+      this.handoffStatus.set('Translation queued for review.');
+    } catch (error) {
+      this.error.set(AIService.errorMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
   async regenerate(): Promise<void> {
     this.busy.set(true);
     this.error.set('');
@@ -272,6 +440,12 @@ export class AIArtifactComponent implements OnInit {
       if (selected) this.artifact.set(selected.artifact);
     }
   }
+  differentLocale(): boolean {
+    const left = this.left();
+    const right = this.right();
+    return Boolean(left && right && left.artifact.locale !== right.artifact.locale);
+  }
+
   scalar(field: keyof AIArtifactDetails['content']) {
     const before = this.left()?.artifact.content[field];
     const after = this.right()?.artifact.content[field];

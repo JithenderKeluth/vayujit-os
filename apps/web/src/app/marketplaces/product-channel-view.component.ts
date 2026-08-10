@@ -7,6 +7,7 @@ import {
   MarketplaceOrder,
   MarketplaceService,
   MarketplaceSettlement,
+  ProductChannelIntelligence,
 } from './marketplace.service';
 
 interface ChannelRow {
@@ -15,6 +16,7 @@ interface ChannelRow {
   inventory: MarketplaceInventory | null;
   orders: MarketplaceOrder[];
   settlements: MarketplaceSettlement[];
+  intelligence: ProductChannelIntelligence | null;
 }
 
 @Component({
@@ -48,6 +50,9 @@ interface ChannelRow {
               <th>Fees</th>
               <th>Contribution</th>
               <th>Drift</th>
+              <th>Artifact version</th>
+              <th>Content readiness</th>
+              <th>SEO score</th>
               <th>Action</th>
             </tr>
           </thead>
@@ -66,6 +71,9 @@ interface ChannelRow {
                 <td>{{ fees(row) }}</td>
                 <td>{{ contribution(row) }}</td>
                 <td>{{ row.listing?.drift_state || 'none' }}</td>
+                <td>{{ row.listing?.content_artifact_version ?? '—' }}</td>
+                <td>{{ row.intelligence?.readiness || 'Not generated' }}</td>
+                <td>{{ row.intelligence?.search_score ?? '—' }}</td>
                 <td><a [routerLink]="channelPath(row.marketplace, row.listing?.id)">Open</a></td>
               </tr>
             }
@@ -112,17 +120,19 @@ export class ProductChannelViewComponent {
   }
   async load(): Promise<void> {
     try {
-      const [listings, inventory, orders, settlements] = await Promise.all([
+      const [listings, inventory, orders, settlements, intelligence] = await Promise.all([
         this.service.listings(),
         this.service.inventory(),
         this.service.orders(),
         this.service.settlements(),
+        this.service.productChannelIntelligence(this.productId),
       ]);
-      const channels = new Set<string>(
-        [...listings, ...inventory, ...orders, ...settlements]
+      const channels = new Set<string>([
+        ...[...listings, ...inventory, ...orders, ...settlements]
           .map((item) => item.marketplace)
           .filter((marketplace): marketplace is string => Boolean(marketplace)),
-      );
+        ...intelligence.map((item) => item.channel),
+      ]);
       this.channels.set(
         [...channels].sort().map((marketplace) => ({
           marketplace,
@@ -136,6 +146,7 @@ export class ProductChannelViewComponent {
             ) || null,
           orders: orders.filter((item) => item.marketplace === marketplace),
           settlements: settlements.filter((item) => item.marketplace === marketplace),
+          intelligence: intelligence.find((item) => item.channel === marketplace) || null,
         })),
       );
     } catch {

@@ -19,6 +19,7 @@ from fastapi import HTTPException
 from sqlalchemy.dialects.postgresql import insert
 
 from vayujit_api import __version__
+from vayujit_api.ai.studio_worker import run_ai_jobs_once
 from vayujit_api.commerce.amazon_worker import execute_amazon_job, parse_account_id
 from vayujit_api.commerce.flipkart_worker import (
     execute_flipkart_job,
@@ -257,6 +258,13 @@ def run_worker(*, once: bool = False) -> None:
                     with SessionFactory() as db:
                         materialize_due_schedules(db)
                     capacity = settings.publishing_worker_concurrency - len(futures)
+                    with SessionFactory() as db:
+                        run_ai_jobs_once(
+                            db,
+                            worker_id,
+                            min(max(capacity, 1), 4),
+                            settings.publishing_job_lease_seconds,
+                        )
                     if capacity > 0:
                         with SessionFactory() as db:
                             claimed = claim_jobs(

@@ -475,6 +475,9 @@ def artifact_details(db: Session, owner_id: uuid.UUID, artifact_id: uuid.UUID) -
         template_version=template.version,
         provider_key=request.provider_key,
         version_number=artifact.version_number,
+        channel=artifact.channel,
+        content_type=artifact.content_type,
+        locale=artifact.locale,
         status=artifact.status,
         content=ProductContent.model_validate(artifact.content_json),
         validation_result=artifact.validation_result,
@@ -482,6 +485,9 @@ def artifact_details(db: Session, owner_id: uuid.UUID, artifact_id: uuid.UUID) -
         approved_at=artifact.approved_at,
         rejected_at=artifact.rejected_at,
         rejection_reason=artifact.rejection_reason,
+        source_artifact_version=artifact.source_artifact_version,
+        source_locale=artifact.source_locale,
+        source_product_context=artifact.source_product_context,
         created_at=artifact.created_at,
     )
 

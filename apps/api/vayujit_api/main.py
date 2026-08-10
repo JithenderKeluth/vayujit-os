@@ -5,7 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from vayujit_api import __version__
+from vayujit_api.ai.bulk_router import router as ai_bulk_router
 from vayujit_api.ai.router import router as ai_router
+from vayujit_api.ai.seo_router import router as ai_seo_router
+from vayujit_api.ai.studio_router import router as ai_studio_router
 from vayujit_api.brands.router import router as brands_router
 from vayujit_api.campaigns.router import router as campaigns_router
 from vayujit_api.campaigns.workflow_service import restore_campaign_waits
@@ -64,6 +67,9 @@ def create_app() -> FastAPI:
     application.include_router(meesho_router)
     application.include_router(products_router)
     application.include_router(ai_router)
+    application.include_router(ai_studio_router)
+    application.include_router(ai_bulk_router)
+    application.include_router(ai_seo_router)
     application.include_router(media_router)
     application.include_router(publishing_router)
     application.include_router(scheduler_router)

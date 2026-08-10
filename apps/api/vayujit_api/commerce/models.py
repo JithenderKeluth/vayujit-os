@@ -180,6 +180,7 @@ class MarketplaceListing(CommerceBase):
     content_artifact_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="SET NULL")
     )
+    content_artifact_version: Mapped[int | None] = mapped_column(Integer)
     safe_metadata_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
 
 

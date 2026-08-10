@@ -175,7 +175,7 @@ def health_details(db: Session) -> SystemHealth:
         .limit(1)
     )
     ai_status: Literal["healthy", "degraded", "unavailable"] = "healthy"
-    ai_message = "Deterministic local mock is registered; real provider is disabled."
+    ai_message = "Local deterministic provider: Healthy. Remote provider: Not configured."
     if ai_configuration and ai_configuration.enabled:
         ai_status = (
             "healthy"

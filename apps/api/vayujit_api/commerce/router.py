@@ -316,6 +316,7 @@ def create_listing(data: ListingCreate, db: DatabaseSession, user: Owner) -> Lis
         last_synchronized_at=stamp,
         drift_state="none",
         content_artifact_id=artifact.id if artifact else None,
+        content_artifact_version=artifact.version_number if artifact else None,
         safe_metadata_json={},
         created_at=stamp,
         updated_at=stamp,
