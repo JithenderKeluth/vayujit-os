@@ -17,6 +17,21 @@ import type {
   AITemplateSummary,
   CreateAIGenerationRequest,
   PaginatedAIHistory,
+  AIStudioBrandVoice,
+  AIStudioPreset,
+  AIKeywordSet,
+  AIStudioGenerateRequest,
+  AIStudioGeneration,
+  AIStudioArtifact,
+  AIStudioContext,
+  AIStudioComparison,
+  AISEOAnalysis,
+  AIStudioDiagnostics,
+  AIStudioBulkRequest,
+  AIStudioBulkPreview,
+  AIStudioBulkStatus,
+  AISEOAnalysisResponse,
+  AIKeywordSuggestion,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
 
@@ -32,6 +47,15 @@ export class AIService {
     );
   }
 
+  testProvider(providerKey: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.baseUrl}/providers/${providerKey}/test`,
+        {},
+        this.options,
+      ),
+    );
+  }
   providerConfiguration(): Promise<AIProviderConfiguration> {
     return firstValueFrom(
       this.http.get<AIProviderConfiguration>(
@@ -177,6 +201,341 @@ export class AIService {
     );
   }
 
+  private readonly studioUrl = `${environment.apiUrl}/ai/studio`;
+
+  studioBrandVoices(includeArchived = false): Promise<AIStudioBrandVoice[]> {
+    const params = includeArchived ? new HttpParams().set('include_archived', 'true') : undefined;
+    return firstValueFrom(
+      this.http.get<AIStudioBrandVoice[]>(`${this.studioUrl}/brand-voices`, {
+        ...this.options,
+        params,
+      }),
+    );
+  }
+  createStudioBrandVoice(data: Partial<AIStudioBrandVoice>): Promise<AIStudioBrandVoice> {
+    return firstValueFrom(
+      this.http.post<AIStudioBrandVoice>(`${this.studioUrl}/brand-voices`, data, this.options),
+    );
+  }
+  updateStudioBrandVoice(
+    id: string,
+    data: Partial<AIStudioBrandVoice>,
+  ): Promise<AIStudioBrandVoice> {
+    return firstValueFrom(
+      this.http.patch<AIStudioBrandVoice>(
+        `${this.studioUrl}/brand-voices/${id}`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  duplicateStudioBrandVoice(id: string): Promise<AIStudioBrandVoice> {
+    return firstValueFrom(
+      this.http.post<AIStudioBrandVoice>(
+        `${this.studioUrl}/brand-voices/${id}/duplicate`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  previewStudioBrandVoice(
+    id: string,
+    data: { product_id: string; channel: string; content_type: string },
+  ): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.studioUrl}/brand-voices/${id}/preview`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  studioPresets(includeArchived = false): Promise<AIStudioPreset[]> {
+    const params = includeArchived ? new HttpParams().set('include_archived', 'true') : undefined;
+    return firstValueFrom(
+      this.http.get<AIStudioPreset[]>(`${this.studioUrl}/presets`, { ...this.options, params }),
+    );
+  }
+  createStudioPreset(data: Partial<AIStudioPreset>): Promise<AIStudioPreset> {
+    return firstValueFrom(
+      this.http.post<AIStudioPreset>(`${this.studioUrl}/presets`, data, this.options),
+    );
+  }
+  updateStudioPreset(id: string, data: Partial<AIStudioPreset>): Promise<AIStudioPreset> {
+    return firstValueFrom(
+      this.http.patch<AIStudioPreset>(`${this.studioUrl}/presets/${id}`, data, this.options),
+    );
+  }
+  duplicateStudioPreset(id: string): Promise<AIStudioPreset> {
+    return firstValueFrom(
+      this.http.post<AIStudioPreset>(`${this.studioUrl}/presets/${id}/duplicate`, {}, this.options),
+    );
+  }
+  setDefaultStudioBrandVoice(id: string): Promise<AIStudioBrandVoice> {
+    return firstValueFrom(
+      this.http.post<AIStudioBrandVoice>(
+        this.studioUrl + '/brand-voices/' + id + '/default',
+        {},
+        this.options,
+      ),
+    );
+  }
+  archiveStudioBrandVoice(id: string): Promise<AIStudioBrandVoice> {
+    return firstValueFrom(
+      this.http.post<AIStudioBrandVoice>(
+        this.studioUrl + '/brand-voices/' + id + '/archive',
+        {},
+        this.options,
+      ),
+    );
+  }
+  restoreStudioBrandVoice(id: string): Promise<AIStudioBrandVoice> {
+    return firstValueFrom(
+      this.http.post<AIStudioBrandVoice>(
+        this.studioUrl + '/brand-voices/' + id + '/restore',
+        {},
+        this.options,
+      ),
+    );
+  }
+  setDefaultStudioPreset(id: string): Promise<AIStudioPreset> {
+    return firstValueFrom(
+      this.http.post<AIStudioPreset>(
+        this.studioUrl + '/presets/' + id + '/default',
+        {},
+        this.options,
+      ),
+    );
+  }
+  archiveStudioPreset(id: string): Promise<AIStudioPreset> {
+    return firstValueFrom(
+      this.http.post<AIStudioPreset>(
+        this.studioUrl + '/presets/' + id + '/archive',
+        {},
+        this.options,
+      ),
+    );
+  }
+  restoreStudioPreset(id: string): Promise<AIStudioPreset> {
+    return firstValueFrom(
+      this.http.post<AIStudioPreset>(
+        this.studioUrl + '/presets/' + id + '/restore',
+        {},
+        this.options,
+      ),
+    );
+  }
+  studioUsage(filters: Record<string, string> = {}): Promise<Record<string, unknown>> {
+    let params = new HttpParams();
+    Object.entries(filters).forEach(([key, value]) => (params = params.set(key, value)));
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.studioUrl}/usage`, {
+        ...this.options,
+        params,
+      }),
+    );
+  }
+  studioKeywords(): Promise<AIKeywordSet[]> {
+    return firstValueFrom(
+      this.http.get<AIKeywordSet[]>(`${this.studioUrl}/keywords`, this.options),
+    );
+  }
+  studioContext(productId: string): Promise<AIStudioContext> {
+    return firstValueFrom(
+      this.http.get<AIStudioContext>(`${this.studioUrl}/context/${productId}`, this.options),
+    );
+  }
+  studioGenerate(data: AIStudioGenerateRequest): Promise<AIStudioGeneration> {
+    return firstValueFrom(
+      this.http.post<AIStudioGeneration>(`${this.studioUrl}/generate`, data, this.options),
+    );
+  }
+  studioGeneration(id: string): Promise<AIStudioGeneration> {
+    return firstValueFrom(
+      this.http.get<AIStudioGeneration>(`${this.studioUrl}/generations/${id}`, this.options),
+    );
+  }
+  studioArtifacts(params: Record<string, string> = {}): Promise<AIStudioArtifact[]> {
+    let query = new HttpParams();
+    Object.entries(params).forEach(([key, value]) => (query = query.set(key, value)));
+    return firstValueFrom(
+      this.http.get<AIStudioArtifact[]>(`${this.studioUrl}/artifacts`, {
+        ...this.options,
+        params: query,
+      }),
+    );
+  }
+  studioArtifact(id: string): Promise<AIStudioArtifact> {
+    return firstValueFrom(
+      this.http.get<AIStudioArtifact>(`${this.studioUrl}/artifacts/${id}`, this.options),
+    );
+  }
+  studioCompare(id: string, againstId: string): Promise<AIStudioComparison> {
+    return firstValueFrom(
+      this.http.get<AIStudioComparison>(`${this.studioUrl}/artifacts/${id}/compare`, {
+        ...this.options,
+        params: { against_id: againstId },
+      }),
+    );
+  }
+  studioEdit(id: string, content: Record<string, unknown>): Promise<AIStudioArtifact> {
+    return firstValueFrom(
+      this.http.patch<AIStudioArtifact>(
+        `${this.studioUrl}/artifacts/${id}`,
+        { content },
+        this.options,
+      ),
+    );
+  }
+  studioRegenerate(id: string): Promise<AIStudioGeneration> {
+    return firstValueFrom(
+      this.http.post<AIStudioGeneration>(
+        `${this.studioUrl}/artifacts/${id}/regenerate`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  studioApprove(id: string): Promise<AIStudioArtifact> {
+    return firstValueFrom(
+      this.http.post<AIStudioArtifact>(
+        `${this.studioUrl}/artifacts/${id}/approve`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  studioReject(id: string, reason: string): Promise<AIStudioArtifact> {
+    return firstValueFrom(
+      this.http.post<AIStudioArtifact>(
+        `${this.studioUrl}/artifacts/${id}/reject`,
+        { reason },
+        this.options,
+      ),
+    );
+  }
+  studioListingHandoff(id: string, marketplace?: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.studioUrl}/artifacts/${id}/listing-handoff`,
+        { marketplace, confirm: true },
+        this.options,
+      ),
+    );
+  }
+  studioCampaignHandoff(id: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.studioUrl}/artifacts/${id}/campaign-handoff`,
+        { confirm: true },
+        this.options,
+      ),
+    );
+  }
+  studioBulkPreview(data: AIStudioBulkRequest): Promise<AIStudioBulkPreview> {
+    return firstValueFrom(
+      this.http.post<AIStudioBulkPreview>(`${this.studioUrl}/bulk/preview`, data, this.options),
+    );
+  }
+  studioBulkCreate(data: AIStudioBulkRequest): Promise<AIStudioBulkStatus> {
+    return firstValueFrom(
+      this.http.post<AIStudioBulkStatus>(`${this.studioUrl}/bulk`, data, this.options),
+    );
+  }
+  studioBulk(id: string): Promise<AIStudioBulkStatus> {
+    return firstValueFrom(
+      this.http.get<AIStudioBulkStatus>(`${this.studioUrl}/bulk/${id}`, this.options),
+    );
+  }
+  studioBulkList(): Promise<AIStudioBulkStatus[]> {
+    return firstValueFrom(
+      this.http.get<AIStudioBulkStatus[]>(`${this.studioUrl}/bulk`, this.options),
+    );
+  }
+  studioBulkRetryFailed(id: string, outputIds: string[] = []): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.studioUrl}/bulk/${id}/retry-failed`,
+        { output_ids: outputIds },
+        this.options,
+      ),
+    );
+  }
+  studioBulkCancel(id: string, outputIds: string[] = []): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.studioUrl}/bulk/${id}/cancel`,
+        { output_ids: outputIds },
+        this.options,
+      ),
+    );
+  }
+  studioSeo(data: {
+    product_id: string;
+    channel: string;
+    primary_keyword?: string;
+    secondary_keywords?: string[];
+    artifact_id?: string;
+  }): Promise<AISEOAnalysis> {
+    return firstValueFrom(
+      this.http.post<AISEOAnalysis>(`${this.studioUrl}/seo/analyze`, data, this.options),
+    );
+  }
+  seoAnalyze(data: Record<string, unknown>): Promise<AISEOAnalysisResponse> {
+    return firstValueFrom(
+      this.http.post<AISEOAnalysisResponse>(
+        `${environment.apiUrl}/ai/seo/analyze`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  seoReanalyze(id: string): Promise<AISEOAnalysisResponse> {
+    return firstValueFrom(
+      this.http.post<AISEOAnalysisResponse>(
+        `${environment.apiUrl}/ai/seo/analyses/${id}/reanalyze`,
+        {},
+        this.options,
+      ),
+    );
+  }
+  seoAnalyses(): Promise<AISEOAnalysisResponse[]> {
+    return firstValueFrom(
+      this.http.get<AISEOAnalysisResponse[]>(`${environment.apiUrl}/ai/seo/analyses`, this.options),
+    );
+  }
+  seoCreateKeywords(data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${environment.apiUrl}/ai/seo/keywords`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  seoKeywordSuggestions(data: Record<string, unknown>): Promise<AIKeywordSuggestion[]> {
+    return firstValueFrom(
+      this.http.post<AIKeywordSuggestion[]>(
+        `${environment.apiUrl}/ai/seo/keywords/suggestions`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  seoCreateTags(data: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${environment.apiUrl}/ai/seo/tags`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  studioDiagnostics(): Promise<AIStudioDiagnostics> {
+    return firstValueFrom(
+      this.http.get<AIStudioDiagnostics>(`${this.studioUrl}/diagnostics`, this.options),
+    );
+  }
   static errorMessage(error: unknown): string {
     if (error instanceof HttpErrorResponse) {
       const body: unknown = error.error;

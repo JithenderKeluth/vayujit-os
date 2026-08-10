@@ -40,6 +40,15 @@ class ProviderSummary(BaseModel):
     available: bool
     deterministic: bool
     local: bool
+    configured: bool = False
+    enabled: bool = True
+    health_state: str = "unknown"
+    models: list[dict[str, object]] = []
+    default_model: str | None = None
+    recommended_model: str | None = None
+    capabilities: list[str] = []
+    structured_output: bool = False
+    live_validation: str = "not_performed"
 
 
 class TemplateSummary(BaseModel):
@@ -125,6 +134,15 @@ class ModelSummary(BaseModel):
     identifier: str
     provider_key: str
     structured_output: bool | None
+    display_name: str | None = None
+    enabled: bool = True
+    available: bool = True
+    recommended: bool = False
+    capabilities: list[str] = []
+    max_context: int | None = None
+    max_output: int | None = None
+    usage_reporting: bool = False
+    pricing_metadata_available: bool = False
 
 
 class GenerationAttemptResponse(BaseModel):
@@ -248,6 +266,9 @@ class ArtifactDetails(BaseModel):
     template_version: int
     provider_key: str
     version_number: int
+    channel: str
+    content_type: str
+    locale: str
     status: Literal["pending_review", "approved", "rejected", "superseded"]
     content: ProductContent
     validation_result: dict[str, object]
@@ -255,4 +276,7 @@ class ArtifactDetails(BaseModel):
     approved_at: datetime | None
     rejected_at: datetime | None
     rejection_reason: str | None
+    source_artifact_version: int | None = None
+    source_locale: str | None = None
+    source_product_context: dict[str, object] | None = None
     created_at: datetime

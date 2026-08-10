@@ -6,10 +6,9 @@ import os
 import sys
 import time
 import uuid
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from datetime import UTC, datetime, timedelta
 from statistics import median
-from typing import Callable
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 API_ROOT = os.path.join(ROOT, "apps", "api")
@@ -23,19 +22,16 @@ os.environ["VAYUJIT_ENV"] = "test"
 os.environ["VAYUJIT_ENVIRONMENT"] = "test"
 os.environ["VAYUJIT_DATABASE_URL"] = os.environ["VAYUJIT_TEST_DATABASE_URL"]
 
-from fastapi.testclient import TestClient  # noqa: E402
-from sqlalchemy import create_engine  # noqa: E402
-from sqlalchemy.orm import Session, sessionmaker  # noqa: E402
-
-from vayujit_api.ai.models import PromptTemplate  # noqa: E402
-from vayujit_api.campaigns.models import CampaignActivity  # noqa: E402
-from vayujit_api.core.database import Base, get_session  # noqa: E402
-from vayujit_api.core.test_database import reset_test_schema  # noqa: E402
-from vayujit_api.main import create_app  # noqa: E402
-from vayujit_api.publishing.job_queue import claim_jobs  # noqa: E402
-from vayujit_api.publishing.scheduler_service import (
-    materialize_due_schedules,
-)  # noqa: E402
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session, sessionmaker
+from vayujit_api.ai.models import PromptTemplate
+from vayujit_api.campaigns.models import CampaignActivity
+from vayujit_api.core.database import Base, get_session
+from vayujit_api.core.test_database import reset_test_schema
+from vayujit_api.main import create_app
+from vayujit_api.publishing.job_queue import claim_jobs
+from vayujit_api.publishing.scheduler_service import materialize_due_schedules
 
 ORIGIN = {"Origin": "http://127.0.0.1:4200"}
 DB_URL = os.environ["VAYUJIT_TEST_DATABASE_URL"]
@@ -132,6 +128,25 @@ def main() -> None:
                 f"/api/v1/ai/artifacts/{generation['artifact_id']}/approve",
                 headers=ORIGIN,
             ).json()
+            voice = client.post(
+                "/api/v1/ai/studio/brand-voices",
+                json={"name": "Performance voice", "brand_id": brand["id"]},
+                headers=ORIGIN,
+            ).json()
+            preset = client.post(
+                "/api/v1/ai/studio/presets",
+                json={"name": "Performance preset", "channels": ["amazon"]},
+                headers=ORIGIN,
+            ).json()
+            client.post(
+                "/api/v1/ai/studio/keywords",
+                json={
+                    "name": "Performance keywords",
+                    "product_id": product["id"],
+                    "primary_keywords": ["performance bottle"],
+                },
+                headers=ORIGIN,
+            )
             destination = client.post(
                 "/api/v1/publishing/destinations",
                 json={
@@ -184,6 +199,84 @@ def main() -> None:
             row_version = activity["row_version"]
             start = stamp - timedelta(days=1)
             end = stamp + timedelta(days=2)
+
+            timed(
+                "provider registry", lambda: client.get("/api/v1/ai/studio/providers")
+            )
+            timed(
+                "Brand Voice list", lambda: client.get("/api/v1/ai/studio/brand-voices")
+            )
+            timed("Preset list", lambda: client.get("/api/v1/ai/studio/presets"))
+            timed("Artifact list", lambda: client.get("/api/v1/ai/studio/artifacts"))
+            timed(
+                "Artifact comparison",
+                lambda: client.get(
+                    f"/api/v1/ai/studio/artifacts/{artifact['id']}/compare",
+                    params={"other_artifact_id": artifact["id"]},
+                ),
+            )
+            timed(
+                "SEO analysis",
+                lambda: client.post(
+                    "/api/v1/ai/studio/seo/analyze",
+                    json={"product_id": product["id"], "artifact_id": artifact["id"]},
+                    headers=ORIGIN,
+                ),
+            )
+            timed(
+                "Product Channel Intelligence",
+                lambda: client.get(f"/api/v1/ai/seo/products/{product['id']}/channels"),
+            )
+            bulk_payload = {
+                "product_ids": [product["id"]],
+                "channels": ["amazon", "flipkart", "meesho"],
+                "content_types": ["marketplace_listing"],
+                "idempotency_key": "performance-bulk",
+            }
+            timed(
+                "bulk preview",
+                lambda: client.post(
+                    "/api/v1/ai/studio/bulk/preview",
+                    json=bulk_payload,
+                    headers=ORIGIN,
+                ),
+            )
+            timed(
+                "bulk enqueue",
+                lambda: client.post(
+                    "/api/v1/ai/studio/bulk",
+                    json=bulk_payload,
+                    headers=ORIGIN,
+                ),
+            )
+            studio_payload = {
+                "product_ids": [product["id"]],
+                "channels": ["amazon"],
+                "content_types": ["marketplace_listing"],
+                "brand_voice_id": voice["id"],
+                "preset_id": preset["id"],
+                "idempotency_key": "performance-studio",
+            }
+            enqueue_started = time.perf_counter()
+            queued_studio = client.post(
+                "/api/v1/ai/studio/generate",
+                json=studio_payload,
+                headers=ORIGIN,
+            )
+            print(
+                f"AI Studio enqueue: {(time.perf_counter() - enqueue_started) * 1000:.1f}ms",
+                flush=True,
+            )
+            assert queued_studio.status_code == 202
+            from vayujit_api.ai.studio_worker import run_ai_jobs_once
+
+            with factory() as db:
+                worker_started = time.perf_counter()
+                run_ai_jobs_once(db, "performance-ai-worker", limit=10)
+                print(
+                    f"AI deterministic generation: {(time.perf_counter() - worker_started) * 1000:.1f}ms",
+                    flush=True,
+                )
 
             timed("health", lambda: client.get("/api/v1/health"))
             timed("dashboard", lambda: client.get("/api/v1/dashboard/summary"))

@@ -1,4 +1,5 @@
 export interface ApiHealthResponse {
+  description: string | null;
   status: 'ok' | 'degraded';
   service: string;
   version: string;
@@ -184,6 +185,12 @@ export interface AIProviderSummary {
   available: boolean;
   deterministic: boolean;
   local: boolean;
+  configured?: boolean;
+  enabled?: boolean;
+  health_state?: string;
+  recommended_model?: string | null;
+  capabilities?: string[];
+  live_validation?: string;
 }
 
 export interface AITemplateSummary {
@@ -359,6 +366,9 @@ export interface AIArtifactDetails {
   template_version: number;
   provider_key: string;
   version_number: number;
+  channel?: string;
+  content_type?: string;
+  locale?: string;
   status: AIArtifactStatus;
   content: AIProductContent;
   validation_result: Record<string, unknown>;
@@ -367,6 +377,16 @@ export interface AIArtifactDetails {
   rejected_at: string | null;
   rejection_reason: string | null;
   created_at: string;
+  parent_artifact_id?: string | null;
+  parent_artifact_version?: number | null;
+  source_artifact_version?: number | null;
+  source_locale?: string | null;
+  source_product_context?: Record<string, unknown> | null;
+  brand_voice_version?: number | null;
+  preset_version?: string | null;
+  source?: string;
+  edited_at?: string | null;
+  edited_by?: string | null;
 }
 
 export interface AIHistoryItem {
@@ -568,6 +588,17 @@ export interface CreatePublishingExecutionRequest {
   artifact_id: string;
   destination_id: string;
   idempotency_key?: string;
+  generation_reason?:
+    | 'studio'
+    | 'regeneration'
+    | 'bulk'
+    | 'seo'
+    | 'localization'
+    | 'localized_generation'
+    | 'translation';
+  source_artifact_id?: string;
+  source_artifact_version?: number;
+  operation?: 'localized_generation' | 'translation';
   action?: 'create_draft' | 'publish' | 'activate' | 'update' | 'archive';
   featured_media_id?: string | null;
   shopify_variants?: ShopifyVariantInput[];
@@ -1753,4 +1784,338 @@ export interface AmazonSubmitResult {
   retryable: boolean;
   ambiguous: boolean;
   issues: AmazonOperationIssue[];
+}
+
+export type AIStudioChannel =
+  | 'amazon'
+  | 'flipkart'
+  | 'meesho'
+  | 'shopify'
+  | 'wordpress'
+  | 'canonical';
+export type AIStudioContentType =
+  | 'marketplace_listing'
+  | 'product_description'
+  | 'product_title'
+  | 'bullet_points'
+  | 'highlights'
+  | 'search_terms'
+  | 'tags'
+  | 'seo_metadata'
+  | 'blog_content'
+  | 'social_caption'
+  | 'ad_copy'
+  | 'video_script'
+  | 'email_copy'
+  | 'faq'
+  | 'product_comparison'
+  | 'landing_page_copy';
+export interface AIStudioBrandVoice {
+  id: string;
+  brand_id: string | null;
+  name: string;
+  description: string | null;
+  tone: string;
+  personality: string | null;
+  terminology: Record<string, unknown>;
+  target_audience: string | null;
+  preferred_phrases: string[];
+  prohibited_phrases: string[];
+  spelling_conventions: string | null;
+  language: string;
+  locale: string;
+  formatting_preferences: Record<string, unknown>;
+  compliance_notes: string | null;
+  custom_instructions: string | null;
+  is_default: boolean;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+export interface AIStudioPreset {
+  id: string;
+  name: string;
+  description: string | null;
+  brand_voice_id?: string | null;
+  locale?: string;
+  guidance?: string | null;
+  preferred_provider?: string | null;
+  preferred_model?: string | null;
+  output_types: string[];
+  channels: string[];
+  tone: string | null;
+  length: string | null;
+  required_context: string[];
+  validation_rules: Record<string, unknown>;
+  is_system: boolean;
+  is_default?: boolean;
+  archived?: boolean;
+  version?: number;
+  created_at: string;
+  updated_at: string;
+}
+export interface AIKeywordSet {
+  id: string;
+  name: string;
+  brand_id: string | null;
+  product_id: string | null;
+  primary_keywords: string[];
+  secondary_keywords: string[];
+  marketplace_keywords: string[];
+  website_keywords: string[];
+  campaign_keywords: string[];
+  negative_keywords: string[];
+  source: string;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+export interface AIStudioGenerateRequest {
+  product_ids: string[];
+  channels: AIStudioChannel[];
+  content_types: AIStudioContentType[];
+  brand_voice_id?: string;
+  preset_id?: string;
+  locale?: string;
+  user_instructions?: string;
+  provider_key?: 'deterministic_mock_v1' | 'openai_compatible';
+  model?: string;
+  idempotency_key?: string;
+  generation_reason?:
+    | 'studio'
+    | 'regeneration'
+    | 'bulk'
+    | 'seo'
+    | 'localization'
+    | 'localized_generation'
+    | 'translation';
+  source_artifact_id?: string;
+  source_artifact_version?: number;
+  operation?: 'localized_generation' | 'translation';
+}
+export interface AIStudioOutput {
+  id: string;
+  generation_id: string;
+  product_id: string;
+  artifact_id: string | null;
+  channel: string;
+  content_type: string;
+  status: string;
+  error_code: string | null;
+  safe_error_message: string | null;
+}
+export interface AIStudioGeneration {
+  id: string;
+  status: string;
+  product_ids: string[];
+  channels: string[];
+  content_types: string[];
+  context_fingerprint: string;
+  total_outputs: number;
+  completed_outputs: number;
+  failed_outputs: number;
+  outputs: AIStudioOutput[];
+  created_at: string;
+  completed_at: string | null;
+}
+export interface AIStudioArtifact {
+  id: string;
+  product_id: string;
+  product_name: string;
+  brand_id: string;
+  brand_name: string;
+  channel: string;
+  content_type: string;
+  locale: string;
+  version_number: number;
+  status: string;
+  source: string;
+  content: Record<string, unknown>;
+  validation_result: Record<string, unknown>;
+  context_fingerprint: string | null;
+  parent_artifact_id: string | null;
+  generation_reason: string;
+  provider_key: string;
+  model: string | null;
+  created_at: string;
+  approved_at: string | null;
+  rejected_at: string | null;
+  rejection_reason: string | null;
+  parent_artifact_version?: number | null;
+  brand_voice_version?: number | null;
+  preset_version?: string | null;
+  edited_at?: string | null;
+  edited_by?: string | null;
+}
+export interface AIStudioBulkRequest {
+  product_ids: string[];
+  channels: AIStudioChannel[];
+  content_types: AIStudioContentType[];
+  brand_voice_id?: string;
+  preset_id?: string;
+  locale?: string;
+  user_instructions?: string;
+  provider_key?: string;
+  model?: string;
+  idempotency_key?: string;
+  generation_reason?:
+    | 'studio'
+    | 'regeneration'
+    | 'bulk'
+    | 'seo'
+    | 'localization'
+    | 'localized_generation'
+    | 'translation';
+  source_artifact_id?: string;
+  source_artifact_version?: number;
+  operation?: 'localized_generation' | 'translation';
+  failure_scenarios?: Record<string, string>;
+}
+export interface AIStudioBulkPreview {
+  product_ids: string[];
+  channels: string[];
+  content_types: string[];
+  product_count: number;
+  channel_count: number;
+  content_type_count: number;
+  total_outputs: number;
+  brand_voice_id: string | null;
+  brand_voice_version: number | null;
+  preset_id: string | null;
+  preset_version: number | null;
+  locale: string;
+  provider_key: string;
+  model: string;
+  estimated_provider_calls: number;
+  estimated_cost: string;
+  blockers: string[];
+  warnings: string[];
+  operation_limits: Record<string, number>;
+}
+export interface AIStudioBulkOutput {
+  id: string;
+  product_id: string;
+  product_name: string;
+  channel: string;
+  content_type: string;
+  locale: string;
+  status: string;
+  artifact_id: string | null;
+  artifact_version: number | null;
+  job_id: string | null;
+  generation_id: string | null;
+  attempt_count: number;
+  failure_category: string | null;
+  safe_error_message: string | null;
+  retryable: boolean;
+  retry_eligible: boolean;
+  updated_at: string;
+}
+export interface AIStudioBulkStatus {
+  id: string;
+  status: string;
+  total_outputs: number;
+  counts: Record<string, number>;
+  progress_percentage: number;
+  product_count: number;
+  channel_count: number;
+  content_type_count: number;
+  locale: string;
+  provider_key: string;
+  model: string;
+  brand_voice_id: string | null;
+  brand_voice_version: number | null;
+  preset_id: string | null;
+  preset_version: number | null;
+  correlation_id: string;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  completion_summary: Record<string, unknown>;
+  cancellation_requested: boolean;
+  outputs: AIStudioBulkOutput[];
+}
+export interface AIStudioContext {
+  product_id: string;
+  brand_id: string;
+  context_fingerprint: string;
+  context: Record<string, unknown>;
+  sources: string[];
+  warnings: string[];
+}
+export interface AIStudioComparison {
+  left: AIStudioArtifact;
+  right: AIStudioArtifact;
+  changed_fields: string[];
+  additions: string[];
+  removals: string[];
+  fields?: Record<
+    string,
+    {
+      status: string;
+      left?: unknown;
+      right?: unknown;
+      added?: unknown[];
+      removed?: unknown[];
+      changed?: Array<Record<string, unknown>>;
+    }
+  >;
+}
+export interface AISEOAnalysis {
+  product_id: string;
+  channel: string;
+  score: number;
+  dimensions: Record<string, number>;
+  recommendations: string[];
+  keyword_coverage: Record<string, unknown>;
+  fact_warnings: string[];
+  generated_at: string;
+}
+export interface AIStudioDiagnostics {
+  provider: string;
+  available: boolean;
+  remote_calls_enabled: boolean;
+  generations: { total: number; completed: number };
+  safe_message: string;
+}
+
+export interface AISEODimension {
+  score: number;
+  explanation: string;
+  checks: unknown[];
+  recommendations: unknown[];
+}
+export interface AISEOFinding {
+  severity: string;
+  field: string;
+  code: string;
+  explanation: string;
+  suggested_action?: string | null;
+  actions?: Array<'edit' | 'regenerate' | 'reanalyze' | 'open_keywords' | 'review_product'>;
+}
+export interface AISEOAnalysisResponse {
+  id: string;
+  product_id: string;
+  artifact_id: string | null;
+  artifact_version: number | null;
+  keyword_set_id: string | null;
+  keyword_set_version: number | null;
+  channel: string;
+  seo_type: string;
+  locale: string;
+  intent: string;
+  overall_score: number;
+  dimensions: Record<string, AISEODimension>;
+  findings: AISEOFinding[];
+  recommendations: AISEOFinding[];
+  keyword_coverage: Record<string, unknown>;
+  metrics: Record<string, unknown>;
+  fingerprint: string;
+  rule_version: string;
+  status: string;
+  analyzed_at: string;
+}
+export interface AIKeywordSuggestion {
+  keyword: string;
+  category: string;
 }

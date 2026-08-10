@@ -82,18 +82,21 @@ export class AIUsageComponent implements OnInit {
   readonly usage = signal<AIUsageSummary | null>(null);
   readonly error = signal('');
   readonly history = signal<AIUsageHistoryItem[]>([]);
+  readonly studio = signal<Record<string, unknown> | null>(null);
   provider = '';
   ngOnInit(): void {
     void this.load();
   }
   async load(): Promise<void> {
     try {
-      const [usage, history] = await Promise.all([
+      const [usage, history, studio] = await Promise.all([
         this.api.usage(),
         this.api.usageHistory(this.provider),
+        this.api.studioUsage(this.provider ? { provider: this.provider } : {}),
       ]);
       this.usage.set(usage);
       this.history.set(history.items);
+      this.studio.set(studio);
     } catch (error) {
       this.error.set(AIService.errorMessage(error));
     }

@@ -125,6 +125,7 @@ class ListingResponse(BaseModel):
     last_synchronized_at: datetime | None
     drift_state: str
     content_artifact_id: uuid.UUID | None
+    content_artifact_version: int | None
     created_at: datetime
     updated_at: datetime
 

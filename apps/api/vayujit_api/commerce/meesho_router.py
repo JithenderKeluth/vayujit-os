@@ -474,6 +474,7 @@ def create_listing(data: ListingCreate, db: DatabaseSession, user: Owner) -> dic
         last_synchronized_at=None,
         drift_state="none",
         content_artifact_id=artifact.id,
+        content_artifact_version=artifact.version_number,
         safe_metadata_json={},
         created_at=stamp,
         updated_at=stamp,

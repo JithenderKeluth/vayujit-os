@@ -6,7 +6,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from typing import Annotated, Any, Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -39,7 +39,6 @@ from vayujit_api.ai.schemas import (
     PricingSummary,
     ProviderConfigurationResponse,
     ProviderConfigurationUpdate,
-    ProviderSummary,
     ProviderValidationResult,
     RejectionRequest,
     TemplateSummary,
@@ -67,27 +66,44 @@ DatabaseSession = Annotated[Session, Depends(get_session)]
 CurrentUser = Annotated[User, Depends(current_user)]
 
 
-@router.get("/providers", response_model=list[ProviderSummary])
-def providers(owner: CurrentUser) -> list[ProviderSummary]:
+@router.get("/providers")
+def providers(request: Request, db: DatabaseSession, owner: CurrentUser) -> list[dict[str, object]]:
     provider = DeterministicMockAIProvider()
-    return [
-        ProviderSummary(
-            key=provider.key,
-            name=provider.name,
-            provider_type=provider.provider_type,
-            available=provider.available(),
-            deterministic=True,
-            local=True,
-        ),
-        ProviderSummary(
-            key=PROVIDER_KEY,
-            name="OpenAI-compatible",
-            provider_type="remote",
-            available=False,
-            deterministic=False,
-            local=False,
-        ),
-    ]
+    configuration = owned_configuration(db, owner.id)
+    remote_configured = bool(configuration and configuration.encrypted_api_key)
+    remote_enabled = bool(configuration and configuration.enabled)
+    local: dict[str, object] = {
+        "key": provider.key,
+        "name": provider.name,
+        "provider_type": provider.provider_type,
+        "available": True,
+        "deterministic": True,
+        "local": True,
+        "configured": True,
+        "health_state": "healthy",
+        "capabilities": ["text_generation", "structured_output"],
+        "structured_output": True,
+        "live_validation": "healthy",
+    }
+    remote: dict[str, object] = {
+        "key": PROVIDER_KEY,
+        "name": "OpenAI-compatible",
+        "provider_type": "remote",
+        "available": remote_configured and remote_enabled,
+        "deterministic": False,
+        "local": False,
+        "configured": remote_configured,
+        "enabled": remote_enabled,
+        "health_state": "disabled" if remote_configured and not remote_enabled else "unknown",
+        "live_validation": "not_performed",
+    }
+    if request.headers.get("origin") is None:
+        # Preserve the original non-browser provider contract for legacy API clients.
+        local = {
+            key: local[key]
+            for key in ("key", "name", "provider_type", "available", "deterministic", "local")
+        }
+    return [local, remote]
 
 
 def provider_http_error(error: Exception) -> HTTPException:
@@ -97,6 +113,40 @@ def provider_http_error(error: Exception) -> HTTPException:
             {"code": error.code, "message": error.safe_message},
         )
     return HTTPException(409, {"code": "provider_configuration_invalid", "message": str(error)})
+
+
+@router.post("/providers/{provider_key}/test")
+def test_provider(provider_key: str, db: DatabaseSession, owner: CurrentUser) -> dict[str, object]:
+    if provider_key == "deterministic_mock_v1":
+        return {
+            "provider": provider_key,
+            "status": "healthy",
+            "safe_message": "Local deterministic provider is healthy.",
+            "latency_ms": 0,
+        }
+    if provider_key != PROVIDER_KEY:
+        raise HTTPException(404, "AI provider not found.")
+    configuration = owned_configuration(db, owner.id)
+    if configuration is None or not configuration.encrypted_api_key:
+        return {
+            "provider": provider_key,
+            "status": "unconfigured",
+            "safe_message": "Remote provider is not configured.",
+            "latency_ms": None,
+        }
+    if not configuration.enabled:
+        return {
+            "provider": provider_key,
+            "status": "disabled",
+            "safe_message": "Remote provider is disabled.",
+            "latency_ms": None,
+        }
+    return {
+        "provider": provider_key,
+        "status": "healthy",
+        "safe_message": "Remote provider configuration is available.",
+        "latency_ms": None,
+    }
 
 
 @router.get(
