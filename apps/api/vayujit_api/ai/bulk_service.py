@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from vayujit_api.ai.bulk_models import AIStudioBulkOperation, AIStudioBulkOutput
+from vayujit_api.ai.image_models import AIImageOutput
 from vayujit_api.ai.models import GeneratedArtifact
 from vayujit_api.ai.studio_models import (
     AIStudioGeneration,
@@ -290,12 +291,21 @@ def _sync_output(db: Session, output: AIStudioBulkOutput) -> None:
         output.failure_category = "unknown_permanent"
         output.safe_error_message = "The bulk output job is unavailable."
         return
+    image = db.scalar(select(AIImageOutput).where(AIImageOutput.job_id == job.id))
+    if image is not None:
+        output.image_output_id = image.id
+        output.media_id = image.media_id
+        output.operation = image.operation
+        output.source_media_ids_json = list(image.source_media_ids_json or [])
+    previous_status = output.status
     output.artifact_id = job.artifact_id
     output.retryable = job.retryable
     output.failure_category = job.failure_category
     output.safe_error_message = job.safe_error_message
     if output.cancellation_requested or job.state == "cancelled":
         output.status = "cancelled"
+    elif image is not None and image.status in {"approved", "rejected"}:
+        output.status = image.status
     elif job.state == "stale":
         output.status = "stale"
         output.stale_reason = job.safe_error_message
@@ -305,6 +315,8 @@ def _sync_output(db: Session, output: AIStudioBulkOutput) -> None:
         output.status = "retry_wait"
     elif job.state in {"generating", "validating"}:
         output.status = job.state
+    elif image is not None and job.state == "succeeded":
+        output.status = "needs_review" if image.status == "needs_review" else image.status
     elif job.state == "succeeded":
         artifact = db.get(GeneratedArtifact, job.artifact_id) if job.artifact_id else None
         output.status = (
@@ -313,9 +325,24 @@ def _sync_output(db: Session, output: AIStudioBulkOutput) -> None:
     else:
         output.status = "queued"
     output.updated_at = _now()
+    if output.content_type == "image" and output.status != previous_status:
+        action = {
+            "failed": "ai.image_bulk_output_failed",
+            "stale": "ai.image_bulk_output_failed",
+        }.get(output.status)
+        if action:
+            record_event(
+                db,
+                actor_id=output.owner_id,
+                action=action,
+                entity_type="ai_studio_bulk_output",
+                entity_id=output.id,
+                metadata={"failure_category": output.failure_category or "stale"},
+            )
 
 
 def _sync_operation(db: Session, operation: AIStudioBulkOperation) -> list[AIStudioBulkOutput]:
+    previous_status = operation.status
     outputs = list(
         db.scalars(
             select(AIStudioBulkOutput)
@@ -354,6 +381,23 @@ def _sync_operation(db: Session, operation: AIStudioBulkOperation) -> list[AIStu
     if terminal >= operation.total_outputs and operation.completed_at is None:
         operation.completed_at = _now()
     operation.updated_at = _now()
+
+    if operation.modality == "image" and operation.status != previous_status:
+        action = {
+            "partially_completed": "ai.image_bulk_partially_completed",
+            "completed": "ai.image_bulk_completed",
+            "cancelled": "ai.image_bulk_cancelled",
+            "partially_cancelled": "ai.image_bulk_cancelled",
+        }.get(operation.status)
+        if action:
+            record_event(
+                db,
+                actor_id=operation.owner_id,
+                action=action,
+                entity_type="ai_studio_bulk_operation",
+                entity_id=operation.id,
+                metadata={"status": operation.status, "counts": dict(counts)},
+            )
     return outputs
 
 
@@ -422,7 +466,10 @@ def status_response(db: Session, operation: AIStudioBulkOperation) -> StudioBulk
 
 
 def retry_outputs(
-    db: Session, owner: User, operation: AIStudioBulkOperation, output_ids: list[uuid.UUID]
+    db: Session,
+    owner: User,
+    operation: AIStudioBulkOperation,
+    output_ids: list[uuid.UUID],
 ) -> tuple[int, int]:
     _sync_operation(db, operation)
     selected = set(output_ids)
@@ -480,7 +527,10 @@ def retry_outputs(
 
 
 def cancel_outputs(
-    db: Session, owner: User, operation: AIStudioBulkOperation, output_ids: list[uuid.UUID]
+    db: Session,
+    owner: User,
+    operation: AIStudioBulkOperation,
+    output_ids: list[uuid.UUID],
 ) -> int:
     selected = set(output_ids)
     rows = list(

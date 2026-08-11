@@ -147,7 +147,17 @@
     "test:ai:tags": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_tags.py",
     "test:ai:localization": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_localization.py",
     "test:ai:product-channel": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_product_channel.py",
-    "test:ai:certification": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_certification.py"
+    "test:ai:certification": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_certification.py",
+    "test:ai:images": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_ai_images.py",
+    "test:ai:images:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_images_integration.py",
+    "test:ai:images:workers": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_ai_images_workers.py",
+    "test:ai:images:e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_images_e2e.py",
+    "test:ai:images:handoff": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_images_handoff.py",
+    "test:ai:images:acceptance": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_image_acceptance.py",
+    "test:ai:images:security": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_ai_image_security.py",
+    "test:ai:images:bulk": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_images_bulk.py",
+    "test:ai:images:usage": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_images_usage.py",
+    "test:ai:images:diagnostics": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_images_diagnostics.py"
   },
   "devDependencies": {
     "concurrently": "9.2.4",

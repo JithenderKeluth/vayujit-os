@@ -2119,3 +2119,82 @@ export interface AIKeywordSuggestion {
   keyword: string;
   category: string;
 }
+
+export type AIImageOperation =
+  | 'generate_product_image'
+  | 'remove_background'
+  | 'replace_background'
+  | 'white_background'
+  | 'lifestyle_scene'
+  | 'enhance_image'
+  | 'resize'
+  | 'crop'
+  | 'extend_canvas'
+  | 'promotional_creative'
+  | 'marketplace_main_image'
+  | 'marketplace_gallery_image'
+  | 'thumbnail'
+  | 'banner';
+export interface AIImageOutput {
+  id: string;
+  media_id: string | null;
+  status: string;
+  operation: AIImageOperation;
+  channel: string;
+  actual_width: number | null;
+  actual_height: number | null;
+}
+export interface AIImageGeneration {
+  id: string;
+  generation_id: string;
+  status: string;
+  total_outputs: number;
+  completed_outputs: number;
+  failed_outputs: number;
+  outputs: AIImageOutput[];
+  safe_error_message?: string | null;
+}
+export interface AIImageProviderSummary {
+  id: string;
+  display_name: string;
+  available: boolean;
+  models: string[];
+  capabilities: string[];
+}
+
+export interface AIImageBulkPreview {
+  product_count: number;
+  channel_count: number;
+  operation: string;
+  channels: string[];
+  output_count_per_product: number;
+  total_outputs: number;
+  estimated_provider_calls: number;
+  estimated_cost: 'available' | 'unavailable' | 'not_reported' | 'pricing_not_configured';
+  blockers: string[];
+  warnings: string[];
+}
+
+export interface AIImageBulkOutput {
+  id: string;
+  product_id: string;
+  product_name: string;
+  output_index: number;
+  channel: string;
+  operation: string;
+  status: string;
+  image_output_id: string | null;
+  media_id: string | null;
+  retry_eligible: boolean;
+  safe_error_message: string | null;
+}
+
+export interface AIImageBulkStatus {
+  id: string;
+  modality: 'image';
+  status: string;
+  total_outputs: number;
+  counts: Record<string, number>;
+  progress_percentage: number;
+  outputs: AIImageBulkOutput[];
+}

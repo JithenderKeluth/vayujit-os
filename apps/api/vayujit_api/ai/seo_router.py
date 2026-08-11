@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from vayujit_api.ai.image_models import AIImageOutput
 from vayujit_api.ai.models import GeneratedArtifact
 from vayujit_api.ai.seo_models import SEOAnalysis, TagSet
 from vayujit_api.ai.seo_schemas import (
@@ -33,7 +34,7 @@ from vayujit_api.ai.seo_service import (
 )
 from vayujit_api.ai.studio_models import KeywordSet
 from vayujit_api.audit.service import record_event
-from vayujit_api.commerce.models import MarketplaceListing
+from vayujit_api.commerce.models import MarketplaceListing, MarketplaceMediaMapping
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
@@ -125,6 +126,40 @@ def product_channel_intelligence(
                 )
                 .order_by(SEOAnalysis.analyzed_at.desc())
             )
+        image_outputs = list(
+            db.scalars(
+                select(AIImageOutput)
+                .where(
+                    AIImageOutput.owner_id == owner.id,
+                    AIImageOutput.product_id == product.id,
+                    AIImageOutput.channel == channel,
+                )
+                .order_by(AIImageOutput.created_at.desc())
+            )
+        )
+        approved_images = [item for item in image_outputs if item.status == "approved"]
+        image_mappings = (
+            list(
+                db.scalars(
+                    select(MarketplaceMediaMapping).where(
+                        MarketplaceMediaMapping.owner_id == owner.id,
+                        MarketplaceMediaMapping.listing_id == listing.id,
+                    )
+                )
+            )
+            if listing
+            else []
+        )
+        listing_main = next((item for item in image_mappings if item.position == 0), None)
+        latest_approved = approved_images[0] if approved_images else None
+        image_readiness = (
+            "not_generated"
+            if not image_outputs
+            else ("ready" if latest_approved else "needs_review")
+        )
+        image_update_available = bool(
+            latest_approved and listing_main and listing_main.image_output_id != latest_approved.id
+        )
         findings = analysis.findings_json if analysis else []
         blockers = [
             f"{item.get('code')}: {item.get('explanation')}"
@@ -169,6 +204,27 @@ def product_channel_intelligence(
                 warnings=warnings,
                 analysis_stale=stale,
                 update_available=update_available,
+                image_readiness=image_readiness,
+                approved_main_image=(
+                    {
+                        "output_id": str(latest_approved.id),
+                        "media_id": str(latest_approved.media_id),
+                        "version": latest_approved.created_at.isoformat(),
+                    }
+                    if latest_approved
+                    else None
+                ),
+                approved_gallery_count=max(0, len(approved_images) - 1),
+                listing_main_image=(
+                    {
+                        "output_id": str(listing_main.image_output_id),
+                        "media_id": str(listing_main.media_id),
+                    }
+                    if listing_main and listing_main.image_output_id
+                    else None
+                ),
+                listing_gallery_count=max(0, len(image_mappings) - 1),
+                image_update_available=image_update_available,
                 readiness=cast(
                     Literal[
                         "not_generated",

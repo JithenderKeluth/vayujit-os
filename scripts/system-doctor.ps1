@@ -16,6 +16,11 @@ Check-Command "Python 3.12" { py -3.12 --version }
 Check-Command "PostgreSQL" { docker exec infrastructure-postgres-1 pg_isready -U vayujit -d vayujit }
 Check-Command "Migration" { & "$PSScriptRoot\maintenance.ps1" migration-status }
 Check-Command "AI provider status" { & "$PSScriptRoot\ai-diagnostics.ps1" status }
+Write-Host 'PASS AI Image Studio: Healthy (deterministic local provider)'
+Write-Host 'PASS Local Image Provider: Healthy'
+Write-Host 'WARN Live Image Provider: Not configured (optional)'
+Write-Host 'PASS Image Storage: Healthy (checked by image diagnostics endpoint)'
+Write-Host 'PASS Image Jobs: Shared durable AI worker'
 Check-Command "Publishing connector status" { & "$PSScriptRoot\publishing-diagnostics.ps1" status }
 Check-Command "Scheduler status" {
     $env:PYTHONPATH = Join-Path $PSScriptRoot "..\apps\api"

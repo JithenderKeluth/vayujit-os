@@ -195,6 +195,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'products/:id/media',
+    loadComponent: () =>
+      import('./products/product-media.component').then((m) => m.ProductMediaComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'products/:id',
     loadComponent: () =>
       import('./products/product-details.component').then(
@@ -216,6 +222,18 @@ export const routes: Routes = [
   {
     path: 'ai/studio',
     loadComponent: () => import('./ai/ai-studio.component').then((m) => m.AIStudioComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ai/images/assets/:outputId',
+    loadComponent: () =>
+      import('./ai/ai-image-review.component').then((m) => m.AIImageReviewComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ai/images',
+    loadComponent: () =>
+      import('./ai/ai-image-studio.component').then((m) => m.AIImageStudioComponent),
     canActivate: [authGuard],
   },
   {

@@ -9,6 +9,7 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from vayujit_api.ai.models import GeneratedArtifact
 from vayujit_api.ai.seo_models import SEOAnalysis, TagSet
 from vayujit_api.ai.seo_schemas import (
     KeywordSetDetail,
@@ -88,7 +89,9 @@ def _keyword_set(
     return None
 
 
-def _artifact(db: Session, owner_id: uuid.UUID, data: SEORequest, product: Product):
+def _artifact(
+    db: Session, owner_id: uuid.UUID, data: SEORequest, product: Product
+) -> GeneratedArtifact | None:
     from vayujit_api.ai.models import GeneratedArtifact
 
     if data.artifact_id:
