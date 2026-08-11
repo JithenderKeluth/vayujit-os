@@ -146,6 +146,12 @@ class CampaignActivity(Base):
         UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="RESTRICT")
     )
     artifact_version: Mapped[int | None] = mapped_column(Integer)
+    image_output_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ai_image_outputs.id", ondelete="SET NULL"), index=True
+    )
+    image_media_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("media_assets.id", ondelete="SET NULL"), index=True
+    )
     destination_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("publishing_destinations.id", ondelete="RESTRICT"),

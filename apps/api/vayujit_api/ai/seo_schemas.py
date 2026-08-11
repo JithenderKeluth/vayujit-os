@@ -154,6 +154,12 @@ class ProductChannelIntelligence(BaseModel):
     warnings: list[str]
     analysis_stale: bool
     update_available: bool
+    image_readiness: str = "not_generated"
+    approved_main_image: dict[str, object] | None = None
+    approved_gallery_count: int = 0
+    listing_main_image: dict[str, object] | None = None
+    listing_gallery_count: int = 0
+    image_update_available: bool = False
     readiness: Literal[
         "not_generated", "draft", "needs_review", "approved", "update_available", "blocked", "ready"
     ]

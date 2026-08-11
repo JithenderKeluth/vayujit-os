@@ -566,6 +566,7 @@ class MarketplaceMediaMapping(CommerceBase):
     media_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("media_assets.id", ondelete="CASCADE"), index=True
     )
+    image_output_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     position: Mapped[int] = mapped_column(Integer, default=0)
     alt_text: Mapped[str | None] = mapped_column(String(500))
     remote_media_id: Mapped[str | None] = mapped_column(String(200))

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+import binascii
 import hashlib
 import json
 import uuid
@@ -18,6 +20,8 @@ from vayujit_api.ai.failures import (
     scenario_failure,
     validate_structured_output,
 )
+from vayujit_api.ai.image_models import AIImageOutput, AIImagePreset, AIImageStyle
+from vayujit_api.ai.image_provider import image_provider
 from vayujit_api.ai.models import AIGenerationRequest, GeneratedArtifact
 from vayujit_api.ai.studio_models import (
     AIStudioGeneration,
@@ -35,8 +39,13 @@ from vayujit_api.ai.studio_service import (
 )
 from vayujit_api.audit.service import record_event
 from vayujit_api.brands.models import Brand
+from vayujit_api.media.models import MediaAsset
+from vayujit_api.media.service import image_dimensions
+from vayujit_api.media.service import upload as upload_media
 from vayujit_api.products.models import Product
 from vayujit_api.publishing.scheduler_time import utcnow
+
+MAX_IMAGE_CHECKPOINT_BYTES = 8_000_000
 
 CLAIMABLE_STATES = {"queued", "retry_wait"}
 AI_STATES = {
@@ -53,7 +62,14 @@ AI_STATES = {
 LEGAL_TRANSITIONS: dict[str, set[str]] = {
     "queued": {"generating", "cancelled", "stale"},
     "generating": {"validating", "retry_wait", "failed", "cancelled", "stale"},
-    "validating": {"needs_review", "succeeded", "retry_wait", "failed", "cancelled", "stale"},
+    "validating": {
+        "needs_review",
+        "succeeded",
+        "retry_wait",
+        "failed",
+        "cancelled",
+        "stale",
+    },
     "needs_review": {"retry_wait", "cancelled"},
     "retry_wait": {"generating", "cancelled", "stale"},
     "succeeded": set(),
@@ -120,7 +136,10 @@ def claim_ai_jobs(db: Session, worker_id: str, limit: int, lease_seconds: int) -
             .where(
                 AIStudioJob.state.in_(CLAIMABLE_STATES),
                 AIStudioJob.available_at <= now,
-                or_(AIStudioJob.lease_expires_at.is_(None), AIStudioJob.lease_expires_at < now),
+                or_(
+                    AIStudioJob.lease_expires_at.is_(None),
+                    AIStudioJob.lease_expires_at < now,
+                ),
             )
             .order_by(AIStudioJob.created_at)
             .with_for_update(skip_locked=True)
@@ -168,7 +187,10 @@ def claim_ai_jobs(db: Session, worker_id: str, limit: int, lease_seconds: int) -
                 action="ai.content_retry_started",
                 entity_type="ai_studio_job",
                 entity_id=row.id,
-                metadata={"attempt": row.attempt_count, "correlation_id": row.correlation_id},
+                metadata={
+                    "attempt": row.attempt_count,
+                    "correlation_id": row.correlation_id,
+                },
             )
     db.commit()
     return [row.id for row in rows]
@@ -372,7 +394,7 @@ def _mark_retry(
         retryable=spec.retryable,
         calculated_delay=calculated,
         applied_delay=applied,
-        retry_after=int(round(retry_after_value)) if retry_after_value is not None else None,
+        retry_after=(int(round(retry_after_value)) if retry_after_value is not None else None),
     )
     return target
 
@@ -410,9 +432,268 @@ def _repair_content(
     raise StudioProviderFailure("structured_validation_failed")
 
 
-def execute_ai_job(
-    db: Session, job_id: uuid.UUID, worker_id: str, *, crash_after_checkpoint: bool = False
+def execute_image_job(
+    db: Session,
+    job_id: uuid.UUID,
+    worker_id: str,
+    *,
+    crash_after_checkpoint: bool = False,
 ) -> str:
+    """Execute image work through the shared durable AI lease/checkpoint runtime."""
+    row = db.scalar(select(AIStudioJob).where(AIStudioJob.id == job_id).with_for_update())
+    if row is None or not _lease_valid(row, worker_id):
+        db.rollback()
+        return "lease_lost"
+    studio_output = db.scalar(
+        select(AIStudioOutput)
+        .where(
+            AIStudioOutput.generation_id == row.generation_id,
+            AIStudioOutput.product_id == row.product_id,
+            AIStudioOutput.channel == row.channel,
+            AIStudioOutput.content_type == "image",
+        )
+        .with_for_update()
+    )
+    output = db.scalar(
+        select(AIImageOutput).where(AIImageOutput.job_id == row.id).with_for_update()
+    )
+    generation = db.get(AIStudioGeneration, row.generation_id)
+    product = db.get(Product, row.product_id)
+    from vayujit_api.identity.models import User
+
+    owner = db.get(User, row.owner_id)
+    if output is None or generation is None or product is None or owner is None:
+        db.rollback()
+        return _mark_retry(db, row, worker_id, "unknown_transient", "")
+    if output.media_id is not None:
+        row.state = transition_state(row.state, "validating")
+        row.state = transition_state(row.state, "succeeded")
+        row.lease_owner = None
+        row.lease_expires_at = None
+        row.completed_at = utcnow()
+        db.commit()
+        return "succeeded"
+    payload = row.payload_json
+    brand = db.get(Brand, product.brand_id)
+    if brand is None:
+        db.rollback()
+        return _mark_retry(db, row, worker_id, "unknown_transient", "")
+    if str(payload.get("scenario") or "") == "stale_source":
+        db.rollback()
+        return _mark_stale(
+            db,
+            row,
+            worker_id,
+            "The queued source Media or Product changed before execution.",
+        )
+    if payload.get("product_name") and payload.get("product_name") != product.name:
+        db.rollback()
+        return _mark_stale(db, row, worker_id, "Product context changed before image execution.")
+    if payload.get("brand_name") and payload.get("brand_name") != brand.name:
+        db.rollback()
+        return _mark_stale(db, row, worker_id, "Brand context changed before image execution.")
+    style_id = payload.get("style_id")
+    if style_id:
+        style = db.get(AIImageStyle, uuid.UUID(str(style_id)))
+        if style is None or style.archived or style.version != payload.get("style_version"):
+            db.rollback()
+            return _mark_stale(
+                db,
+                row,
+                worker_id,
+                "The queued Image Style version is no longer current.",
+            )
+    preset_id = payload.get("preset_id")
+    if preset_id:
+        preset = db.get(AIImagePreset, uuid.UUID(str(preset_id)))
+        if preset is None or preset.version != payload.get("preset_version"):
+            db.rollback()
+            return _mark_stale(
+                db,
+                row,
+                worker_id,
+                "The queued Image Preset version is no longer current.",
+            )
+    source_ids = [
+        uuid.UUID(str(value)) for value in cast(list[object], payload.get("source_media_ids") or [])
+    ]
+    if source_ids:
+        ready_count = (
+            db.scalar(
+                select(func.count())
+                .select_from(MediaAsset)
+                .where(
+                    MediaAsset.owner_id == row.owner_id,
+                    MediaAsset.id.in_(source_ids),
+                    MediaAsset.status == "ready",
+                )
+            )
+            or 0
+        )
+        if ready_count != len(set(source_ids)):
+            db.rollback()
+            return _mark_stale(
+                db,
+                row,
+                worker_id,
+                "A queued source Media asset is no longer available.",
+            )
+    try:
+        if row.provider_result_json is None:
+            image_bytes, metadata = image_provider.generate(
+                operation=str(payload.get("operation")),
+                width=cast(int, payload.get("width") or 1024),
+                height=cast(int, payload.get("height") or 1024),
+                seed=f"{row.context_fingerprint}:{row.id}",
+                scenario=(
+                    "throttle"
+                    if str(payload.get("scenario") or "") == "throttle_once"
+                    and row.attempt_count == 1
+                    else (
+                        "timeout"
+                        if str(payload.get("scenario") or "") == "timeout_once"
+                        and row.attempt_count == 1
+                        else (
+                            "unsupported_provider"
+                            if str(payload.get("scenario") or "") == "permanent_provider_failure"
+                            else str(payload.get("scenario") or "success")
+                        )
+                    )
+                ),
+            )
+            checkpoint: dict[str, object] = {
+                "image_base64": base64.b64encode(image_bytes).decode("ascii"),
+                "metadata": metadata,
+            }
+            checkpoint_size = len(json.dumps(checkpoint, sort_keys=True).encode())
+            if checkpoint_size > MAX_IMAGE_CHECKPOINT_BYTES:
+                raise StudioProviderFailure("output_too_large")
+            checkpoint_hash = hashlib.sha256(
+                json.dumps(checkpoint, sort_keys=True).encode()
+            ).hexdigest()
+            row.provider_result_json = checkpoint
+            row.provider_result_fingerprint = checkpoint_hash
+            row.checkpoint_fingerprint = checkpoint_hash
+            row.checkpoint_size_bytes = checkpoint_size
+            row.provider_request_id = f"deterministic-image:{row.id}:{row.attempt_count}"
+            row.provider_completed_at = utcnow()
+            row.updated_at = utcnow()
+            db.commit()
+            if str(payload.get("scenario")) == "crash_after_result" or crash_after_checkpoint:
+                raise AIWorkerCrash("simulated crash after image checkpoint")
+        db.expire_all()
+        row = db.scalar(select(AIStudioJob).where(AIStudioJob.id == job_id).with_for_update())
+        output = db.scalar(
+            select(AIImageOutput).where(AIImageOutput.job_id == job_id).with_for_update()
+        )
+        if row is None or output is None or not _lease_valid(row, worker_id):
+            db.rollback()
+            return "lease_lost"
+        saved_checkpoint: dict[str, object] = cast(
+            dict[str, object], row.provider_result_json or {}
+        )
+        checkpoint_size = len(json.dumps(saved_checkpoint, sort_keys=True).encode())
+        checkpoint_hash = hashlib.sha256(
+            json.dumps(saved_checkpoint, sort_keys=True).encode()
+        ).hexdigest()
+        if (
+            checkpoint_size > MAX_IMAGE_CHECKPOINT_BYTES
+            or row.provider_result_fingerprint != checkpoint_hash
+        ):
+            raise StudioProviderFailure("checkpoint_invalid")
+        try:
+            image_bytes = base64.b64decode(
+                str(saved_checkpoint.get("image_base64") or ""), validate=True
+            )
+        except (ValueError, binascii.Error) as exc:
+            raise StudioProviderFailure("checkpoint_invalid") from exc
+        if not image_bytes.startswith(b"\x89PNG\r\n\x1a\n") or b"IEND" not in image_bytes[-32:]:
+            raise StudioProviderFailure("checkpoint_invalid")
+        metadata = cast(dict[str, object], saved_checkpoint.get("metadata") or {})
+        if metadata.get("mime_type") not in {None, "image/png"}:
+            raise StudioProviderFailure("checkpoint_invalid")
+        if metadata.get("checksum_sha256") not in {
+            None,
+            hashlib.sha256(image_bytes).hexdigest(),
+        }:
+            raise StudioProviderFailure("checkpoint_invalid")
+        if metadata.get("size_bytes") not in {None, len(image_bytes)}:
+            raise StudioProviderFailure("checkpoint_invalid")
+        try:
+            width, height = image_dimensions(image_bytes, "image/png")
+        except Exception as exc:
+            raise StudioProviderFailure("checkpoint_invalid") from exc
+        if metadata.get("width") not in {None, width} or metadata.get("height") not in {
+            None,
+            height,
+        }:
+            raise StudioProviderFailure("checkpoint_invalid")
+        response = upload_media(db, owner, f"ai-image-{row.id}.png", "image/png", image_bytes)
+        output.media_id = response.id
+        output.actual_width = response.width
+        output.actual_height = response.height
+        output.mime_type = response.mime_type
+        output.size_bytes = response.size_bytes
+        output.checksum_sha256 = response.checksum_sha256
+        output.provider_metadata_json = cast(
+            dict[str, object], saved_checkpoint.get("metadata") or {}
+        )
+        output.status = "needs_review"
+        if studio_output is not None:
+            studio_output.status = "succeeded"
+        row.state = transition_state(row.state, "validating")
+        row.state = transition_state(row.state, "succeeded")
+        row.lease_owner = None
+        row.lease_expires_at = None
+        row.completed_at = utcnow()
+        generation.completed_outputs += 1
+        generation.status = (
+            "completed"
+            if generation.completed_outputs + generation.failed_outputs >= generation.total_outputs
+            else "running"
+        )
+        generation.completed_at = utcnow() if generation.status == "completed" else None
+        record_event(
+            db,
+            actor_id=row.owner_id,
+            action="ai.image_generated",
+            entity_type="ai_image_output",
+            entity_id=output.id,
+            metadata={
+                "media_id": str(output.media_id),
+                "correlation_id": row.correlation_id,
+            },
+        )
+        db.commit()
+        return "succeeded"
+    except AIWorkerCrash:
+        raise
+    except StudioProviderFailure as failure:
+        db.rollback()
+        if row is None:
+            return "lease_lost"
+        return _mark_retry(
+            db, row, worker_id, failure.spec.code, "", retry_after=failure.retry_after
+        )
+    except Exception:
+        db.rollback()
+        if row is None:
+            return "lease_lost"
+        return _mark_retry(db, row, worker_id, "unknown_transient", "")
+
+
+def execute_ai_job(
+    db: Session,
+    job_id: uuid.UUID,
+    worker_id: str,
+    *,
+    crash_after_checkpoint: bool = False,
+) -> str:
+    existing = db.scalar(select(AIStudioJob).where(AIStudioJob.id == job_id))
+    if existing is not None and existing.job_type.startswith("ai_image_"):
+        return execute_image_job(
+            db, job_id, worker_id, crash_after_checkpoint=crash_after_checkpoint
+        )
     row = db.scalar(select(AIStudioJob).where(AIStudioJob.id == job_id).with_for_update())
     if row is None or not _lease_valid(row, worker_id):
         db.rollback()
@@ -481,7 +762,12 @@ def execute_ai_job(
             raw_keywords = payload.get("keywords")
             keywords = [str(value) for value in cast(list[object], raw_keywords or [])]
             content, validation = _provider_call(
-                current_context, row.channel, row.content_type, instructions, voice, keywords
+                current_context,
+                row.channel,
+                row.content_type,
+                instructions,
+                voice,
+                keywords,
             )
             if scenario == "truncated_output":
                 raise StudioProviderFailure("structured_validation_failed")
@@ -595,7 +881,12 @@ def execute_ai_job(
         except StudioProviderFailure as failure:
             db.rollback()
             return _mark_retry(
-                db, row, worker_id, failure.spec.code, "", retry_after=failure.retry_after
+                db,
+                row,
+                worker_id,
+                failure.spec.code,
+                "",
+                retry_after=failure.retry_after,
             )
         except Exception:
             db.rollback()
@@ -690,7 +981,10 @@ def execute_ai_job(
         if parent is not None:
             source_version = parent.version_number
             source_locale = parent.locale
-            source_context = {"product_id": str(parent.product_id), "source_locale": parent.locale}
+            source_context = {
+                "product_id": str(parent.product_id),
+                "source_locale": parent.locale,
+            }
 
     artifact = GeneratedArtifact(
         owner_id=row.owner_id,
@@ -717,9 +1011,9 @@ def execute_ai_job(
         brand_voice_id=generation.brand_voice_id,
         generation_reason=str(payload.get("generation_reason") or "worker"),
         parent_artifact_id=parent_artifact_id,
-        source_artifact_version=int(str(source_version)) if source_version is not None else None,
+        source_artifact_version=(int(str(source_version)) if source_version is not None else None),
         source_locale=str(source_locale) if source_locale else None,
-        source_product_context=source_context if isinstance(source_context, dict) else None,
+        source_product_context=(source_context if isinstance(source_context, dict) else None),
         source="ai_generated",
         user_instructions=str(
             payload.get("user_instructions") or generation.user_instructions or ""
@@ -765,7 +1059,9 @@ def execute_ai_job(
             action="ai.localized_artifact_generated",
             entity_type="generated_artifact",
             entity_id=artifact.id,
-            metadata={"parent_artifact_id": str(parent_artifact_id)} if parent_artifact_id else {},
+            metadata=(
+                {"parent_artifact_id": str(parent_artifact_id)} if parent_artifact_id else {}
+            ),
         )
     if generation_reason == "translation":
         record_event(
@@ -787,7 +1083,9 @@ def execute_ai_job(
             action="ai.artifact_regenerated",
             entity_type="generated_artifact",
             entity_id=artifact.id,
-            metadata={"parent_artifact_id": str(parent_artifact_id)} if parent_artifact_id else {},
+            metadata=(
+                {"parent_artifact_id": str(parent_artifact_id)} if parent_artifact_id else {}
+            ),
         )
     db.commit()
     return "succeeded"

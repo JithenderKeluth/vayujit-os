@@ -32,6 +32,8 @@ import type {
   AIStudioBulkStatus,
   AISEOAnalysisResponse,
   AIKeywordSuggestion,
+  AIImageBulkPreview,
+  AIImageBulkStatus,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
 
@@ -103,6 +105,33 @@ export class AIService {
     );
   }
 
+  imageBulkPreview(data: Record<string, unknown>): Promise<AIImageBulkPreview> {
+    return firstValueFrom(
+      this.http.post<AIImageBulkPreview>(`${this.baseUrl}/images/bulk/preview`, data, this.options),
+    );
+  }
+
+  imageBulkCreate(data: Record<string, unknown>): Promise<AIImageBulkStatus> {
+    return firstValueFrom(
+      this.http.post<AIImageBulkStatus>(`${this.baseUrl}/images/bulk`, data, this.options),
+    );
+  }
+
+  imageBulkStatus(id: string): Promise<AIImageBulkStatus> {
+    return firstValueFrom(
+      this.http.get<AIImageBulkStatus>(`${this.baseUrl}/images/bulk/${id}`, this.options),
+    );
+  }
+
+  imageBulkRetry(id: string, outputIds: string[] = []): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.baseUrl}/images/bulk/${id}/retry-failed`,
+        { output_ids: outputIds },
+        this.options,
+      ),
+    );
+  }
   usage(): Promise<AIUsageSummary> {
     return firstValueFrom(
       this.http.get<AIUsageSummary>(`${this.baseUrl}/usage/summary`, this.options),

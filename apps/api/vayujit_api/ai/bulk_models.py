@@ -1,4 +1,4 @@
-"""Durable bulk AI generation parent and logical output records."""
+﻿"""Durable bulk AI generation parent and logical output records."""
 
 import uuid
 from datetime import datetime
@@ -49,6 +49,20 @@ class AIStudioBulkOperation(Base):
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
+    modality: Mapped[str] = mapped_column(String(16), default="text", index=True)
+    image_operation: Mapped[str | None] = mapped_column(String(48))
+    image_style_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    image_style_version: Mapped[int | None] = mapped_column(Integer)
+    image_preset_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    image_preset_version: Mapped[int | None] = mapped_column(Integer)
+    image_width: Mapped[int | None] = mapped_column(Integer)
+    image_height: Mapped[int | None] = mapped_column(Integer)
+    image_aspect_ratio: Mapped[str | None] = mapped_column(String(24))
+    image_output_count: Mapped[int | None] = mapped_column(Integer)
+    source_strategy: Mapped[str | None] = mapped_column(String(40))
+    source_media_by_product_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    content_artifact_by_product_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+
 
 class AIStudioBulkOutput(Base):
     __tablename__ = "ai_studio_bulk_outputs"
@@ -59,6 +73,7 @@ class AIStudioBulkOutput(Base):
             "channel",
             "content_type",
             "locale",
+            "output_index",
             name="uq_ai_bulk_output_identity",
         ),
     )
@@ -76,13 +91,19 @@ class AIStudioBulkOutput(Base):
         UUID(as_uuid=True), ForeignKey("products.id", ondelete="RESTRICT"), index=True
     )
     generation_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("ai_studio_generations.id", ondelete="CASCADE"), index=True
+        UUID(as_uuid=True),
+        ForeignKey("ai_studio_generations.id", ondelete="CASCADE"),
+        index=True,
     )
     job_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("ai_studio_jobs.id", ondelete="CASCADE"), unique=True
+        UUID(as_uuid=True),
+        ForeignKey("ai_studio_jobs.id", ondelete="CASCADE"),
+        unique=True,
     )
     artifact_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="SET NULL"), index=True
+        UUID(as_uuid=True),
+        ForeignKey("generated_artifacts.id", ondelete="SET NULL"),
+        index=True,
     )
     channel: Mapped[str] = mapped_column(String(40))
     content_type: Mapped[str] = mapped_column(String(60))
@@ -93,5 +114,10 @@ class AIStudioBulkOutput(Base):
     safe_error_message: Mapped[str | None] = mapped_column(String(500))
     cancellation_requested: Mapped[bool] = mapped_column(Boolean, default=False)
     stale_reason: Mapped[str | None] = mapped_column(String(500))
+    output_index: Mapped[int] = mapped_column(Integer, default=0)
+    operation: Mapped[str | None] = mapped_column(String(48))
+    image_output_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    media_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    source_media_ids_json: Mapped[list[str]] = mapped_column(JSONB, default=list)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

@@ -129,8 +129,21 @@ FAILURE_TAXONOMY: Final[dict[str, StudioFailureSpec]] = {
 }
 
 
+IMAGE_FAILURE_TAXONOMY: Final[dict[str, StudioFailureSpec]] = {
+    "checkpoint_invalid": StudioFailureSpec(
+        "checkpoint_invalid",
+        False,
+        "The saved AI checkpoint is invalid and must be reviewed.",
+        ("review_failure", "regenerate"),
+        False,
+    ),
+}
+
+
 def failure_spec(code: str) -> StudioFailureSpec:
-    return FAILURE_TAXONOMY.get(code, FAILURE_TAXONOMY["unknown_permanent"])
+    return IMAGE_FAILURE_TAXONOMY.get(
+        code, FAILURE_TAXONOMY.get(code, FAILURE_TAXONOMY["unknown_permanent"])
+    )
 
 
 def validate_failure_scenario(name: str | None) -> str:

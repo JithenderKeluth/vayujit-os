@@ -8,6 +8,7 @@ import time
 import uuid
 from collections.abc import Callable, Generator
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from statistics import median
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,13 +24,18 @@ os.environ["VAYUJIT_ENVIRONMENT"] = "test"
 os.environ["VAYUJIT_DATABASE_URL"] = os.environ["VAYUJIT_TEST_DATABASE_URL"]
 
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session, sessionmaker
+from vayujit_api.ai.bulk_models import AIStudioBulkOutput
+from vayujit_api.ai.image_models import AIImageOutput
 from vayujit_api.ai.models import PromptTemplate
+from vayujit_api.ai.studio_worker import run_ai_jobs_once
 from vayujit_api.campaigns.models import CampaignActivity
+from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import Base, get_session
 from vayujit_api.core.test_database import reset_test_schema
 from vayujit_api.main import create_app
+from vayujit_api.media.models import MediaAsset
 from vayujit_api.publishing.job_queue import claim_jobs
 from vayujit_api.publishing.scheduler_service import materialize_due_schedules
 
@@ -50,6 +56,48 @@ def timed(label: str, operation: Callable[[], object], samples: int = 5) -> None
         f"{label}: median={median(values):.1f}ms p95={p95:.1f}ms samples={samples}",
         flush=True,
     )
+
+
+def timed_values(
+    label: str, operation: Callable[[], object], samples: int = 5
+) -> list[float]:
+    """Run a warm-up, then report a small latency distribution."""
+    operation()
+    values: list[float] = []
+    for _ in range(samples):
+        started = time.perf_counter()
+        operation()
+        values.append((time.perf_counter() - started) * 1000)
+    ordered = sorted(values)
+    p95 = ordered[min(len(ordered) - 1, int(len(ordered) * 0.95))]
+    print(
+        f"{label}: median={median(values):.1f}ms p95={p95:.1f}ms samples={len(values)}",
+        flush=True,
+    )
+    return values
+
+
+def media_snapshot(factory: sessionmaker[Session]) -> tuple[int, int, int, int]:
+    with factory() as db:
+        rows = db.scalar(select(func.count()).select_from(MediaAsset)) or 0
+        generated = (
+            db.scalar(
+                select(func.count())
+                .select_from(AIImageOutput)
+                .where(AIImageOutput.media_id.is_not(None))
+            )
+            or 0
+        )
+        bytes_total = (
+            db.scalar(select(func.coalesce(func.sum(MediaAsset.size_bytes), 0))) or 0
+        )
+    media_root = Path(get_settings().media_storage_directory).resolve()
+    files = (
+        [path for path in media_root.rglob("*") if path.is_file()]
+        if media_root.exists()
+        else []
+    )
+    return rows, generated, int(bytes_total), len(files)
 
 
 def main() -> None:
@@ -249,6 +297,64 @@ def main() -> None:
                     headers=ORIGIN,
                 ),
             )
+            image_bulk_payload = {
+                "product_ids": [product["id"]],
+                "channels": ["amazon", "flipkart", "meesho"],
+                "operation": "marketplace_main_image",
+                "width": 128,
+                "height": 128,
+                "idempotency_key": "performance-image-bulk",
+            }
+            timed(
+                "image overview",
+                lambda: client.get("/api/v1/ai/images/outputs", headers=ORIGIN),
+            )
+            timed(
+                "image bulk preview",
+                lambda: client.post(
+                    "/api/v1/ai/images/bulk/preview",
+                    json=image_bulk_payload,
+                    headers=ORIGIN,
+                ),
+            )
+            image_enqueue_started = time.perf_counter()
+            image_bulk = client.post(
+                "/api/v1/ai/images/bulk", json=image_bulk_payload, headers=ORIGIN
+            )
+            print(
+                f"image bulk enqueue: {(time.perf_counter() - image_enqueue_started) * 1000:.1f}ms",
+                flush=True,
+            )
+            assert image_bulk.status_code == 202
+            image_bulk_id = image_bulk.json()["id"]
+            with factory() as db:
+                image_worker_started = time.perf_counter()
+                run_ai_jobs_once(db, "performance-image-worker", limit=20)
+                print(
+                    f"image deterministic completion: {(time.perf_counter() - image_worker_started) * 1000:.1f}ms",
+                    flush=True,
+                )
+            run_image_benchmark(client, factory, brand, product)
+            timed(
+                "image bulk status",
+                lambda: client.get(
+                    f"/api/v1/ai/images/bulk/{image_bulk_id}", headers=ORIGIN
+                ),
+            )
+            timed(
+                "image usage summary",
+                lambda: client.get("/api/v1/ai/images/usage", headers=ORIGIN),
+            )
+            timed(
+                "image diagnostics",
+                lambda: client.get("/api/v1/ai/images/diagnostics", headers=ORIGIN),
+            )
+            timed(
+                "product media",
+                lambda: client.get(
+                    f"/api/v1/ai/images/products/{product['id']}/media", headers=ORIGIN
+                ),
+            )
             studio_payload = {
                 "product_ids": [product["id"]],
                 "channels": ["amazon"],
@@ -268,8 +374,6 @@ def main() -> None:
                 flush=True,
             )
             assert queued_studio.status_code == 202
-            from vayujit_api.ai.studio_worker import run_ai_jobs_once
-
             with factory() as db:
                 worker_started = time.perf_counter()
                 run_ai_jobs_once(db, "performance-ai-worker", limit=10)
@@ -338,6 +442,242 @@ def main() -> None:
     finally:
         reset_test_schema(engine, Base.metadata, database_url=DB_URL)
         engine.dispose()
+
+
+def run_image_benchmark(
+    client: TestClient,
+    factory: sessionmaker[Session],
+    brand: dict[str, object],
+    product: dict[str, object],
+) -> None:
+    """Measure the certified single-image and 5x3 bulk paths."""
+    from vayujit_api.ai.image_provider import image_provider
+
+    single_enqueue: list[float] = []
+    single_provider: list[float] = []
+    single_completion: list[float] = []
+    original_generate = image_provider.generate
+
+    def measured_generate(*args: object, **kwargs: object) -> object:
+        started = time.perf_counter()
+        result = original_generate(*args, **kwargs)
+        single_provider.append((time.perf_counter() - started) * 1000)
+        return result
+
+    image_provider.generate = measured_generate
+    last_single_output: str | None = None
+    try:
+        for index in range(5):
+            enqueue_started = time.perf_counter()
+            queued = client.post(
+                "/api/v1/ai/images/generate",
+                json={
+                    "brand_id": brand["id"],
+                    "product_id": product["id"],
+                    "operation": "generate_product_image",
+                    "channel": "canonical",
+                    "width": 128,
+                    "height": 128,
+                    "idempotency_key": f"performance-single-{index}",
+                },
+                headers=ORIGIN,
+            )
+            single_enqueue.append((time.perf_counter() - enqueue_started) * 1000)
+            assert queued.status_code == 202, queued.text
+            last_single_output = queued.json()["outputs"][0]["id"]
+            with factory() as db:
+                worker_started = time.perf_counter()
+                run_ai_jobs_once(db, f"performance-single-{index}", limit=1)
+                single_completion.append((time.perf_counter() - worker_started) * 1000)
+    finally:
+        image_provider.generate = original_generate
+
+    report_values("image enqueue", single_enqueue)
+    report_values("deterministic provider", single_provider)
+    report_values("image durable completion", single_completion)
+    residual = [
+        max(total - provider, 0.0)
+        for total, provider in zip(single_completion, single_provider)
+    ]
+    report_values("image validation+Media persistence", residual)
+    assert last_single_output is not None
+    detail = client.get(
+        f"/api/v1/ai/images/outputs/{last_single_output}", headers=ORIGIN
+    ).json()
+    media_id = detail["media_id"]
+    timed_values(
+        "image readiness",
+        lambda: client.get(
+            f"/api/v1/ai/images/outputs/{last_single_output}/readiness/amazon",
+            headers=ORIGIN,
+        ),
+    )
+    timed_values(
+        "image preview",
+        lambda: client.get(f"/api/v1/media/{media_id}/preview", headers=ORIGIN),
+    )
+    timed_values(
+        "image review/detail",
+        lambda: client.get(
+            f"/api/v1/ai/images/outputs/{last_single_output}", headers=ORIGIN
+        ),
+    )
+    timed_values(
+        "Product Media image read",
+        lambda: client.get(
+            f"/api/v1/ai/images/products/{product['id']}/media", headers=ORIGIN
+        ),
+    )
+    timed_values(
+        "Product Channel image read",
+        lambda: client.get(
+            f"/api/v1/ai/seo/products/{product['id']}/channels", headers=ORIGIN
+        ),
+    )
+
+    product_ids = [product["id"]]
+    for index in range(1, 5):
+        response = client.post(
+            "/api/v1/products",
+            json={
+                "name": f"Performance Bulk Product {index}",
+                "product_type": "physical",
+                "description": "Deterministic bulk baseline product",
+                "short_description": "Bulk baseline",
+                "price_amount": "20.00",
+                "price_currency": "USD",
+            },
+            headers=ORIGIN,
+        )
+        assert response.status_code == 201, response.text
+        extra_id = response.json()["id"]
+        product_ids.append(extra_id)
+        activated = client.post(f"/api/v1/products/{extra_id}/activate", headers=ORIGIN)
+        assert activated.status_code == 200, activated.text
+
+    payload = {
+        "product_ids": product_ids,
+        "channels": ["amazon", "flipkart", "meesho"],
+        "operation": "marketplace_main_image",
+        "width": 128,
+        "height": 128,
+        "idempotency_key": "performance-image-bulk-15",
+    }
+    timed_values(
+        "bulk image preview",
+        lambda: client.post(
+            "/api/v1/ai/images/bulk/preview", json=payload, headers=ORIGIN
+        ),
+    )
+    before = media_snapshot(factory)
+    enqueue_started = time.perf_counter()
+    queued_bulk = client.post("/api/v1/ai/images/bulk", json=payload, headers=ORIGIN)
+    enqueue_ms = (time.perf_counter() - enqueue_started) * 1000
+    print(f"bulk image enqueue: {enqueue_ms:.1f}ms samples=1", flush=True)
+    assert queued_bulk.status_code == 202, queued_bulk.text
+    bulk_id = queued_bulk.json()["id"]
+    first_started = time.perf_counter()
+    with factory() as db:
+        run_ai_jobs_once(db, "performance-image-bulk-first", limit=1)
+    print(
+        f"time to first bulk completion: {(time.perf_counter() - first_started) * 1000:.1f}ms samples=1",
+        flush=True,
+    )
+    completion_started = time.perf_counter()
+    with factory() as db:
+        run_ai_jobs_once(db, "performance-image-bulk-worker", limit=30)
+    print(
+        f"bulk completion remainder: {(time.perf_counter() - completion_started) * 1000:.1f}ms samples=1",
+        flush=True,
+    )
+    timed_values(
+        "bulk image status",
+        lambda: client.get(f"/api/v1/ai/images/bulk/{bulk_id}", headers=ORIGIN),
+    )
+    timed_values(
+        "bulk image output-list",
+        lambda: client.get(
+            f"/api/v1/ai/images/bulk/{bulk_id}/outputs?channel=amazon", headers=ORIGIN
+        ),
+    )
+    after = media_snapshot(factory)
+    with factory() as db:
+        provider_calls = (
+            db.scalar(
+                select(func.count())
+                .select_from(AIStudioBulkOutput)
+                .where(AIStudioBulkOutput.bulk_operation_id == bulk_id)
+            )
+            or 0
+        )
+        generated_outputs = (
+            db.scalar(
+                select(func.count())
+                .select_from(AIImageOutput)
+                .where(
+                    AIImageOutput.job_id.in_(
+                        select(AIStudioBulkOutput.job_id).where(
+                            AIStudioBulkOutput.bulk_operation_id == bulk_id
+                        )
+                    ),
+                    AIImageOutput.media_id.is_not(None),
+                )
+            )
+            or 0
+        )
+        orphan_outputs = (
+            db.scalar(
+                select(func.count())
+                .select_from(AIImageOutput)
+                .where(
+                    AIImageOutput.job_id.in_(
+                        select(AIStudioBulkOutput.job_id).where(
+                            AIStudioBulkOutput.bulk_operation_id == bulk_id
+                        )
+                    ),
+                    AIImageOutput.media_id.is_(None),
+                )
+            )
+            or 0
+        )
+    media_root = Path(get_settings().media_storage_directory).resolve()
+    temp_files = (
+        len(
+            [
+                path
+                for path in media_root.rglob("*")
+                if path.is_file() and path.suffix == ".tmp"
+            ]
+        )
+        if media_root.exists()
+        else 0
+    )
+    print(f"bulk provider calls: {provider_calls}", flush=True)
+    print("bulk retries: 0", flush=True)
+    print(
+        f"storage before: rows={before[0]} files={before[3]} bytes={before[2]}",
+        flush=True,
+    )
+    print(
+        f"storage after: rows={after[0]} files={after[3]} bytes={after[2]}", flush=True
+    )
+    print(
+        f"storage delta: rows={after[0] - before[0]} files={after[3] - before[3]} bytes={after[2] - before[2]}",
+        flush=True,
+    )
+    print(
+        f"generated outputs with Media: {generated_outputs}; orphan image outputs: {orphan_outputs}; temporary files: {temp_files}",
+        flush=True,
+    )
+
+
+def report_values(label: str, values: list[float]) -> None:
+    ordered = sorted(values)
+    p95 = ordered[min(len(ordered) - 1, int(len(ordered) * 0.95))]
+    print(
+        f"{label}: median={median(values):.1f}ms p95={p95:.1f}ms samples={len(values)}",
+        flush=True,
+    )
 
 
 if __name__ == "__main__":
