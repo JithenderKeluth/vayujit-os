@@ -1,4 +1,4 @@
-﻿from typing import Annotated
+from typing import Annotated
 
 from fastapi import Depends, FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -40,6 +40,7 @@ from vayujit_api.publishing.scheduler_router import operations_router as schedul
 from vayujit_api.publishing.scheduler_router import router as scheduler_router
 from vayujit_api.settings.router import router as settings_router
 from vayujit_api.settings.router import system_router
+from vayujit_api.social.router import router as social_router
 from vayujit_api.workflows.router import router as workflows_router
 
 DatabaseSession = Annotated[Session, Depends(get_session)]
@@ -84,6 +85,7 @@ def create_app() -> FastAPI:
     application.include_router(settings_router)
     application.include_router(system_router)
     application.include_router(hardening_system_router)
+    application.include_router(social_router)
 
     @application.on_event("startup")
     def restore_durable_campaign_waits() -> None:

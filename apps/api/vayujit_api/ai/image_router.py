@@ -348,13 +348,13 @@ def image_bulk_preview(data: ImageBulkRequest, db: DB, owner: Owner) -> ImageBul
 
 @router.post("/bulk", response_model=object, status_code=202)
 @router.post("/bulk/generate", response_model=object, status_code=202)
-def image_bulk_generate(data: ImageBulkRequest, db: DB, owner: Owner):
+def image_bulk_generate(data: ImageBulkRequest, db: DB, owner: Owner) -> object:
     operation = create_image_bulk(db, owner, data)
     return image_bulk_status(db, owner, operation.id)
 
 
 @router.get("/bulk", response_model=list[object])
-def image_bulk_list(db: DB, owner: Owner):
+def image_bulk_list(db: DB, owner: Owner) -> list[object]:
     rows = db.scalars(
         select(AIStudioBulkOperation)
         .where(
@@ -368,7 +368,7 @@ def image_bulk_list(db: DB, owner: Owner):
 
 
 @router.get("/bulk/{bulk_id}", response_model=object)
-def image_bulk_get(bulk_id: uuid.UUID, db: DB, owner: Owner):
+def image_bulk_get(bulk_id: uuid.UUID, db: DB, owner: Owner) -> object:
     return image_bulk_status(db, owner, bulk_id)
 
 
@@ -380,7 +380,7 @@ def image_bulk_outputs(
     product_id: uuid.UUID | None = None,
     channel: str | None = None,
     state: str | None = None,
-):
+) -> dict[str, object]:
     status = image_bulk_status(db, owner, bulk_id)
     items = status.outputs
     if product_id:
@@ -395,7 +395,7 @@ def image_bulk_outputs(
 @router.post("/bulk/{bulk_id}/retry-failed")
 def image_bulk_retry(
     bulk_id: uuid.UUID, db: DB, owner: Owner, data: ImageBulkRetryRequest | None = None
-):
+) -> dict[str, object]:
     retried, rejected = retry_image_bulk(db, owner, bulk_id, data.output_ids if data else [])
     return {
         "status": "queued" if retried else "unchanged",
@@ -408,7 +408,7 @@ def image_bulk_retry(
 @router.post("/bulk/{bulk_id}/cancel")
 def image_bulk_cancel(
     bulk_id: uuid.UUID, db: DB, owner: Owner, data: ImageBulkCancelRequest | None = None
-):
+) -> dict[str, object]:
     cancelled = cancel_image_bulk(db, owner, bulk_id, data.output_ids if data else [])
     return {
         "status": "cancelled",
@@ -418,7 +418,7 @@ def image_bulk_cancel(
 
 
 @router.post("/bulk/outputs/{output_id}/retry")
-def image_bulk_output_retry(output_id: uuid.UUID, db: DB, owner: Owner):
+def image_bulk_output_retry(output_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
     row = db.scalar(
         select(AIStudioBulkOutput).where(
             AIStudioBulkOutput.id == output_id,
@@ -433,7 +433,7 @@ def image_bulk_output_retry(output_id: uuid.UUID, db: DB, owner: Owner):
 
 
 @router.post("/bulk/outputs/{output_id}/cancel")
-def image_bulk_output_cancel(output_id: uuid.UUID, db: DB, owner: Owner):
+def image_bulk_output_cancel(output_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
     row = db.scalar(
         select(AIStudioBulkOutput).where(
             AIStudioBulkOutput.id == output_id,
@@ -448,7 +448,7 @@ def image_bulk_output_cancel(output_id: uuid.UUID, db: DB, owner: Owner):
 
 
 @router.get("/usage")
-def image_usage(db: DB, owner: Owner):
+def image_usage(db: DB, owner: Owner) -> dict[str, object]:
     jobs = list(
         db.scalars(
             select(AIStudioJob).where(
@@ -507,7 +507,7 @@ def image_usage(db: DB, owner: Owner):
 
 
 @router.get("/diagnostics")
-def image_diagnostics(db: DB, owner: Owner):
+def image_diagnostics(db: DB, owner: Owner) -> dict[str, object]:
     jobs = list(
         db.scalars(
             select(AIStudioJob).where(

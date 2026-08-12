@@ -56,7 +56,11 @@ def create_schedule(db: Session, owner: User, data: ScheduleCreate) -> Publishin
         raise ValueError("A recurring schedule requires a recurrence rule.")
     if data.schedule_type == "one_time" and data.recurrence:
         raise ValueError("A one-time schedule cannot have a recurrence rule.")
-    fold = data.recurrence.fold if data.recurrence else 0
+    fold = (
+        data.fold
+        if data.schedule_type == "one_time"
+        else (data.recurrence.fold if data.recurrence else 0)
+    )
     scheduled_utc = local_to_utc(data.local_scheduled_at, data.timezone_name, fold)
     timestamp = utcnow()
     value = PublishingSchedule(

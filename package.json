@@ -157,7 +157,17 @@
     "test:ai:images:security": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_ai_image_security.py",
     "test:ai:images:bulk": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_images_bulk.py",
     "test:ai:images:usage": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_images_usage.py",
-    "test:ai:images:diagnostics": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_images_diagnostics.py"
+    "test:ai:images:diagnostics": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ai_images_diagnostics.py",
+    "test:social": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_social.py",
+    "test:social:integration": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_social_integration.py",
+    "test:social:workers": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_social_workers.py",
+    "test:social:e2e": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_social_e2e.py",
+    "test:social:recovery": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_social_recovery.py",
+    "test:social:bulk": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_social_bulk.py",
+    "test:social:security": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_social_security.py",
+    "test:social:platforms": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_social_platform_e2e.py",
+    "test:social:acceptance": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_social_acceptance.py",
+    "test:social:static": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_social_static_acceptance.py"
   },
   "devDependencies": {
     "concurrently": "9.2.4",

@@ -48,6 +48,9 @@ CHANNEL_RULES: dict[str, dict[str, int]] = {
     "meesho": {"title": 120, "description": 1500, "bullets": 8, "search_terms": 200},
     "shopify": {"title": 255, "description": 5000, "bullets": 10, "search_terms": 500},
     "wordpress": {"title": 180, "description": 10000, "bullets": 12, "search_terms": 500},
+    "instagram": {"title": 120, "description": 2200, "bullets": 5, "search_terms": 30},
+    "facebook": {"title": 120, "description": 5000, "bullets": 5, "search_terms": 50},
+    "youtube": {"title": 100, "description": 5000, "bullets": 5, "search_terms": 50},
     "canonical": {"title": 240, "description": 10000, "bullets": 12, "search_terms": 500},
 }
 SUPPORTED_CLAIMS = ("waterproof", "organic", "5-year warranty", "made in italy", "guaranteed")
@@ -311,6 +314,9 @@ def _content(
         "meesho": "Meesho Search Optimization",
         "shopify": "Shopify product page",
         "wordpress": "WordPress product page",
+        "instagram": "Instagram social content",
+        "facebook": "Facebook social content",
+        "youtube": "YouTube social content",
         "canonical": "Canonical Product Content",
     }[channel]
     safe_instruction = (instructions or "").replace("<", " ").replace(">", " ").strip()[:2000]
