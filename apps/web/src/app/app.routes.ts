@@ -50,6 +50,42 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'social',
+    loadComponent: () =>
+      import('./social/social-workspace.component').then((m) => m.SocialWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'social/compose',
+    loadComponent: () =>
+      import('./social/social-workspace.component').then((m) => m.SocialWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'social/accounts',
+    loadComponent: () =>
+      import('./social/social-workspace.component').then((m) => m.SocialWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'social/analytics',
+    loadComponent: () =>
+      import('./social/social-workspace.component').then((m) => m.SocialWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'social/recovery',
+    loadComponent: () =>
+      import('./social/social-workspace.component').then((m) => m.SocialWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'social/settings',
+    loadComponent: () =>
+      import('./social/social-workspace.component').then((m) => m.SocialWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'marketplaces',
     loadComponent: () =>
       import('./marketplaces/marketplace-home.component').then((m) => m.MarketplaceHomeComponent),

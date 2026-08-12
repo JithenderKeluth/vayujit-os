@@ -11,7 +11,17 @@ SECRET_PATTERN = re.compile(
     r"(?:sk-[A-Za-z0-9_-]{12,}|bearer\s+[A-Za-z0-9._-]{12,}|password\s*[:=])", re.I
 )
 
-Channel = Literal["amazon", "flipkart", "meesho", "shopify", "wordpress", "canonical"]
+Channel = Literal[
+    "amazon",
+    "flipkart",
+    "meesho",
+    "shopify",
+    "wordpress",
+    "instagram",
+    "facebook",
+    "youtube",
+    "canonical",
+]
 ContentType = Literal[
     "marketplace_listing",
     "product_description",

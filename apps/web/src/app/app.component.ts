@@ -1,4 +1,4 @@
-﻿import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './auth/auth.service';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -23,6 +23,7 @@ export class AppComponent {
     ['Products', '/products'],
     ['Campaigns', '/campaigns'],
     ['Calendar', '/calendar'],
+    ['Social', '/social'],
     ['AI Studio', '/ai/studio'],
     ['AI Images', '/ai/images'],
     ['Brand Voices', '/ai/brand-voices'],

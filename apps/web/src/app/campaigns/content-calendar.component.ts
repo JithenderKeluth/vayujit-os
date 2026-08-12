@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import type { CampaignCalendar, CampaignCalendarEvent } from '@vayujit/shared';
 import { CampaignService } from './campaign.service';
+import { SocialCalendarEvent, SocialService } from '../social/social.service';
 
 @Component({
   selector: 'app-content-calendar',
@@ -32,7 +33,40 @@ import { CampaignService } from './campaign.service';
         >
         <button (click)="previous()" aria-label="Previous period">Previous</button
         ><button (click)="next()" aria-label="Next period">Next</button>
+        <label
+          >Social platform<select [(ngModel)]="socialPlatform" (ngModelChange)="loadSocial()">
+            <option value="">All</option>
+            <option value="instagram">Instagram</option>
+            <option value="facebook">Facebook</option>
+            <option value="youtube">YouTube</option>
+          </select></label
+        >
       </nav>
+      <section class="panel" aria-labelledby="social-calendar-title">
+        <h2 id="social-calendar-title">Social publishing</h2>
+        @if (!socialEvents().length) {
+          <p>No Social posts are scheduled in this period.</p>
+        } @else {
+          <div class="calendar-social-list" role="list">
+            @for (event of socialEvents(); track event.id) {
+              <article role="listitem" class="calendar-event">
+                <time [attr.datetime]="event.scheduled_at_utc">{{
+                  event.scheduled_at_utc | date: 'medium'
+                }}</time>
+                <strong>{{ event.platform }} / {{ event.content_type }}</strong>
+                <span
+                  >{{ event.status }} ? {{ event.timezone || 'UTC' }} ? v{{
+                    event.artifact_version
+                  }}</span
+                >
+                @if (event.failure_code) {
+                  <span class="error">{{ event.failure_code }}</span>
+                }
+              </article>
+            }
+          </div>
+        }
+      </section>
       <p aria-live="polite">
         {{ start() | date: 'mediumDate' }} – {{ end() | date: 'mediumDate' }} · {{ view() }} view
       </p>
@@ -109,13 +143,16 @@ import { CampaignService } from './campaign.service';
 })
 export class ContentCalendarComponent {
   private readonly api = inject(CampaignService);
+  private readonly social = inject(SocialService);
   readonly events = signal<CampaignCalendarEvent[]>([]);
+  readonly socialEvents = signal<SocialCalendarEvent[]>([]);
   readonly projection = signal<CampaignCalendar | null>(null);
   readonly loading = signal(true);
   readonly view = signal<'month' | 'week' | 'agenda'>('month');
   readonly start = signal(new Date(new Date().getFullYear(), new Date().getMonth(), 1));
   readonly end = signal(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 1));
   connector = '';
+  socialPlatform = '';
   constructor() {
     void this.load();
   }
@@ -140,11 +177,23 @@ export class ContentCalendarComponent {
     this.end.set(new Date(value.getFullYear(), value.getMonth(), 1));
     void this.load();
   }
+  loadSocial(): void {
+    const params: Record<string, string> = {
+      start: this.start().toISOString(),
+      end: this.end().toISOString(),
+    };
+    if (this.socialPlatform) params['platform'] = this.socialPlatform;
+    void this.social
+      .calendar(params)
+      .then((events) => this.socialEvents.set(events))
+      .catch(() => this.socialEvents.set([]));
+  }
   next(): void {
     const value = this.start();
     this.start.set(new Date(value.getFullYear(), value.getMonth() + 1, 1));
     this.end.set(new Date(value.getFullYear(), value.getMonth() + 2, 1));
     void this.load();
+    this.loadSocial();
   }
   private async load(): Promise<void> {
     this.loading.set(true);
@@ -162,5 +211,6 @@ export class ContentCalendarComponent {
           : result.days.flatMap((day) => day.events),
     );
     this.loading.set(false);
+    this.loadSocial();
   }
 }

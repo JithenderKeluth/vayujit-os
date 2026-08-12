@@ -31,6 +31,7 @@ class ScheduleCreate(BaseModel):
     ] = "publish"
     local_scheduled_at: datetime
     timezone_name: str = Field(min_length=1, max_length=100)
+    fold: Literal[0, 1] = 0
     schedule_type: Literal["one_time", "recurring"] = "one_time"
     recurrence: RecurrenceRule | None = None
     recurrence_end_at: datetime | None = None

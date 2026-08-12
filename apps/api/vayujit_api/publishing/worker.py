@@ -57,6 +57,7 @@ from vayujit_api.publishing.service import (
     move_execution_to_draft,
     reconcile_execution,
 )
+from vayujit_api.social.worker import execute_social_job
 from vayujit_api.workflows.service import (
     resume_publishing_waits,
     resume_terminal_publishing_waits,
@@ -133,10 +134,19 @@ def execute_job(job_id: uuid.UUID, worker_id: str) -> None:
             owner = db.get(User, job.owner_id)
             if not owner:
                 raise ValueError("Publishing job owner no longer exists.")
+            social_result = None
+            if job.connector_key.startswith("social_fake:"):
+                social_result = execute_social_job(db, job)
+                succeeded = social_result.status == "succeeded"
+                retryable = social_result.retryable
+                error_code = social_result.error_code
+                safe_message = social_result.safe_message
             amazon_account_id = parse_account_id(job.connector_key)
             flipkart_account_id = parse_flipkart_account_id(job.connector_key)
             meesho_account_id = parse_meesho_account_id(job.connector_key)
-            if amazon_account_id is not None:
+            if social_result is not None:
+                pass
+            elif amazon_account_id is not None:
                 amazon_result = execute_amazon_job(db, job, account_id=amazon_account_id)
                 succeeded = amazon_result.status == "succeeded"
                 retryable = amazon_result.retryable

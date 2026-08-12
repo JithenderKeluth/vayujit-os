@@ -13,7 +13,7 @@ from sqlalchemy import (
     Time,
     UniqueConstraint,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from vayujit_api.core.database import Base
@@ -200,6 +200,12 @@ class CampaignActivity(Base):
         unique=True,
         index=True,
     )
+    social_post_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    social_platform: Mapped[str | None] = mapped_column(String(24), index=True)
+    social_account_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    social_content_type: Mapped[str | None] = mapped_column(String(48))
+    social_media_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    social_timezone_name: Mapped[str | None] = mapped_column(String(100))
     replaced_by_activity_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("campaign_activities.id", ondelete="SET NULL")
     )

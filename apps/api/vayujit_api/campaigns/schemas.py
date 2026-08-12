@@ -164,6 +164,12 @@ class ActivityResponse(BaseModel):
     safe_failure_message: str | None
     correlation_id: str | None
     replaces_activity_id: uuid.UUID | None = None
+    social_post_id: uuid.UUID | None = None
+    social_platform: str | None = None
+    social_account_id: uuid.UUID | None = None
+    social_content_type: str | None = None
+    social_media_ids: list[str] = []
+    social_timezone_name: str | None = None
     replaced_by_activity_id: uuid.UUID | None = None
     replacement_reason: str | None = None
     replacement_created_at: datetime | None = None
