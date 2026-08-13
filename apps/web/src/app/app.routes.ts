@@ -267,6 +267,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'ai/video',
+    loadComponent: () => import('./ai/ai-video.component').then((m) => m.AIVideoComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'ai/images',
     loadComponent: () =>
       import('./ai/ai-image-studio.component').then((m) => m.AIImageStudioComponent),

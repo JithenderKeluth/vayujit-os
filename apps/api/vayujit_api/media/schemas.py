@@ -9,7 +9,17 @@ class MediaResponse(BaseModel):
     id: uuid.UUID
     original_filename: str
     safe_filename: str
-    mime_type: Literal["image/jpeg", "image/png", "image/webp"]
+    mime_type: Literal[
+        "image/jpeg",
+        "image/png",
+        "image/webp",
+        "video/mp4",
+        "video/webm",
+        "audio/mpeg",
+        "audio/wav",
+        "audio/ogg",
+        "audio/mp4",
+    ]
     size_bytes: int
     width: int
     height: int

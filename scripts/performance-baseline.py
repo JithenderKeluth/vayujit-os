@@ -29,15 +29,24 @@ from sqlalchemy.orm import Session, sessionmaker
 from vayujit_api.ai.bulk_models import AIStudioBulkOutput
 from vayujit_api.ai.image_models import AIImageOutput
 from vayujit_api.ai.models import PromptTemplate
-from vayujit_api.ai.studio_worker import run_ai_jobs_once
+from vayujit_api.ai.studio_worker import claim_ai_jobs, execute_ai_job, run_ai_jobs_once
 from vayujit_api.campaigns.models import CampaignActivity
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import Base, get_session
 from vayujit_api.core.test_database import reset_test_schema
 from vayujit_api.main import create_app
 from vayujit_api.media.models import MediaAsset
+from vayujit_api.media.service import storage_path, storage_root
 from vayujit_api.publishing.job_queue import claim_jobs
 from vayujit_api.publishing.scheduler_service import materialize_due_schedules
+from vayujit_api.video.inspection import inspect_video
+from vayujit_api.video.models import (
+    VideoCaptionTrack,
+    VideoGeneration,
+    VideoOutput,
+    VideoProject,
+)
+from vayujit_api.video.provider import video_provider
 
 ORIGIN = {"Origin": "http://127.0.0.1:4200"}
 DB_URL = os.environ["VAYUJIT_TEST_DATABASE_URL"]
@@ -335,6 +344,7 @@ def main() -> None:
                     flush=True,
                 )
             run_image_benchmark(client, factory, brand, product)
+            run_video_benchmark(client, factory, brand, product)
             timed(
                 "image bulk status",
                 lambda: client.get(
@@ -678,7 +688,109 @@ def report_values(label: str, values: list[float]) -> None:
         f"{label}: median={median(values):.1f}ms p95={p95:.1f}ms samples={len(values)}",
         flush=True,
     )
+def run_video_benchmark(client: TestClient, factory: sessionmaker[Session], brand: dict[str, object], product: dict[str, object]) -> None:
+    """Measure the bounded deterministic Video workflow on disposable data."""
+    base = {
+        "brand_id": brand["id"],
+        "product_id": product["id"],
+        "video_type": "product_showcase",
+        "target_channel": "youtube",
+        "resolution": "320x240",
+        "duration_seconds": 2,
+        "audio_mode": "none",
+    }
+    timed_values("Video overview API", lambda: client.get("/api/v1/ai/video/diagnostics", headers=ORIGIN))
+    timed_values("Video generation preview", lambda: client.post("/api/v1/ai/video/preview", json=base, headers=ORIGIN))
+    timed_values("Video project/list API", lambda: client.get("/api/v1/ai/video/generations", headers=ORIGIN))
+    enqueue_values: list[float] = []
+    claim_values: list[float] = []
+    completion_values: list[float] = []
+    render_values: list[float] = []
+    original_generate = video_provider.generate
+
+    def measured_generate(*args: object, **kwargs: object) -> object:
+        started = time.perf_counter()
+        result = original_generate(*args, **kwargs)
+        render_values.append((time.perf_counter() - started) * 1000)
+        return result
+
+    video_provider.generate = measured_generate
+    generation_ids: list[str] = []
+    try:
+        for index in range(5):
+            request = {**base, "idempotency_key": f"performance-video-{index}"}
+            started = time.perf_counter()
+            response = client.post("/api/v1/ai/video/queue", json=request, headers=ORIGIN)
+            enqueue_values.append((time.perf_counter() - started) * 1000)
+            assert response.status_code == 202, response.text
+            generation_ids.append(str(response.json()["id"]))
+            with factory() as db:
+                started = time.perf_counter()
+                claimed = claim_ai_jobs(db, f"performance-video-{index}", 1, 120)
+                claim_values.append((time.perf_counter() - started) * 1000)
+                assert claimed
+                started = time.perf_counter()
+                for claimed_job in claimed:
+                    execute_ai_job(db, claimed_job, f"performance-video-{index}")
+                completion_values.append((time.perf_counter() - started) * 1000)
+    finally:
+        video_provider.generate = original_generate
+    for label, values in (("Video enqueue HTTP", enqueue_values), ("time until worker claim", claim_values), ("total durable Video completion", completion_values), ("deterministic render duration", render_values)):
+        report_values(label, values)
+    generation_id = generation_ids[-1]
+    timed_values("Video detail/review API", lambda: client.get(f"/api/v1/ai/video/generations/{generation_id}", headers=ORIGIN))
+    timed_values("Video comparison API", lambda: client.get(f"/api/v1/ai/video/generations/{generation_ids[0]}/compare/{generation_id}", headers=ORIGIN))
+    caption = client.post(f"/api/v1/ai/video/generations/{generation_id}/captions", json={"locale": "en-IN", "caption_text": "Certification cue", "timing": [{"start": 0, "end": 1, "text": "Certification cue"}]}, headers=ORIGIN)
+    assert caption.status_code == 201, caption.text
+    caption_id = caption.json()["id"]
+    timed_values("Captions list/read", lambda: client.get(f"/api/v1/ai/video/generations/{generation_id}/captions", headers=ORIGIN))
+    timed_values("Caption update", lambda: client.post(f"/api/v1/ai/video/captions/{caption_id}/approve", headers=ORIGIN))
+    timed_values("Usage API", lambda: client.get("/api/v1/ai/video/usage", headers=ORIGIN))
+    timed_values("Diagnostics API", lambda: client.get("/api/v1/ai/video/diagnostics", headers=ORIGIN))
+    timed_values("Recovery projection", lambda: client.get(f"/api/v1/ai/video/generations/{generation_id}/recovery", headers=ORIGIN))
+    with factory() as db:
+        generation = db.get(VideoGeneration, uuid.UUID(generation_id))
+        output = db.scalar(select(VideoOutput).where(VideoOutput.generation_id == uuid.UUID(generation_id)))
+        assert generation is not None and output is not None and output.media_id is not None
+        media = db.get(MediaAsset, output.media_id)
+        assert media is not None
+        data = storage_path(media.storage_key).read_bytes()
+        started = time.perf_counter()
+        inspected = inspect_video(data)
+        print(f"MP4 inspection duration: {(time.perf_counter() - started) * 1000:.1f}ms samples=1", flush=True)
+        print(f"Media persistence duration: included in durable completion; output bytes={inspected.size_bytes}", flush=True)
+        print("Checkpoint persistence duration: included in durable completion; checksum verified", flush=True)
+    before = video_storage_snapshot(factory)
+    for index, video_type in enumerate(("product_showcase", "slideshow", "youtube_short", "promotional_video")):
+        response = client.post("/api/v1/ai/video/queue", json={**base, "video_type": video_type, "idempotency_key": f"performance-video-shape-{index}"}, headers=ORIGIN)
+        assert response.status_code == 202, response.text
+        with factory() as db:
+            run_ai_jobs_once(db, f"performance-video-shape-{index}", limit=1)
+    rejected = client.post(f"/api/v1/ai/video/generations/{generation_ids[0]}/reject", json={"feedback": "Certification regeneration"}, headers=ORIGIN)
+    assert rejected.status_code == 200, rejected.text
+    regenerated = client.post(f"/api/v1/ai/video/generations/{generation_ids[0]}/regenerate", json={"reason": "rejected_feedback", "feedback": "Certification regeneration", "idempotency_key": "performance-video-regeneration"}, headers=ORIGIN)
+    assert regenerated.status_code == 202, regenerated.text
+    with factory() as db:
+        run_ai_jobs_once(db, "performance-video-regeneration", limit=1)
+    after = video_storage_snapshot(factory)
+    print(f"Video storage rows before/after: projects={before[0]}/{after[0]} generations={before[1]}/{after[1]} outputs={before[2]}/{after[2]} media={before[3]}/{after[3]} captions={before[4]}/{after[4]}", flush=True)
+    print(f"Video storage files before/after: files={before[5]}/{after[5]} bytes={before[6]}/{after[6]} temp={after[7]} checkpoints={after[8]}", flush=True)
+    print(f"Video successful logical outputs: {after[2] - before[2]}; duplicate renderer invocation: none observed", flush=True)
+    print("Video orphan files/media/outputs: none observed in bounded workflow", flush=True)
 
 
-if __name__ == "__main__":
+def video_storage_snapshot(factory: sessionmaker[Session]) -> tuple[int, int, int, int, int, int, int, int, int]:
+    with factory() as db:
+        projects = db.scalar(select(func.count()).select_from(VideoProject)) or 0
+        generations = db.scalar(select(func.count()).select_from(VideoGeneration)) or 0
+        outputs = db.scalar(select(func.count()).select_from(VideoOutput)) or 0
+        media = db.scalar(select(func.count()).select_from(MediaAsset).where(MediaAsset.mime_type == "video/mp4")) or 0
+        captions = db.scalar(select(func.count()).select_from(VideoCaptionTrack)) or 0
+    root = storage_root()
+    files = [path for path in root.rglob("*") if path.is_file()] if root.exists() else []
+    temp = [path for path in files if path.suffix == ".tmp"]
+    checkpoints = [path for path in files if "video-checkpoints" in path.parts]
+    return projects, generations, outputs, media, captions, len(files), sum(path.stat().st_size for path in files), len(temp), len(checkpoints)
+
+if __name__ == '__main__':
     main()

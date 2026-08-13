@@ -1,4 +1,4 @@
-import hashlib
+﻿import hashlib
 import os
 import re
 import struct
@@ -22,6 +22,12 @@ MIME_EXTENSIONS = {
     "image/jpeg": {"jpg", "jpeg"},
     "image/png": {"png"},
     "image/webp": {"webp"},
+    "video/mp4": {"mp4"},
+    "video/webm": {"webm"},
+    "audio/mpeg": {"mp3"},
+    "audio/wav": {"wav"},
+    "audio/ogg": {"ogg"},
+    "audio/mp4": {"m4a"},
 }
 SAFE_FILENAME = re.compile(r"[^A-Za-z0-9._-]+")
 
@@ -113,7 +119,20 @@ def validate_upload(
         raise HTTPException(422, "Media MIME type and extension do not match.")
     if not data or len(data) > settings.media_max_size_bytes:
         raise HTTPException(413, "Media file exceeds the configured upload limit.")
-    width, height = image_dimensions(data, declared_mime)
+    if declared_mime.startswith("audio/"):
+        if declared_mime == "audio/mpeg" and not (
+            data.startswith(b"ID3") or data.startswith(b"\xff\xfb")
+        ):
+            raise HTTPException(422, "Media file is malformed or corrupted.")
+        if declared_mime == "audio/wav" and not data.startswith(b"RIFF"):
+            raise HTTPException(422, "Media file is malformed or corrupted.")
+        if declared_mime == "audio/ogg" and not data.startswith(b"OggS"):
+            raise HTTPException(422, "Media file is malformed or corrupted.")
+        if declared_mime == "audio/mp4" and b"ftyp" not in data[:64]:
+            raise HTTPException(422, "Media file is malformed or corrupted.")
+        width, height = 1, 1
+    else:
+        width, height = image_dimensions(data, declared_mime)
     if max(width, height) > settings.media_max_dimension:
         raise HTTPException(422, "Media dimensions exceed the configured limit.")
     return safe_filename, extension, width, height, hashlib.sha256(data).hexdigest()
@@ -141,7 +160,10 @@ def response(db: Session, value: MediaAsset, *, duplicate: bool = False) -> Medi
         id=value.id,
         original_filename=value.original_filename,
         safe_filename=value.safe_filename,
-        mime_type=cast(Literal["image/jpeg", "image/png", "image/webp"], value.mime_type),
+        mime_type=cast(
+            Literal["image/jpeg", "image/png", "image/webp", "video/mp4", "video/webm"],
+            value.mime_type,
+        ),
         size_bytes=value.size_bytes,
         width=value.width,
         height=value.height,
@@ -156,7 +178,7 @@ def response(db: Session, value: MediaAsset, *, duplicate: bool = False) -> Medi
 
 
 def storage_path(storage_key: str) -> Path:
-    if not re.fullmatch(r"[a-f0-9]{12}/[a-f0-9]{64}\.(?:jpg|jpeg|png|webp)", storage_key):
+    if not re.fullmatch(r"[a-f0-9]{12}/[a-f0-9]{64}\.(?:jpg|jpeg|png|webp|mp4|webm)", storage_key):
         raise RuntimeError("Stored media key is invalid.")
     root = storage_root()
     target = (root / storage_key).resolve()
@@ -270,3 +292,50 @@ def set_archived(db: Session, owner: User, value: MediaAsset, archived: bool) ->
     )
     db.commit()
     return response(db, value)
+
+
+def upload_generated_video(
+    db: Session,
+    owner: User,
+    filename: str,
+    data: bytes,
+    *,
+    width: int,
+    height: int,
+    mime_type: str = "video/mp4",
+) -> MediaAsset:
+    if mime_type not in {"video/mp4", "video/webm"} or not data:
+        raise HTTPException(422, "Generated video is invalid.")
+    settings = get_settings()
+    if len(data) > settings.media_max_size_bytes:
+        raise HTTPException(413, "Generated video exceeds the configured upload limit.")
+    checksum = hashlib.sha256(data).hexdigest()
+    safe_filename = SAFE_FILENAME.sub("-", filename).strip(".-")[:255] or "generated-video.mp4"
+    extension = "webm" if mime_type == "video/webm" else "mp4"
+    value = MediaAsset(
+        id=uuid.uuid4(),
+        owner_id=owner.id,
+        original_filename=filename,
+        safe_filename=safe_filename,
+        mime_type=mime_type,
+        size_bytes=len(data),
+        width=width,
+        height=height,
+        checksum_sha256=checksum,
+        storage_key=f"{owner.id.hex[:12]}/{checksum}.{extension}",
+        status="ready",
+        created_at=now(),
+    )
+    db.add(value)
+    db.flush()
+    target = storage_path(value.storage_key)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    temporary = target.with_suffix(target.suffix + f".{uuid.uuid4().hex}.tmp")
+    try:
+        temporary.write_bytes(data)
+        temporary.replace(target)
+    except OSError as error:
+        temporary.unlink(missing_ok=True)
+        db.rollback()
+        raise HTTPException(507, "Generated video could not be stored safely.") from error
+    return value

@@ -690,6 +690,12 @@ def execute_ai_job(
     crash_after_checkpoint: bool = False,
 ) -> str:
     existing = db.scalar(select(AIStudioJob).where(AIStudioJob.id == job_id))
+    if existing is not None and existing.job_type.startswith("ai_video_"):
+        from vayujit_api.video.worker import execute_video_job
+
+        return execute_video_job(
+            db, job_id, worker_id, crash_after_checkpoint=crash_after_checkpoint
+        )
     if existing is not None and existing.job_type.startswith("ai_image_"):
         return execute_image_job(
             db, job_id, worker_id, crash_after_checkpoint=crash_after_checkpoint
