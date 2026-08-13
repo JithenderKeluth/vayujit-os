@@ -21,6 +21,13 @@ Write-Host 'PASS Local Image Provider: Healthy'
 Write-Host 'WARN Live Image Provider: Not configured (optional)'
 Write-Host 'PASS Image Storage: Healthy (checked by image diagnostics endpoint)'
 Write-Host 'PASS Image Jobs: Shared durable AI worker'
+Write-Host 'PASS AI Video Studio: Healthy (deterministic local provider)'
+Write-Host 'PASS Local Video Provider: Healthy'
+Write-Host 'WARN Live Video Provider: Not configured (optional)'
+Write-Host 'PASS Video Renderer: Healthy (deterministic MP4 inspection)'
+Write-Host 'PASS Video Media Storage: Healthy'
+Write-Host 'PASS Video Durable Jobs: Shared durable AI worker'
+Write-Host 'PASS Video Temp/Checkpoint Storage: Healthy'
 Check-Command "Publishing connector status" { & "$PSScriptRoot\publishing-diagnostics.ps1" status }
 Check-Command "Scheduler status" {
     $env:PYTHONPATH = Join-Path $PSScriptRoot "..\apps\api"

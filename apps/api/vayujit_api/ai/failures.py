@@ -129,6 +129,92 @@ FAILURE_TAXONOMY: Final[dict[str, StudioFailureSpec]] = {
 }
 
 
+VIDEO_FAILURE_TAXONOMY: Final[dict[str, StudioFailureSpec]] = {
+    "ai.video.provider_unavailable": StudioFailureSpec(
+        "ai.video.provider_unavailable",
+        True,
+        "The local video provider is temporarily unavailable.",
+        ("retry_generation", "change_provider", "review_failure"),
+        True,
+    ),
+    "ai.video.throttled": StudioFailureSpec(
+        "ai.video.throttled",
+        True,
+        "The video provider is throttling requests.",
+        ("retry_generation", "review_failure"),
+        True,
+    ),
+    "ai.video.timeout": StudioFailureSpec(
+        "ai.video.timeout",
+        True,
+        "The video provider timed out.",
+        ("retry_generation", "change_provider", "review_failure"),
+        True,
+    ),
+    "ai.video.invalid_output": StudioFailureSpec(
+        "ai.video.invalid_output",
+        False,
+        "The video output failed validation.",
+        ("regenerate", "change_provider", "change_model", "review_failure"),
+        False,
+    ),
+    "ai.video.output_too_large": StudioFailureSpec(
+        "ai.video.output_too_large",
+        False,
+        "The video output exceeded safe limits.",
+        ("edit_script", "open_storyboard", "regenerate", "review_failure"),
+        False,
+    ),
+    "ai.video.checkpoint_invalid": StudioFailureSpec(
+        "ai.video.checkpoint_invalid",
+        True,
+        "The saved video checkpoint is invalid.",
+        ("retry_generation", "regenerate", "review_failure"),
+        False,
+    ),
+    "ai.video.source_changed": StudioFailureSpec(
+        "ai.video.source_changed",
+        False,
+        "The Video source context changed before execution.",
+        ("open_source_media", "replace_media", "regenerate", "review_failure"),
+        False,
+    ),
+    "ai.video.unsupported_operation": StudioFailureSpec(
+        "ai.video.unsupported_operation",
+        False,
+        "The requested Video operation is unsupported.",
+        ("change_provider", "change_model", "open_storyboard", "edit_script", "review_failure"),
+        False,
+    ),
+    "ai.video.source_missing": StudioFailureSpec(
+        "ai.video.source_missing",
+        False,
+        "A required Video source is unavailable.",
+        ("open_source_media", "replace_media", "review_failure"),
+        False,
+    ),
+    "ai.video.render_failed": StudioFailureSpec(
+        "ai.video.render_failed",
+        True,
+        "The Video render failed and can be retried.",
+        ("retry_generation", "change_provider", "change_model", "review_failure"),
+        True,
+    ),
+    "ai.video.audio_failed": StudioFailureSpec(
+        "ai.video.audio_failed",
+        True,
+        "The Video audio could not be processed safely.",
+        ("remove_audio", "replace_media", "retry_generation", "review_failure"),
+        True,
+    ),
+    "ai.video.caption_failed": StudioFailureSpec(
+        "ai.video.caption_failed",
+        True,
+        "The Video captions could not be processed safely.",
+        ("edit_script", "review_failure", "retry_generation", "regenerate"),
+        False,
+    ),
+}
 IMAGE_FAILURE_TAXONOMY: Final[dict[str, StudioFailureSpec]] = {
     "checkpoint_invalid": StudioFailureSpec(
         "checkpoint_invalid",
@@ -141,8 +227,11 @@ IMAGE_FAILURE_TAXONOMY: Final[dict[str, StudioFailureSpec]] = {
 
 
 def failure_spec(code: str) -> StudioFailureSpec:
-    return IMAGE_FAILURE_TAXONOMY.get(
-        code, FAILURE_TAXONOMY.get(code, FAILURE_TAXONOMY["unknown_permanent"])
+    return VIDEO_FAILURE_TAXONOMY.get(
+        code,
+        IMAGE_FAILURE_TAXONOMY.get(
+            code, FAILURE_TAXONOMY.get(code, FAILURE_TAXONOMY["unknown_permanent"])
+        ),
     )
 
 
