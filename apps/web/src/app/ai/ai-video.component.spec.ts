@@ -1,6 +1,7 @@
-﻿import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 
 import { AIVideoComponent } from './ai-video.component';
 
@@ -8,7 +9,7 @@ describe('AIVideoComponent', () => {
   function create() {
     TestBed.configureTestingModule({
       imports: [AIVideoComponent],
-      providers: [provideHttpClient(), provideHttpClientTesting()],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     });
     const fixture = TestBed.createComponent(AIVideoComponent);
     const http = TestBed.inject(HttpTestingController);

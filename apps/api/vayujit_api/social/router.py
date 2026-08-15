@@ -16,6 +16,7 @@ from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.publishing.models import PublishingJob
 from vayujit_api.social.connectors import connector_for, deterministic_remote_id
 from vayujit_api.social.models import SocialAccount, SocialMetric, SocialPost
 from vayujit_api.social.schemas import (
@@ -47,10 +48,30 @@ from vayujit_api.social.service import (
     update_post,
     validate_account,
 )
+from vayujit_api.video.models import VideoGeneration, VideoOutput
 
 router = APIRouter(prefix="/api/v1/social", tags=["social"])
 DB = Annotated[Session, Depends(get_session)]
 Owner = Annotated[User, Depends(current_user)]
+
+_VIDEO_FAILURE_CODES = {
+    "social.invalid_credentials": "social.video.invalid_credentials",
+    "social.account_disabled": "social.video.account_disabled",
+    "social.policy_rejected": "social.video.policy_rejection",
+    "social.throttled": "social.video.throttled",
+    "social.timeout": "social.video.timeout",
+    "social.provider_unavailable": "social.video.connector_unavailable",
+    "social.ambiguous_result": "social.video.ambiguous_publication",
+    "social.remote_checkpoint": "social.video.ambiguous_publication",
+    "social.remote_missing": "social.video.ambiguous_publication",
+}
+
+
+def _recovery_code(post: SocialPost) -> str:
+    code = post.failure_code or "social.video.video_not_ready"
+    if post.video_generation_id:
+        return _VIDEO_FAILURE_CODES.get(code, code)
+    return code
 
 
 @router.get("/platforms")
@@ -300,6 +321,14 @@ def post_reconcile(post_id: uuid.UUID, db: DB, owner: Owner) -> SocialPost:
     value.failure_code = None
     value.safe_failure_message = None
     value.updated_at = __import__("datetime").datetime.now(__import__("datetime").timezone.utc)
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="social.post_reconciled",
+        entity_type="social_post",
+        entity_id=value.id,
+        metadata={"remote_publication_id": value.remote_publication_id},
+    )
     db.commit()
     return value
 
@@ -339,16 +368,48 @@ def analytics_summary(
     rows = list(db.scalars(select(SocialPost).where(*filters)))
     metric_rows = list(db.scalars(select(SocialMetric).where(SocialMetric.owner_id == owner.id)))
     totals: dict[str, float] = {}
-    for row in metric_rows:
-        if row.availability == "available" and row.value is not None:
-            totals[row.metric_key] = totals.get(row.metric_key, 0.0) + row.value
+    for metric_row in metric_rows:
+        if metric_row.availability == "available" and metric_row.value is not None:
+            totals[metric_row.metric_key] = (
+                totals.get(metric_row.metric_key, 0.0) + metric_row.value
+            )
+    video_breakdown: dict[str, dict[str, object]] = {}
+    for post_row in rows:
+        if post_row.video_output_id is None:
+            continue
+        key = f"{post_row.platform}:{post_row.content_type}"
+        bucket = video_breakdown.setdefault(
+            key,
+            {
+                "platform": post_row.platform,
+                "format": post_row.content_type,
+                "video_output_id": post_row.video_output_id,
+                "video_version": post_row.video_version,
+                "product_id": post_row.product_id,
+                "publications": 0,
+                "published": 0,
+                "failed": 0,
+            },
+        )
+        bucket["publications"] = cast(int, bucket["publications"]) + 1
+        if post_row.lifecycle_status == "published":
+            bucket["published"] = cast(int, bucket["published"]) + 1
+        if post_row.lifecycle_status == "failed":
+            bucket["failed"] = cast(int, bucket["failed"]) + 1
     return {
         "publications": len(rows),
-        "published": sum(row.lifecycle_status == "published" for row in rows),
-        "failed": sum(row.lifecycle_status == "failed" for row in rows),
-        "scheduled": sum(row.lifecycle_status == "scheduled" for row in rows),
+        "published": sum(post_row.lifecycle_status == "published" for post_row in rows),
+        "failed": sum(post_row.lifecycle_status == "failed" for post_row in rows),
+        "scheduled": sum(post_row.lifecycle_status == "scheduled" for post_row in rows),
         "metrics": totals,
-        "synthetic": any(row.source == "synthetic_test_data" for row in metric_rows),
+        "synthetic": any(metric_row.source == "synthetic_test_data" for metric_row in metric_rows),
+        "video": {
+            "publications": sum(post_row.video_output_id is not None for post_row in rows),
+            "impressions": totals.get("impressions"),
+            "views": totals.get("views"),
+            "engagement": totals.get("engagement"),
+            "breakdown": list(video_breakdown.values()),
+        },
     }
 
 
@@ -364,23 +425,67 @@ def recovery_projection(db: DB, owner: Owner) -> list[dict[str, object]]:
             .order_by(SocialPost.updated_at.desc())
         )
     )
-    return [
-        {
-            "post_id": row.id,
-            "platform": row.platform,
-            "content_type": row.content_type,
-            "lifecycle_status": row.lifecycle_status,
-            "failure_code": row.failure_code,
-            "safe_failure_message": row.safe_failure_message,
-            "remote_publication_id": row.remote_publication_id,
-            "available_actions": (
-                ["reconcile", "cancel"]
-                if row.remote_publication_id
-                else ["retry", "reconcile", "cancel"]
-            ),
+    projection: list[dict[str, object]] = []
+    for row in rows:
+        job = (
+            db.scalar(
+                select(PublishingJob).where(
+                    PublishingJob.owner_id == owner.id,
+                    PublishingJob.schedule_id == row.schedule_id,
+                )
+            )
+            if row.schedule_id
+            else None
+        )
+        code = _recovery_code(row)
+        retryable = code in {
+            "social.throttled",
+            "social.timeout",
+            "social.connector_unavailable",
+            "social.remote_checkpoint",
+            "social.remote_missing",
+            "social.video.throttled",
+            "social.video.timeout",
+            "social.video.connector_unavailable",
+            "social.video.scheduling_failure",
         }
-        for row in rows
-    ]
+        # Keep the projection server-authoritative: only actions accepted by
+        # SocialRecoveryActionRequest are advertised until richer Video
+        # replacement/account actions have executable contracts.
+        if row.remote_publication_id or code == "social.video.ambiguous_publication":
+            actions = ["reconcile", "review_failure"]
+        elif (
+            code
+            in {
+                "social.video.throttled",
+                "social.video.timeout",
+                "social.video.connector_unavailable",
+                "social.video.scheduling_failure",
+            }
+            or retryable
+        ):
+            actions = ["retry", "reschedule", "review_failure"]
+        else:
+            actions = ["review_failure"]
+        projection.append(
+            {
+                "post_id": row.id,
+                "platform": row.platform,
+                "content_type": row.content_type,
+                "lifecycle_status": row.lifecycle_status,
+                "failure_code": code,
+                "safe_failure_message": row.safe_failure_message
+                or "The social publication requires safe review.",
+                "remote_publication_id": row.remote_publication_id,
+                "correlation_id": row.correlation_id,
+                "video_output_id": row.video_output_id,
+                "schedule_id": row.schedule_id,
+                "job_id": job.id if job else None,
+                "retryable": retryable,
+                "available_actions": actions,
+            }
+        )
+    return projection
 
 
 @router.post("/recovery/actions", response_model=dict[str, object])
@@ -483,7 +588,18 @@ def recovery_action(data: SocialRecoveryActionRequest, db: DB, owner: Owner) -> 
             post.failure_code = None
             post.safe_failure_message = None
             message = "The social publication was reconciled safely."
-    else:
+    elif data.action == "reschedule":
+        if not post.schedule_id:
+            raise HTTPException(
+                409, "This Video publication has no durable schedule to reschedule."
+            )
+        post.lifecycle_status = "scheduled"
+        post.failure_code = None
+        post.safe_failure_message = None
+        message = "The social publication was safely rescheduled."
+    elif data.action == "review_failure":
+        message = "The failure remains recorded for owner review."
+    elif data.action == "cancel":
         if post.lifecycle_status == "cancelled":
             return {
                 "result": SocialRecoveryActionResult(
@@ -498,6 +614,10 @@ def recovery_action(data: SocialRecoveryActionRequest, db: DB, owner: Owner) -> 
         post.failure_code = "social.cancelled"
         post.safe_failure_message = "The social post was cancelled by the owner."
         message = "The social post was cancelled safely."
+    else:
+        raise HTTPException(
+            409, "This recovery action is not executable for the current Social Video state."
+        )
     post.updated_at = __import__("datetime").datetime.now(__import__("datetime").timezone.utc)
     record_event(
         db,
@@ -710,27 +830,41 @@ def social_calendar(
     rows = list(
         db.scalars(select(SocialPost).where(*filters).order_by(SocialPost.scheduled_at_utc))
     )
-    return [
-        {
-            "id": row.id,
-            "type": "social",
-            "platform": row.platform,
-            "channel": row.platform,
-            "content_type": row.content_type,
-            "status": row.lifecycle_status,
-            "scheduled_at_utc": row.scheduled_at_utc,
-            "timezone": row.timezone_name,
-            "brand_id": row.brand_id,
-            "product_id": row.product_id,
-            "campaign_id": row.campaign_id,
-            "account_id": row.account_id,
-            "artifact_id": row.content_artifact_id,
-            "artifact_version": row.content_artifact_version,
-            "failure_code": row.failure_code,
-            "readiness": "blocked" if row.failure_code else "ready",
-        }
-        for row in rows
-    ]
+    events: list[dict[str, object]] = []
+    for row in rows:
+        job = (
+            db.scalar(select(PublishingJob).where(PublishingJob.schedule_id == row.schedule_id))
+            if row.schedule_id
+            else None
+        )
+        events.append(
+            {
+                "id": row.id,
+                "type": "social",
+                "platform": row.platform,
+                "channel": row.platform,
+                "content_type": row.content_type,
+                "status": row.lifecycle_status,
+                "scheduled_at_utc": row.scheduled_at_utc,
+                "timezone": row.timezone_name,
+                "brand_id": row.brand_id,
+                "product_id": row.product_id,
+                "campaign_id": row.campaign_id,
+                "account_id": row.account_id,
+                "artifact_id": row.content_artifact_id,
+                "artifact_version": row.content_artifact_version,
+                "failure_code": row.failure_code,
+                "readiness": "blocked" if row.failure_code else "ready",
+                "social_post_id": row.id,
+                "video_generation_id": row.video_generation_id,
+                "video_output_id": row.video_output_id,
+                "video_media_id": row.video_media_id,
+                "video_version": row.video_version,
+                "schedule_id": row.schedule_id,
+                "job_id": job.id if job else None,
+            }
+        )
+    return events
 
 
 @router.get("/campaigns/{campaign_id}/posts", response_model=list[SocialPostResponse])
@@ -762,9 +896,74 @@ def product_social_channel(product_id: uuid.UUID, db: DB, owner: Owner) -> dict[
         )
         .order_by(GeneratedArtifact.version_number.desc())
     )
+    video_rows = [row for row in rows if row.video_output_id is not None]
+    channels: list[dict[str, object]] = []
+    for row in video_rows:
+        output = db.get(VideoOutput, row.video_output_id)
+        generation = (
+            db.get(VideoGeneration, row.video_generation_id) if row.video_generation_id else None
+        )
+        latest_generation = None
+        latest_output = None
+        if generation is not None:
+            latest_generation = db.scalar(
+                select(VideoGeneration)
+                .join(VideoOutput, VideoOutput.generation_id == VideoGeneration.id)
+                .where(
+                    VideoGeneration.owner_id == owner.id,
+                    VideoGeneration.product_id == product_id,
+                    VideoGeneration.video_type == generation.video_type,
+                    VideoGeneration.status == "succeeded",
+                    VideoOutput.status == "approved",
+                )
+                .order_by(VideoGeneration.created_at.desc())
+            )
+            if latest_generation is not None:
+                latest_output = db.scalar(
+                    select(VideoOutput).where(VideoOutput.generation_id == latest_generation.id)
+                )
+
+        def generation_version(value: VideoGeneration | None) -> int | None:
+            if value is None:
+                return None
+            version = 1
+            seen: set[uuid.UUID] = set()
+            current = value
+            while current.parent_generation_id and current.parent_generation_id not in seen:
+                seen.add(current.id)
+                parent = db.get(VideoGeneration, current.parent_generation_id)
+                if parent is None:
+                    break
+                version += 1
+                current = parent
+            return version
+
+        current_version = row.video_version
+        latest_version = generation_version(latest_generation)
+        channels.append(
+            {
+                "post_id": row.id,
+                "platform": row.platform,
+                "format": row.content_type,
+                "current_video_output_id": row.video_output_id,
+                "current_video_version": row.video_version,
+                "latest_approved_video_output_id": (
+                    latest_output.id if latest_output else (output.id if output else None)
+                ),
+                "latest_approved_video_version": latest_version or current_version,
+                "update_available": bool(latest_output and latest_output.id != row.video_output_id),
+                "publication_state": row.lifecycle_status,
+                "account_id": row.account_id,
+                "failure_code": row.failure_code,
+                "recovery_state": "actionable" if row.failure_code else "clear",
+                "readiness": "blocked" if row.failure_code else "ready",
+                "video_type": generation.video_type if generation else None,
+            }
+        )
     return {
         "product_id": product_id,
         "channel": "social",
-        "posts": rows,
+        "posts": [SocialPostResponse.model_validate(row).model_dump(mode="json") for row in rows],
         "update_available": any(latest and row.content_artifact_version < latest for row in rows),
+        "video": channels,
     }

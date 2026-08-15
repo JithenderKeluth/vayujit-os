@@ -55,3 +55,15 @@ Measure enqueue latency separately from fake connector publication, checkpoint p
 This milestone certifies deterministic local workflow behavior only. It does not claim live Instagram/Facebook/YouTube connectors, platform-policy approval, pixel-perfect previews, real engagement analytics, video generation, Ads, or production credentials. Future connectors can be added through the typed platform/connector registry without changing canonical Product, Campaign, Artifact, or Media models.
 
 
+
+## Slice 3A final Social Video UX certification
+
+The Social workspace now presents owner-scoped connected accounts, ready/draft/scheduled/published/failed/recoverable Video post counts, upcoming schedules, recent posts and failures, and a clearly labelled Synthetic analytics boundary. The compose wizard is a ten-step, keyboard-capable flow for platform, backend-declared format, Product/Brand, approved Video, metadata Artifact, thumbnail, Caption Track, account, publish/schedule, and final confirmation. Every review surface shows exact IDs and versions; newer versions are never substituted.
+
+Post detail shows Product, Video output/version, metadata, thumbnail, captions, account, status, remote ID, correlation ID, and a safe chronological history. Recovery actions are rendered only from the backend projection and require confirmation. Calendar and Product Channel routes reuse the existing Social API projections. Empty, loading, retry, disabled-account, and safe-error states are explicit.
+
+Static accessibility certification: PASS for semantic headings, labels, fieldsets, native controls, tables, status/alert text, keyboard navigation, and non-color-only state cues. Automated axe: NOT CONFIGURED. Static responsive certification: PASS at 390px, 768px, and 1280px+ through fluid grids, wrapped actions, stacked forms, contained tables, and responsive detail layouts. Automated viewport harness: NOT CONFIGURED.
+
+Deterministic local Social Video timing samples (disposable PostgreSQL, five warm samples unless noted): readiness 15.1ms median / 15.8ms p95; handoff preview 18.1ms / 20.1ms; handoff confirmation 24.8ms (single mutation sample); SocialPost detail 11.0ms / 12.9ms; schedule creation 65.5ms (single mutation sample); Product Channel 13.1ms / 14.6ms; Calendar 13.3ms / 14.5ms; history 13.3ms / 14.5ms; metrics 14.7ms / 15.1ms; analytics 12.0ms / 12.5ms; Recovery 11.9ms / 12.1ms; replacement-preview request 15.1ms / 17.2ms. These are local deterministic observations, not production SLOs.
+
+The bounded benchmark created one disposable SocialPost and one schedule, with zero jobs, attempts, metrics, duplicate rows, orphan rows, or fake remote publications. Development data is reset through the test-database safety guard. The local certification covers fake connector behavior only; live Instagram, Facebook, and YouTube connectors and live analytics remain outside this milestone.

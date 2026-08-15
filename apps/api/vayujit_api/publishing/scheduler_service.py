@@ -87,6 +87,7 @@ def create_schedule(db: Session, owner: User, data: ScheduleCreate) -> Publishin
             "approved_at": artifact.approved_at.isoformat() if artifact.approved_at else None,
             "approved_by": str(artifact.approved_by) if artifact.approved_by else None,
         },
+        context_json=data.context_json,
         destination_snapshot_version=destination.updated_at.isoformat(),
         created_by=owner.id,
         created_at=timestamp,
@@ -200,6 +201,7 @@ def materialize_due_schedules(db: Session, *, commit: bool = True) -> int:
                     updated_at=timestamp,
                     row_version=1,
                     recovery_state=None,
+                    context_json=dict(schedule.context_json or {}),
                 )
                 db.add(key_job)
                 db.flush()

@@ -39,6 +39,7 @@ class ScheduleCreate(BaseModel):
     missed_occurrence_policy: Literal["skip_missed", "next_occurrence", "one_catch_up"] = (
         "next_occurrence"
     )
+    context_json: dict[str, object] = Field(default_factory=dict)
 
 
 class ScheduleUpdate(BaseModel):

@@ -62,6 +62,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'social/channel',
+    loadComponent: () =>
+      import('./social/social-workspace.component').then((m) => m.SocialWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'social/accounts',
     loadComponent: () =>
       import('./social/social-workspace.component').then((m) => m.SocialWorkspaceComponent),
@@ -69,6 +75,12 @@ export const routes: Routes = [
   },
   {
     path: 'social/analytics',
+    loadComponent: () =>
+      import('./social/social-workspace.component').then((m) => m.SocialWorkspaceComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'social/posts/:id',
     loadComponent: () =>
       import('./social/social-workspace.component').then((m) => m.SocialWorkspaceComponent),
     canActivate: [authGuard],

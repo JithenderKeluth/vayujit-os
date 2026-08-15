@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 from pathlib import Path
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -28,7 +29,7 @@ MAX_VIDEO_BYTES = 8_000_000
 
 
 def execute_video_job(
-    db: Session, job_id, worker_id: str, *, crash_after_checkpoint: bool = False
+    db: Session, job_id: Any, worker_id: str, *, crash_after_checkpoint: bool = False
 ) -> str:
     job = db.scalar(select(AIStudioJob).where(AIStudioJob.id == job_id).with_for_update())
     if job is None or not _lease_valid(job, worker_id):

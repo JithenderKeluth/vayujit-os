@@ -124,6 +124,27 @@ class SocialPostResponse(BaseModel):
     source_artifact_version: int | None
     generation_reason: str | None
     media_ids: list[str]
+    video_generation_id: uuid.UUID | None
+    video_output_id: uuid.UUID | None
+    video_media_id: uuid.UUID | None
+    video_version: int | None
+    metadata_artifact_id: uuid.UUID | None
+    metadata_artifact_version: int | None
+    title_artifact_id: uuid.UUID | None
+    title_artifact_version: int | None
+    description_artifact_id: uuid.UUID | None
+    description_artifact_version: int | None
+    copy_artifact_id: uuid.UUID | None
+    copy_artifact_version: int | None
+    cta_artifact_id: uuid.UUID | None
+    cta_artifact_version: int | None
+    tags_artifact_id: uuid.UUID | None
+    tags_artifact_version: int | None
+    thumbnail_output_id: uuid.UUID | None
+    thumbnail_media_id: uuid.UUID | None
+    thumbnail_version: int | None
+    caption_track_id: uuid.UUID | None
+    caption_version: int | None
     locale: str
     caption: str | None
     title: str | None
@@ -142,6 +163,7 @@ class SocialPostResponse(BaseModel):
     preview_fingerprint: str | None
     failure_code: str | None
     safe_failure_message: str | None
+    remote_checkpoint_json: dict[str, object] | None
     created_at: datetime
     updated_at: datetime
 
@@ -152,11 +174,16 @@ class SocialMetricResponse(BaseModel):
     value: float | None
     availability: str
     source: str
+    product_id: uuid.UUID | None
+    platform: str | None
+    content_type: str | None
+    video_output_id: uuid.UUID | None
+    video_media_id: uuid.UUID | None
     observed_at: datetime | None
 
 
 class SocialRecoveryActionRequest(BaseModel):
-    action: Literal["retry", "reconcile", "cancel"]
+    action: Literal["retry", "reconcile", "cancel", "reschedule", "review_failure"]
     post_id: uuid.UUID
     confirm: bool = False
     idempotency_key: str | None = Field(default=None, max_length=160)
@@ -169,6 +196,11 @@ class SocialRecoveryActionResult(BaseModel):
     idempotent_reuse: bool = False
     safe_message: str
     remote_publication_id: str | None = None
+    failure_code: str | None = None
+    correlation_id: str | None = None
+    video_output_id: uuid.UUID | None = None
+    schedule_id: uuid.UUID | None = None
+    retryable: bool = False
 
 
 class SocialRecoveryProjection(BaseModel):
@@ -176,9 +208,14 @@ class SocialRecoveryProjection(BaseModel):
     platform: str
     content_type: str
     lifecycle_status: str
-    failure_code: str | None
-    safe_failure_message: str | None
+    failure_code: str | None = None
+    safe_failure_message: str | None = None
     remote_publication_id: str | None
+    correlation_id: str | None = None
+    video_output_id: uuid.UUID | None = None
+    schedule_id: uuid.UUID | None = None
+    job_id: uuid.UUID | None = None
+    retryable: bool = False
     available_actions: list[str]
 
 

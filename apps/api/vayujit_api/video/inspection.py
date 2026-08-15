@@ -1,6 +1,7 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import struct
+from collections.abc import Iterator
 from dataclasses import dataclass
 
 
@@ -22,7 +23,7 @@ class VideoInspection:
     checksum_sha256: str
 
 
-def _children(data: bytes, start: int, end: int):
+def _children(data: bytes, start: int, end: int) -> Iterator[tuple[bytes, int, int]]:
     offset = start
     while offset + 8 <= end:
         size = struct.unpack(">I", data[offset : offset + 4])[0]

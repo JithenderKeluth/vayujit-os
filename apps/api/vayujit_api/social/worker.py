@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+import json
 import uuid
 from contextlib import suppress
 
@@ -9,11 +11,44 @@ from sqlalchemy.orm import Session
 from vayujit_api.audit.models import AuditEvent
 from vayujit_api.audit.service import record_event
 from vayujit_api.identity.models import User
+from vayujit_api.media.models import MediaAsset
 from vayujit_api.publishing.models import PublishingJob
 from vayujit_api.publishing.scheduler_time import utcnow
 from vayujit_api.social.connectors import SocialConnectorFailure, connector_for
 from vayujit_api.social.models import SocialAccount, SocialPost
 from vayujit_api.social.service import sync_campaign_activity
+from vayujit_api.video.models import VideoGeneration, VideoOutput
+
+
+def _video_error_code(post: SocialPost, code: str) -> str:
+    if post.video_generation_id is None:
+        return code
+    return {
+        "social.invalid_credentials": "social.video.invalid_credentials",
+        "social.account_disabled": "social.video.account_disabled",
+        "social.policy_rejected": "social.video.policy_rejection",
+        "social.throttled": "social.video.throttled",
+        "social.timeout": "social.video.timeout",
+        "social.provider_unavailable": "social.video.connector_unavailable",
+        "social.ambiguous_result": "social.video.ambiguous_publication",
+        "social.remote_missing": "social.video.ambiguous_publication",
+        "social.worker_error": "social.video.connector_unavailable",
+    }.get(code, code if code.startswith("social.video.") else "social.video.connector_unavailable")
+
+
+def _video_not_ready(db: Session, post: SocialPost) -> str | None:
+    if post.video_generation_id is None:
+        return None
+    generation = db.get(VideoGeneration, post.video_generation_id)
+    output = db.get(VideoOutput, post.video_output_id) if post.video_output_id else None
+    media = db.get(MediaAsset, post.video_media_id) if post.video_media_id else None
+    if generation is None or output is None or media is None:
+        return "social.video.video_not_ready"
+    if generation.status != "succeeded" or output.status != "approved" or media.status != "ready":
+        return "social.video.video_not_ready"
+    if output.generation_id != generation.id or output.media_id != media.id:
+        return "social.video.stale_video"
+    return None
 
 
 class SocialJobResult:
@@ -60,13 +95,32 @@ def execute_social_job(db: Session, job: PublishingJob) -> SocialJobResult:
     account = db.get(SocialAccount, post.account_id)
     if not account or account.owner_id != job.owner_id or not account.enabled:
         post.lifecycle_status = "failed"
-        post.failure_code = "social.invalid_credentials"
+        post.failure_code = _video_error_code(post, "social.account_disabled")
         post.safe_failure_message = "The social account is disabled or unavailable."
         post.updated_at = utcnow()
         if post.campaign_id:
             owner = db.get(User, job.owner_id)
             if owner:
                 sync_campaign_activity(db, owner, post)
+        db.commit()
+        return SocialJobResult(
+            status="failed", error_code=post.failure_code, safe_message=post.safe_failure_message
+        )
+    if account.validation_status != "valid":
+        post.lifecycle_status = "failed"
+        post.failure_code = _video_error_code(post, "social.invalid_credentials")
+        post.safe_failure_message = "The social account credentials are not validated."
+        post.updated_at = utcnow()
+        db.commit()
+        return SocialJobResult(
+            status="failed", error_code=post.failure_code, safe_message=post.safe_failure_message
+        )
+    video_failure = _video_not_ready(db, post)
+    if video_failure:
+        post.lifecycle_status = "failed"
+        post.failure_code = video_failure
+        post.safe_failure_message = "The approved Video is no longer ready for publication."
+        post.updated_at = utcnow()
         db.commit()
         return SocialJobResult(
             status="failed", error_code=post.failure_code, safe_message=post.safe_failure_message
@@ -108,6 +162,31 @@ def execute_social_job(db: Session, job: PublishingJob) -> SocialJobResult:
         "content_type": post.content_type,
         "artifact_id": str(post.content_artifact_id),
         "artifact_version": post.content_artifact_version,
+        "video_generation_id": str(post.video_generation_id) if post.video_generation_id else None,
+        "video_output_id": str(post.video_output_id) if post.video_output_id else None,
+        "video_media_id": str(post.video_media_id) if post.video_media_id else None,
+        "video_version": post.video_version,
+        "metadata_artifact_id": (
+            str(post.metadata_artifact_id) if post.metadata_artifact_id else None
+        ),
+        "metadata_artifact_version": post.metadata_artifact_version,
+        "title_artifact_id": str(post.title_artifact_id) if post.title_artifact_id else None,
+        "title_artifact_version": post.title_artifact_version,
+        "description_artifact_id": (
+            str(post.description_artifact_id) if post.description_artifact_id else None
+        ),
+        "description_artifact_version": post.description_artifact_version,
+        "copy_artifact_id": str(post.copy_artifact_id) if post.copy_artifact_id else None,
+        "copy_artifact_version": post.copy_artifact_version,
+        "cta_artifact_id": str(post.cta_artifact_id) if post.cta_artifact_id else None,
+        "cta_artifact_version": post.cta_artifact_version,
+        "tags_artifact_id": str(post.tags_artifact_id) if post.tags_artifact_id else None,
+        "tags_artifact_version": post.tags_artifact_version,
+        "thumbnail_output_id": str(post.thumbnail_output_id) if post.thumbnail_output_id else None,
+        "thumbnail_media_id": str(post.thumbnail_media_id) if post.thumbnail_media_id else None,
+        "thumbnail_version": post.thumbnail_version,
+        "caption_track_id": str(post.caption_track_id) if post.caption_track_id else None,
+        "caption_version": post.caption_version,
         "media_ids": post.media_ids,
         "caption": post.caption,
         "title": post.title,
@@ -116,22 +195,49 @@ def execute_social_job(db: Session, job: PublishingJob) -> SocialJobResult:
         "cta": post.cta_json,
         "destination_url": post.destination_url,
     }
+    operation_fingerprint = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, default=str).encode()
+    ).hexdigest()
     try:
         result = connector.publish_post(
             {"remote_account_id": account.remote_account_id}, payload, post.idempotency_key
         )
     except SocialConnectorFailure as error:
+        normalized_code = _video_error_code(post, error.code)
         post.lifecycle_status = "failed"
-        post.failure_code = error.code
+        post.failure_code = normalized_code
         post.safe_failure_message = error.safe_message
         if error.ambiguous and error.remote_publication_id:
             post.remote_publication_id = error.remote_publication_id
+            post.remote_checkpoint_json = {
+                "connector_request_fingerprint": operation_fingerprint,
+                "remote_publication_id": error.remote_publication_id,
+                "state": "ambiguous",
+                "classification": "remote_succeeded_unknown_local_state",
+                "platform": post.platform,
+                "format": post.content_type,
+                "social_post_id": str(post.id),
+                "video_output_id": str(post.video_output_id) if post.video_output_id else None,
+                "video_media_id": str(post.video_media_id) if post.video_media_id else None,
+                "video_version": post.video_version,
+                "completed_at": utcnow().isoformat(),
+            }
         post.updated_at = utcnow()
         if post.campaign_id:
             owner = db.get(User, job.owner_id)
             if owner:
                 sync_campaign_activity(db, owner, post)
         db.commit()
+        if error.ambiguous:
+            record_event(
+                db,
+                actor_id=job.owner_id,
+                action="social.post_ambiguous",
+                entity_type="social_post",
+                entity_id=post.id,
+                metadata={"remote_publication_id": error.remote_publication_id},
+            )
+            db.commit()
         record_event(
             db,
             actor_id=job.owner_id,
@@ -139,7 +245,7 @@ def execute_social_job(db: Session, job: PublishingJob) -> SocialJobResult:
             entity_type="social_post",
             entity_id=post.id,
             metadata={
-                "code": error.code,
+                "code": normalized_code,
                 "retryable": error.retryable,
                 "ambiguous": error.ambiguous,
                 "remote_publication_id": bool(error.remote_publication_id),
@@ -148,12 +254,12 @@ def execute_social_job(db: Session, job: PublishingJob) -> SocialJobResult:
         return SocialJobResult(
             status="failed",
             retryable=error.retryable,
-            error_code=error.code,
+            error_code=normalized_code,
             safe_message=error.safe_message,
         )
     except Exception:
         post.lifecycle_status = "failed"
-        post.failure_code = "social.worker_error"
+        post.failure_code = _video_error_code(post, "social.worker_error")
         post.safe_failure_message = (
             "The local social worker stopped before confirming publication. "
             "Reconcile or retry safely."
@@ -175,18 +281,37 @@ def execute_social_job(db: Session, job: PublishingJob) -> SocialJobResult:
         return SocialJobResult(
             status="failed",
             retryable=True,
-            error_code="social.worker_error",
+            error_code=_video_error_code(post, "social.worker_error"),
             safe_message=post.safe_failure_message,
         )
     post.remote_publication_id = str(result["remote_publication_id"])
-    # Persist the remote identity before local finalization so a lease-loss restart
-    # can finalize from the durable checkpoint without publishing again.
+    post.remote_checkpoint_json = {
+        "connector_request_fingerprint": operation_fingerprint,
+        "remote_publication_id": post.remote_publication_id,
+        "state": "remote_succeeded",
+        "classification": "remote_success_local_finalization_pending",
+        "platform": post.platform,
+        "format": post.content_type,
+        "social_post_id": str(post.id),
+        "video_output_id": str(post.video_output_id) if post.video_output_id else None,
+        "video_media_id": str(post.video_media_id) if post.video_media_id else None,
+        "video_version": post.video_version,
+        "completed_at": utcnow().isoformat(),
+    }
     post.failure_code = "social.remote_checkpoint"
     post.safe_failure_message = (
         "Remote publication checkpoint persisted; local finalization pending."
     )
     post.updated_at = utcnow()
     db.commit()
+    record_event(
+        db,
+        actor_id=job.owner_id,
+        action="social.post_checkpointed",
+        entity_type="social_post",
+        entity_id=post.id,
+        metadata={"state": "remote_succeeded", "remote_publication_id": post.remote_publication_id},
+    )
     post.lifecycle_status = "published" if result["status"] == "published" else "publishing"
     post.failure_code = None
     post.safe_failure_message = None

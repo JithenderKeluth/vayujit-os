@@ -57,3 +57,17 @@ Certification used disposable PostgreSQL test data and the local deterministic p
 The Video performance baseline recorded request medians/p95s, one-shot worker/render/inspection timings, durable completion, detail/review, comparison, captions, usage, diagnostics, and recovery projections. The bounded storage-growth run recorded exact Video Project, Generation, Output, Media, Caption, file, byte, temp, and checkpoint deltas with no duplicate work or orphan Video resources observed. The baseline is a local pathological-behavior detector, not a production SLO declaration.
 
 Static accessibility validation and keyboard-capable controls passed for Overview, Generate, Script, Storyboard, Videos, Review, Comparison, Captions, Presets, Usage, and Diagnostics. Automated Axe and viewport testing are not configured. The certification boundary is local deterministic single-video workflow behavior only; live Video providers, real visual-quality assessment, audio/voice providers, and Social, Marketplace, Campaign, Bulk, and Ads handoffs remain outside Slice 2.
+
+## Slice 3 channel integration boundary
+
+Slice 3 adds a normalized, owner-scoped channel-handoff contract at /api/v1/ai/video/channels. Every handoff follows preview, review, and explicit confirmation. The persisted handoff records the exact Product, Video Generation, approved Video Output, ready MediaAsset, version/lineage, target resource, readiness fingerprint, handoff fingerprint, actor, correlation ID, and idempotency key. Preview is non-mutating; confirmation rejects stale fingerprints and never resolves a newer approved Video implicitly.
+
+The social readiness registry exposes local fake-certified rules for YouTube Video/Short, Instagram Reel/Story, and Facebook Reel/Story. The deterministic local provider adapts the checked-in valid MP4 fixture into inspectable 16:9, 9:16, and square variants with requested dimensions and duration. The registry covers six local fake-certified Social targets. Confirmed handoffs create exact SocialPost drafts, persist the selected metadata Artifact/version plus approved thumbnail and caption lineage when supplied, and preserve the existing Social durable publication flow; no live connector is called and auto-publish remains disabled. Dedicated durable Social Video crash/recovery/replacement certifications remain follow-up work.
+
+Marketplace and Campaign channel contracts are represented in the normalized handoff boundary and readiness responses, but remote attachment workers, Campaign Activity lineage, reconciliation, and cross-channel E2E certification are not implemented in this slice. They remain explicit follow-up work rather than implied support.
+
+Slice 3 also adds video_bulk_generation parent/child records and preview, enqueue, status, retry, and cancellation APIs. Children reuse the existing durable Video queue and stable owner/idempotency keys; bulk generation never auto-approves or publishes outputs. Provider billing remains unavailable and live provider/API certification is not claimed.
+
+## Social Video channel UX certification
+
+Social Video handoffs now remain exact-version and server-authoritative through compose, preview, confirmation, scheduling, Product Channel update detection, Calendar projection, Post detail, Recovery, history, and Synthetic analytics. The Angular workspace reuses backend platform capability data rather than duplicating format rules. Local fake certification is deterministic and network-free; live connector credentials and live analytics are not implied.
