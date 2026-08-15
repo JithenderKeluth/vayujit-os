@@ -41,6 +41,8 @@ from vayujit_api.publishing.scheduler_router import router as scheduler_router
 from vayujit_api.settings.router import router as settings_router
 from vayujit_api.settings.router import system_router
 from vayujit_api.social.router import router as social_router
+from vayujit_api.video.bulk import router as video_bulk_router
+from vayujit_api.video.channels import router as video_channels_router
 from vayujit_api.video.router import router as video_router
 from vayujit_api.workflows.router import router as workflows_router
 
@@ -88,6 +90,8 @@ def create_app() -> FastAPI:
     application.include_router(hardening_system_router)
     application.include_router(social_router)
     application.include_router(video_router)
+    application.include_router(video_channels_router)
+    application.include_router(video_bulk_router)
 
     @application.on_event("startup")
     def restore_durable_campaign_waits() -> None:

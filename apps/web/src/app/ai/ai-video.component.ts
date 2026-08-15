@@ -2,6 +2,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -10,7 +11,7 @@ type RecordValue = Record<string, unknown>;
 
 @Component({
   selector: 'app-ai-video',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   template: `
     <main class="video-page">
       <header class="hero">
@@ -28,7 +29,7 @@ type RecordValue = Record<string, unknown>;
 
       <nav class="tabs" aria-label="Video Studio views">
         @for (view of views; track view.id) {
-          <a [href]="'#' + view.id">{{ view.label }}</a>
+          <a [routerLink]="[]" [fragment]="view.id">{{ view.label }}</a>
         }
       </nav>
 
@@ -49,11 +50,11 @@ type RecordValue = Record<string, unknown>;
           }
         </div>
         <div class="quick-actions" aria-label="Quick actions">
-          <a class="button" href="#generate">Create Video</a
-          ><a class="button" href="#storyboards">Open Storyboards</a
-          ><a class="button" href="#review">Review Videos</a
-          ><a class="button" href="#presets">Manage Presets</a
-          ><a class="button" href="#diagnostics">View Diagnostics</a>
+          <a class="button" [routerLink]="[]" fragment="generate">Create Video</a
+          ><a class="button" [routerLink]="[]" fragment="storyboards">Open Storyboards</a
+          ><a class="button" [routerLink]="[]" fragment="review">Review Videos</a
+          ><a class="button" [routerLink]="[]" fragment="presets">Manage Presets</a
+          ><a class="button" [routerLink]="[]" fragment="diagnostics">View Diagnostics</a>
         </div>
         @if (error()) {
           <p class="alert" role="alert">{{ error() }}</p>

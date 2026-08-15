@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import uuid
 from datetime import UTC, datetime
+from typing import Any
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -135,7 +136,7 @@ def script_response(row: VideoScript) -> dict[str, object]:
     }
 
 
-def create_script(db: Session, owner: User, data) -> dict[str, object]:
+def create_script(db: Session, owner: User, data: Any) -> dict[str, object]:
     product, brand = _owned(db, owner, data.product_id, data.brand_id)
     latest = (
         db.scalar(
@@ -168,7 +169,7 @@ def create_script(db: Session, owner: User, data) -> dict[str, object]:
     return script_response(row)
 
 
-def edit_script(db: Session, owner: User, script_id: uuid.UUID, data) -> dict[str, object]:
+def edit_script(db: Session, owner: User, script_id: uuid.UUID, data: Any) -> dict[str, object]:
     row = db.scalar(
         select(VideoScript).where(VideoScript.id == script_id, VideoScript.owner_id == owner.id)
     )
@@ -233,7 +234,7 @@ def decide_script(
     return script_response(row)
 
 
-def validate_preset(db: Session, owner: User, data, brand: Brand) -> VideoPreset | None:
+def validate_preset(db: Session, owner: User, data: Any, brand: Brand) -> VideoPreset | None:
     if not getattr(data, "preset_id", None):
         return None
     preset = db.scalar(
@@ -269,7 +270,7 @@ def validate_preset(db: Session, owner: User, data, brand: Brand) -> VideoPreset
     return preset
 
 
-def _audio(db: Session, owner: User, data) -> tuple[MediaAsset | None, dict[str, object]]:
+def _audio(db: Session, owner: User, data: Any) -> tuple[MediaAsset | None, dict[str, object]]:
     mode = getattr(data, "audio_mode", "none")
     if mode == "none":
         return None, {"mode": mode, "source_type": "none"}
@@ -300,7 +301,7 @@ def _audio(db: Session, owner: User, data) -> tuple[MediaAsset | None, dict[str,
     }
 
 
-def preview(db: Session, owner: User, data) -> dict[str, object]:
+def preview(db: Session, owner: User, data: Any) -> dict[str, object]:
     product, brand = _owned(db, owner, data.product_id, data.brand_id)
     width, height = _resolution(data.resolution)
     validate_preset(db, owner, data, brand)
@@ -457,7 +458,7 @@ def _response(db: Session, row: VideoGeneration) -> dict[str, object]:
     }
 
 
-def queue(db: Session, owner: User, data) -> dict[str, object]:
+def queue(db: Session, owner: User, data: Any) -> dict[str, object]:
     plan = preview(db, owner, data)
     audio, audio_plan = _audio(db, owner, data)
     artifact_version = plan["source_artifact_version"]
@@ -706,7 +707,7 @@ def approve(
     return _response(db, row)
 
 
-def create_storyboard(db: Session, owner: User, data) -> dict[str, object]:
+def create_storyboard(db: Session, owner: User, data: Any) -> dict[str, object]:
     product, brand = _owned(db, owner, data.product_id, data.brand_id)
     artifact = _artifact(
         db, owner, product.id, data.source_artifact_id, data.source_artifact_version
@@ -825,7 +826,7 @@ def storyboard_response(db: Session, row: VideoStoryboard) -> dict[str, object]:
 
 
 def update_storyboard(
-    db: Session, owner: User, storyboard_id: uuid.UUID, data
+    db: Session, owner: User, storyboard_id: uuid.UUID, data: Any
 ) -> dict[str, object]:
     row = db.scalar(
         select(VideoStoryboard)
@@ -989,7 +990,7 @@ def create_style(
     return row
 
 
-def regenerate(db: Session, owner: User, generation_id: uuid.UUID, data) -> dict[str, object]:
+def regenerate(db: Session, owner: User, generation_id: uuid.UUID, data: Any) -> dict[str, object]:
     parent = db.scalar(
         select(VideoGeneration).where(
             VideoGeneration.id == generation_id, VideoGeneration.owner_id == owner.id
@@ -1092,7 +1093,7 @@ def decide_caption(
 
 
 def generate_thumbnail_candidate(
-    db: Session, owner: User, generation_id: uuid.UUID, data
+    db: Session, owner: User, generation_id: uuid.UUID, data: Any
 ) -> dict[str, object]:
     generation = db.scalar(
         select(VideoGeneration).where(
@@ -1168,7 +1169,7 @@ def recovery_projection(db: Session, owner: User, generation_id: uuid.UUID) -> d
 
 
 def execute_recovery_action(
-    db: Session, owner: User, generation_id: uuid.UUID, data
+    db: Session, owner: User, generation_id: uuid.UUID, data: Any
 ) -> dict[str, object]:
     projection = recovery_projection(db, owner, generation_id)
     if data.idempotency_key is not None:
@@ -1259,7 +1260,9 @@ def execute_recovery_action(
     return projection
 
 
-def attach_thumbnail(db: Session, owner: User, generation_id: uuid.UUID, data) -> dict[str, object]:
+def attach_thumbnail(
+    db: Session, owner: User, generation_id: uuid.UUID, data: Any
+) -> dict[str, object]:
     generation = db.scalar(
         select(VideoGeneration)
         .where(VideoGeneration.id == generation_id, VideoGeneration.owner_id == owner.id)
@@ -1298,7 +1301,7 @@ def attach_thumbnail(db: Session, owner: User, generation_id: uuid.UUID, data) -
     return _response(db, generation)
 
 
-def add_caption(db: Session, owner: User, generation_id: uuid.UUID, data) -> dict[str, object]:
+def add_caption(db: Session, owner: User, generation_id: uuid.UUID, data: Any) -> dict[str, object]:
     generation = db.scalar(
         select(VideoGeneration).where(
             VideoGeneration.id == generation_id, VideoGeneration.owner_id == owner.id

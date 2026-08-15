@@ -580,6 +580,30 @@ def schedule_post(
             local_scheduled_at=local_scheduled_at,
             timezone_name=data.timezone_name,
             fold=data.fold,
+            context_json={
+                "social_post_id": str(post.id),
+                "platform": post.platform,
+                "format": post.content_type,
+                "video_generation_id": (
+                    str(post.video_generation_id) if post.video_generation_id else None
+                ),
+                "video_output_id": str(post.video_output_id) if post.video_output_id else None,
+                "video_media_id": str(post.video_media_id) if post.video_media_id else None,
+                "video_version": post.video_version,
+                "metadata_artifact_id": (
+                    str(post.metadata_artifact_id) if post.metadata_artifact_id else None
+                ),
+                "metadata_artifact_version": post.metadata_artifact_version,
+                "thumbnail_output_id": (
+                    str(post.thumbnail_output_id) if post.thumbnail_output_id else None
+                ),
+                "thumbnail_media_id": (
+                    str(post.thumbnail_media_id) if post.thumbnail_media_id else None
+                ),
+                "thumbnail_version": post.thumbnail_version,
+                "caption_track_id": str(post.caption_track_id) if post.caption_track_id else None,
+                "caption_version": post.caption_version,
+            },
         ),
     )
     post.schedule_id = schedule.id
@@ -636,7 +660,15 @@ def metrics(db: Session, owner: User, post: SocialPost) -> list[SocialMetric]:
         )
         if not row:
             row = SocialMetric(
-                owner_id=owner.id, post_id=post.id, metric_key=key, created_at=timestamp
+                owner_id=owner.id,
+                post_id=post.id,
+                product_id=post.product_id,
+                platform=post.platform,
+                content_type=post.content_type,
+                video_output_id=post.video_output_id,
+                video_media_id=post.video_media_id,
+                metric_key=key,
+                created_at=timestamp,
             )
             db.add(row)
         if key in supported and key in values:

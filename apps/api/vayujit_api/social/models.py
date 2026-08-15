@@ -114,6 +114,51 @@ class SocialPost(Base):
     source_artifact_version: Mapped[int | None] = mapped_column(Integer)
     generation_reason: Mapped[str | None] = mapped_column(String(40))
     media_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    video_generation_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("video_generations.id", ondelete="SET NULL"), index=True
+    )
+    video_output_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("video_outputs.id", ondelete="SET NULL"), index=True
+    )
+    video_media_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("media_assets.id", ondelete="SET NULL"), index=True
+    )
+    video_version: Mapped[int | None] = mapped_column(Integer)
+    metadata_artifact_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="SET NULL"), index=True
+    )
+    metadata_artifact_version: Mapped[int | None] = mapped_column(Integer)
+    title_artifact_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="SET NULL"), index=True
+    )
+    title_artifact_version: Mapped[int | None] = mapped_column(Integer)
+    description_artifact_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="SET NULL"), index=True
+    )
+    description_artifact_version: Mapped[int | None] = mapped_column(Integer)
+    copy_artifact_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="SET NULL"), index=True
+    )
+    copy_artifact_version: Mapped[int | None] = mapped_column(Integer)
+    cta_artifact_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="SET NULL"), index=True
+    )
+    cta_artifact_version: Mapped[int | None] = mapped_column(Integer)
+    tags_artifact_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="SET NULL"), index=True
+    )
+    tags_artifact_version: Mapped[int | None] = mapped_column(Integer)
+    thumbnail_output_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ai_image_outputs.id", ondelete="SET NULL"), index=True
+    )
+    thumbnail_media_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("media_assets.id", ondelete="SET NULL"), index=True
+    )
+    thumbnail_version: Mapped[int | None] = mapped_column(Integer)
+    caption_track_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("video_caption_tracks.id", ondelete="SET NULL"), index=True
+    )
+    caption_version: Mapped[int | None] = mapped_column(Integer)
     locale: Mapped[str] = mapped_column(String(16), default="en-IN")
     caption: Mapped[str | None] = mapped_column(Text)
     title: Mapped[str | None] = mapped_column(String(500))
@@ -132,6 +177,7 @@ class SocialPost(Base):
     preview_fingerprint: Mapped[str | None] = mapped_column(String(64))
     failure_code: Mapped[str | None] = mapped_column(String(80))
     safe_failure_message: Mapped[str | None] = mapped_column(String(500))
+    remote_checkpoint_json: Mapped[dict[str, object] | None] = mapped_column(JSONB)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
@@ -146,6 +192,11 @@ class SocialMetric(Base):
     post_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("social_posts.id", ondelete="CASCADE"), index=True
     )
+    product_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    platform: Mapped[str | None] = mapped_column(String(24), index=True)
+    content_type: Mapped[str | None] = mapped_column(String(48), index=True)
+    video_output_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    video_media_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
     metric_key: Mapped[str] = mapped_column(String(40))
     value: Mapped[float | None] = mapped_column()
     availability: Mapped[str] = mapped_column(String(20), default="not_synced")
