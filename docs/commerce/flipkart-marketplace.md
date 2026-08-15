@@ -54,3 +54,12 @@ The shared Marketplace Overview, Product Channel View, Inventory, Orders, Settle
   locally.
 - DEFERRED: continuous inventory sync, remote fulfilment mutations, refund
   initiation, automatic repricing, and production connector activation.
+
+## Video attachment
+
+Flipkart uses the normalized Marketplace Video contract and deterministic fake transport shared with Amazon and Meesho. Exact-version readiness, preview/confirmation, durable jobs, reconciliation, replacement safety, and recovery are local-only certifications. No live Flipkart API call is made.
+
+
+## Marketplace Video certification boundary
+
+The local fake-certified Marketplace Video workflow supports exact-version Amazon, Flipkart, and Meesho attachment, explicit preview/confirmation, durable jobs, replacement, reconciliation, ambiguity and crash-safe recovery, Product Channel and Product Media projections, safe history and diagnostics, security/privacy checks, and responsive/keyboard-accessible operational UX. Live marketplace Video APIs are not validated; Campaign Video, Bulk Video, Ads, and live connector calls remain out of scope.

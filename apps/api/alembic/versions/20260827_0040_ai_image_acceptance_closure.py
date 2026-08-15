@@ -49,6 +49,15 @@ def upgrade() -> None:
         ["id"],
         ondelete="SET NULL",
     )
+    bind = op.get_bind()
+    mapping_columns = {
+        column["name"] for column in sa.inspect(bind).get_columns("marketplace_media_mappings")
+    }
+    if "image_output_id" not in mapping_columns:
+        op.add_column(
+            "marketplace_media_mappings",
+            sa.Column("image_output_id", postgresql.UUID(as_uuid=True), nullable=True),
+        )
     op.create_index(
         "ix_marketplace_media_mappings_image_output_id",
         "marketplace_media_mappings",

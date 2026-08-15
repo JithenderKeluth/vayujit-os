@@ -105,6 +105,12 @@ export const routes: Routes = [
   },
   { path: 'marketplaces/overview', redirectTo: 'marketplaces', pathMatch: 'full' },
   {
+    path: 'marketplaces/video',
+    loadComponent: () =>
+      import('./marketplaces/marketplace-video.component').then((m) => m.MarketplaceVideoComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'marketplaces/flipkart',
     loadComponent: () =>
       import('./marketplaces/flipkart-workspace.component').then(

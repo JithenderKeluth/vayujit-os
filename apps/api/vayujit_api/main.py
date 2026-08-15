@@ -15,6 +15,7 @@ from vayujit_api.campaigns.router import router as campaigns_router
 from vayujit_api.campaigns.workflow_service import restore_campaign_waits
 from vayujit_api.commerce.amazon_router import router as amazon_router
 from vayujit_api.commerce.flipkart_router import router as flipkart_router
+from vayujit_api.commerce.marketplace_video import router as marketplace_video_router
 from vayujit_api.commerce.meesho_router import router as meesho_router
 from vayujit_api.commerce.router import router as commerce_router
 from vayujit_api.core.config import get_settings
@@ -70,6 +71,7 @@ def create_app() -> FastAPI:
     application.include_router(amazon_router)
     application.include_router(flipkart_router)
     application.include_router(meesho_router)
+    application.include_router(marketplace_video_router)
     application.include_router(products_router)
     application.include_router(ai_router)
     application.include_router(ai_studio_router)
