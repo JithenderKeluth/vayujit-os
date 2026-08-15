@@ -413,12 +413,19 @@ def preview(db: Session, owner: User, data: Any) -> dict[str, object]:
 
 def _response(db: Session, row: VideoGeneration) -> dict[str, object]:
     output = db.scalar(select(VideoOutput).where(VideoOutput.generation_id == row.id))
+    version = 1
+    parent = row.parent_generation_id
+    while parent is not None:
+        version += 1
+        parent_row = db.get(VideoGeneration, parent)
+        parent = parent_row.parent_generation_id if parent_row else None
     return {
         "id": row.id,
         "project_id": row.project_id,
         "brand_id": row.brand_id,
         "product_id": row.product_id,
         "status": row.status,
+        "video_version": version,
         "video_type": row.video_type,
         "target_channel": row.target_channel,
         "aspect_ratio": row.aspect_ratio,
@@ -444,6 +451,7 @@ def _response(db: Session, row: VideoGeneration) -> dict[str, object]:
         "context_fingerprint": row.context_fingerprint,
         "parent_generation_id": row.parent_generation_id,
         "regeneration_reason": row.regeneration_reason,
+        "output_id": output.id if output else None,
         "output_media_id": output.media_id if output else None,
         "output_checksum": output.checksum_sha256 if output else None,
         "output_size_bytes": output.size_bytes if output else None,

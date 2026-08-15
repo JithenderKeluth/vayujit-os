@@ -71,3 +71,12 @@ Slice 3 also adds video_bulk_generation parent/child records and preview, enqueu
 ## Social Video channel UX certification
 
 Social Video handoffs now remain exact-version and server-authoritative through compose, preview, confirmation, scheduling, Product Channel update detection, Calendar projection, Post detail, Recovery, history, and Synthetic analytics. The Angular workspace reuses backend platform capability data rather than duplicating format rules. Local fake certification is deterministic and network-free; live connector credentials and live analytics are not implied.
+
+## Slice 3B Marketplace Video integration
+
+Approved Video uses exact generation/output/media/version identity. Marketplace readiness is connector-driven and labeled LOCAL FAKE-CERTIFIED RULESET. Preview is non-mutating; confirmation creates a durable Marketplace Video job; the local deterministic workers persist remote mappings, reconcile drift, preserve historical replacements, and expose server-authoritative recovery actions. No live marketplace API calls, Campaign Video, Bulk Video, or Ads are included.
+
+
+## Marketplace Video certification boundary
+
+The local fake-certified Marketplace Video workflow supports exact-version Amazon, Flipkart, and Meesho attachment, explicit preview/confirmation, durable jobs, replacement, reconciliation, ambiguity and crash-safe recovery, Product Channel and Product Media projections, safe history and diagnostics, security/privacy checks, and responsive/keyboard-accessible operational UX. Live marketplace Video APIs are not validated; Campaign Video, Bulk Video, Ads, and live connector calls remain out of scope.

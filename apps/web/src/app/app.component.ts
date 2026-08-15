@@ -1,4 +1,4 @@
-﻿import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from './auth/auth.service';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -32,6 +32,7 @@ export class AppComponent {
     ['Media', '/media'],
     ['Publishing', '/publishing'],
     ['Marketplace', '/marketplaces'],
+    ['Marketplace Video', '/marketplaces/video'],
     ['Schedules', '/publishing/schedules'],
     ['Jobs', '/publishing/jobs'],
     ['Workflows', '/workflows'],

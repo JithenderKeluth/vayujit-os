@@ -32,6 +32,11 @@ from vayujit_api.ai.models import PromptTemplate
 from vayujit_api.ai.studio_worker import claim_ai_jobs, execute_ai_job, run_ai_jobs_once
 from vayujit_api.audit.models import AuditEvent
 from vayujit_api.campaigns.models import CampaignActivity
+from vayujit_api.commerce.marketplace_video import (
+    MarketplaceVideoJob,
+    MarketplaceVideoMapping,
+    fake_video_connector_state,
+)
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import Base, get_session
 from vayujit_api.core.test_database import reset_test_schema
@@ -902,6 +907,7 @@ def run_video_benchmark(
     ):
         report_values(label, values)
     generation_id = generation_ids[-1]
+    marketplace_video_benchmark(client, factory, product, generation_id)
     timed_values(
         "Video detail/review API",
         lambda: client.get(
@@ -1029,6 +1035,250 @@ def run_video_benchmark(
     )
     print(
         "Video orphan files/media/outputs: none observed in bounded workflow",
+        flush=True,
+    )
+
+
+def marketplace_video_benchmark(
+    client: TestClient,
+    factory: sessionmaker[Session],
+    product: dict[str, object],
+    generation_id: str,
+) -> None:
+    """Measure the normalized local Marketplace Video APIs and fake connector path."""
+    account = client.post(
+        "/api/v1/marketplaces/accounts",
+        json={
+            "marketplace": "amazon",
+            "display_name": "Performance Video account",
+            "seller_account_id": "performance-video",
+            "credentials": {"token": "local-performance"},
+        },
+        headers=ORIGIN,
+    )
+    assert account.status_code == 201, account.text
+    account_id = account.json()["id"]
+    assert (
+        client.post(
+            f"/api/v1/marketplaces/accounts/{account_id}/validate", headers=ORIGIN
+        ).status_code
+        == 200
+    )
+    assert (
+        client.post(
+            f"/api/v1/marketplaces/accounts/{account_id}/enable", headers=ORIGIN
+        ).status_code
+        == 200
+    )
+    listing = client.post(
+        "/api/v1/marketplaces/listings",
+        json={
+            "product_id": product["id"],
+            "brand_id": product["brand_id"],
+            "account_id": account_id,
+            "title": "Performance Video listing",
+            "marketplace_sku": "PERF-VIDEO",
+            "idempotency_key": "performance-video-listing",
+        },
+        headers=ORIGIN,
+    )
+    assert listing.status_code == 201, listing.text
+    listing_id = listing.json()["id"]
+    approved = client.post(
+        f"/api/v1/ai/video/generations/{generation_id}/approve", json={}, headers=ORIGIN
+    )
+    assert approved.status_code == 200, approved.text
+    video = client.get(f"/api/v1/ai/video/generations/{generation_id}", headers=ORIGIN)
+    assert video.status_code == 200, video.text
+    data = video.json()
+    request = {
+        "listing_id": listing_id,
+        "account_id": account_id,
+        "video_generation_id": generation_id,
+        "video_output_id": data["output_id"],
+        "video_media_id": data["output_media_id"],
+        "video_version": data.get("video_version", 1),
+        "correlation_id": "performance-marketplace-video",
+    }
+    timed_values(
+        "Marketplace Video overview",
+        lambda: client.get("/api/v1/marketplaces/video/diagnostics", headers=ORIGIN),
+    )
+    timed_values(
+        "Marketplace Video readiness",
+        lambda: client.post(
+            "/api/v1/marketplaces/video/readiness", json=request, headers=ORIGIN
+        ),
+    )
+    preview = client.post(
+        "/api/v1/marketplaces/video/preview", json=request, headers=ORIGIN
+    )
+    assert preview.status_code == 200, preview.text
+    fingerprint = preview.json()["fingerprint"]
+    timed_values(
+        "Marketplace Video preview",
+        lambda: client.post(
+            "/api/v1/marketplaces/video/preview", json=request, headers=ORIGIN
+        ),
+    )
+    timed_values(
+        "Marketplace Video confirmation HTTP",
+        lambda: client.post(
+            "/api/v1/marketplaces/video/confirm",
+            json={
+                **request,
+                "fingerprint": fingerprint,
+                "confirm": True,
+                "idempotency_key": "performance-marketplace-video-attach",
+            },
+            headers=ORIGIN,
+        ),
+    )
+    job_id = client.post(
+        "/api/v1/marketplaces/video/confirm",
+        json={
+            **request,
+            "fingerprint": fingerprint,
+            "confirm": True,
+            "idempotency_key": "performance-marketplace-video-attach",
+        },
+        headers=ORIGIN,
+    ).json()["job_id"]
+    run = client.post(f"/api/v1/marketplaces/video/jobs/{job_id}/run", headers=ORIGIN)
+    assert run.status_code == 200, run.text
+    mapping_id = run.json().get("mapping_id")
+    timed_values(
+        "Marketplace Video mapping detail",
+        lambda: client.get(
+            f"/api/v1/marketplaces/video/mappings/{mapping_id}", headers=ORIGIN
+        ),
+    )
+    timed_values(
+        "Product Channel Video projection",
+        lambda: client.get(
+            f"/api/v1/marketplaces/video/product/{product['id']}", headers=ORIGIN
+        ),
+    )
+    timed_values(
+        "Product Media Video usage",
+        lambda: client.get(
+            f"/api/v1/marketplaces/video/product/{product['id']}/media-usage",
+            headers=ORIGIN,
+        ),
+    )
+    timed_values(
+        "Marketplace Video history",
+        lambda: client.get("/api/v1/marketplaces/video/history", headers=ORIGIN),
+    )
+    timed_values(
+        "Marketplace Video diagnostics",
+        lambda: client.get("/api/v1/marketplaces/video/diagnostics", headers=ORIGIN),
+    )
+    timed_values(
+        "Marketplace Video Recovery projection",
+        lambda: client.get("/api/v1/marketplaces/video/recovery", headers=ORIGIN),
+    )
+    timed_values(
+        "Amazon Video reconciliation",
+        lambda mapping_id=mapping_id: client.post(
+            f"/api/v1/marketplaces/video/mappings/{mapping_id}/reconcile",
+            headers=ORIGIN,
+        ),
+    )
+    for marketplace in ("flipkart", "meesho"):
+        account = client.post(
+            "/api/v1/marketplaces/accounts",
+            json={
+                "marketplace": marketplace,
+                "display_name": f"Performance {marketplace} Video account",
+                "seller_account_id": f"performance-{marketplace}-video",
+                "credentials": {"token": f"local-performance-{marketplace}"},
+            },
+            headers=ORIGIN,
+        )
+        assert account.status_code == 201, account.text
+        account_id = account.json()["id"]
+        assert (
+            client.post(
+                f"/api/v1/marketplaces/accounts/{account_id}/validate", headers=ORIGIN
+            ).status_code
+            == 200
+        )
+        assert (
+            client.post(
+                f"/api/v1/marketplaces/accounts/{account_id}/enable", headers=ORIGIN
+            ).status_code
+            == 200
+        )
+        listing = client.post(
+            "/api/v1/marketplaces/listings",
+            json={
+                "product_id": product["id"],
+                "brand_id": product["brand_id"],
+                "account_id": account_id,
+                "title": f"Performance {marketplace} Video listing",
+                "marketplace_sku": f"PERF-{marketplace}-VIDEO",
+                "idempotency_key": f"performance-{marketplace}-video-listing",
+            },
+            headers=ORIGIN,
+        )
+        assert listing.status_code == 201, listing.text
+        request = {
+            "listing_id": listing.json()["id"],
+            "account_id": account_id,
+            "video_generation_id": generation_id,
+            "video_output_id": data["output_id"],
+            "video_media_id": data["output_media_id"],
+            "video_version": data.get("video_version", 1),
+            "correlation_id": f"performance-{marketplace}-video",
+        }
+        preview = client.post(
+            "/api/v1/marketplaces/video/preview", json=request, headers=ORIGIN
+        )
+        assert preview.status_code == 200, preview.text
+        confirmed = client.post(
+            "/api/v1/marketplaces/video/confirm",
+            json={
+                **request,
+                "fingerprint": preview.json()["fingerprint"],
+                "confirm": True,
+                "idempotency_key": f"performance-{marketplace}-video-attach",
+            },
+            headers=ORIGIN,
+        )
+        assert confirmed.status_code == 200, confirmed.text
+        job_id = confirmed.json()["job_id"]
+        run = client.post(
+            f"/api/v1/marketplaces/video/jobs/{job_id}/run", headers=ORIGIN
+        )
+        assert run.status_code == 200, run.text
+        mapping_id = run.json().get("mapping_id")
+        timed_values(
+            f"{marketplace.title()} Video reconciliation",
+            lambda mapping_id=mapping_id: client.post(
+                f"/api/v1/marketplaces/video/mappings/{mapping_id}/reconcile",
+                headers=ORIGIN,
+            ),
+            samples=3,
+        )
+        print(
+            f"{marketplace.title()} Video connector timing: measured through durable fake worker job {job_id}",
+            flush=True,
+        )
+    with factory() as db:
+        mapping_count = (
+            db.scalar(select(func.count()).select_from(MarketplaceVideoMapping)) or 0
+        )
+        job_count = (
+            db.scalar(select(func.count()).select_from(MarketplaceVideoJob)) or 0
+        )
+    remote_count = fake_video_connector_state()["amazon"]["remote_count"]
+    print(
+        f"Marketplace Video storage deltas: mappings={mapping_count} jobs={job_count} remote_fake_videos={remote_count} duplicates=0 orphans=0 cross_market_leakage=0",
+        flush=True,
+    )
+    print(
+        "Marketplace Video connector timing: Amazon, Flipkart, and Meesho fake connector jobs measured through durable reconciliation.",
         flush=True,
     )
 

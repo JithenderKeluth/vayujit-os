@@ -1,10 +1,20 @@
-import { DatePipe } from '@angular/common';
+﻿import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 
+type MarketplaceVideoUsage = {
+  marketplace: string;
+  listing_id: string;
+  video_output_id: string;
+  video_version: number;
+  remote_video_id: string | null;
+  latest_approved_video_output_id: string;
+  latest_approved_video_version: number;
+  update_available: boolean;
+};
 type ProductMediaItem = {
   media_id: string;
   image_output_id: string | null;
@@ -30,8 +40,8 @@ type ProductMediaItem = {
       <header class="media-header">
         <div>
           <p class="eyebrow">Product Media</p>
-          <h1 id="product-media-title">Image workspace</h1>
-          <p>Review original assets and immutable AI versions.</p>
+          <h1 id="product-media-title">Image and Video usage</h1>
+          <p>Review original assets, immutable AI versions, and marketplace Video handoffs.</p>
         </div>
         <a routerLink="../" class="button">Back to product</a>
       </header>
@@ -39,8 +49,53 @@ type ProductMediaItem = {
         <p class="state error" role="alert">{{ error() }}</p>
       }
       @if (loading()) {
-        <p class="state" role="status">Loading media�</p>
+        <p class="state" role="status">Loading media…</p>
       }
+      <section class="media-group" aria-labelledby="marketplace-video-usage-heading">
+        <h2 id="marketplace-video-usage-heading">
+          Marketplace Video usage <span class="count">{{ videoUsage().length }}</span>
+        </h2>
+        @if (!videoUsage().length) {
+          <p class="empty">
+            No marketplace Video mapping uses this Product yet. Attach an approved Video from
+            Marketplace Video.
+          </p>
+        }
+        <div class="media-grid">
+          @for (usage of videoUsage(); track usage.marketplace + usage.listing_id) {
+            <article class="media-card">
+              <div
+                class="preview"
+                role="img"
+                [attr.aria-label]="usage.marketplace + ' Video usage'"
+              >
+                Video
+              </div>
+              <div class="media-card-body">
+                <h3>{{ usage.marketplace }}</h3>
+                <p>
+                  Listing: <code>{{ usage.listing_id }}</code>
+                </p>
+                <p>
+                  Current Video v{{ usage.video_version }} ·
+                  {{ usage.remote_video_id || 'not attached' }}
+                </p>
+                <p>Remote state: {{ usage.remote_video_id ? 'active' : 'pending' }}</p>
+                <p>
+                  {{
+                    usage.update_available
+                      ? 'New approved Video available (v' +
+                        usage.latest_approved_video_version +
+                        ')'
+                      : 'Using latest approved Video'
+                  }}
+                </p>
+                <a class="button" routerLink="/marketplaces/video">Open Video workspace</a>
+              </div>
+            </article>
+          }
+        </div>
+      </section>
       @for (group of groups(); track group.id) {
         <section class="media-group" [attr.aria-labelledby]="group.id">
           <h2 [id]="group.id">
@@ -58,16 +113,16 @@ type ProductMediaItem = {
                 <div class="media-card-body">
                   <h3>{{ item.operation || 'Uploaded asset' }}</h3>
                   <p>
-                    <strong>{{ item.source_type }}</strong> � {{ item.status }} �
+                    <strong>{{ item.source_type }}</strong> · {{ item.status }} ·
                     {{ item.channel || 'canonical' }}
                   </p>
-                  <p>{{ item.width }}�{{ item.height }} � {{ item.mime || 'unknown type' }}</p>
+                  <p>{{ item.width }}×{{ item.height }} · {{ item.mime || 'unknown type' }}</p>
                   @if (item.generated_at) {
                     <p>Generated {{ item.generated_at | date: 'medium' }}</p>
                   }
-                  <p>Approval: {{ item.approval }} � Readiness: {{ readiness(item) }}</p>
+                  <p>Approval: {{ item.approval }} · Readiness: {{ readiness(item) }}</p>
                   <p>
-                    Marketplace use: {{ item.marketplace_usage.length }} � Campaign use:
+                    Marketplace use: {{ item.marketplace_usage.length }} · Campaign use:
                     {{ item.campaign_usage.length }}
                   </p>
                   @if (item.image_output_id) {
@@ -178,6 +233,7 @@ export class ProductMediaComponent {
   readonly loading = signal(true);
   readonly error = signal('');
   readonly items = signal<ProductMediaItem[]>([]);
+  readonly videoUsage = signal<MarketplaceVideoUsage[]>([]);
   constructor() {
     void this.load();
   }
@@ -221,14 +277,22 @@ export class ProductMediaComponent {
   }
   private async load(): Promise<void> {
     try {
-      this.items.set(
-        await firstValueFrom(
+      const [items, videoUsage] = await Promise.all([
+        firstValueFrom(
           this.http.get<ProductMediaItem[]>(
             `${environment.apiUrl}/ai/images/products/${this.productId}/media`,
             { withCredentials: true },
           ),
         ),
-      );
+        firstValueFrom(
+          this.http.get<MarketplaceVideoUsage[]>(
+            `${environment.apiUrl}/marketplaces/video/product/${this.productId}/media-usage`,
+            { withCredentials: true },
+          ),
+        ),
+      ]);
+      this.items.set(items);
+      this.videoUsage.set(videoUsage);
     } catch {
       this.error.set('Product media is unavailable. Check the API connection and try again.');
     } finally {
