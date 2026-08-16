@@ -30,6 +30,7 @@ ActivityType = Literal[
     "shopify_reconcile",
     "review_checkpoint",
     "approval_checkpoint",
+    "video_campaign",
 ]
 
 
@@ -119,6 +120,19 @@ class ActivityCreate(BaseModel):
     duration_minutes: int | None = Field(default=None, ge=1, le=1440)
     required: bool = True
     enabled: bool = True
+    video_generation_id: uuid.UUID | None = None
+    video_output_id: uuid.UUID | None = None
+    video_media_id: uuid.UUID | None = None
+    video_version: int | None = Field(default=None, ge=1)
+    video_channel: str | None = Field(default=None, max_length=40)
+    video_thumbnail_output_id: uuid.UUID | None = None
+    video_thumbnail_media_id: uuid.UUID | None = None
+    video_thumbnail_version: int | None = Field(default=None, ge=1)
+    video_caption_track_id: uuid.UUID | None = None
+    video_caption_version: int | None = Field(default=None, ge=1)
+    video_metadata: dict[str, object] | None = None
+    video_target_account_id: uuid.UUID | None = None
+    video_target_listing_id: uuid.UUID | None = None
 
 
 class ActivityUpdate(BaseModel):
@@ -141,6 +155,26 @@ class ActivityResponse(BaseModel):
     product_id: uuid.UUID | None
     artifact_id: uuid.UUID | None
     artifact_version: int | None
+    video_generation_id: uuid.UUID | None = None
+    video_output_id: uuid.UUID | None = None
+    video_media_id: uuid.UUID | None = None
+    video_version: int | None = None
+    video_channel: str | None = None
+    video_thumbnail_output_id: uuid.UUID | None = None
+    video_thumbnail_media_id: uuid.UUID | None = None
+    video_thumbnail_version: int | None = None
+    video_caption_track_id: uuid.UUID | None = None
+    video_caption_version: int | None = None
+    video_metadata: dict[str, object] | None = None
+    video_target_account_id: uuid.UUID | None = None
+    video_target_listing_id: uuid.UUID | None = None
+    video_mapping_id: uuid.UUID | None = None
+    video_marketplace_job_id: uuid.UUID | None = None
+    video_remote_id: str | None = None
+    video_downstream_state: str | None = None
+    video_job_payload_version: int | None = None
+    dependency_state: str | None = None
+    video_replacement_state: str | None = None
     destination_id: uuid.UUID | None
     connector_key: str | None
     requested_action: str | None
@@ -259,6 +293,11 @@ class CalendarEvent(BaseModel):
     scheduled_at_utc: datetime
     timezone_name: str
     has_conflict: bool
+    video_generation_id: uuid.UUID | None = None
+    video_output_id: uuid.UUID | None = None
+    video_version: int | None = None
+    video_channel: str | None = None
+    dependency_state: str | None = None
 
 
 class MonthDay(BaseModel):
@@ -498,6 +537,26 @@ class CampaignRecoveryProjection(BaseModel):
     product_id: uuid.UUID | None
     artifact_id: uuid.UUID | None
     artifact_version: int | None
+    video_generation_id: uuid.UUID | None = None
+    video_output_id: uuid.UUID | None = None
+    video_media_id: uuid.UUID | None = None
+    video_version: int | None = None
+    video_channel: str | None = None
+    video_thumbnail_output_id: uuid.UUID | None = None
+    video_thumbnail_media_id: uuid.UUID | None = None
+    video_thumbnail_version: int | None = None
+    video_caption_track_id: uuid.UUID | None = None
+    video_caption_version: int | None = None
+    video_metadata: dict[str, object] | None = None
+    video_target_account_id: uuid.UUID | None = None
+    video_target_listing_id: uuid.UUID | None = None
+    video_mapping_id: uuid.UUID | None = None
+    video_marketplace_job_id: uuid.UUID | None = None
+    video_remote_id: str | None = None
+    video_downstream_state: str | None = None
+    video_job_payload_version: int | None = None
+    dependency_state: str | None = None
+    video_replacement_state: str | None = None
     destination_id: uuid.UUID | None
     connector_key: str | None
     schedule_id: uuid.UUID | None

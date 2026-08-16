@@ -1214,6 +1214,22 @@ export interface CampaignRecoveryProjection {
   product_id: string | null;
   artifact_id: string | null;
   artifact_version: number | null;
+  video_generation_id?: string | null;
+  video_output_id?: string | null;
+  video_media_id?: string | null;
+  video_version?: number | null;
+  video_channel?: string | null;
+  video_thumbnail_output_id?: string | null;
+  video_thumbnail_media_id?: string | null;
+  video_thumbnail_version?: number | null;
+  video_caption_track_id?: string | null;
+  video_caption_version?: number | null;
+  video_metadata?: Record<string, unknown> | null;
+  video_target_account_id?: string | null;
+  video_target_listing_id?: string | null;
+  video_mapping_id?: string | null;
+  dependency_state?: string | null;
+  video_replacement_state?: string | null;
   destination_id: string | null;
   connector_key: string | null;
   schedule_id: string | null;
@@ -1403,6 +1419,22 @@ export interface CampaignActivity {
   product_id: string | null;
   artifact_id: string | null;
   artifact_version: number | null;
+  video_generation_id?: string | null;
+  video_output_id?: string | null;
+  video_media_id?: string | null;
+  video_version?: number | null;
+  video_channel?: string | null;
+  video_thumbnail_output_id?: string | null;
+  video_thumbnail_media_id?: string | null;
+  video_thumbnail_version?: number | null;
+  video_caption_track_id?: string | null;
+  video_caption_version?: number | null;
+  video_metadata_json?: Record<string, unknown> | null;
+  video_target_account_id?: string | null;
+  video_target_listing_id?: string | null;
+  video_mapping_id?: string | null;
+  dependency_state?: string | null;
+  video_replacement_state?: string | null;
   destination_id: string | null;
   connector_key: string | null;
   requested_action: string | null;
@@ -1567,6 +1599,11 @@ export interface CampaignCalendarEvent {
   scheduled_at_utc: string;
   timezone_name: string;
   has_conflict: boolean;
+  video_generation_id?: string | null;
+  video_output_id?: string | null;
+  video_version?: number | null;
+  video_channel?: string | null;
+  dependency_state?: string | null;
 }
 
 export interface CampaignMonthCalendar {

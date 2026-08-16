@@ -1,5 +1,6 @@
 ACTIVITY_ACTIONS: dict[str, tuple[str | None, str | None]] = {
     "mock_publish": ("mock_publisher_v1", "publish"),
+    "video_campaign": ("campaign_video", "publish"),
     "wordpress_create_draft": ("wordpress", "create_draft"),
     "wordpress_publish": ("wordpress", "publish"),
     "wordpress_update": ("wordpress", "update"),

@@ -7,6 +7,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from vayujit_api.ai.models import GeneratedArtifact
+from vayujit_api.audit.service import record_event
 from vayujit_api.brands.models import Brand
 from vayujit_api.campaigns.activity_service import (
     add_dependency,
@@ -889,6 +890,37 @@ def activity_cancel(
         activity.status = "cancelled"
         activity.completed_at = now()
     activity.updated_at = now()
+    if activity.activity_type == "video_campaign":
+        from vayujit_api.commerce.marketplace_video import MarketplaceVideoJob
+        from vayujit_api.social.models import SocialPost
+
+        schedule = (
+            db.get(PublishingSchedule, activity.schedule_id) if activity.schedule_id else None
+        )
+        if schedule:
+            schedule.enabled = False
+            schedule.archived = True
+            schedule.cancellation_reason = "Campaign Video Activity cancelled."
+        post = db.get(SocialPost, activity.social_post_id) if activity.social_post_id else None
+        if post and post.lifecycle_status not in {"published", "cancelled"}:
+            post.lifecycle_status = "cancelled"
+            post.updated_at = now()
+        marketplace_job = (
+            db.get(MarketplaceVideoJob, activity.video_marketplace_job_id)
+            if activity.video_marketplace_job_id
+            else None
+        )
+        if marketplace_job and marketplace_job.state not in {"succeeded", "cancelled"}:
+            marketplace_job.state = "cancelled"
+            marketplace_job.completed_at = now()
+        record_event(
+            db,
+            actor_id=owner.id,
+            action="campaign_video_cancelled",
+            entity_type="campaign_activity",
+            entity_id=activity.id,
+            metadata={"campaign_id": str(campaign_id), "video_version": activity.video_version},
+        )
     db.commit()
     db.refresh(activity)
     return activity

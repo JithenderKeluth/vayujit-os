@@ -15,9 +15,11 @@ from vayujit_api.core.config import get_settings
 from vayujit_api.core.observability import correlation_id
 from vayujit_api.identity.models import User
 from vayujit_api.identity.service import now
+from vayujit_api.media.models import MediaAsset
 from vayujit_api.products.models import Product
 from vayujit_api.publishing.models import PublishingDestination
 from vayujit_api.publishing.scheduler_time import local_to_utc
+from vayujit_api.video.models import VideoGeneration, VideoOutput
 
 
 def owned_activity(
@@ -77,7 +79,41 @@ def create_activity(
         if data.destination_id
         else None
     )
-    if not checkpoint and (not product or not artifact or not destination):
+    generation = output = media = None
+    if data.activity_type == "video_campaign":
+        generation = db.scalar(
+            select(VideoGeneration).where(
+                VideoGeneration.id == data.video_generation_id,
+                VideoGeneration.owner_id == owner.id,
+            )
+        )
+        output = db.scalar(
+            select(VideoOutput).where(
+                VideoOutput.id == data.video_output_id,
+                VideoOutput.generation_id == data.video_generation_id,
+                VideoOutput.owner_id == owner.id,
+            )
+        )
+        media = db.scalar(
+            select(MediaAsset).where(
+                MediaAsset.id == data.video_media_id, MediaAsset.owner_id == owner.id
+            )
+        )
+        if not generation or not output or not media:
+            raise HTTPException(422, "Campaign Video requires the exact Video Output and Media.")
+        if not product or generation.product_id != product.id or generation.status != "succeeded":
+            raise HTTPException(422, "Campaign Video Product and generation do not match.")
+        if output.status != "approved" or media.status != "ready":
+            raise HTTPException(422, "Campaign Video requires an approved Output and ready Media.")
+        if data.video_version != 1:
+            raise HTTPException(
+                422, "Use the Campaign Video preview flow for versioned Video Activities."
+            )
+    if (
+        not checkpoint
+        and data.activity_type != "video_campaign"
+        and (not product or not artifact or not destination)
+    ):
         raise HTTPException(
             422, "Publishing activities require Product, Artifact, and destination."
         )
@@ -100,6 +136,22 @@ def create_activity(
         product_id=product.id if product else None,
         artifact_id=artifact.id if artifact else None,
         artifact_version=artifact.version_number if artifact else None,
+        video_generation_id=(
+            data.video_generation_id if data.activity_type == "video_campaign" else None
+        ),
+        video_output_id=data.video_output_id if data.activity_type == "video_campaign" else None,
+        video_media_id=data.video_media_id if data.activity_type == "video_campaign" else None,
+        video_version=data.video_version if data.activity_type == "video_campaign" else None,
+        video_channel=data.video_channel if data.activity_type == "video_campaign" else None,
+        video_metadata_json=data.video_metadata if data.activity_type == "video_campaign" else None,
+        video_target_account_id=(
+            data.video_target_account_id if data.activity_type == "video_campaign" else None
+        ),
+        video_target_listing_id=(
+            data.video_target_listing_id if data.activity_type == "video_campaign" else None
+        ),
+        dependency_state="ready" if data.activity_type == "video_campaign" else None,
+        video_replacement_state="current" if data.activity_type == "video_campaign" else None,
         destination_id=destination.id if destination else None,
         connector_key=connector,
         requested_action=action,

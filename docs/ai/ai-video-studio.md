@@ -47,7 +47,7 @@ The Angular Video workspace now provides authenticated owner-scoped Overview, 14
 
 ## Explicit limitations
 
-The local provider is deterministic and network-free. It currently emits a bounded MP4-signature fixture for workflow certification rather than a fully decoded motion-video stream. Deep container metadata, duration/frame-rate validation, FFmpeg/ffprobe integration, real audio/voice, thumbnail generation, bulk orchestration, social/marketplace/Campaign handoff, live providers, and Ads workflows are deferred. Do not use the fixture as production media.
+The local provider is deterministic and network-free. It currently emits a bounded MP4-signature fixture for workflow certification rather than a fully decoded motion-video stream. Deep container metadata, duration/frame-rate validation, FFmpeg/ffprobe integration, real audio/voice, thumbnail generation, bulk orchestration, live providers, and Ads workflows are deferred. Do not use the fixture as production media.
 
 
 ## Slice 2 final certification
@@ -56,7 +56,7 @@ Certification used disposable PostgreSQL test data and the local deterministic p
 
 The Video performance baseline recorded request medians/p95s, one-shot worker/render/inspection timings, durable completion, detail/review, comparison, captions, usage, diagnostics, and recovery projections. The bounded storage-growth run recorded exact Video Project, Generation, Output, Media, Caption, file, byte, temp, and checkpoint deltas with no duplicate work or orphan Video resources observed. The baseline is a local pathological-behavior detector, not a production SLO declaration.
 
-Static accessibility validation and keyboard-capable controls passed for Overview, Generate, Script, Storyboard, Videos, Review, Comparison, Captions, Presets, Usage, and Diagnostics. Automated Axe and viewport testing are not configured. The certification boundary is local deterministic single-video workflow behavior only; live Video providers, real visual-quality assessment, audio/voice providers, and Social, Marketplace, Campaign, Bulk, and Ads handoffs remain outside Slice 2.
+Static accessibility validation and keyboard-capable controls passed for Overview, Generate, Script, Storyboard, Videos, Review, Comparison, Captions, Presets, Usage, and Diagnostics. Automated Axe and viewport testing are not configured. The certification boundary is local deterministic single-video workflow behavior only; live Video providers, real visual-quality assessment, audio/voice providers, and Bulk and Ads handoffs remain outside Slice 2; Campaign Video integration is covered separately by the Slice 3C foundation.
 
 ## Slice 3 channel integration boundary
 
@@ -74,7 +74,7 @@ Social Video handoffs now remain exact-version and server-authoritative through 
 
 ## Slice 3B Marketplace Video integration
 
-Approved Video uses exact generation/output/media/version identity. Marketplace readiness is connector-driven and labeled LOCAL FAKE-CERTIFIED RULESET. Preview is non-mutating; confirmation creates a durable Marketplace Video job; the local deterministic workers persist remote mappings, reconcile drift, preserve historical replacements, and expose server-authoritative recovery actions. No live marketplace API calls, Campaign Video, Bulk Video, or Ads are included.
+Approved Video uses exact generation/output/media/version identity. Marketplace readiness is connector-driven and labeled LOCAL FAKE-CERTIFIED RULESET. Preview is non-mutating; confirmation creates a durable Marketplace Video job; the local deterministic workers persist remote mappings, reconcile drift, preserve historical replacements, and expose server-authoritative recovery actions. No live marketplace API calls, Bulk Video, or Ads are included; Campaign Video uses the canonical Campaign API foundation described in the Campaign documentation.
 
 
 ## Marketplace Video certification boundary

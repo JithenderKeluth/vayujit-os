@@ -152,6 +152,45 @@ class CampaignActivity(Base):
     image_media_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("media_assets.id", ondelete="SET NULL"), index=True
     )
+    video_generation_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("video_generations.id", ondelete="RESTRICT"), index=True
+    )
+    video_output_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("video_outputs.id", ondelete="RESTRICT"), index=True
+    )
+    video_media_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("media_assets.id", ondelete="RESTRICT"), index=True
+    )
+    video_version: Mapped[int | None] = mapped_column(Integer)
+    video_channel: Mapped[str | None] = mapped_column(String(40), index=True)
+    video_thumbnail_output_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ai_image_outputs.id", ondelete="SET NULL"), index=True
+    )
+    video_thumbnail_media_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("media_assets.id", ondelete="SET NULL"), index=True
+    )
+    video_thumbnail_version: Mapped[int | None] = mapped_column(Integer)
+    video_caption_track_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("video_caption_tracks.id", ondelete="SET NULL"), index=True
+    )
+    video_caption_version: Mapped[int | None] = mapped_column(Integer)
+    video_metadata_json: Mapped[dict[str, object] | None] = mapped_column(JSONB)
+    video_preview_fingerprint: Mapped[str | None] = mapped_column(String(64), index=True)
+    video_target_account_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), index=True
+    )
+    video_target_listing_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), index=True
+    )
+    video_mapping_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    video_marketplace_job_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), index=True
+    )
+    video_remote_id: Mapped[str | None] = mapped_column(String(200), index=True)
+    video_downstream_state: Mapped[str | None] = mapped_column(String(40), index=True)
+    video_job_payload_version: Mapped[int | None] = mapped_column(Integer)
+    dependency_state: Mapped[str | None] = mapped_column(String(30), index=True)
+    video_replacement_state: Mapped[str | None] = mapped_column(String(30))
     destination_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("publishing_destinations.id", ondelete="RESTRICT"),

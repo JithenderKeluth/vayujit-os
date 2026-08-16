@@ -30,6 +30,7 @@ import { RescheduleDialogComponent } from './reschedule-dialog.component';
             <a class="button" [routerLink]="['/campaigns', value.id, 'activities', 'new']"
               >Add activity</a
             >
+            <a class="button" [routerLink]="['/campaigns', value.id, 'video']">Campaign Video</a>
             <a class="button" [routerLink]="['/calendar']" [queryParams]="{ campaign: value.id }"
               >Calendar</a
             >

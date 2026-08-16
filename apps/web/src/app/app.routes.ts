@@ -26,6 +26,18 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'campaigns/:id/video/:activityId',
+    loadComponent: () =>
+      import('./campaigns/campaign-video.component').then((m) => m.CampaignVideoComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'campaigns/:id/video',
+    loadComponent: () =>
+      import('./campaigns/campaign-video.component').then((m) => m.CampaignVideoComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'campaigns/:id/activities/new',
     loadComponent: () =>
       import('./campaigns/activity-form.component').then((m) => m.ActivityFormComponent),

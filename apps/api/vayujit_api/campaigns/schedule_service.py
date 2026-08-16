@@ -1,4 +1,4 @@
-import uuid
+﻿import uuid
 from typing import Any, cast
 
 from fastapi import HTTPException
@@ -48,6 +48,19 @@ def schedule_activities(
     for activity in selected:
         if activity in blocked:
             results.append({"activity_id": activity.id, "status": "blocked"})
+            continue
+        if activity.activity_type == "video_campaign":
+            from vayujit_api.campaigns.campaign_video_runtime import materialize_campaign_video
+
+            result = materialize_campaign_video(
+                db,
+                owner,
+                campaign.id,
+                activity.id,
+                expected_fingerprint=activity.video_preview_fingerprint or "",
+                expected_row_version=activity.row_version,
+            )
+            results.append(result)
             continue
         if activity.connector_key is None:
             activity.status = "succeeded"
