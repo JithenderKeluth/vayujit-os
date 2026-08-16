@@ -1,4 +1,4 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import hashlib
 import uuid
@@ -1196,8 +1196,6 @@ def execute_recovery_action(
                 existing_row = db.get(VideoGeneration, generation_id)
                 if existing_row is not None:
                     return _response(db, existing_row)
-            if existing_row is not None:
-                return _response(db, existing_row)
     if (
         data.expected_failure_code is not None
         and data.expected_failure_code != projection["failure_code"]

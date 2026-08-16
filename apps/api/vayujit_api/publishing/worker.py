@@ -20,6 +20,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from vayujit_api import __version__
 from vayujit_api.ai.studio_worker import run_ai_jobs_once
+from vayujit_api.campaigns.campaign_video_runtime import execute_campaign_video_job
 from vayujit_api.commerce.amazon_worker import execute_amazon_job, parse_account_id
 from vayujit_api.commerce.flipkart_worker import (
     execute_flipkart_job,
@@ -134,8 +135,18 @@ def execute_job(job_id: uuid.UUID, worker_id: str) -> None:
             owner = db.get(User, job.owner_id)
             if not owner:
                 raise ValueError("Publishing job owner no longer exists.")
+            campaign_result = None
             social_result = None
-            if job.connector_key.startswith("social_fake:"):
+            if job.context_json.get("campaign_video_activity_id"):
+                campaign_result = execute_campaign_video_job(db, job)
+                succeeded = campaign_result.status == "succeeded"
+                retryable = campaign_result.retryable
+                error_code = campaign_result.error_code
+                safe_message = campaign_result.safe_message
+                if campaign_result.status == "cancelled":
+                    job.state = "cancel_requested"
+                    db.commit()
+            elif job.connector_key.startswith("social_fake:"):
                 social_result = execute_social_job(db, job)
                 succeeded = social_result.status == "succeeded"
                 retryable = social_result.retryable
@@ -144,7 +155,7 @@ def execute_job(job_id: uuid.UUID, worker_id: str) -> None:
             amazon_account_id = parse_account_id(job.connector_key)
             flipkart_account_id = parse_flipkart_account_id(job.connector_key)
             meesho_account_id = parse_meesho_account_id(job.connector_key)
-            if social_result is not None:
+            if campaign_result is not None or social_result is not None:
                 pass
             elif amazon_account_id is not None:
                 amazon_result = execute_amazon_job(db, job, account_id=amazon_account_id)

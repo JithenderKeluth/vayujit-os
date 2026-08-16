@@ -13,6 +13,7 @@ from test_ai_image_acceptance import (
     _studio_artifact,
     _upload_source,
 )
+from test_ai_image_acceptance import acceptance_context as _acceptance_context  # noqa: F401
 
 from vayujit_api.ai.image_models import AIImageOutput
 from vayujit_api.ai.studio_worker import run_ai_jobs_once
@@ -24,10 +25,10 @@ pytestmark = pytest.mark.integration
 
 
 def test_full_image_product_lifecycle_preserves_exact_lineage_and_handoffs(
-    acceptance_context: tuple[TestClient, sessionmaker[Session], dict[str, str]],
+    _acceptance_context: tuple[TestClient, sessionmaker[Session], dict[str, str]],  # noqa: F811
 ) -> None:
     """Exercise the guarded local workflow from source Media through downstream projections."""
-    client, factory, ids = acceptance_context
+    client, factory, ids = _acceptance_context
     source_id = _upload_source(client)
     source_before = client.get(f"/api/v1/media/{source_id}", headers=ORIGIN)
     source_bytes_before = client.get(f"/api/v1/media/{source_id}/preview", headers=ORIGIN)

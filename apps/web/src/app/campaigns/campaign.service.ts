@@ -96,6 +96,69 @@ export class CampaignService {
       ),
     );
   }
+  videoOverview(id: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/${id}/video/overview`, this.options),
+    );
+  }
+  previewVideoActivity(
+    id: string,
+    data: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/${id}/video/activities/preview`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  confirmVideoActivity(
+    id: string,
+    data: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/${id}/video/activities`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  previewVideoReplacement(
+    id: string,
+    activityId: string,
+    data: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/${id}/video/activities/${activityId}/replacement/preview`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  confirmVideoReplacement(
+    id: string,
+    activityId: string,
+    data: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/${id}/video/activities/${activityId}/replacement`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  videoDetail(id: string, activityId: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${this.base}/${id}/video/activities/${activityId}/detail`,
+        this.options,
+      ),
+    );
+  }
   createActivity(id: string, data: Record<string, unknown>): Promise<CampaignActivity> {
     return firstValueFrom(
       this.http.post<CampaignActivity>(`${this.base}/${id}/activities`, data, this.options),

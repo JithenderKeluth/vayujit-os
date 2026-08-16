@@ -183,3 +183,16 @@ Campaign templates and drag-and-drop rescheduling are intentionally deferred. Th
 uses explicit identifiers for Product, Artifact, and destination selection; richer searchable
 pickers can be layered on the same safe APIs. Real external connector calls, remote deletion,
 multi-user authorization, and cloud deployment remain outside the local-owner MVP.
+
+## Campaign Video integration (Slice 3C foundation)
+
+Campaign Video Activities now use the canonical Campaign aggregate and persist exact owner-scoped Video Generation, Video Output, Media, version, channel, target account/listing, dependency, preview fingerprint, and replacement lineage. The API is server-authoritative:
+
+- POST /api/v1/campaigns/{campaign_id}/video/activities/preview validates exact approved Video identity, target readiness, schedule, and stale context without creating an Activity.
+- POST /api/v1/campaigns/{campaign_id}/video/activities requires the preview context and an idempotency key before creating the Activity.
+- replacement preview/confirmation keeps the historical Activity and pins the replacement to its exact Video version.
+- GET /api/v1/campaigns/{campaign_id}/video/overview, /video/history, and /video/activities/{activity_id}/detail expose safe projections.
+
+The current local boundary is the Campaign contract/readiness/preview/confirmation foundation and Calendar projection. Campaign-specific downstream schedule/job materialization, six-channel Campaign E2E, Product Channel Campaign projections, and full Recovery wiring remain follow-up work; no live Social or Marketplace API is contacted.
+
+Campaign Video catch-up: DEFERRED — generic catch-up does not yet support this Activity class.

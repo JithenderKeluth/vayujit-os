@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import UTC, datetime
 
 from fastapi import HTTPException
 from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
 from vayujit_api.ai.models import GeneratedArtifact
+from vayujit_api.audit.models import AuditEvent
 from vayujit_api.audit.service import record_event
 from vayujit_api.campaigns.campaign_service import transition
 from vayujit_api.campaigns.completion_service import resolve_missed
@@ -41,6 +44,34 @@ from vayujit_api.publishing.service import reconcile_execution
 
 def _now() -> datetime:
     return datetime.now(UTC)
+
+
+def _record_event_once(
+    db: Session,
+    *,
+    actor_id: uuid.UUID,
+    action: str,
+    entity_type: str,
+    entity_id: uuid.UUID,
+    metadata: dict[str, object],
+) -> None:
+    exists = db.scalar(
+        select(AuditEvent.id).where(
+            AuditEvent.actor_id == actor_id,
+            AuditEvent.action == action,
+            AuditEvent.entity_type == entity_type,
+            AuditEvent.entity_id == entity_id,
+        )
+    )
+    if not exists:
+        record_event(
+            db,
+            actor_id=actor_id,
+            action=action,
+            entity_type=entity_type,
+            entity_id=entity_id,
+            metadata=metadata,
+        )
 
 
 def execute_replace_with_new_approved_activity(
@@ -300,7 +331,7 @@ def execute_reschedule_activity(
     )
     if request.preview_fingerprint != fingerprint:
         raise HTTPException(409, "The reschedule preview is stale or invalid.")
-    if activity.status not in {"missed", "scheduled", "retry_wait", "paused", "failed"}:
+    if activity.status not in {"missed", "scheduled", "queued", "retry_wait", "paused", "failed"}:
         raise HTTPException(409, "The Activity is not eligible for rescheduling.")
     if activity.row_version != expected_row_version:
         raise HTTPException(409, "The Activity changed; refresh before rescheduling it.")
@@ -395,6 +426,33 @@ def execute_reschedule_activity(
             "approved_at": artifact.approved_at.isoformat() if artifact.approved_at else None,
             "approved_by": str(artifact.approved_by) if artifact.approved_by else None,
         },
+        context_json=(
+            {
+                "payload_version": activity.video_job_payload_version or 1,
+                "campaign_id": str(context.campaign.id),
+                "campaign_video_activity_id": str(activity.id),
+                "video_generation_id": str(activity.video_generation_id),
+                "video_output_id": str(activity.video_output_id),
+                "video_media_id": str(activity.video_media_id),
+                "video_version": activity.video_version,
+                "video_channel": activity.video_channel,
+                "video_target_account_id": str(activity.video_target_account_id),
+                "video_target_listing_id": (
+                    str(activity.video_target_listing_id)
+                    if activity.video_target_listing_id
+                    else None
+                ),
+                "downstream_kind": (
+                    "social_post" if activity.social_post_id else "marketplace_video_job"
+                ),
+                "downstream_id": str(
+                    activity.social_post_id or activity.video_marketplace_job_id or ""
+                ),
+                "correlation_id": activity.correlation_id,
+            }
+            if activity.activity_type == "video_campaign"
+            else {}
+        ),
         destination_snapshot_version=destination.updated_at.isoformat(),
         created_by=context.owner.id,
         created_at=stamp,
@@ -422,6 +480,16 @@ def execute_reschedule_activity(
         created_at=stamp,
     )
     context.db.add(link)
+    if activity.activity_type == "video_campaign" and activity.social_post_id:
+        from vayujit_api.social.models import SocialPost
+
+        social_post = context.db.get(SocialPost, activity.social_post_id)
+        if social_post:
+            social_post.schedule_id = schedule.id
+            social_post.scheduled_at_utc = resolved
+            social_post.timezone_name = request.proposed_timezone
+            social_post.lifecycle_status = "scheduled"
+            social_post.updated_at = stamp
     activity.scheduled_local_date = request.proposed_local_datetime.date()
     activity.scheduled_local_time = request.proposed_local_datetime.time()
     activity.timezone_name = request.proposed_timezone
@@ -457,7 +525,11 @@ def execute_reschedule_activity(
     record_event(
         context.db,
         actor_id=context.owner.id,
-        action="campaign.activity_rescheduled",
+        action=(
+            "campaign_video_rescheduled"
+            if activity.activity_type == "video_campaign"
+            else "campaign.activity_rescheduled"
+        ),
         entity_type="campaign_activity",
         entity_id=activity.id,
         metadata={
@@ -1374,6 +1446,21 @@ def execute_retry_activity(
     activity.status = "queued"
     activity.failure_code = activity.safe_failure_message = None
     activity.updated_at = _now()
+    if activity.activity_type == "video_campaign":
+        activity.video_downstream_state = "retrying"
+        record_event(
+            context.db,
+            actor_id=context.owner.id,
+            action="campaign_video_recovered",
+            entity_type="campaign_activity",
+            entity_id=activity.id,
+            metadata={
+                "campaign_id": str(context.campaign.id),
+                "video_version": activity.video_version,
+                "channel": activity.video_channel,
+                "recovery_action": "retry_activity",
+            },
+        )
     context.db.commit()
     return CampaignRecoveryActionResult(
         action=request.action,
@@ -1396,6 +1483,160 @@ def execute_reconcile_activity(
     if context.activity is None:
         raise ValueError("Reconciliation requires an Activity.")
     activity = context.activity
+    if activity.activity_type == "video_campaign":
+        locked_activity = context.db.scalar(
+            select(CampaignActivity)
+            .where(CampaignActivity.id == activity.id)
+            .with_for_update()
+            .execution_options(populate_existing=True)
+        )
+        if locked_activity is None:
+            raise ValueError("The Campaign Video Activity is unavailable.")
+        activity = locked_activity
+        if activity.status == "succeeded" and activity.video_remote_id:
+            existing_downstream_id = activity.social_post_id or activity.video_mapping_id
+            return CampaignRecoveryActionResult(
+                action=request.action,
+                outcome="remote_succeeded",
+                resource_ids={
+                    "activity_id": str(activity.id),
+                    "downstream_id": (
+                        str(existing_downstream_id) if existing_downstream_id else ""
+                    ),
+                },
+                safe_message="Campaign Video was already reconciled successfully.",
+                navigation_targets={
+                    "activity": f"/campaigns/{context.campaign.id}/activities/{activity.id}"
+                },
+                confirmation_required=True,
+                correlation_id=context.correlation_id,
+                idempotency_result="reused",
+                status=activity.status,
+                reconciliation_status="reconciled",
+                idempotent_reuse=True,
+            )
+        job = context.db.get(PublishingJob, activity.job_id) if activity.job_id else None
+        reconciled = False
+        downstream_id: uuid.UUID | None = None
+        downstream_was_complete = False
+        if activity.social_post_id:
+            from vayujit_api.social.models import SocialPost
+            from vayujit_api.social.router import recovery_action as social_recovery_action
+            from vayujit_api.social.schemas import SocialRecoveryActionRequest
+
+            existing_post = context.db.get(SocialPost, activity.social_post_id)
+            downstream_was_complete = bool(
+                existing_post and existing_post.lifecycle_status == "published"
+            )
+            social_recovery_action(
+                SocialRecoveryActionRequest(
+                    action="reconcile",
+                    post_id=activity.social_post_id,
+                    confirm=True,
+                    idempotency_key=f"campaign-video-reconcile:{activity.id}",
+                ),
+                context.db,
+                context.owner,
+            )
+            post = context.db.get(SocialPost, activity.social_post_id)
+            reconciled = bool(post and post.lifecycle_status == "published")
+            downstream_id = activity.social_post_id
+            if post:
+                activity.video_remote_id = post.remote_publication_id
+                activity.video_downstream_state = post.lifecycle_status
+                activity.failure_code = post.failure_code
+                activity.safe_failure_message = post.safe_failure_message
+        elif activity.video_mapping_id:
+            from vayujit_api.commerce.marketplace_video import (
+                MarketplaceVideoMapping,
+            )
+            from vayujit_api.commerce.marketplace_video import (
+                reconcile as reconcile_marketplace_video,
+            )
+
+            mapping = context.db.get(MarketplaceVideoMapping, activity.video_mapping_id)
+            if mapping is None:
+                raise ValueError("The Marketplace Video mapping is unavailable.")
+            downstream_was_complete = (
+                mapping.attachment_state == "active"
+                and mapping.reconciliation_state == "reconciled"
+            )
+            reconcile_marketplace_video(context.db, context.owner, mapping)
+            reconciled = (
+                mapping.attachment_state == "active"
+                and mapping.reconciliation_state == "reconciled"
+            )
+            downstream_id = mapping.id
+            activity.video_remote_id = mapping.remote_video_id
+            activity.video_downstream_state = mapping.reconciliation_state
+        else:
+            raise ValueError("Campaign Video has no downstream identity to reconcile.")
+        stamp = _now()
+        activity.status = "succeeded" if reconciled else "reconciliation_required"
+        activity.completed_at = stamp if reconciled else None
+        activity.updated_at = stamp
+        activity.row_version += 1
+        if reconciled:
+            activity.failure_code = None
+            activity.safe_failure_message = None
+        if job:
+            job.state = "succeeded" if reconciled else "failed"
+            job.completed_at = stamp
+            job.recovery_state = "remote_succeeded" if reconciled else "manual_review"
+            job.recovered_at = stamp
+            job.updated_at = stamp
+            job.lease_owner = None
+            job.lease_expires_at = None
+        _record_event_once(
+            context.db,
+            actor_id=context.owner.id,
+            action="campaign_video_reconciled",
+            entity_type="campaign_activity",
+            entity_id=activity.id,
+            metadata={
+                "campaign_id": str(context.campaign.id),
+                "video_version": activity.video_version,
+                "channel": activity.video_channel,
+                "downstream_id": str(downstream_id) if downstream_id else None,
+                "reconciled": reconciled,
+            },
+        )
+        if reconciled:
+            _record_event_once(
+                context.db,
+                actor_id=context.owner.id,
+                action="campaign_video_recovered",
+                entity_type="campaign_activity",
+                entity_id=activity.id,
+                metadata={
+                    "campaign_id": str(context.campaign.id),
+                    "video_version": activity.video_version,
+                    "channel": activity.video_channel,
+                },
+            )
+        context.db.commit()
+        return CampaignRecoveryActionResult(
+            action=request.action,
+            outcome="remote_succeeded" if reconciled else "manual_review",
+            resource_ids={
+                "activity_id": str(activity.id),
+                "downstream_id": str(downstream_id) if downstream_id else "",
+            },
+            safe_message=(
+                "Campaign Video downstream state was reconciled successfully."
+                if reconciled
+                else "Campaign Video still requires downstream reconciliation."
+            ),
+            navigation_targets={
+                "activity": f"/campaigns/{context.campaign.id}/activities/{activity.id}"
+            },
+            confirmation_required=True,
+            correlation_id=context.correlation_id,
+            idempotency_result="reused" if downstream_was_complete else "created",
+            status=activity.status,
+            reconciliation_status="reconciled" if reconciled else "manual_review",
+            idempotent_reuse=downstream_was_complete,
+        )
     if not activity.publishing_execution_id or not activity.job_id:
         raise ValueError("A Publishing execution and durable job are required to reconcile.")
     if activity.status == "succeeded":
@@ -1454,7 +1695,7 @@ def execute_reconcile_activity(
             created_at=stamp,
         )
     )
-    record_event(
+    _record_event_once(
         context.db,
         actor_id=context.owner.id,
         action="campaign.activity_reconciled",

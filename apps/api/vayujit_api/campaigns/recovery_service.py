@@ -578,7 +578,14 @@ def recovery_eligibility(
         if missed
         else "Catch-up is available only for missed Activities."
     )
-    if missed and campaign is not None:
+    if getattr(activity, "activity_type", None) == "video_campaign":
+        catch_up_eligible = False
+        catch_up_reason = "campaign_video_catch_up_deferred"
+        catch_up_explanation = (
+            "Campaign Video catch-up is deferred because the generic catch-up "
+            "flow does not support this Activity class."
+        )
+    elif missed and campaign is not None:
         if campaign.status not in {
             "ready",
             "scheduled",
@@ -650,6 +657,14 @@ def recovery_eligibility(
                         catch_up_explanation = (
                             "Catch-up is blocked while the original job is active."
                         )
+    video_reconcilable = getattr(activity, "activity_type", None) == "video_campaign" and (
+        getattr(activity, "social_post_id", None) is not None
+        or getattr(activity, "video_mapping_id", None) is not None
+    )
+    video_reschedulable = getattr(activity, "activity_type", None) == "video_campaign" and (
+        activity.status in {"scheduled", "queued", "retry_wait", "paused", "failed"}
+    )
+    reschedule_eligible = missed or video_reschedulable
     decisions = [
         _decision(
             "open_campaign",
@@ -742,20 +757,20 @@ def recovery_eligibility(
         _decision(
             "reconcile_activity",
             activity.status in {"reconciliation_required", "succeeded"}
-            and activity.publishing_execution_id is not None
-            and activity.job_id is not None,
+            and (
+                video_reconcilable
+                or (activity.publishing_execution_id is not None and activity.job_id is not None)
+            ),
             (
                 "remote_result_ambiguous"
                 if activity.status in {"reconciliation_required", "succeeded"}
-                and activity.publishing_execution_id
-                and activity.job_id
+                and (video_reconcilable or (activity.publishing_execution_id and activity.job_id))
                 else "reconciliation_not_required"
             ),
             (
                 "Reconcile the existing remote result."
                 if activity.status in {"reconciliation_required", "succeeded"}
-                and activity.publishing_execution_id
-                and activity.job_id
+                and (video_reconcilable or (activity.publishing_execution_id and activity.job_id))
                 else "The Activity has no ambiguous remote execution."
             ),
             confirmation=True,
@@ -788,12 +803,12 @@ def recovery_eligibility(
         ),
         _decision(
             "reschedule_activity",
-            missed,
-            "activity_missed" if missed else "activity_not_missed",
+            reschedule_eligible,
+            "activity_reschedulable" if reschedule_eligible else "activity_not_reschedulable",
             (
                 "Create a replacement schedule occurrence."
-                if missed
-                else "Only missed Activities can be rescheduled."
+                if reschedule_eligible
+                else "The Activity is not eligible for rescheduling."
             ),
             confirmation=True,
         ),

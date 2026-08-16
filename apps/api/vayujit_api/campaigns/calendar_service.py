@@ -69,6 +69,11 @@ def calendar_events(
             scheduled_at_utc=activity.scheduled_at_utc,
             timezone_name=activity.timezone_name,
             has_conflict=activity.id in conflict_ids,
+            video_generation_id=activity.video_generation_id,
+            video_output_id=activity.video_output_id,
+            video_version=activity.video_version,
+            video_channel=activity.video_channel,
+            dependency_state=activity.dependency_state,
         )
         for activity, campaign in rows
     ]
