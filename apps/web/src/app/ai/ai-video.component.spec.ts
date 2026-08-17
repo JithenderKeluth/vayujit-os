@@ -48,4 +48,39 @@ describe('AIVideoComponent', () => {
     component.selectVideo({ id: 'video-id', output_media_id: 'media-id' });
     expect(component.selectedVideo()?.['id']).toBe('video-id');
   });
+
+  it('projects recovery, history, usage, and diagnostics without leaking paths', async () => {
+    const { component, http } = create();
+    component.selectVideo({ id: 'video-1', status: 'failed', size_bytes: 2048 });
+    http.expectOne((request) => request.url.endsWith('/generations/video-1/captions')).flush([]);
+    const history = component.loadHistory();
+    http
+      .expectOne((request) => request.url.endsWith('/generations/video-1/history'))
+      .flush([
+        { state: 'queued' },
+        { state: 'retry_wait' },
+        { state: 'failed' },
+        { state: 'succeeded' },
+      ]);
+    await history;
+    const recovery = component.loadRecovery();
+    http
+      .expectOne((request) => request.url.endsWith('/generations/video-1/recovery'))
+      .flush({
+        safe_message: 'Retry is available.',
+        retryable: true,
+        eligible_actions: ['retry'],
+        correlation_id: 'corr-1',
+        local_path: 'C:\\private\\secret',
+      });
+    await recovery;
+    expect(component.history().length).toBe(4);
+    expect(component.recovery()?.['retryable']).toBe(true);
+    expect(component.diagnosticEntries({ generated_bytes: 2048, local_path: 'hidden' })).toEqual([
+      ['generated_bytes', '2048'],
+    ]);
+    component.videos.set([{ status: 'failed', size_bytes: 2048 }]);
+    expect(component.totalBytes()).toBe('2,048 bytes');
+    expect(component.metrics().find((item) => item.label === 'Failed')?.value).toBe(1);
+  });
 });

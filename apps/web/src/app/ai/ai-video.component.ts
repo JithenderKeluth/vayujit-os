@@ -50,7 +50,8 @@ type RecordValue = Record<string, unknown>;
           }
         </div>
         <div class="quick-actions" aria-label="Quick actions">
-          <a class="button" [routerLink]="[]" fragment="generate">Create Video</a
+          <a class="button" routerLink="/ai/video/bulk">Bulk Video</a
+          ><a class="button" [routerLink]="[]" fragment="generate">Create Video</a
           ><a class="button" [routerLink]="[]" fragment="storyboards">Open Storyboards</a
           ><a class="button" [routerLink]="[]" fragment="review">Review Videos</a
           ><a class="button" [routerLink]="[]" fragment="presets">Manage Presets</a

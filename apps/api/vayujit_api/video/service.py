@@ -1,9 +1,9 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import hashlib
 import uuid
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -36,6 +36,7 @@ from vayujit_api.video.models import (
     VideoUsage,
 )
 from vayujit_api.video.provider import video_provider
+from vayujit_api.video.schemas import VideoPreviewRequest, VideoType
 
 
 def stamp() -> datetime:
@@ -304,7 +305,13 @@ def _audio(db: Session, owner: User, data: Any) -> tuple[MediaAsset | None, dict
 def preview(db: Session, owner: User, data: Any) -> dict[str, object]:
     product, brand = _owned(db, owner, data.product_id, data.brand_id)
     width, height = _resolution(data.resolution)
-    validate_preset(db, owner, data, brand)
+    preset = validate_preset(db, owner, data, brand)
+    if (
+        preset is not None
+        and getattr(data, "preset_version", None) is not None
+        and preset.version != data.preset_version
+    ):
+        raise HTTPException(409, "Video Preset version is stale.")
     audio, audio_plan = _audio(db, owner, data)
     artifact = _artifact(
         db, owner, product.id, data.source_artifact_id, data.source_artifact_version
@@ -365,6 +372,7 @@ def preview(db: Session, owner: User, data: Any) -> dict[str, object]:
     fingerprint = _fingerprint(
         (
             str(product.id),
+            product.updated_at.isoformat() if product.updated_at else None,
             str(artifact.id) if artifact else None,
             artifact.version_number if artifact else None,
             str(script.id) if script else None,
@@ -409,6 +417,38 @@ def preview(db: Session, owner: User, data: Any) -> dict[str, object]:
         "audio": audio_plan,
         "context_fingerprint": fingerprint,
     }
+
+
+def current_context_fingerprint(
+    db: Session, owner: User, generation: VideoGeneration
+) -> str | None:
+    """Recompute the queued generation context without resolving newer versions."""
+    try:
+        request = VideoPreviewRequest(
+            product_id=generation.product_id,
+            brand_id=generation.brand_id,
+            video_type=cast(VideoType, generation.video_type),
+            target_channel=generation.target_channel,
+            source_artifact_id=generation.source_artifact_id,
+            source_artifact_version=generation.source_artifact_version,
+            script_id=generation.script_id,
+            script_version=generation.script_version,
+            source_media_ids=[uuid.UUID(str(value)) for value in generation.source_media_ids],
+            storyboard_id=generation.storyboard_id,
+            storyboard_version=generation.storyboard_version,
+            style_id=generation.style_id,
+            style_version=generation.style_version,
+            aspect_ratio=generation.aspect_ratio,
+            resolution=generation.resolution,
+            duration_seconds=generation.duration_seconds,
+            preset_id=generation.preset_id,
+            preset_version=generation.preset_version,
+            audio_mode=cast(Any, generation.audio_mode),
+            audio_media_id=generation.audio_media_id,
+        )
+        return str(preview(db, owner, request)["context_fingerprint"])
+    except (HTTPException, TypeError, ValueError):
+        return None
 
 
 def _response(db: Session, row: VideoGeneration) -> dict[str, object]:
@@ -1141,7 +1181,9 @@ def cleanup_video_temp_files(paths: list[str], *, dry_run: bool = False) -> dict
     skipped = 0
     for raw_path in paths:
         candidate = Path(raw_path).resolve()
-        if root not in candidate.parents or candidate.suffix != ".tmp":
+        relative = candidate.relative_to(root) if root in candidate.parents else None
+        is_checkpoint = relative is not None and relative.parts[0] == "video-checkpoints"
+        if root not in candidate.parents or (candidate.suffix != ".tmp" and not is_checkpoint):
             skipped += 1
             continue
         if candidate.is_file():

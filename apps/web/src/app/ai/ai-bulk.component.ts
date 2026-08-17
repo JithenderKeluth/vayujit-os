@@ -335,20 +335,56 @@ export class AIBulkComponent implements OnInit, OnDestroy {
     return item.outputs.some((output) => output.retry_eligible);
   }
   async retry(item: AIStudioBulkStatus): Promise<void> {
-    await this.ai.studioBulkRetryFailed(item.id);
-    await this.refreshOperation(item.id);
+    if (this.busy()) return;
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      await this.ai.studioBulkRetryFailed(item.id);
+      await this.refreshOperation(item.id);
+    } catch (error) {
+      this.error.set(AIService.errorMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
   }
   async cancel(item: AIStudioBulkStatus): Promise<void> {
-    if (!window.confirm('Completed outputs will be kept. Cancel remaining work?')) return;
-    await this.ai.studioBulkCancel(item.id);
-    await this.refreshOperation(item.id);
+    if (this.busy() || !window.confirm('Completed outputs will be kept. Cancel remaining work?'))
+      return;
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      await this.ai.studioBulkCancel(item.id);
+      await this.refreshOperation(item.id);
+    } catch (error) {
+      this.error.set(AIService.errorMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
   }
   async retryOne(item: AIStudioBulkStatus, id: string): Promise<void> {
-    await this.ai.studioBulkRetryFailed(item.id, [id]);
-    await this.refreshOperation(item.id);
+    if (this.busy()) return;
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      await this.ai.studioBulkRetryFailed(item.id, [id]);
+      await this.refreshOperation(item.id);
+    } catch (error) {
+      this.error.set(AIService.errorMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
   }
   async cancelOne(item: AIStudioBulkStatus, id: string): Promise<void> {
-    await this.ai.studioBulkCancel(item.id, [id]);
-    await this.refreshOperation(item.id);
+    if (this.busy() || !window.confirm('Cancel this output?')) return;
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      await this.ai.studioBulkCancel(item.id, [id]);
+      await this.refreshOperation(item.id);
+    } catch (error) {
+      this.error.set(AIService.errorMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
   }
 }

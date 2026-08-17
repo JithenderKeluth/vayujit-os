@@ -16,6 +16,7 @@ from vayujit_api.publishing.scheduler_time import utcnow
 from vayujit_api.video.inspection import VideoInspectionError, inspect_video
 from vayujit_api.video.models import VideoGeneration, VideoOutput
 from vayujit_api.video.provider import video_provider
+from vayujit_api.video.service import current_context_fingerprint
 
 
 def _int_value(value: object, default: int) -> int:
@@ -32,7 +33,10 @@ def execute_video_job(
     db: Session, job_id: Any, worker_id: str, *, crash_after_checkpoint: bool = False
 ) -> str:
     job = db.scalar(select(AIStudioJob).where(AIStudioJob.id == job_id).with_for_update())
-    if job is None or not _lease_valid(job, worker_id):
+    if job is None or job.state == "cancelled":
+        db.rollback()
+        return "cancelled" if job is not None else "lease_lost"
+    if not _lease_valid(job, worker_id):
         db.rollback()
         return "lease_lost"
     raw = job.payload_json or {}
@@ -53,22 +57,30 @@ def execute_video_job(
         db.rollback()
         return _mark_retry(db, job, worker_id, "unknown_transient", "")
     expected_context = raw.get("context_fingerprint")
-    if (
-        expected_context
-        and generation.context_fingerprint
-        and expected_context != generation.context_fingerprint
+    current_context = current_context_fingerprint(db, owner, generation)
+    if expected_context and (
+        expected_context != generation.context_fingerprint
+        or current_context is None
+        or expected_context != current_context
     ):
         db.rollback()
-        generation.status = "failed"
-        generation.failure_code = "ai.video.source_changed"
-        generation.safe_error_message = "The Video source context changed before execution."
-        return _mark_retry(
-            db,
-            job,
-            worker_id,
-            "ai.video.source_changed",
-            "The Video source context changed before execution.",
-        )
+        refreshed = db.get(VideoGeneration, generation.id)
+        refreshed_job = db.get(AIStudioJob, job.id)
+        if refreshed is not None:
+            refreshed.status = "stale"
+            refreshed.failure_code = "ai.video.source_changed"
+            refreshed.safe_error_message = "The Video source context changed before execution."
+            refreshed.completed_at = utcnow()
+        if refreshed_job is not None:
+            refreshed_job.state = transition_state(refreshed_job.state, "stale")
+            refreshed_job.failure_category = "permanent"
+            refreshed_job.retryable = False
+            refreshed_job.safe_error_message = "The Video source context changed before execution."
+            refreshed_job.lease_owner = None
+            refreshed_job.lease_expires_at = None
+            refreshed_job.completed_at = utcnow()
+        db.commit()
+        return "stale"
     checkpoint = generation.checkpoint_json or {}
     checkpoint_path = checkpoint.get("path") if isinstance(checkpoint, dict) else None
     if not checkpoint_path:
@@ -95,25 +107,36 @@ def execute_video_job(
                 if scenario == "unsupported_operation"
                 else "The local video provider is temporarily unavailable."
             )
+            result = _mark_retry(db, job, worker_id, code, message)
             refreshed = db.get(VideoGeneration, generation.id)
             if refreshed is not None:
-                refreshed.status = "retry_wait"
+                refreshed.status = result
                 refreshed.failure_code = code
                 refreshed.safe_error_message = message
-            return _mark_retry(db, job, worker_id, code, message)
+                refreshed.completed_at = utcnow() if result == "failed" else None
+                db.commit()
+            return result
         try:
             inspection = inspect_video(data)
             if inspection.size_bytes > MAX_VIDEO_BYTES:
                 raise VideoInspectionError("Video output exceeds the safe size limit.")
         except VideoInspectionError:
             db.rollback()
-            return _mark_retry(
+            result = _mark_retry(
                 db,
                 job,
                 worker_id,
                 "ai.video.invalid_output",
                 "The deterministic video output failed validation.",
             )
+            refreshed = db.get(VideoGeneration, generation.id)
+            if refreshed is not None:
+                refreshed.status = result
+                refreshed.failure_code = "ai.video.invalid_output"
+                refreshed.safe_error_message = "The deterministic video output failed validation."
+                refreshed.completed_at = utcnow() if result == "failed" else None
+                db.commit()
+            return result
         relative = Path("video-checkpoints") / owner.id.hex[:12] / f"{generation.id}.mp4"
         target = storage_root() / relative
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -145,7 +168,25 @@ def execute_video_job(
             raise AIWorkerCrash("simulated crash after provider checkpoint")
         checkpoint_path = str(relative).replace("\\", "/")
     target = storage_root() / str(checkpoint_path)
-    data = target.read_bytes()
+    try:
+        data = target.read_bytes()
+    except OSError:
+        db.rollback()
+        result = _mark_retry(
+            db,
+            job,
+            worker_id,
+            "ai.video.checkpoint_invalid",
+            "The stored video checkpoint is invalid.",
+        )
+        refreshed = db.get(VideoGeneration, generation.id)
+        if refreshed is not None:
+            refreshed.status = result
+            refreshed.failure_code = "ai.video.checkpoint_invalid"
+            refreshed.safe_error_message = "The stored video checkpoint is invalid."
+            refreshed.completed_at = utcnow() if result == "failed" else None
+            db.commit()
+        return result
     checkpoint_data = generation.checkpoint_json or {}
     try:
         inspection = inspect_video(data)

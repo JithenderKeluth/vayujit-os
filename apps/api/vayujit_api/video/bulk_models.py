@@ -25,6 +25,22 @@ class VideoBulkOperation(Base):
     video_types_json: Mapped[list[str]] = mapped_column(JSONB, default=list)
     targets_json: Mapped[list[str]] = mapped_column(JSONB, default=list)
     total_children: Mapped[int] = mapped_column(Integer)
+    plan_fingerprint: Mapped[str | None] = mapped_column(String(64), index=True)
+    request_snapshot_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    requested_product_count: Mapped[int] = mapped_column(Integer, default=0)
+    requested_child_count: Mapped[int] = mapped_column(Integer, default=0)
+    completed_count: Mapped[int] = mapped_column(Integer, default=0)
+    succeeded_count: Mapped[int] = mapped_column(Integer, default=0)
+    retry_wait_count: Mapped[int] = mapped_column(Integer, default=0)
+    failed_count: Mapped[int] = mapped_column(Integer, default=0)
+    stale_count: Mapped[int] = mapped_column(Integer, default=0)
+    cancelled_count: Mapped[int] = mapped_column(Integer, default=0)
+    created_by: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    preview_fingerprint: Mapped[str | None] = mapped_column(String(64), index=True)
     status: Mapped[str] = mapped_column(String(32), default="queued", index=True)
     correlation_id: Mapped[str] = mapped_column(String(64), index=True)
     cancellation_requested: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -46,9 +62,41 @@ class VideoBulkChild(Base):
     product_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("products.id", ondelete="RESTRICT"), index=True
     )
+    brand_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("brands.id", ondelete="SET NULL"), index=True
+    )
     video_type: Mapped[str] = mapped_column(String(50))
     target_channel: Mapped[str] = mapped_column(String(40))
     child_key: Mapped[str] = mapped_column(String(220))
+    output_ordinal: Mapped[int] = mapped_column(Integer, default=0)
+    script_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("video_scripts.id", ondelete="SET NULL")
+    )
+    script_version: Mapped[int | None] = mapped_column(Integer)
+    storyboard_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("video_storyboards.id", ondelete="SET NULL")
+    )
+    storyboard_version: Mapped[int | None] = mapped_column(Integer)
+    style_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("video_styles.id", ondelete="SET NULL")
+    )
+    style_version: Mapped[int | None] = mapped_column(Integer)
+    preset_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("video_presets.id", ondelete="SET NULL")
+    )
+    preset_version: Mapped[int | None] = mapped_column(Integer)
+    source_media_ids_json: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    context_fingerprint: Mapped[str | None] = mapped_column(String(64), index=True)
+    job_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ai_studio_jobs.id", ondelete="SET NULL"), index=True
+    )
+    correlation_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    failure_category: Mapped[str | None] = mapped_column(String(40))
+    recovery_state: Mapped[str | None] = mapped_column(String(40))
+    retry_count: Mapped[int] = mapped_column(Integer, default=0)
+    failure_scenario: Mapped[str | None] = mapped_column(String(80))
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     generation_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("video_generations.id", ondelete="SET NULL")
     )
