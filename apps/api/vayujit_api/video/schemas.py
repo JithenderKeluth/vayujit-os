@@ -54,6 +54,7 @@ class VideoPreviewRequest(BaseModel):
     resolution: str = "1280x720"
     duration_seconds: int = Field(default=10, ge=1, le=60)
     preset_id: uuid.UUID | None = None
+    preset_version: int | None = Field(default=None, ge=1)
     failure_scenario: str = "success"
     audio_mode: Literal[
         "none",

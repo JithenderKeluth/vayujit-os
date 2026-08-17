@@ -310,6 +310,17 @@ def upload_generated_video(
     if len(data) > settings.media_max_size_bytes:
         raise HTTPException(413, "Generated video exceeds the configured upload limit.")
     checksum = hashlib.sha256(data).hexdigest()
+    existing = db.scalar(
+        select(MediaAsset).where(
+            MediaAsset.owner_id == owner.id,
+            MediaAsset.checksum_sha256 == checksum,
+            MediaAsset.status == "ready",
+        )
+    )
+    if existing is not None:
+        target = storage_path(existing.storage_key)
+        if target.exists():
+            return existing
     safe_filename = SAFE_FILENAME.sub("-", filename).strip(".-")[:255] or "generated-video.mp4"
     extension = "webm" if mime_type == "video/webm" else "mp4"
     value = MediaAsset(

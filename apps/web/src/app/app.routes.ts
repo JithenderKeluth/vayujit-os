@@ -297,6 +297,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'ai/video/bulk',
+    loadComponent: () => import('./ai/ai-video-bulk.component').then((m) => m.AIVideoBulkComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'ai/video',
     loadComponent: () => import('./ai/ai-video.component').then((m) => m.AIVideoComponent),
     canActivate: [authGuard],
