@@ -174,6 +174,12 @@ class CampaignActivity(Base):
         UUID(as_uuid=True), ForeignKey("video_caption_tracks.id", ondelete="SET NULL"), index=True
     )
     video_caption_version: Mapped[int | None] = mapped_column(Integer)
+    ads_provider: Mapped[str | None] = mapped_column(String(20), index=True)
+    ads_campaign_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    ads_group_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    ads_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    ads_creative_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    ads_budget_version: Mapped[int | None] = mapped_column(Integer)
     video_metadata_json: Mapped[dict[str, object] | None] = mapped_column(JSONB)
     video_preview_fingerprint: Mapped[str | None] = mapped_column(String(64), index=True)
     video_target_account_id: Mapped[uuid.UUID | None] = mapped_column(

@@ -141,7 +141,9 @@ def _validate_limits(data: VideoBulkRequest) -> None:
         or len(set(data.video_types)) != len(data.video_types)
         or len(set(data.targets)) != len(data.targets)
     ):
-        raise HTTPException(422, "Bulk Video selections must be unique.")
+        raise HTTPException(
+            422, "Bulk Video selections must be unique and within the configured safe limit."
+        )
     if (
         len(data.product_ids) > BULK_LIMITS["max_products"]
         or len(data.video_types) > BULK_LIMITS["max_video_types"]
