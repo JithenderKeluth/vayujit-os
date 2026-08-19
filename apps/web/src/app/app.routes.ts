@@ -2,11 +2,42 @@ import { Routes } from '@angular/router';
 
 import { AuthPageComponent } from './auth/auth-page.component';
 import { authGuard, guestGuard } from './auth/auth.guards';
+import { AdsWorkspaceComponent } from './ads/ads-workspace.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: 'setup', component: AuthPageComponent, canActivate: [guestGuard] },
   { path: 'login', component: AuthPageComponent, canActivate: [guestGuard] },
+  {
+    path: 'ads',
+    component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/accounts',
+    component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/campaigns',
+    component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/analytics',
+    component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/recovery',
+    component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/settings',
+    component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
   {
     path: 'dashboard',
     loadComponent: () =>

@@ -19,6 +19,7 @@ from fastapi import HTTPException
 from sqlalchemy.dialects.postgresql import insert
 
 from vayujit_api import __version__
+from vayujit_api.ads.worker import run_ads_jobs_once
 from vayujit_api.ai.studio_worker import run_ai_jobs_once
 from vayujit_api.campaigns.campaign_video_runtime import execute_campaign_video_job
 from vayujit_api.commerce.amazon_worker import execute_amazon_job, parse_account_id
@@ -286,6 +287,7 @@ def run_worker(*, once: bool = False) -> None:
                             min(max(capacity, 1), 4),
                             settings.publishing_job_lease_seconds,
                         )
+                        run_ads_jobs_once(db, worker_id, min(max(capacity, 1), 4))
                     if capacity > 0:
                         with SessionFactory() as db:
                             claimed = claim_jobs(
