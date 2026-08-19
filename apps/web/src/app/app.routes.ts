@@ -14,6 +14,26 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'ads/create',
+    component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/calendar',
+    component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/accounts/:id',
+    component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/campaigns/:id',
+    component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
+  {
     path: 'ads/accounts',
     component: AdsWorkspaceComponent,
     canActivate: [authGuard],

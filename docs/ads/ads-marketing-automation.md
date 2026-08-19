@@ -157,3 +157,15 @@ Channel projection, and ambiguous remote identity preservation.
 The local certification boundary is deterministic Meta/Google fake providers;
 no live provider API, real spend, customer PII, credentials, AI tokens, Order
 payloads, database DSNs, or filesystem paths enter connector payloads.
+
+## Slice 1B operational UX
+
+The Angular Ads workspace is available at `/ads` and keeps the complete owner-scoped flow in one accessible, responsive surface:
+
+- `/ads/accounts` supports local Meta/Google account creation, write-only credential entry, validation, enable/disable, credential removal, and safe status presentation. Account IDs and history links never expose credential values.
+- `/ads/campaigns` provides bounded search and provider/state filters. `/ads/campaigns/:id` shows server-returned campaign state, budget version, reconciliation state, exact creative lineage, safe failure information, pause/resume, and reconciliation actions.
+- `/ads/create` is a six-screen operational wizard containing the requested twelve review concepts: account, product, audience, creative, exact artifact/media version, destination, budget, bidding, schedule, review, preview, and explicit confirmation. Provider objectives, bidding strategies, and creative types come from `/api/v1/ads/capabilities`; readiness and preview are server calls.
+- `/ads/analytics`, `/ads/calendar`, `/ads/recovery`, and `/ads/settings` expose source-labeled metrics, profitability/ROAS as unavailable when inputs are absent, schedule lineage/timezone, confirmation-gated recovery, and the local fake-provider boundary.
+- The presentation uses semantic headings, native controls, visible focus, keyboard-safe buttons/links, `aria-live` loading/status messages, table captions, responsive grids, and horizontal table scrolling at narrow widths. Duplicate mutation clicks are disabled while a request is in flight and confirmations are required for destructive actions.
+
+This slice is local/synthetic only. Automated Axe and automated browser viewport harnesses are not configured in the repository; static accessibility review and Angular component tests are the local evidence. Existing lint/build/format/performance checks remain the certification baseline. Live Meta and Google Ads are intentionally not validated.
