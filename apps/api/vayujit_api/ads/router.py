@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 from vayujit_api.ads.budget import budget_preview as budget_change_preview
 from vayujit_api.ads.budget import confirm_budget_change
 from vayujit_api.ads.connectors import connector_for
-from vayujit_api.ads.failure import ADS_FAILURE_TAXONOMY
+from vayujit_api.ads.failure import ADS_FAILURE_TAXONOMY, ADS_OPTIMIZATION_FAILURE_TAXONOMY
 from vayujit_api.ads.models import (
     Ad,
     AdAccount,
@@ -708,7 +708,26 @@ def campaign_analytics(campaign_id: uuid.UUID, db: DB, owner: Owner) -> dict[str
 
 @router.get("/failures/catalog")
 def failure_catalog() -> dict[str, dict[str, object]]:
-    return ADS_FAILURE_TAXONOMY
+    # Preserve the Slice 1 public catalog; optimization-specific codes are
+    # exposed by the optimization catalog below without changing that contract.
+    return {
+        key: value
+        for key, value in ADS_FAILURE_TAXONOMY.items()
+        if not key.startswith("ads.optimization_")
+        and key
+        not in {
+            "ads.rule_invalid",
+            "ads.guardrail_blocked",
+            "ads.insufficient_data",
+            "ads.experiment_invalid",
+            "ads.rollback_conflict",
+        }
+    }
+
+
+@router.get("/optimization/failures/catalog")
+def optimization_failure_catalog() -> dict[str, dict[str, object]]:
+    return ADS_OPTIMIZATION_FAILURE_TAXONOMY
 
 
 @router.get("/recovery")

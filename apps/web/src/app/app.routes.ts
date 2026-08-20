@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { AuthPageComponent } from './auth/auth-page.component';
 import { authGuard, guestGuard } from './auth/auth.guards';
 import { AdsWorkspaceComponent } from './ads/ads-workspace.component';
+import { AdsOptimizationComponent } from './ads/ads-optimization.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
@@ -56,6 +57,41 @@ export const routes: Routes = [
   {
     path: 'ads/settings',
     component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/optimization',
+    component: AdsOptimizationComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/recommendations',
+    component: AdsOptimizationComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/optimization-rules',
+    component: AdsOptimizationComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/anomalies',
+    component: AdsOptimizationComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/experiments',
+    component: AdsOptimizationComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/optimization-history',
+    component: AdsOptimizationComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/comparison',
+    component: AdsOptimizationComponent,
     canActivate: [authGuard],
   },
   {

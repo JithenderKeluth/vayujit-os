@@ -86,9 +86,43 @@ ADS_FAILURE_TAXONOMY: Final[dict[str, dict[str, object]]] = {
 }
 
 
+ADS_OPTIMIZATION_FAILURE_TAXONOMY: Final[dict[str, dict[str, object]]] = {
+    "ads.optimization_stale": {
+        "safe_message": "The optimization context changed; preview the current state again.",
+        "retryable": False,
+        "recovery_actions": ["refresh_preview", "review_failure"],
+    },
+    "ads.rule_invalid": {
+        "safe_message": "The optimization rule is invalid or unsupported.",
+        "retryable": False,
+        "recovery_actions": ["edit_rule", "review_failure"],
+    },
+    "ads.guardrail_blocked": {
+        "safe_message": "The optimization was blocked by a configured guardrail.",
+        "retryable": False,
+        "recovery_actions": ["review_guardrail", "review_failure"],
+    },
+    "ads.insufficient_data": {
+        "safe_message": "There is not enough synthetic metric data for this optimization.",
+        "retryable": False,
+        "recovery_actions": ["import_metrics", "review_failure"],
+    },
+    "ads.experiment_invalid": {
+        "safe_message": "The Ads experiment is invalid or unsupported.",
+        "retryable": False,
+        "recovery_actions": ["edit_experiment", "review_failure"],
+    },
+    "ads.rollback_conflict": {
+        "safe_message": "The optimization rollback conflicts with the current Ads state.",
+        "retryable": False,
+        "recovery_actions": ["refresh_preview", "review_failure"],
+    },
+}
+
+
 def failure_spec(code: str) -> dict[str, object]:
     return dict(
-        ADS_FAILURE_TAXONOMY.get(
+        {**ADS_FAILURE_TAXONOMY, **ADS_OPTIMIZATION_FAILURE_TAXONOMY}.get(
             code,
             {
                 "safe_message": "The Ads operation failed safely.",
