@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from vayujit_api import __version__
+from vayujit_api.ads.optimization_router import router as ads_optimization_router
 from vayujit_api.ads.router import router as ads_router
 from vayujit_api.ai.bulk_router import router as ai_bulk_router
 from vayujit_api.ai.image_router import router as ai_image_router
@@ -68,6 +69,7 @@ def create_app() -> FastAPI:
     install_exception_handlers(application)
     application.include_router(auth_router)
     application.include_router(ads_router)
+    application.include_router(ads_optimization_router)
     application.include_router(brands_router)
     application.include_router(campaigns_router)
     application.include_router(campaign_video_router)

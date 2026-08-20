@@ -4,6 +4,7 @@ import hashlib
 import json
 import uuid
 from datetime import UTC, datetime, timedelta
+from decimal import Decimal
 from typing import cast
 from urllib.parse import urlparse
 
@@ -25,6 +26,7 @@ from vayujit_api.ads.models import (
     AdGroup,
     AdJob,
     AdMetric,
+    AdOptimizationExecution,
     AdRemoteMapping,
 )
 from vayujit_api.ads.schemas import (
@@ -477,6 +479,27 @@ def queue_job(
     return job
 
 
+def _sync_optimization_execution(db: Session, job: AdJob) -> None:
+    execution = db.scalar(
+        select(AdOptimizationExecution).where(AdOptimizationExecution.job_id == job.id)
+    )
+    if execution is None:
+        return
+    execution.status = {
+        "succeeded": "succeeded",
+        "retry_wait": "retry_wait",
+        "failed": "failed",
+    }.get(job.status, job.status)
+    execution.result_json = {
+        "job_status": job.status,
+        "result": job.result_json,
+        "failure_code": job.failure_code,
+        "safe_failure_message": job.safe_failure_message,
+        "synthetic": True,
+    }
+    execution.updated_at = now()
+
+
 def _record_failure(db: Session, job: AdJob) -> None:
     if not job.failure_code:
         return
@@ -537,6 +560,7 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
         job.safe_failure_message = "The local Ads campaign no longer exists."
         job.lease_expires_at = None
         _record_failure(db, job)
+        _sync_optimization_execution(db, job)
         db.commit()
         return job
     account = db.scalar(
@@ -550,14 +574,24 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
         job.safe_failure_message = "The Ads account is disabled."
         job.lease_expires_at = None
         _record_failure(db, job)
+        _sync_optimization_execution(db, job)
         db.commit()
         return job
     budget = None
-    if job.operation == "update_budget":
+    if job.operation in {"update_budget", "rollback_budget"}:
         raw_budget_id = job.request_json.get("budget_id")
-        if not raw_budget_id:
-            raise HTTPException(422, "The budget mutation is missing its exact budget identity.")
-        budget = db.get(AdBudget, uuid.UUID(str(raw_budget_id)))
+        budget = (
+            db.get(AdBudget, uuid.UUID(str(raw_budget_id)))
+            if raw_budget_id
+            else db.scalar(
+                select(AdBudget)
+                .where(
+                    AdBudget.owner_id == job.owner_id,
+                    AdBudget.campaign_id == campaign.id,
+                )
+                .order_by(AdBudget.version.desc())
+            )
+        )
         if budget is None or budget.owner_id != job.owner_id:
             raise HTTPException(404, "Ads budget not found.")
         if not campaign.remote_campaign_id:
@@ -580,7 +614,7 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
             remote = connector.resume_campaign(campaign.remote_campaign_id or "")
         elif job.operation == "archive":
             remote = connector.archive_campaign(campaign.remote_campaign_id or "")
-        elif job.operation == "update_budget":
+        elif job.operation in {"update_budget", "rollback_budget"}:
             remote = connector.update_campaign(
                 campaign.remote_campaign_id or "",
                 {"budget": job.request_json, "budget_version": budget.version if budget else None},
@@ -599,7 +633,16 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
                 str(target_ad.id),
                 {"creative_id": str(target_ad.creative_id), "placement": target_ad.placement},
             )
-        elif job.operation == "replace_creative":
+        elif job.operation in {"replace_creative", "rollback_creative", "adopt_experiment_winner"}:
+            if target_ad is None:
+                target_ad = db.scalar(
+                    select(Ad)
+                    .where(
+                        Ad.owner_id == job.owner_id,
+                        Ad.campaign_id == campaign.id,
+                    )
+                    .order_by(Ad.created_at.desc())
+                )
             if target_ad is None:
                 raise HTTPException(422, "The Ads ad no longer exists.")
             raw_creative_id = job.request_json.get("creative_id")
@@ -638,7 +681,10 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
             if job.operation == "create_group" and target_group is not None:
                 remote_type = "group"
                 remote_key = str(target_group.id)
-            elif job.operation in {"create_ad", "replace_creative"} and target_ad is not None:
+            elif (
+                job.operation in {"create_ad", "replace_creative", "adopt_experiment_winner"}
+                and target_ad is not None
+            ):
                 remote_type = "ad"
                 remote_key = target_ad.remote_ad_id or str(target_ad.id)
             lookup_key = (
@@ -674,6 +720,7 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
             job.next_retry_at = None
         job.lease_expires_at = None
         _record_failure(db, job)
+        _sync_optimization_execution(db, job)
         db.commit()
         return job
     except Exception:
@@ -697,7 +744,11 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
         else (
             "group"
             if job.operation == "create_group"
-            else "ad" if job.operation in {"create_ad", "replace_creative"} else None
+            else (
+                "ad"
+                if job.operation in {"create_ad", "replace_creative", "adopt_experiment_winner"}
+                else None
+            )
         )
     )
     mapping_entity_id = (
@@ -736,14 +787,20 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
         target_group.remote_group_id = remote.get("remote_id")
         target_group.state = "active"
         target_group.updated_at = now()
-    if target_ad is not None and job.operation in {"create_ad", "replace_creative"}:
+    if target_ad is not None and job.operation in {
+        "create_ad",
+        "replace_creative",
+        "adopt_experiment_winner",
+    }:
         target_ad.remote_ad_id = remote.get("remote_id")
-        if job.operation == "replace_creative":
+        if job.operation in {"replace_creative", "rollback_creative", "adopt_experiment_winner"}:
             target_ad.creative_id = uuid.UUID(str(job.request_json["creative_id"]))
         target_ad.state = "active"
         target_ad.sync_state = "synchronized"
         target_ad.updated_at = now()
     if budget is not None:
+        if job.operation == "rollback_budget" and job.request_json.get("daily_amount") is not None:
+            budget.daily_amount = Decimal(str(job.request_json["daily_amount"]))
         budget.confirmed = True
         budget.remote_version = budget.version
         budget.remote_checkpoint_json = {

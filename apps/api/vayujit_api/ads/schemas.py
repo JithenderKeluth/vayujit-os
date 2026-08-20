@@ -211,3 +211,96 @@ class AdsMetricResponse(BaseModel):
     availability: str
     source: str
     observed_at: datetime
+
+
+class OptimizationRuleRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, max_length=160)
+    campaign_id: uuid.UUID | None = None
+    provider: Provider | None = None
+    objective: str | None = Field(default=None, max_length=40)
+    enabled: bool = False
+    mode: Literal["recommend_only", "auto_apply_bounded"] = "recommend_only"
+    metric: str = Field(min_length=1, max_length=40)
+    operator: Literal["<", "<=", ">", ">=", "=="]
+    threshold: Decimal
+    window_days: int = Field(default=7, ge=1, le=90)
+    action: str = Field(min_length=1, max_length=60)
+    guardrails: dict[str, object] = Field(default_factory=dict)
+    allowed_actions: list[str] = Field(default_factory=list)
+    cooldown_seconds: int = Field(default=86400, ge=0, le=2592000)
+    daily_action_limit: int = Field(default=1, ge=1, le=100)
+
+
+class OptimizationRulePatch(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str | None = Field(default=None, min_length=1, max_length=160)
+    enabled: bool | None = None
+    mode: Literal["recommend_only", "auto_apply_bounded"] | None = None
+    metric: str | None = Field(default=None, max_length=40)
+    operator: Literal["<", "<=", ">", ">=", "=="] | None = None
+    threshold: Decimal | None = None
+    window_days: int | None = Field(default=None, ge=1, le=90)
+    action: str | None = Field(default=None, max_length=60)
+    guardrails: dict[str, object] | None = None
+    allowed_actions: list[str] | None = None
+    cooldown_seconds: int | None = Field(default=None, ge=0, le=2592000)
+    daily_action_limit: int | None = Field(default=None, ge=1, le=100)
+
+
+class OptimizationPreviewRequest(BaseModel):
+    action: str | None = Field(default=None, max_length=60)
+    replacement_creative_id: uuid.UUID | None = None
+
+
+class OptimizationConfirmRequest(BaseModel):
+    action: str | None = Field(default=None, max_length=60)
+    preview_fingerprint: str = Field(min_length=32, max_length=64)
+    idempotency_key: str = Field(min_length=1, max_length=180)
+    confirm: bool = False
+    replacement_creative_id: uuid.UUID | None = None
+
+
+class ExperimentVariantRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, max_length=120)
+    allocation_percent: Decimal = Field(ge=0, le=100)
+    creative_id: uuid.UUID | None = None
+    exact_version: dict[str, object] = Field(default_factory=dict)
+
+
+class ExperimentCreateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, max_length=160)
+    campaign_id: uuid.UUID
+    provider: Provider
+    objective: str = Field(default="awareness", max_length=40)
+    hypothesis: str = Field(min_length=1, max_length=500)
+    variable: Literal[
+        "creative",
+        "headline",
+        "image",
+        "video",
+        "audience",
+        "destination",
+        "budget",
+        "bid_strategy",
+    ]
+    primary_metric: str = Field(default="ctr", max_length=40)
+    start_at: datetime | None = None
+    end_at: datetime | None = None
+    budget: dict[str, object] = Field(default_factory=dict)
+    variants: list[ExperimentVariantRequest] = Field(min_length=2, max_length=4)
+
+    @model_validator(mode="after")
+    def allocations_sum_to_100(self) -> ExperimentCreateRequest:
+        total = sum(item.allocation_percent for item in self.variants)
+        if total != Decimal("100"):
+            raise ValueError("experiment variant allocations must total 100%")
+        if len({item.name for item in self.variants}) != len(self.variants):
+            raise ValueError("experiment variant names must be unique")
+        return self

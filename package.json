@@ -222,7 +222,8 @@
     "test:ads:isolation": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ads_isolation_acceptance.py",
     "test:ads:lineage": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ads_lineage_acceptance.py",
     "test:ads:version-safety": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ads_version_safety_acceptance.py",
-    "test:ads:security-matrix": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ads_security_matrix_acceptance.py"
+    "test:ads:security-matrix": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ads_security_matrix_acceptance.py",
+    "test:ads:optimization-certification": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ads_optimization_certification.py"
   },
   "devDependencies": {
     "concurrently": "9.2.4",

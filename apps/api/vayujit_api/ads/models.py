@@ -360,12 +360,22 @@ class AdDriftFinding(AdsBase):
 
 class AdOptimizationRule(AdsBase):
     __tablename__ = "ad_optimization_rules"
-    campaign_id: Mapped[uuid.UUID] = mapped_column(
+    campaign_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), ForeignKey("ad_campaigns.id", ondelete="CASCADE"), index=True
     )
     name: Mapped[str] = mapped_column(String(160))
+    provider: Mapped[str | None] = mapped_column(String(20), index=True)
+    objective: Mapped[str | None] = mapped_column(String(40))
     enabled: Mapped[bool] = mapped_column(Boolean, default=False)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    mode: Mapped[str] = mapped_column(String(24), default="recommend_only")
     rule_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    guardrails_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    allowed_actions_json: Mapped[list[object]] = mapped_column(JSONB, default=list)
+    metric_window_days: Mapped[int] = mapped_column(Integer, default=7)
+    cooldown_seconds: Mapped[int] = mapped_column(Integer, default=86400)
+    daily_action_limit: Mapped[int] = mapped_column(Integer, default=1)
+    archived_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
 class AdExperiment(AdsBase):
@@ -374,8 +384,189 @@ class AdExperiment(AdsBase):
         UUID(as_uuid=True), ForeignKey("ad_campaigns.id", ondelete="CASCADE"), index=True
     )
     name: Mapped[str] = mapped_column(String(160))
+    provider: Mapped[str] = mapped_column(String(20), default="meta")
+    objective: Mapped[str] = mapped_column(String(40), default="awareness")
+    hypothesis: Mapped[str] = mapped_column(String(500), default="")
+    variable: Mapped[str] = mapped_column(String(40), default="creative")
+    primary_metric: Mapped[str] = mapped_column(String(40), default="ctr")
     status: Mapped[str] = mapped_column(String(24), default="draft")
+    start_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    end_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     variants_json: Mapped[list[object]] = mapped_column(JSONB, default=list)
+    allocation_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    budget_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    confidence_method: Mapped[str] = mapped_column(String(80), default="bounded_deterministic")
+    winner_variant_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    insufficient_data: Mapped[bool] = mapped_column(Boolean, default=False)
+
+
+class AdOptimizationRecommendation(AdsBase):
+    __tablename__ = "ad_optimization_recommendations"
+    provider: Mapped[str] = mapped_column(String(20), index=True)
+    campaign_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_campaigns.id", ondelete="CASCADE"), index=True
+    )
+    product_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    group_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    ad_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    creative_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), index=True)
+    rule_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_optimization_rules.id", ondelete="SET NULL"), index=True
+    )
+    recommendation_type: Mapped[str] = mapped_column(String(60), index=True)
+    severity: Mapped[str] = mapped_column(String(20), default="recommendation")
+    confidence: Mapped[str] = mapped_column(String(12), default="medium")
+    confidence_score: Mapped[Decimal | None] = mapped_column(Numeric(5, 4))
+    status: Mapped[str] = mapped_column(String(24), default="open", index=True)
+    evidence_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    explanation_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    current_state_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    proposed_state_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    action_options_json: Mapped[list[object]] = mapped_column(JSONB, default=list)
+    metric_window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    metric_window_end: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    fingerprint: Mapped[str] = mapped_column(String(64), index=True)
+    source: Mapped[str] = mapped_column(String(40), default="synthetic_local")
+    stale_reason: Mapped[str | None] = mapped_column(String(240))
+
+
+class AdOptimizationDecision(AdsBase):
+    __tablename__ = "ad_optimization_decisions"
+    recommendation_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("ad_optimization_recommendations.id", ondelete="CASCADE"),
+        index=True,
+    )
+    action: Mapped[str] = mapped_column(String(60))
+    decision_status: Mapped[str] = mapped_column(String(24), default="previewed")
+    preview_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    correlation_id: Mapped[str] = mapped_column(String(64), index=True)
+    actor_type: Mapped[str] = mapped_column(String(20), default="owner")
+
+
+class AdOptimizationExecution(AdsBase):
+    __tablename__ = "ad_optimization_executions"
+    recommendation_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("ad_optimization_recommendations.id", ondelete="CASCADE"),
+        index=True,
+    )
+    decision_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_optimization_decisions.id", ondelete="SET NULL")
+    )
+    job_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_jobs.id", ondelete="SET NULL")
+    )
+    action: Mapped[str] = mapped_column(String(60))
+    status: Mapped[str] = mapped_column(String(24), default="queued", index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(180))
+    before_state_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    after_state_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    rollback_state_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    result_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    correlation_id: Mapped[str] = mapped_column(String(64))
+
+
+class AdPerformanceAnomaly(AdsBase):
+    __tablename__ = "ad_performance_anomalies"
+    provider: Mapped[str] = mapped_column(String(20))
+    campaign_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_campaigns.id", ondelete="CASCADE"), index=True
+    )
+    product_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
+    anomaly_type: Mapped[str] = mapped_column(String(60))
+    severity: Mapped[str] = mapped_column(String(20), default="warning")
+    status: Mapped[str] = mapped_column(String(20), default="open", index=True)
+    evidence_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    fingerprint: Mapped[str] = mapped_column(String(64), index=True)
+    detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    window_start: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    window_end: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    source: Mapped[str] = mapped_column(String(40), default="synthetic_local")
+
+
+class AdCreativeFatigueSignal(AdsBase):
+    __tablename__ = "ad_creative_fatigue_signals"
+    provider: Mapped[str] = mapped_column(String(20))
+    campaign_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_campaigns.id", ondelete="CASCADE"), index=True
+    )
+    creative_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_creatives.id", ondelete="CASCADE"), index=True
+    )
+    fatigue_state: Mapped[str] = mapped_column(String(20), default="healthy", index=True)
+    creative_age_days: Mapped[int] = mapped_column(Integer, default=0)
+    evidence_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    fingerprint: Mapped[str] = mapped_column(String(64), index=True)
+    detected_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    source: Mapped[str] = mapped_column(String(40), default="synthetic_local")
+
+
+class AdExperimentVariant(AdsBase):
+    __tablename__ = "ad_experiment_variants"
+    experiment_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_experiments.id", ondelete="CASCADE"), index=True
+    )
+    name: Mapped[str] = mapped_column(String(120))
+    allocation_percent: Mapped[Decimal] = mapped_column(Numeric(5, 2))
+    creative_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_creatives.id", ondelete="SET NULL")
+    )
+    exact_version_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    status: Mapped[str] = mapped_column(String(20), default="ready")
+
+
+class AdExperimentResult(AdsBase):
+    __tablename__ = "ad_experiment_results"
+    experiment_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_experiments.id", ondelete="CASCADE"), index=True
+    )
+    variant_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_experiment_variants.id", ondelete="CASCADE")
+    )
+    metrics_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    relative_difference: Mapped[Decimal | None] = mapped_column(Numeric(18, 6))
+    confidence_label: Mapped[str] = mapped_column(String(20), default="insufficient_data")
+    is_leader: Mapped[bool] = mapped_column(Boolean, default=False)
+    methodology: Mapped[str] = mapped_column(String(80), default="bounded_deterministic")
+
+
+class AdBudgetRecommendation(AdsBase):
+    __tablename__ = "ad_budget_recommendations"
+    recommendation_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("ad_optimization_recommendations.id", ondelete="CASCADE"),
+        index=True,
+    )
+    campaign_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_campaigns.id", ondelete="CASCADE"), index=True
+    )
+    provider: Mapped[str] = mapped_column(String(20))
+    current_value: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
+    proposed_value: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
+    currency: Mapped[str | None] = mapped_column(String(3))
+    strategy: Mapped[str | None] = mapped_column(String(60))
+    guardrails_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    availability: Mapped[str] = mapped_column(String(24), default="available")
+
+
+class AdBidRecommendation(AdsBase):
+    __tablename__ = "ad_bid_recommendations"
+    recommendation_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("ad_optimization_recommendations.id", ondelete="CASCADE"),
+        index=True,
+    )
+    campaign_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_campaigns.id", ondelete="CASCADE"), index=True
+    )
+    provider: Mapped[str] = mapped_column(String(20))
+    current_value: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
+    proposed_value: Mapped[Decimal | None] = mapped_column(Numeric(18, 4))
+    currency: Mapped[str | None] = mapped_column(String(3))
+    strategy: Mapped[str | None] = mapped_column(String(60))
+    guardrails_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    availability: Mapped[str] = mapped_column(String(24), default="available")
 
 
 class AdRemoteMapping(AdsBase):
