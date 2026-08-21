@@ -25,6 +25,7 @@ from vayujit_api.ads.models import (
     AdFailureRecord,
     AdGroup,
     AdJob,
+    AdMarketplaceListing,
     AdMetric,
     AdOptimizationExecution,
     AdRemoteMapping,
@@ -95,6 +96,10 @@ def campaign_response(value: AdCampaign, budget: AdBudget | None = None) -> dict
         "account_id": value.account_id,
         "brand_id": value.brand_id,
         "product_id": value.product_id,
+        "marketplace": value.marketplace,
+        "listing_id": value.listing_id,
+        "listing_version": value.listing_version,
+        "listing_state": value.listing_state,
         "name": value.name,
         "objective": value.objective,
         "state": value.state,
@@ -236,7 +241,37 @@ def campaign_preview(db: Session, owner: User, data: AdsCampaignCreate) -> dict[
         raise HTTPException(
             422, "Ads account must be validated and enabled before campaign creation."
         )
+    if data.provider in {"amazon", "flipkart"}:
+        if data.marketplace != data.provider:
+            raise HTTPException(422, "Marketplace must match the Ads provider.")
+        if not data.product_id or not data.listing_id or not data.listing_version:
+            raise HTTPException(422, "An exact marketplace listing and version are required.")
+        listing = db.scalar(
+            select(AdMarketplaceListing).where(
+                AdMarketplaceListing.owner_id == owner.id,
+                AdMarketplaceListing.account_id == account.id,
+                AdMarketplaceListing.product_id == data.product_id,
+                AdMarketplaceListing.marketplace == data.marketplace,
+                AdMarketplaceListing.listing_id == data.listing_id,
+                AdMarketplaceListing.version == data.listing_version,
+                AdMarketplaceListing.state == "active",
+            )
+        )
+        if listing is None:
+            raise HTTPException(422, "The exact active marketplace listing version is unavailable.")
     capabilities = connector_for(data.provider).capabilities()
+    target_type = data.targeting_summary.get("target_type")
+    supported_targeting = set(capabilities.get("targeting", []))
+    if target_type and target_type not in supported_targeting:
+        raise HTTPException(422, "The selected targeting type is unsupported by this provider.")
+    if data.provider in {"amazon", "flipkart"} and target_type in {
+        "product",
+        "category",
+        "listing",
+    }:
+        target_listing_id = data.targeting_summary.get("listing_id")
+        if target_listing_id is not None and str(target_listing_id) != str(data.listing_id):
+            raise HTTPException(422, "The targeting listing must match the campaign listing.")
     if data.bidding_strategy and data.bidding_strategy not in capabilities.get(
         "bidding_strategies", []
     ):
@@ -312,6 +347,10 @@ def create_campaign(
         account_id=data.account_id,
         brand_id=data.brand_id,
         product_id=data.product_id,
+        marketplace=data.marketplace,
+        listing_id=data.listing_id,
+        listing_version=data.listing_version,
+        listing_state=data.listing_state,
         name=data.name,
         objective=data.objective,
         state="approved",
@@ -672,6 +711,7 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
                 },
             )
     except AdsConnectorError as error:
+        resolved_ambiguous = False
         if error.ambiguous:
             # The provider may have committed the mutation before the response
             # was lost. Resolve its deterministic remote identity before retry.
@@ -695,9 +735,14 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
             candidate = resolver.lookup(remote_type, lookup_key)
             if candidate is not None:
                 remote = candidate
+                resolved_ambiguous = True
             else:
                 error = AdsConnectorError(error.code, error.safe_message)
-        if error.ambiguous:
+        if resolved_ambiguous:
+            # A deterministic remote checkpoint was found; continue through
+            # the normal local projection path below.
+            pass
+        elif error.ambiguous:
             job.status = "failed"
             job.failure_code = error.code
             job.safe_failure_message = error.safe_message
@@ -706,23 +751,26 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
             _record_failure(db, job)
             db.commit()
             return job
-        job.status = (
-            "retry_wait" if error.retryable and job.attempt_count < job.max_attempts else "failed"
-        )
-        job.failure_code = error.code
-        job.safe_failure_message = error.safe_message
-        job.retry_after_seconds = error.retry_after_seconds
-        job.failure_category = error.code
-        if job.status == "retry_wait":
-            delay = error.retry_after_seconds or min(300, 2 ** max(job.attempt_count - 1, 0))
-            job.next_retry_at = now() + timedelta(seconds=delay)
         else:
-            job.next_retry_at = None
-        job.lease_expires_at = None
-        _record_failure(db, job)
-        _sync_optimization_execution(db, job)
-        db.commit()
-        return job
+            job.status = (
+                "retry_wait"
+                if error.retryable and job.attempt_count < job.max_attempts
+                else "failed"
+            )
+            job.failure_code = error.code
+            job.safe_failure_message = error.safe_message
+            job.retry_after_seconds = error.retry_after_seconds
+            job.failure_category = error.code
+            if job.status == "retry_wait":
+                delay = error.retry_after_seconds or min(300, 2 ** max(job.attempt_count - 1, 0))
+                job.next_retry_at = now() + timedelta(seconds=delay)
+            else:
+                job.next_retry_at = None
+            job.lease_expires_at = None
+            _record_failure(db, job)
+            _sync_optimization_execution(db, job)
+            db.commit()
+            return job
     except Exception:
         # Preserve the leased job for deterministic recovery after a process crash.
         job.updated_at = now()
@@ -812,6 +860,7 @@ def run_job(db: Session, job: AdJob, *, worker_id: str | None = None) -> AdJob:
     job.lease_expires_at = None
     job.next_retry_at = None
     job.result_json = {
+        "remote_id": remote["remote_id"],
         "remote_campaign_id": remote["remote_id"],
         "remote_checkpoint": remote,
         "synthetic": True,

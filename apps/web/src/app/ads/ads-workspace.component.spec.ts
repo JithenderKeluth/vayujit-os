@@ -91,6 +91,7 @@ describe('AdsWorkspaceComponent', () => {
       fixture.nativeElement.querySelector('nav[aria-label="Ads workspace navigation"]'),
     ).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain('LOCAL SYNTHETIC');
+    expect(fixture.nativeElement.textContent).toContain('Meesho Ads is not supported');
     expect(fixture.nativeElement.textContent).toContain(
       'Live Meta Ads and Google Ads are not validated',
     );
