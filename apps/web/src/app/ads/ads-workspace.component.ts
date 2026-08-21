@@ -15,7 +15,7 @@ import { firstValueFrom, filter, Subscription } from 'rxjs';
 type Json = any;
 type Account = Json & {
   id: string;
-  provider: 'meta' | 'google';
+  provider: 'meta' | 'google' | 'amazon' | 'flipkart';
   display_name: string;
   status: string;
   enabled: boolean;
@@ -48,7 +48,8 @@ type Capability = Json & {
           <p class="eyebrow">Ads and Marketing Automation</p>
           <h1 id="ads-title">Operational Ads workspace</h1>
           <p class="lede">
-            Owner-scoped Meta and Google campaign operations with explicit review gates.
+            Owner-scoped social, search, and marketplace campaign operations with explicit review
+            gates.
           </p>
         </div>
         <div class="header-actions">
@@ -127,7 +128,7 @@ type Capability = Json & {
       <div class="two-column">
         <section class="panel">
           <h3>Provider health</h3>
-          @for (provider of ['meta', 'google']; track provider) {
+          @for (provider of ['meta', 'google', 'amazon', 'flipkart']; track provider) {
             <div class="health-row">
               <strong>{{ provider | titlecase }}</strong
               ><span class="status" [class.good]="providerHealth(provider) === 'Ready'">{{
@@ -155,8 +156,10 @@ type Capability = Json & {
           }}
         </p>
         <p class="safe-note">
-          Live Meta Ads and Google Ads are not validated in this local environment.
+          Live provider APIs are not connected; Amazon and Flipkart use local deterministic fake
+          connectors.
         </p>
+        <p class="safe-note">Meesho Ads is not supported in this local slice.</p>
       </section></ng-template
     >
     <ng-template #accountsView
@@ -176,6 +179,8 @@ type Capability = Json & {
             >Provider<select name="provider" [(ngModel)]="accountDraft.provider" required>
               <option value="meta">Meta</option>
               <option value="google">Google</option>
+              <option value="amazon">Amazon Ads</option>
+              <option value="flipkart">Flipkart Ads</option>
             </select></label
           ><label
             >Display name<input
@@ -255,7 +260,7 @@ type Capability = Json & {
             } @empty {
               <tr>
                 <td colspan="6" class="empty">
-                  No Ads accounts yet. Add a local Meta or Google account to begin.
+                  No Ads accounts yet. Add a local account to begin.
                 </td>
               </tr>
             }
@@ -282,6 +287,8 @@ type Capability = Json & {
             <option value="">All providers</option>
             <option value="meta">Meta</option>
             <option value="google">Google</option>
+            <option value="amazon">Amazon Ads</option>
+            <option value="flipkart">Flipkart Ads</option>
           </select></label
         ><label
           >State<select [(ngModel)]="campaignState" (ngModelChange)="applyCampaignFilters()">
@@ -377,6 +384,8 @@ type Capability = Json & {
                 >
                   <option value="meta">Meta</option>
                   <option value="google">Google</option>
+                  <option value="amazon">Amazon Ads</option>
+                  <option value="flipkart">Flipkart Ads</option>
                 </select></label
               ><label
                 >Account<select name="account_id" [(ngModel)]="campaignDraft.account_id" required>
@@ -896,7 +905,7 @@ type Capability = Json & {
       <section class="two-column">
         <section class="panel">
           <h3>Server capabilities</h3>
-          @for (provider of ['meta', 'google']; track provider) {
+          @for (provider of ['meta', 'google', 'amazon', 'flipkart']; track provider) {
             <div class="capability">
               <h4>{{ provider | titlecase }}</h4>
               <p>
@@ -919,6 +928,10 @@ type Capability = Json & {
                     'Server response unavailable'
                 }}
               </p>
+              <p>
+                Targeting:
+                {{ capabilities[provider]?.targeting?.join(', ') || 'Server response unavailable' }}
+              </p>
             </div>
           }
         </section>
@@ -928,7 +941,11 @@ type Capability = Json & {
             <li>Local synthetic connectors only.</li>
             <li>No credentials, tokens, cookies, SQL, or paths are shown.</li>
             <li>Provider capability and readiness responses are server-derived.</li>
-            <li>Live Meta and Google validation remains out of scope.</li>
+            <li>Meesho Ads is not supported; no Ads connector or creation path is exposed.</li>
+            <li>
+              Live provider validation remains out of scope; marketplace adapters are deterministic
+              local fakes.
+            </li>
           </ul>
         </section>
       </section></ng-template

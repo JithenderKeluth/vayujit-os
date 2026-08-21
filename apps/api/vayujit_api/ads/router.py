@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import uuid
 from datetime import datetime
@@ -80,7 +80,10 @@ def _campaign(db: Session, owner: User, campaign_id: uuid.UUID) -> AdCampaign:
 
 @router.get("/capabilities")
 def capabilities() -> dict[str, object]:
-    return {provider: connector_for(provider).capabilities() for provider in ("meta", "google")}
+    return {
+        provider: connector_for(provider).capabilities()
+        for provider in ("meta", "google", "amazon", "flipkart")
+    }
 
 
 @router.get("/providers")

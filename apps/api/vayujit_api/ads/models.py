@@ -21,7 +21,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from vayujit_api.core.database import Base
 
-AD_PROVIDERS = ("meta", "google")
+AD_PROVIDERS = ("meta", "google", "amazon", "flipkart")
 AD_STATES = (
     "draft",
     "ready",
@@ -51,7 +51,9 @@ class AdAccount(AdsBase):
         UniqueConstraint(
             "owner_id", "provider", "external_account_id", name="uq_ad_account_remote"
         ),
-        CheckConstraint("provider IN ('meta','google')", name="ck_ad_account_provider"),
+        CheckConstraint(
+            "provider IN ('meta','google','amazon','flipkart')", name="ck_ad_account_provider"
+        ),
         CheckConstraint("status IN ('active','disabled','archived')", name="ck_ad_account_status"),
         CheckConstraint(
             "environment IN ('local','sandbox','production')", name="ck_ad_account_environment"
@@ -77,7 +79,9 @@ class AdAccount(AdsBase):
 class AdCampaign(AdsBase):
     __tablename__ = "ad_campaigns"
     __table_args__ = (
-        CheckConstraint("provider IN ('meta','google')", name="ck_ad_campaign_provider"),
+        CheckConstraint(
+            "provider IN ('meta','google','amazon','flipkart')", name="ck_ad_campaign_provider"
+        ),
         CheckConstraint(
             "state IN ('draft','ready','approved','scheduled','active','paused',"
             "'completed','failed','archived')",
@@ -116,6 +120,32 @@ class AdCampaign(AdsBase):
     retry_after_seconds: Mapped[int | None] = mapped_column(Integer)
     next_retry_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     correlation_id: Mapped[str | None] = mapped_column(String(64), index=True)
+    marketplace: Mapped[str | None] = mapped_column(String(24), index=True)
+    listing_id: Mapped[str | None] = mapped_column(String(180), index=True)
+    listing_version: Mapped[int | None] = mapped_column(Integer)
+    listing_state: Mapped[str | None] = mapped_column(String(24))
+
+
+class AdMarketplaceListing(AdsBase):
+    __tablename__ = "ad_marketplace_listings"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "marketplace", "listing_id", "version", name="uq_ad_marketplace_listing"
+        ),
+    )
+    account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("ad_accounts.id", ondelete="RESTRICT"), index=True
+    )
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="RESTRICT"), index=True
+    )
+    marketplace: Mapped[str] = mapped_column(String(24), index=True)
+    listing_id: Mapped[str] = mapped_column(String(180), index=True)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    state: Mapped[str] = mapped_column(String(24), default="active")
+    title: Mapped[str] = mapped_column(String(240))
+    sku: Mapped[str | None] = mapped_column(String(120))
+    metadata_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
 
 
 class AdGroup(AdsBase):

@@ -32,7 +32,14 @@ class AdsConnectorError(RuntimeError):
 @dataclass
 class FakeAdsState:
     entities: dict[str, dict[str, dict[str, Any]]] = field(
-        default_factory=lambda: {"campaign": {}, "group": {}, "creative": {}, "ad": {}}
+        default_factory=lambda: {
+            "campaign": {},
+            "group": {},
+            "creative": {},
+            "ad": {},
+            "keyword": {},
+            "product_target": {},
+        }
     )
     calls: list[dict[str, Any]] = field(default_factory=list)
     failures: dict[str, str] = field(default_factory=dict)
@@ -48,7 +55,9 @@ class AdsConnector:
         raise NotImplementedError
 
     def _remote_id(self, entity_type: str, local_key: str) -> str:
-        prefix = "meta" if self.provider == "meta" else "google"
+        prefix = {"meta": "meta", "google": "google", "amazon": "amz", "flipkart": "fk"}.get(
+            self.provider, self.provider
+        )
         return f"{prefix}_{entity_type}_{local_key.replace('-', '')[:18]}"
 
     def _check_failure(self, operation: str) -> None:
@@ -158,6 +167,8 @@ class AdsConnector:
             "clicks": 48.0,
             "spend": 125.0,
             "conversions": 6.0,
+            "sales": 4.0,
+            "revenue": 1000.0,
             "video_views": 300.0,
         }
 
@@ -221,9 +232,79 @@ class FakeGoogleAdsConnector(AdsConnector):
         }
 
 
+class FakeAmazonAdsConnector(AdsConnector):
+    provider = "amazon"
+
+    def capabilities(self) -> dict[str, Any]:
+        return {
+            "provider": "amazon",
+            "marketplace": "amazon",
+            "status": "fake_certified",
+            "campaign_types": ["sponsored_products", "sponsored_brands", "display"],
+            "placements": ["search", "detail_page", "rest_of_search"],
+            "objectives": ["sales", "traffic", "awareness"],
+            "media_types": ["text", "image"],
+            "creative_types": ["content", "image"],
+            "targeting": [
+                "keywords",
+                "negative_keywords",
+                "product",
+                "listing",
+                "category",
+                "audience",
+            ],
+            "bidding_strategies": ["dynamic_down_only", "dynamic_up_down", "fixed_bid"],
+            "budget_modes": ["daily"],
+            "currencies": ["INR", "USD"],
+            "video_support": False,
+            "listing_required": True,
+            "keyword_match_types": ["exact", "phrase", "broad"],
+            "destination_constraints": ["marketplace_listing"],
+        }
+
+
+class FakeFlipkartAdsConnector(AdsConnector):
+    provider = "flipkart"
+
+    def capabilities(self) -> dict[str, Any]:
+        return {
+            "provider": "flipkart",
+            "marketplace": "flipkart",
+            "status": "fake_certified",
+            "campaign_types": ["product", "display"],
+            "placements": ["search", "product_page"],
+            "objectives": ["sales", "traffic"],
+            "media_types": ["text", "image"],
+            "creative_types": ["content", "image"],
+            "targeting": ["product", "listing", "category", "audience"],
+            "bidding_strategies": ["manual_cpc", "maximize_sales"],
+            "budget_modes": ["daily"],
+            "currencies": ["INR"],
+            "video_support": False,
+            "listing_required": True,
+            "keyword_match_types": [],
+            "destination_constraints": ["marketplace_listing"],
+        }
+
+
+MARKETPLACE_CAPABILITY_REGISTRY: dict[str, dict[str, Any]] = {
+    "amazon": FakeAmazonAdsConnector().capabilities(),
+    "flipkart": FakeFlipkartAdsConnector().capabilities(),
+    "meesho": {
+        "provider": "meesho",
+        "marketplace": "meesho",
+        "status": "not_supported",
+        "reason": "Marketplace Ads capability is not modeled in the local contract.",
+        "listing_required": True,
+        "synthetic": True,
+    },
+}
+
 CONNECTORS: dict[str, AdsConnector] = {
     "meta": FakeMetaAdsConnector(),
     "google": FakeGoogleAdsConnector(),
+    "amazon": FakeAmazonAdsConnector(),
+    "flipkart": FakeFlipkartAdsConnector(),
 }
 
 

@@ -7,7 +7,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-Provider = Literal["meta", "google"]
+Provider = Literal["meta", "google", "amazon", "flipkart"]
 
 
 class AdsAccountCreate(BaseModel):
@@ -114,6 +114,10 @@ class AdsCampaignCreate(BaseModel):
     account_id: uuid.UUID
     brand_id: uuid.UUID | None = None
     product_id: uuid.UUID | None = None
+    marketplace: Literal["amazon", "flipkart"] | None = None
+    listing_id: str | None = Field(default=None, max_length=180)
+    listing_version: int | None = Field(default=None, ge=1)
+    listing_state: str | None = Field(default=None, max_length=24)
     name: str = Field(min_length=1, max_length=200)
     objective: str = Field(default="awareness", max_length=40)
     timezone_name: str = "Asia/Kolkata"
