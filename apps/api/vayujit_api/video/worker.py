@@ -67,7 +67,7 @@ def execute_video_job(
         refreshed = db.get(VideoGeneration, generation.id)
         refreshed_job = db.get(AIStudioJob, job.id)
         if refreshed is not None:
-            refreshed.status = "failed"
+            refreshed.status = "stale"
             refreshed.failure_code = "ai.video.source_changed"
             refreshed.safe_error_message = "The Video source context changed before execution."
             refreshed.completed_at = utcnow()
