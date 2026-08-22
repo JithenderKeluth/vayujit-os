@@ -162,3 +162,6 @@ The deterministic connector domains are explicitly fake-certified locally (not l
 - MARKETING AUTOMATION: LOCAL CERTIFIED
 
 This label correction is part of the final interpretation above and keeps local deterministic proof separate from live integration validation.
+## Production-readiness boundary
+
+The local certification remains 100% for deterministic behavior. Production configuration, backups, runbooks, security matrices, and live-provider sequencing are documented separately in `docs/operations/`; they do not activate providers or claim production deployment readiness.

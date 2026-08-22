@@ -64,6 +64,19 @@ class SystemHealth(BaseModel):
     build_identifier: str
 
 
+class ProductionReadiness(BaseModel):
+    environment: str
+    configuration: dict[str, object]
+    database: str
+    migration: str
+    storage: str
+    encryption: str
+    live_mutations: dict[str, bool]
+    ads_spend_enabled: bool
+    backup_directory_configured: bool
+    monitoring_provider: str
+
+
 class ReleaseInfo(BaseModel):
     semantic_version: str
     build_timestamp: str
@@ -441,6 +454,37 @@ def health_details(db: Session) -> SystemHealth:
 @system_router.get("/health", response_model=SystemHealth)
 def system_health(db: DatabaseSession, _user: CurrentUser) -> SystemHealth:
     return health_details(db)
+
+
+@system_router.get("/production-readiness", response_model=ProductionReadiness)
+def production_readiness(db: DatabaseSession, _user: CurrentUser) -> ProductionReadiness:
+    settings = get_settings()
+    database_status = "healthy"
+    try:
+        db.execute(text("select 1"))
+    except Exception:
+        database_status = "unavailable"
+    return ProductionReadiness(
+        environment=settings.environment,
+        configuration=settings.configuration_report(),
+        database=database_status,
+        migration=revision(db),
+        storage=(
+            "configured"
+            if settings.storage_provider == "filesystem" or settings.storage_bucket
+            else "missing"
+        ),
+        encryption="configured" if settings.credential_encryption_key else "missing",
+        live_mutations={
+            "ai": settings.live_ai_enabled,
+            "social": settings.live_social_publishing_enabled,
+            "marketplace": settings.live_marketplace_mutations_enabled,
+            "ads": settings.live_ads_mutations_enabled,
+        },
+        ads_spend_enabled=settings.ads_live_spend_enabled,
+        backup_directory_configured=bool(settings.backup_directory),
+        monitoring_provider="not_configured",
+    )
 
 
 @system_router.get("/release", response_model=ReleaseInfo)
