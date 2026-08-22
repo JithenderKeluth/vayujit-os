@@ -225,7 +225,13 @@
     "test:ads:security-matrix": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ads_security_matrix_acceptance.py",
     "test:ads:optimization-certification": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ads_optimization_certification.py",
     "test:ads:marketplace": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ads_marketplace_acceptance.py",
-    "test:ads:marketplace:closure": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ads_marketplace_closure.py"
+    "test:ads:marketplace:closure": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_ads_marketplace_closure.py",
+    "test:ads:marketing": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_marketing_plan.py",
+    "test:ads:marketing:concurrency": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_marketing_plan_slice4_concurrency.py",
+    "test:ads:marketing:auto-reallocation": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_marketing_plan_slice4_acceptance.py",
+    "test:ads:marketing:storage": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_marketing_plan.py",
+    "test:ads:marketing:performance": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_marketing_plan_slice4_performance.py",
+    "test:ads:marketing:ux": "npm run test --workspace @vayujit/web -- --watch=false --include='**/marketing-plan.component.spec.ts'"
   },
   "devDependencies": {
     "concurrently": "9.2.4",

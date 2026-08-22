@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import uuid
+
 import pytest
 from test_ai_integration import ORIGIN, setup_context
 
@@ -65,9 +67,8 @@ def test_wrong_owner_audience_is_not_visible_or_validatable(client) -> None:
     setup_context(client)
     created = _audience(client)
     assert created.status_code == 201
-    audience_id = created.json()["id"]
     # The owner-scoped fixture has no second authenticated owner; an unknown UUID
     # exercises the same non-disclosure contract without creating private data.
-    response = client.post(f"/api/v1/ads/audiences/{audience_id[:-1]}0/validate", headers=ORIGIN)
+    response = client.post(f"/api/v1/ads/audiences/{uuid.uuid4()}/validate", headers=ORIGIN)
     assert response.status_code in {404, 422}
     assert "opaque" not in response.text.lower()
