@@ -4,6 +4,7 @@ import { AuthPageComponent } from './auth/auth-page.component';
 import { authGuard, guestGuard } from './auth/auth.guards';
 import { AdsWorkspaceComponent } from './ads/ads-workspace.component';
 import { AdsOptimizationComponent } from './ads/ads-optimization.component';
+import { MarketingPlanComponent } from './ads/marketing-plan.component';
 
 export const routes: Routes = [
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
@@ -57,6 +58,11 @@ export const routes: Routes = [
   {
     path: 'ads/settings',
     component: AdsWorkspaceComponent,
+    canActivate: [authGuard],
+  },
+  {
+    path: 'ads/marketing',
+    component: MarketingPlanComponent,
     canActivate: [authGuard],
   },
   {

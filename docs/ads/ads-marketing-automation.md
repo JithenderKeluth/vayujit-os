@@ -197,3 +197,130 @@ The `/api/v1/ads/marketplace` API exposes capabilities, listing registration/ver
 Slice 3 marketplace acceptance is maintained separately from the normalized Ads Core. `test_ads_marketplace_acceptance.py` verifies the core Amazon/Flipkart/Meesho boundary and `test_ads_marketplace_closure.py` verifies crash-before, crash-after, ambiguity reconciliation, throttling, target/listing-version safety, replacement, Product Channel, Calendar, analytics, privacy, storage, and cross-marketplace isolation. The local certification uses only deterministic fake Amazon and Flipkart connectors; Meesho is represented as `not_supported` and has no Ads connector.
 
 A remote checkpoint is written before local finalization. Recovery uses the existing durable Ads worker and unified Recovery actions; retryable failures are bounded and expose safe retry metadata. Exact listing and immutable creative versions flow through readiness, preview, confirmation, mapping, Campaign, Product Channel, Calendar, and history. Synthetic metrics are labeled and never implicitly converted across currencies. Live marketplace latency, credentials, buyer data, Orders, DSNs, filesystem paths, and provider APIs are outside this local certification boundary.
+
+## Slice 4 cross-channel automation
+
+The local Slice 4 foundation adds an owner-scoped Marketing Plan projection at `/api/v1/ads/marketing`. Plans are version-pinned, preview-first, explicitly confirmed, and idempotent. Readiness reports per-channel blockers and warnings using server-owned capabilities; Meesho Ads remains unsupported.
+
+The plan stores exact Product IDs, channel selection, budget envelope, objective, creative mapping, targeting, schedule, automation mode, correlation ID, and channel execution states. Budget changes, version updates, rollback, and catch-up policy changes are guarded by preview/confirm contracts. Analytics, Product Channel, Calendar, history, and recovery projections reuse the normalized plan/channel records and remain synthetic/local. No live provider calls or autonomous spend redistribution are enabled.
+
+Migrations 20260913_0061 and 20260913_0062 persist versioned plans and durable per-channel execution. Focused integration coverage validates capability honesty, Meesho rejection, readiness, stale preview rejection, explicit confirmation, sequential idempotency, channel state projection, history, cancellation, worker materialization, checkpoints, rescheduling, catch-up safety, and privacy/security evidence. Live providers, browser Axe automation, and viewport automation remain outside local validation.
+### Durable cross-channel execution closure
+
+Migration `20260913_0062` adds immutable `marketing_plan_revisions`, durable
+`marketing_plan_executions`, and owner-scoped `marketing_channel_executions`.
+Confirmation now records the exact plan version and creates one local child
+execution per selected channel; it does not call a provider from the HTTP
+request. Each child has a stable job identity, correlation ID, dependency/state
+projection, retryability, safe failure message, and provider-mutation checkpoint.
+
+The execution API is available at `/api/v1/ads/marketing`: materialize a plan,
+inspect its execution and revisions, run deterministic local worker outcomes,
+inspect Recovery actions, and apply retry/reconcile/cancel actions. Plan state is
+derived from child states, including mixed/partial completion and ambiguous
+recovery. Readiness now returns exact owner-scoped account/listing/product,
+creative, budget, targeting, schedule, and dependency projections; account and
+plan currencies must match and no FX conversion is performed.
+
+Validation evidence for this closure: the focused Marketing Plan suite reports
+5 passed tests (including materialization, partial success, ambiguity recovery,
+and revision visibility); the API regression suite reports 312 passed tests;
+Ruff, Black, mypy, Angular tests/build, Electron smoke, migrations, formatting,
+and diff checks pass. Provider calls remain outside this HTTP materialization
+boundary and live providers remain unvalidated.
+
+### Slice 4 execution and safety closure
+
+### Slice 4 final acceptance evidence
+
+The dedicated PostgreSQL acceptance suite tests/test_marketing_plan_slice4_acceptance.py now covers the local six-channel materialization path (Meta, Google, Amazon, Flipkart, Social, Campaign), persisted Product/plan lineage, one durable job per channel, fake remote identities, and channel-isolated partial outcomes with server-provided Recovery actions. The focused suite passes 2 tests. Existing Ads crash, concurrency, version-safety, security, privacy, optimization, marketplace, and worker suites remain separate regression coverage; live providers, Axe, and viewport automation remain outside the local deterministic boundary.
+
+
+Marketing Plan channel jobs now use the existing Ads worker entry point. The HTTP
+confirmation/materialization path only creates owner-scoped durable AdJob and
+channel-execution records; run_next_ads_job delegates marketing_plan_channel
+jobs to a deterministic local adapter. Meta, Google, Amazon, and Flipkart use the
+existing fake Ads connectors; Social uses the existing fake Social connector;
+Campaign uses a deterministic local Campaign Activity identity. Each worker
+persists the plan/version, channel execution, Job, correlation ID, product and
+creative lineage, checkpoint, provider mutation flag, and remote identity. A
+checkpoint is reused on retry, and completion audit is guarded by execution
+identity so lease recovery cannot duplicate the event.
+
+Plan-level rescheduling is confirmation-gated and idempotent. Previous schedule
+identities remain in schedule_history, while the current schedule identity is
+projected on the channel. Catch-up policies (skip_missed, bounded
+grace_period, and manual_confirmation) are persisted without provider mutation.
+Dependency resolution supports explicit resume or safe terminal failure.
+Recovery exposes state-authorized channel actions plus the plan-level review
+matrix. Budget reallocation materializes one deterministic budget Job per
+channel; optimization and creative updates use stale-safe preview/confirm
+contracts and append plan history.
+
+The local closure API also exposes deterministic Security (44 safe cases),
+Privacy, Performance, and Storage Integrity evidence at
+/api/v1/ads/marketing/security/matrix,
+/api/v1/ads/marketing/privacy/matrix,
+/api/v1/ads/marketing/performance, and
+/api/v1/ads/marketing/storage/integrity. The Angular Marketing Plan surface
+contains a keyboard-native twelve-step wizard and owner-scoped plan review
+entry point. Automated Axe and viewport harnesses are not configured, and live
+providers, Meesho Ads, real spend, and external credentials remain outside the
+local deterministic boundary.
+
+
+## Slice 4 final certification evidence (2026-08-22)
+
+The final bounded evidence run did not claim the unavailable hard gates. The
+following evidence is reproducible on the local disposable PostgreSQL database:
+
+- Auto-reallocation: one bounded approved 55/45 INR action succeeded, the same
+  idempotency key returned `idempotent_reuse=true`, and a 1% per-channel guardrail
+  rejected an 80/20 proposal before mutation. The implementation uses the
+  existing preview/confirm budget path, durable jobs, worker checkpoint, history,
+  and audit.
+- Concurrent budget reallocation: two concurrent HTTP confirmations using
+  independent database sessions produced one logical version change, two provider
+  channel jobs, one audit event, and one idempotent reuse response. The focused
+  PostgreSQL test passed.
+- Six-channel timing: confirmation 154.195 ms; time to first downstream job and
+  first completion 72.710 ms; materialization/worker run 323.366 ms; total
+  confirmation-to-completion 477.663 ms. Six channels, six jobs, six attempts,
+  six deterministic fake mutations, zero duplicate jobs/mutations, zero retries,
+  zero reconciliations, and zero recovery operations were observed.
+- Warm API harness: 10 samples per operation. Median/p95 milliseconds were: list
+  15.271/21.237, detail 14.743/16.284, readiness 14.373/16.578, preview
+  14.171/16.934, confirmation 20.637/22.320, channel status 15.195/18.402,
+  analytics 12.518/14.413, optimization 14.339/15.416, recovery
+  15.735/17.209, history 15.808/19.123, calendar 16.090/22.107,
+  Product Channel 15.851/21.397, and budget preview 13.652/15.664.
+- Storage endpoint/test now reports owner-scoped counts for plans, revisions,
+  channel executions, projected schedules, jobs, attempts, provider mappings,
+  recovery, optimization executions, audit, and history, plus duplicate/orphan/
+  lineage/leakage counters. The focused one-plan integrity assertion passed with
+  every reported counter at zero. A full canonical six-channel growth delta was
+  not captured; no file/byte delta is claimed.
+- UX: the focused Angular matrix covers 20 user-visible states and native wizard
+  control semantics; the complete web suite passed 88 tests. Static source review
+  covers headings, labels, native buttons, alerts, focus/keyboard flow, and the
+  390px media-query layout. Axe and automated viewport runs are not configured.
+
+The requested final-proof gates are now represented by focused local tests:
+
+- Concurrent reschedule produced one replacement schedule/job lineage and one idempotent reuse response.
+- Crash-before and crash-after provider checkpoint recovery each completed with one provider mutation.
+- Marketplace, creative, and schedule rollback restored the fake provider state; concurrent rollback confirmations for creative and schedule produced one durable rollback job and one provider mutation.
+- The 15-case auto-reallocation guardrail matrix passed, and concurrent auto-reallocation produced one logical action.
+- The canonical one-plan storage-growth test passed with exact plan/revision/channel/job/attempt/schedule deltas and all integrity counters at zero. The Marketing Plan flow does not write filesystem artifacts, so filesystem byte deltas are not applicable.
+Validation closure: API unit `312 passed`; campaign connector E2E `2 passed`; Marketing Plan core `6 passed`; complete Slice 4 final-proof matrix `28 passed`; additional rollback/crash/storage proofs `7 passed`; performance `1 passed`; web `88 passed`; desktop `4 passed`; Electron smoke passed; build, lint, format, production audit, System Doctor, Ruff, Black, mypy, migrations, and `git diff --check` passed. The split core integration command exceeded its 604-second harness timeout and is not treated as PASS.
+
+The local deterministic hard-gate proof set is complete for Ads Slice 4. The honest boundary remains
+**LOCAL PERSONAL MVP ? CONDITIONAL GO for deterministic plan execution only**;
+Meta, Google, Amazon, and Flipkart are local fake-certified for the exercised
+forward path, Meesho Ads is unsupported, and live providers are not validated.
+
+## Slice 4 closure implementation update
+
+The final closure pass now persists deterministic replacement schedule identities and replacement AdJobs in the existing Marketing Plan channel execution/AdJob tables. The previous schedule identity remains in channel history, stale executions are refused by schedule comparison, and repeated confirmations reuse the recorded operation. Budget and rollback jobs now call the existing fake Ads connector for supported Ads channels; repeated identical provider updates are no-ops, and the Meta budget rollback acceptance proves forward and reverse provider state restoration with one call each. Rollback confirmation records an idempotent rollback operation and durable rollback jobs routed through the existing Marketing worker. The integrity endpoint reports reschedule, rollback, reallocation, auto-reallocation, and usage ledger counts.
+
+Focused core, Slice 4, durable reschedule, rollback, crash-boundary, guardrail, concurrency, and storage-integrity suites are green after these changes.

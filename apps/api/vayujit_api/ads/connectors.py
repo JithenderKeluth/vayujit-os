@@ -140,6 +140,11 @@ class AdsConnector:
         entity = self.state.entities[entity_type].get(remote_id)
         if entity is None:
             raise AdsConnectorError("ads.remote_not_found", "The remote Ads entity was not found.")
+        # Replaying the same durable mutation is a no-op.  This makes the
+        # provider adapter safe when a worker crashes after the remote call
+        # but before its checkpoint commit.
+        if all(entity.get(key) == value for key, value in payload.items()):
+            return entity
         entity.update(payload)
         self.state.calls.append(
             {

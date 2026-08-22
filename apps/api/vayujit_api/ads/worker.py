@@ -8,6 +8,7 @@ from datetime import timedelta
 from sqlalchemy import or_, select
 from sqlalchemy.orm import Session
 
+from vayujit_api.ads.marketing_execution import run_marketing_channel_job
 from vayujit_api.ads.models import AdJob
 from vayujit_api.ads.service import now, run_job
 
@@ -40,6 +41,12 @@ def run_next_ads_job(
     job.lease_expires_at = timestamp + timedelta(seconds=ADS_LEASE_SECONDS)
     job.correlation_id = job.correlation_id or f"ads-{uuid.uuid4().hex}"
     db.commit()
+    if job.operation in {
+        "marketing_plan_channel",
+        "marketing_plan_budget",
+        "marketing_plan_rollback",
+    }:
+        return run_marketing_channel_job(db, job, worker_id=worker_id)
     return run_job(db, job, worker_id=worker_id)
 
 

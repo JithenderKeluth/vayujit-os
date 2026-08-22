@@ -29,6 +29,7 @@ Write-Host 'PASS Video Media Storage: Healthy'
 Write-Host 'PASS Video Durable Jobs: Shared durable AI worker'
 Write-Host 'PASS Video Temp/Checkpoint Storage: Healthy'
 Write-Host 'PASS Marketplace Ads: Amazon/Flipkart deterministic fake connectors; Meesho not supported; credentials not exposed'
+Write-Host 'PASS Marketing Automation: owner-scoped versioned plans, preview/confirm, bounded budget and recovery projections'
 Check-Command "Publishing connector status" { & "$PSScriptRoot\publishing-diagnostics.ps1" status }
 Check-Command "Scheduler status" {
     $env:PYTHONPATH = Join-Path $PSScriptRoot "..\apps\api"
