@@ -28,7 +28,7 @@ from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import SessionFactory, get_session
 from vayujit_api.core.errors import install_exception_handlers
 from vayujit_api.core.logging import configure_logging
-from vayujit_api.core.observability import OperationalMiddleware
+from vayujit_api.core.observability import OperationalMiddleware, SafetyMiddleware, metrics_snapshot
 from vayujit_api.core.origin import OriginProtectionMiddleware
 from vayujit_api.core.schemas import HealthResponse
 from vayujit_api.identity.router import router as auth_router
@@ -68,7 +68,25 @@ def create_app() -> FastAPI:
         allow_headers=["Authorization", "Content-Type", "X-Correlation-ID"],
     )
     application.add_middleware(OriginProtectionMiddleware)
+    application.add_middleware(SafetyMiddleware)
     application.add_middleware(OperationalMiddleware)
+
+    @application.middleware("http")
+    async def security_headers(request, call_next):
+        response = await call_next(request)
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        response.headers.setdefault("Referrer-Policy", "strict-origin-when-cross-origin")
+        response.headers.setdefault(
+            "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
+        )
+        response.headers.setdefault("Content-Security-Policy", settings.content_security_policy)
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        if settings.require_https:
+            response.headers.setdefault(
+                "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+            )
+        return response
+
     install_exception_handlers(application)
     application.include_router(auth_router)
     application.include_router(ads_router)
@@ -125,6 +143,10 @@ def create_app() -> FastAPI:
     @application.get("/health/live", tags=["health"])
     async def live() -> dict[str, str]:
         return {"status": "alive", "service": "vayujit-api"}
+
+    @application.get("/health/metrics", tags=["health"])
+    async def metrics() -> dict[str, object]:
+        return {"environment": settings.environment, "metrics": metrics_snapshot()}
 
     @application.get("/health/ready", tags=["health"])
     def ready(response: Response, db: DatabaseSession) -> dict[str, object]:
