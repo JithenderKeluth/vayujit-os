@@ -78,17 +78,49 @@ class Settings(BaseSettings):
     wordpress_taxonomy_cache_seconds: int = Field(default=900, ge=60, le=3600)
     shopify_shop_domain: str | None = Field(
         default=None,
-        validation_alias=AliasChoices("VAYUJIT_SHOPIFY_SHOP_DOMAIN", "SHOPIFY_SHOP_DOMAIN"),
+        validation_alias=AliasChoices(
+            "VAYUJIT_SHOPIFY_SHOP_DOMAIN",
+            "SHOPIFY_SHOP_DOMAIN",
+            "VAYUJIT_SHOPIFY_STORE_DOMAIN",
+            "SHOPIFY_STORE_DOMAIN",
+        ),
     )
     shopify_admin_api_access_token: str | None = Field(
         default=None,
         validation_alias=AliasChoices(
-            "VAYUJIT_SHOPIFY_ADMIN_API_ACCESS_TOKEN", "SHOPIFY_ADMIN_API_ACCESS_TOKEN"
+            "VAYUJIT_SHOPIFY_ADMIN_API_ACCESS_TOKEN",
+            "SHOPIFY_ADMIN_API_ACCESS_TOKEN",
+            "VAYUJIT_SHOPIFY_ACCESS_TOKEN",
+            "SHOPIFY_ACCESS_TOKEN",
         ),
     )
     shopify_api_version: str = Field(
         default="2026-07",
         validation_alias=AliasChoices("VAYUJIT_SHOPIFY_API_VERSION", "SHOPIFY_API_VERSION"),
+    )
+    shopify_mode: Literal["fake", "sandbox", "live"] = Field(
+        default="fake",
+        validation_alias=AliasChoices("VAYUJIT_SHOPIFY_MODE", "SHOPIFY_MODE"),
+    )
+    shopify_client_id: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("VAYUJIT_SHOPIFY_CLIENT_ID", "SHOPIFY_CLIENT_ID"),
+    )
+    shopify_client_secret: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("VAYUJIT_SHOPIFY_CLIENT_SECRET", "SHOPIFY_CLIENT_SECRET"),
+    )
+    shopify_timeout_seconds: int = Field(
+        default=45,
+        ge=10,
+        le=120,
+        validation_alias=AliasChoices("VAYUJIT_SHOPIFY_TIMEOUT", "SHOPIFY_TIMEOUT"),
+    )
+    shopify_live_mutation_enabled: bool = Field(
+        default=False,
+        validation_alias=AliasChoices(
+            "VAYUJIT_SHOPIFY_LIVE_MUTATION_ENABLED", "SHOPIFY_LIVE_MUTATION_ENABLED"
+        ),
     )
     shopify_discovery_cache_seconds: int = Field(default=900, ge=60, le=3600)
     publishing_worker_enabled: bool = False
@@ -209,6 +241,13 @@ class Settings(BaseSettings):
             "live_mutations_enabled": self.live_mutations_enabled,
             "ads_spend_enabled": self.ads_live_spend_enabled,
             "debug": self.debug,
+            "shopify_mode": self.shopify_mode,
+            "shopify_configured": bool(
+                self.shopify_shop_domain and self.shopify_admin_api_access_token
+            ),
+            "shopify_api_version": self.shopify_api_version,
+            "shopify_timeout_seconds": self.shopify_timeout_seconds,
+            "shopify_live_mutation_enabled": self.shopify_live_mutation_enabled,
         }
 
 
