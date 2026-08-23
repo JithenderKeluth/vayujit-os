@@ -100,3 +100,31 @@ provider exercise.
 - Production deployment: **NO-GO** until object storage, monitoring, signing,
   provider credentials, and compliance review are complete.
 
+
+## Shopify sandbox certification (current branch)
+
+The Shopify connector is the selected first external-provider candidate. The
+local connector foundation is ready: predefined Admin GraphQL operations, safe
+`*.myshopify.com`/quarterly-version validation, encrypted persisted-token path,
+loopback fake transport, bounded timeout/429/5xx/network/auth classification,
+ambiguous-result reconciliation, durable idempotency, Recovery, audit/history,
+metrics, and recursive provider-payload redaction are covered by the local
+suite. `VAYUJIT_SHOPIFY_MODE=fake` remains the safe default; `sandbox` requires
+staging, a domain, token, quarterly API version, HTTPS, and explicit switches.
+
+This checkout has no Shopify store domain or access token configured. No external
+Shopify request, read-only account validation, Product read, scope verification,
+real mutation, webhook delivery, backup, cleanup, or provider latency sample was
+therefore performed. The hard gate classification is **SHOPIFY SANDBOX — BLOCKED
+BY EXTERNAL CREDENTIALS**. The local decision is **CONDITIONAL GO** for a future
+staging/test-store run and **NOT CERTIFIED** for Shopify staging; production is
+**NOT VALIDATED / NO-GO**. Amazon must not be started from this branch while the
+Shopify prerequisite is blocked.
+
+For the next controlled run, use a Shopify development/test store only. Capture
+account/domain/API-version/scopes read-only, preview the disposable Product
+change, obtain explicit confirmation plus current fingerprint and idempotency
+key, take the staging DB/media backup, perform exactly one reversible mutation,
+reconcile after a simulated crash/ambiguous response, verify audit/Recovery and
+mode lineage, and remove only the disposable remote test record. Do not enable
+Amazon, Flipkart, Social, Ads, or any production provider.

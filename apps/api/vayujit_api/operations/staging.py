@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import hashlib
 import hmac
-import json
 import time
 from collections import Counter
 from dataclasses import asdict, dataclass, field
@@ -19,6 +18,7 @@ from typing import Any, Literal
 
 from vayujit_api.core.config import Settings
 from vayujit_api.core.observability import maintenance_enabled
+from vayujit_api.publishing.shopify_connector import validate_api_version, validate_shop_domain
 
 ProviderMode = Literal["fake", "sandbox", "live"]
 ProviderAccountState = Literal[
@@ -185,6 +185,12 @@ def require_staging_mutation(
     }
     if domain not in switches or not switches[domain]:
         raise StagingSafetyError("The provider domain is disabled by configuration.")
+    if (
+        domain == "marketplace"
+        and settings.shopify_mode in {"sandbox", "live"}
+        and not settings.shopify_live_mutation_enabled
+    ):
+        raise StagingSafetyError("Shopify remote mutations are disabled by configuration.")
     if account_state != "VALID" or not account_opt_in:
         raise StagingSafetyError("A validated, explicitly opted-in provider account is required.")
     if not confirmation:
@@ -226,6 +232,39 @@ def staging_configuration_errors(settings: Settings) -> list[str]:
     ):
         if enabled and not provider_credentials[domain]:
             errors.append(f"{domain} provider is enabled without credentials")
+    errors.extend(shopify_configuration_errors(settings))
+    return errors
+
+
+def shopify_configuration_errors(settings: Settings) -> list[str]:
+    """Validate Shopify deployment configuration without contacting the store."""
+    if settings.shopify_mode == "fake":
+        return []
+    errors: list[str] = []
+    if settings.environment != "staging":
+        errors.append("Shopify sandbox mode requires a staging environment")
+    if not settings.shopify_shop_domain:
+        errors.append("Shopify store domain is required")
+    else:
+        try:
+            validate_shop_domain(settings.shopify_shop_domain, resolve_dns=False)
+        except ValueError:
+            errors.append("Shopify store domain must be a valid myshopify.com domain")
+    if not settings.shopify_admin_api_access_token:
+        errors.append("Shopify access token is required")
+    try:
+        validate_api_version(settings.shopify_api_version)
+    except ValueError:
+        errors.append("Shopify API version must use the YYYY-MM quarterly format")
+    if settings.shopify_mode == "live":
+        errors.append("Shopify production mode is not permitted by staging certification")
+    if settings.shopify_live_mutation_enabled:
+        if settings.shopify_mode not in {"sandbox", "live"}:
+            errors.append("Shopify mutations require sandbox or live mode")
+        if not settings.live_marketplace_mutations_enabled:
+            errors.append("Shopify mutations require the global marketplace switch")
+        if settings.external_mutations_emergency_stop:
+            errors.append("Shopify mutations cannot be enabled while the emergency stop is active")
     return errors
 
 
@@ -262,17 +301,36 @@ def validate_webhook(
 
 
 def redact_provider_payload(payload: Any) -> dict[str, object]:
-    """Return a JSON-safe, non-secret payload summary for audit/debugging."""
+    """Return a bounded JSON-safe payload summary with recursive secret redaction."""
+    blocked = {
+        "token",
+        "access_token",
+        "api_key",
+        "password",
+        "secret",
+        "authorization",
+        "database_url",
+        "dsn",
+        "path",
+        "local_path",
+        "environment",
+    }
+
+    def safe_value(value: Any, key: str = "") -> object:
+        normalized = key.casefold()
+        if normalized in blocked or any(part in normalized for part in ("credential", "cookie")):
+            return "[REDACTED]"
+        if isinstance(value, dict):
+            return {
+                str(item_key): safe_value(item_value, str(item_key))
+                for item_key, item_value in list(value.items())[:50]
+            }
+        if isinstance(value, list):
+            return [safe_value(item) for item in value[:50]]
+        if isinstance(value, (str, int, float, bool)) or value is None:
+            return value
+        return {"type": type(value).__name__}
+
     if not isinstance(payload, dict):
         return {"type": type(payload).__name__}
-    blocked = {"token", "access_token", "api_key", "password", "secret", "authorization"}
-    safe: dict[str, object] = {}
-    for key, value in payload.items():
-        normalized = str(key).casefold()
-        if normalized in blocked or any(part in normalized for part in ("credential", "cookie")):
-            safe[str(key)] = "[REDACTED]"
-        elif isinstance(value, (str, int, float, bool)) or value is None:
-            safe[str(key)] = value
-        else:
-            safe[str(key)] = json.dumps(value, sort_keys=True, default=str)[:200]
-    return safe
+    return safe_value(payload)  # type: ignore[return-value]

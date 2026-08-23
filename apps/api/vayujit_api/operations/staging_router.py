@@ -24,17 +24,18 @@ def _refresh_registry() -> None:
     settings = get_settings()
     configured = {
         "openai-compatible": bool(settings.openai_api_key),
-        "shopify": bool(settings.shopify_admin_api_access_token),
+        "shopify": bool(settings.shopify_shop_domain and settings.shopify_admin_api_access_token),
         "wordpress": bool(settings.wordpress_application_password),
     }
     for provider, has_credentials in configured.items():
         state = "CONFIGURED" if has_credentials else "NOT_CONFIGURED"
+        mode = settings.shopify_mode if provider == "shopify" else settings.provider_runtime_mode
         registry.set(
             ProviderAccountStatus(
                 provider=provider,
                 account_id=None,
                 state=cast(ProviderAccountState, state),
-                mode=settings.provider_runtime_mode,
+                mode=mode,
                 capability="read_only_validation",
                 safe_message=(
                     "Credential is loaded from deployment configuration."
