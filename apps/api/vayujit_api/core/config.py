@@ -165,6 +165,9 @@ class Settings(BaseSettings):
     provider_total_timeout_seconds: float = Field(default=45.0, ge=0.1, le=600)
     provider_retry_max_attempts: int = Field(default=3, ge=1, le=5)
     provider_retry_backoff_seconds: float = Field(default=1.0, ge=0.1, le=60)
+    intelligence_enabled: bool = False
+    intelligence_research_execution_enabled: bool = False
+    intelligence_external_research_enabled: bool = False
 
     @field_validator("environment")
     @classmethod
