@@ -33,6 +33,7 @@ from vayujit_api.core.origin import OriginProtectionMiddleware
 from vayujit_api.core.schemas import HealthResponse
 from vayujit_api.identity.router import router as auth_router
 from vayujit_api.media.router import router as media_router
+from vayujit_api.operations.control_center import router as operations_control_router
 from vayujit_api.operations.hardening import health_details
 from vayujit_api.operations.hardening import router as hardening_router
 from vayujit_api.operations.hardening import system_router as hardening_system_router
@@ -117,6 +118,7 @@ def create_app() -> FastAPI:
     application.include_router(dashboard_router)
     application.include_router(approval_router)
     application.include_router(operations_router)
+    application.include_router(operations_control_router)
     application.include_router(hardening_router)
     application.include_router(settings_router)
     application.include_router(system_router)

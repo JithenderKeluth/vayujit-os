@@ -635,7 +635,43 @@ export const routes: Routes = [
   {
     path: 'operations',
     loadComponent: () =>
-      import('./operations/operations-home.component').then((m) => m.OperationsHomeComponent),
+      import('./operations/control-center.component').then((m) => m.ControlCenterComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/jobs',
+    loadComponent: () =>
+      import('./operations/control-center.component').then((m) => m.ControlCenterComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/providers',
+    loadComponent: () =>
+      import('./operations/control-center.component').then((m) => m.ControlCenterComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/storage',
+    loadComponent: () =>
+      import('./operations/control-center.component').then((m) => m.ControlCenterComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/security',
+    loadComponent: () =>
+      import('./operations/control-center.component').then((m) => m.ControlCenterComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/releases',
+    loadComponent: () =>
+      import('./operations/control-center.component').then((m) => m.ControlCenterComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/configuration',
+    loadComponent: () =>
+      import('./operations/control-center.component').then((m) => m.ControlCenterComponent),
     canActivate: [authGuard],
   },
   {
