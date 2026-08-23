@@ -150,7 +150,39 @@ export class OperationsService {
       ),
     );
   }
-  private params(values: Record<string, string | number | undefined>): HttpParams {
+  controlOverview(): Promise<unknown> {
+    return firstValueFrom(this.http.get<unknown>(`${this.base}/operations/overview`, this.options));
+  }
+  controlHealth(): Promise<unknown> {
+    return firstValueFrom(this.http.get<unknown>(`${this.base}/operations/health`, this.options));
+  }
+  controlJobs(
+    filters: Record<string, string | number | boolean | undefined> = {},
+  ): Promise<unknown> {
+    return firstValueFrom(
+      this.http.get<unknown>(`${this.base}/operations/jobs`, {
+        ...this.options,
+        params: this.params(filters),
+      }),
+    );
+  }
+  controlProviders(): Promise<unknown> {
+    return firstValueFrom(
+      this.http.get<unknown>(`${this.base}/operations/providers`, this.options),
+    );
+  }
+  controlStorage(): Promise<unknown> {
+    return firstValueFrom(this.http.get<unknown>(`${this.base}/operations/storage`, this.options));
+  }
+  controlSecurity(): Promise<unknown> {
+    return firstValueFrom(this.http.get<unknown>(`${this.base}/operations/security`, this.options));
+  }
+  controlReleaseReadiness(): Promise<unknown> {
+    return firstValueFrom(
+      this.http.get<unknown>(`${this.base}/operations/release-readiness`, this.options),
+    );
+  }
+  private params(values: Record<string, string | number | boolean | undefined>): HttpParams {
     let result = new HttpParams();
     for (const [key, value] of Object.entries(values)) {
       if (value !== '' && value !== undefined) result = result.set(key, value);
