@@ -126,6 +126,13 @@ class Settings(BaseSettings):
     live_marketplace_mutations_enabled: bool = False
     live_ads_mutations_enabled: bool = False
     metrics_enabled: bool = True
+    external_mutations_emergency_stop: bool = False
+    provider_runtime_mode: Literal["fake", "sandbox", "live"] = "fake"
+    provider_connect_timeout_seconds: float = Field(default=5.0, ge=0.1, le=60)
+    provider_read_timeout_seconds: float = Field(default=30.0, ge=0.1, le=300)
+    provider_total_timeout_seconds: float = Field(default=45.0, ge=0.1, le=600)
+    provider_retry_max_attempts: int = Field(default=3, ge=1, le=5)
+    provider_retry_backoff_seconds: float = Field(default=1.0, ge=0.1, le=60)
 
     @field_validator("environment")
     @classmethod

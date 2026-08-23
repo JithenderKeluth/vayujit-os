@@ -116,7 +116,8 @@ def validate_wordpress_site_url(value: str, *, environment: str) -> str:
     parsed = urlparse(value)
     if parsed.username or parsed.password or parsed.query or parsed.fragment:
         raise ValueError("WordPress URL cannot contain credentials, query values, or fragments.")
-    schemes = {"http", "https"} if environment == "development" else {"https"}
+    local_environment = environment in {"development", "test"}
+    schemes = {"http", "https"} if local_environment else {"https"}
     if parsed.scheme not in schemes or not parsed.hostname:
         raise ValueError("WordPress URL must use HTTPS outside local development.")
     if len(parsed.path) > 200 or parsed.path.rstrip("/") not in {"", "/wordpress"}:
@@ -135,7 +136,7 @@ def validate_wordpress_site_url(value: str, *, environment: str) -> str:
             or ip.is_reserved
             or ip.is_unspecified
         )
-        if blocked and environment != "development":
+        if blocked and not local_environment:
             raise ValueError("Private and local WordPress networks are blocked.")
     return value.rstrip("/")
 
