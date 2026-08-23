@@ -41,6 +41,7 @@ from vayujit_api.operations.router import (
     dashboard_router,
     operations_router,
 )
+from vayujit_api.operations.staging_router import router as staging_router
 from vayujit_api.products.router import router as products_router
 from vayujit_api.publishing.router import router as publishing_router
 from vayujit_api.publishing.scheduler_router import operations_router as scheduler_operations_router
@@ -120,6 +121,7 @@ def create_app() -> FastAPI:
     application.include_router(settings_router)
     application.include_router(system_router)
     application.include_router(hardening_system_router)
+    application.include_router(staging_router)
     application.include_router(social_router)
     application.include_router(video_router)
     application.include_router(video_channels_router)

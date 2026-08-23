@@ -92,6 +92,8 @@
     "release:prerequisites": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-prerequisites.ps1",
     "release:verify": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/release-verify.ps1",
     "system:doctor": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/system-doctor.ps1",
+    "staging:validate": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/validate-staging-config.ps1",
+    "test:staging": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-unit.ps1 -TestPath tests/test_staging_provider_certification.py",
     "performance:baseline": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/performance-baseline.ps1",
     "backup:create": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 backup-create",
     "backup:list": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/maintenance.ps1 backup-list",
