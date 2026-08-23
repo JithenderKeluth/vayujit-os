@@ -32,6 +32,13 @@ from vayujit_api.core.observability import OperationalMiddleware, SafetyMiddlewa
 from vayujit_api.core.origin import OriginProtectionMiddleware
 from vayujit_api.core.schemas import HealthResponse
 from vayujit_api.identity.router import router as auth_router
+from vayujit_api.intelligence.operations import (
+    diagnostics_router as intelligence_diagnostics_router,
+)
+from vayujit_api.intelligence.operations import (
+    router as intelligence_operations_router,
+)
+from vayujit_api.intelligence.router import router as intelligence_router
 from vayujit_api.media.router import router as media_router
 from vayujit_api.operations.control_center import router as operations_control_router
 from vayujit_api.operations.hardening import health_details
@@ -128,6 +135,9 @@ def create_app() -> FastAPI:
     application.include_router(video_router)
     application.include_router(video_channels_router)
     application.include_router(video_bulk_router)
+    application.include_router(intelligence_router)
+    application.include_router(intelligence_operations_router)
+    application.include_router(intelligence_diagnostics_router)
 
     @application.on_event("startup")
     def restore_durable_campaign_waits() -> None:
