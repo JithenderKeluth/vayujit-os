@@ -18,6 +18,7 @@
   "scripts": {
     "install:all": "npm install && npm run api:install",
     "api:install": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-api.ps1",
+    "intelligence:worker:once": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-intelligence-worker.ps1",
     "dev": "concurrently -k -n API,WEB,DESKTOP \"npm:dev:api\" \"npm:dev:web\" \"npm:dev:desktop\"",
     "dev:web": "npm run start --workspace @vayujit/web",
     "dev:api": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/start-api.ps1",

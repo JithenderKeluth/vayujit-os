@@ -7,6 +7,7 @@ from typing import Any
 
 from fastapi import HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
@@ -119,6 +120,14 @@ def create_project(
     db: Session, user: User, data: ResearchProjectCreate
 ) -> IntelligenceResearchProject:
     _require_enabled()
+    duplicate = db.scalar(
+        select(IntelligenceResearchProject).where(
+            IntelligenceResearchProject.owner_id == user.id,
+            IntelligenceResearchProject.name == data.name,
+        )
+    )
+    if duplicate is not None:
+        raise HTTPException(409, "A research project with this name already exists.")
     stamp = now()
     project = IntelligenceResearchProject(
         owner_id=user.id, created_at=stamp, updated_at=stamp, **data.model_dump()
@@ -522,6 +531,17 @@ def update_category(
 def evaluate_opportunity(
     db: Session, user: User, opportunity: IntelligenceOpportunity
 ) -> list[dict[str, Any]]:
+    locked = db.scalar(
+        select(IntelligenceOpportunity)
+        .where(
+            IntelligenceOpportunity.id == opportunity.id,
+            IntelligenceOpportunity.owner_id == user.id,
+        )
+        .with_for_update()
+    )
+    if locked is None:
+        raise HTTPException(404, "Opportunity not found.")
+    opportunity = locked
     categories = {
         row.id: row
         for row in db.scalars(
@@ -606,21 +626,38 @@ def evaluate_opportunity(
             "reason": rule.reason_template,
         }
         results.append(result)
-        db.add(
-            IntelligenceRuleEvaluation(
-                owner_id=user.id,
-                rule_id=rule.id,
-                rule_version=rule.version,
-                subject_type="opportunity",
-                subject_id=opportunity.id,
-                input_evidence_ids=[],
-                result=result["result"],
-                score_impact=result["score_impact"],
-                hard_block=result["hard_block"],
-                reason=rule.reason_template,
-                evaluated_at=now(),
+        try:
+            with db.begin_nested():
+                db.add(
+                    IntelligenceRuleEvaluation(
+                        owner_id=user.id,
+                        rule_id=rule.id,
+                        rule_version=rule.version,
+                        subject_type="opportunity",
+                        subject_id=opportunity.id,
+                        input_evidence_ids=[],
+                        result=result["result"],
+                        score_impact=result["score_impact"],
+                        hard_block=result["hard_block"],
+                        reason=rule.reason_template,
+                        evaluated_at=now(),
+                    )
+                )
+                db.flush()
+        except IntegrityError:
+            existing = db.scalar(
+                select(IntelligenceRuleEvaluation).where(
+                    IntelligenceRuleEvaluation.owner_id == user.id,
+                    IntelligenceRuleEvaluation.rule_id == rule.id,
+                    IntelligenceRuleEvaluation.rule_version == rule.version,
+                    IntelligenceRuleEvaluation.subject_type == "opportunity",
+                    IntelligenceRuleEvaluation.subject_id == opportunity.id,
+                )
             )
-        )
+            if existing is None:
+                raise
+            score += float(existing.score_impact)
+            blocked = blocked or existing.hard_block
     opportunity.score = max(0, min(100, float(opportunity.score) + score))
     opportunity.hard_blocked = blocked
     opportunity.updated_at = now()

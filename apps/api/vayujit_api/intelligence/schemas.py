@@ -272,6 +272,7 @@ class OpportunityCreate(BaseModel):
 
 class OpportunityResponse(APIModel):
     id: uuid.UUID
+    candidate_id: uuid.UUID | None
     research_run_id: uuid.UUID | None
     title: str
     category: str
@@ -310,3 +311,209 @@ class IntelligenceOverviewResponse(BaseModel):
     source_health: dict[str, int]
     rule_counts: dict[str, int]
     recent_failures: int
+
+
+class CandidateResponse(APIModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    research_run_id: uuid.UUID
+    source_id: uuid.UUID
+    external_reference: str
+    deduplication_key: str
+    title: str
+    normalized_title: str
+    category: str
+    subcategory: str
+    market: str
+    observed_brand: str | None
+    source_reference: str
+    status: str
+    observed_price: float | None
+    currency: str | None
+    attributes: dict[str, object]
+    duplicate_of_id: uuid.UUID | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class SignalResponse(APIModel):
+    id: uuid.UUID
+    candidate_id: uuid.UUID
+    signal_type: str
+    value: float | None
+    normalized_score: float | None
+    unit: str | None
+    source_evidence_ids: list[str]
+    observed_at: datetime
+    freshness: str
+    confidence: float
+    calculation_method: str
+    signal_version: int
+    details: dict[str, object]
+    created_at: datetime
+
+
+class ResearchProfileCreate(BaseModel):
+    name: str = Field(min_length=2, max_length=160)
+    market: str = Field(default="", max_length=120)
+    currency: str = Field(default="INR", min_length=3, max_length=3)
+    min_selling_price: float | None = Field(default=None, ge=0)
+    max_selling_price: float | None = Field(default=None, ge=0)
+    max_sourcing_estimate: float | None = Field(default=None, ge=0)
+    minimum_margin: float | None = Field(default=None, ge=0, le=1)
+    max_weight_kg: float | None = Field(default=None, ge=0)
+    max_length_cm: float | None = Field(default=None, ge=0)
+    max_width_cm: float | None = Field(default=None, ge=0)
+    max_height_cm: float | None = Field(default=None, ge=0)
+    categories: list[str] = Field(default_factory=list, max_length=100)
+    excluded_categories: list[str] = Field(default_factory=list, max_length=100)
+    competition_tolerance: str = Field(default="balanced", max_length=24)
+    risk_tolerance: str = Field(default="balanced", max_length=24)
+
+
+class ResearchProfileResponse(APIModel):
+    id: uuid.UUID
+    name: str
+    market: str
+    currency: str
+    min_selling_price: float | None
+    max_selling_price: float | None
+    max_sourcing_estimate: float | None
+    minimum_margin: float | None
+    max_weight_kg: float | None
+    max_length_cm: float | None
+    max_width_cm: float | None
+    max_height_cm: float | None
+    categories: list[str]
+    excluded_categories: list[str]
+    competition_tolerance: str
+    risk_tolerance: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class MissionCreate(BaseModel):
+    project_id: uuid.UUID
+    profile_id: uuid.UUID | None = None
+    name: str = Field(min_length=2, max_length=160)
+    frequency: str = Field(default="manual", max_length=40)
+    timezone: str = Field(default="UTC", max_length=80)
+    market: str = Field(default="", max_length=120)
+    categories: list[str] = Field(default_factory=list, max_length=100)
+    ruleset_version: str = Field(default="default-v1", max_length=120)
+    minimum_score_threshold: float = Field(default=45, ge=0, le=100)
+    notification_threshold: float = Field(default=65, ge=0, le=100)
+
+
+class MissionUpdate(BaseModel):
+    enabled: bool | None = None
+    frequency: str | None = Field(default=None, max_length=40)
+    timezone: str | None = Field(default=None, max_length=80)
+    categories: list[str] | None = Field(default=None, max_length=100)
+    minimum_score_threshold: float | None = Field(default=None, ge=0, le=100)
+    notification_threshold: float | None = Field(default=None, ge=0, le=100)
+    status: Literal["draft", "active", "paused", "completed", "failed"] | None = None
+
+
+class MissionResponse(APIModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    profile_id: uuid.UUID | None
+    name: str
+    enabled: bool
+    frequency: str
+    timezone: str
+    market: str
+    categories: list[str]
+    ruleset_version: str
+    minimum_score_threshold: float
+    notification_threshold: float
+    status: str
+    last_run_id: uuid.UUID | None
+    last_run_at: datetime | None
+    next_run_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class ReportResponse(APIModel):
+    id: uuid.UUID
+    run_id: uuid.UUID
+    format: str
+    title: str
+    content: str
+    provenance_json: dict[str, object]
+    created_at: datetime
+
+
+class CompareRequest(BaseModel):
+    candidate_ids: list[uuid.UUID] = Field(min_length=2, max_length=5)
+
+
+class RuleSimulationRequest(BaseModel):
+    candidate_ids: list[uuid.UUID] = Field(min_length=1, max_length=200)
+    minimum_score_threshold: float = Field(default=45, ge=0, le=100)
+    scoring_model_version: str = Field(default="winning-product-local-v1", max_length=120)
+
+
+class RuleSimulationResponse(BaseModel):
+    allowed: int
+    warned: int
+    review_required: int
+    blocked: int
+    candidates: list[dict[str, object]]
+
+
+class PhysicalRuleEvaluationRequest(BaseModel):
+    actual: dict[str, object] = Field(default_factory=dict)
+    thresholds: dict[str, object] = Field(default_factory=dict)
+
+
+class PolicySimulationRequest(BaseModel):
+    rules: dict[str, list[str]] = Field(default_factory=dict)
+    authorized_override: bool = False
+
+
+class EconomicsEstimateRequest(BaseModel):
+    inputs: dict[str, object] = Field(default_factory=dict)
+    currency: str = Field(default="INR", min_length=3, max_length=3)
+
+
+class ScoreWeightRequest(BaseModel):
+    weights: dict[str, float]
+    known_dimensions: list[str] = Field(default_factory=list)
+
+
+class ScheduleRequest(BaseModel):
+    scheduled_for: datetime
+    timezone: str = Field(default="UTC", max_length=80)
+    frequency: str = Field(default="manual", max_length=40)
+
+
+class RecoveryRequest(BaseModel):
+    failure_classification: str
+    action: str
+    idempotency_key: str = Field(min_length=2, max_length=180)
+
+
+class TrendObservationResponse(APIModel):
+    id: uuid.UUID
+    candidate_id: uuid.UUID | None
+    opportunity_id: uuid.UUID | None
+    market: str
+    category: str
+    trend_state: str
+    velocity: float
+    acceleration: float
+    seasonality: float
+    confidence: float
+    source_evidence_ids: list[str]
+    observed_at: datetime
+    created_at: datetime
+    correlation_id: str
+
+
+class HistoryResponse(BaseModel):
+    mission: dict[str, object]
+    run: dict[str, object]
+    recovery: list[dict[str, object]]
