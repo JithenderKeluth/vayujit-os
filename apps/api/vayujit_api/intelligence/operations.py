@@ -1,4 +1,4 @@
-﻿# ruff: noqa: E501
+# ruff: noqa: E501
 from __future__ import annotations
 
 from typing import Annotated
@@ -40,5 +40,12 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
             },
             "freshness_backlog": value["freshness_backlog"],
             "evidence_storage": "ready",
+            "supplier_intelligence": {
+                "enabled": value["enabled"],
+                "provider": "deterministic_local_fixture",
+                "worker": "registered",
+                "source_registry": "ready",
+                "external_connectors": "disabled",
+            },
         },
     }

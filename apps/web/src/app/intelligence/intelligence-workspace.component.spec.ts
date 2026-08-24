@@ -233,6 +233,7 @@ describe('IntelligenceWorkspaceComponent', () => {
       'Reports',
       'History',
       'Sources & evidence',
+      'Suppliers',
     ]);
     http.verify();
   });
