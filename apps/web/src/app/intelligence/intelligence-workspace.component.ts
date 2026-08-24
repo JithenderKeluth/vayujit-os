@@ -16,6 +16,8 @@ import {
   IntelligenceRule,
   IntelligenceEvidence,
   IntelligenceReport,
+  IntelligenceSupplier,
+  IntelligenceSupplierOverview,
 } from './intelligence.service';
 
 @Component({
@@ -85,8 +87,286 @@ import {
         <a href="#reports-workspace" (click)="setSection('reports')">Reports</a>
         <a href="#history-workspace" (click)="setSection('history')">History</a>
         <a href="#evidence-workspace" (click)="setSection('evidence')">Sources &amp; evidence</a>
+        <a href="#suppliers-workspace">Suppliers</a>
       </nav>
 
+      <section
+        id="suppliers-workspace"
+        class="panel supplier-panel"
+        aria-labelledby="suppliers-title"
+      >
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Supplier Intelligence</p>
+            <h2 id="suppliers-title">Supplier discovery</h2>
+            <p>
+              Local deterministic fixtures only. External connectors and unrestricted scraping are
+              disabled.
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="loadSuppliers()"
+            [disabled]="submitting() === 'supplier-load'"
+          >
+            Refresh suppliers
+          </button>
+        </div>
+        @if (supplierLoading()) {
+          <p class="loading" aria-live="polite">Loading supplier intelligence...</p>
+        }
+        <div class="metric-grid supplier-metrics" aria-label="Supplier overview">
+          <article class="metric">
+            <span>Suppliers</span><strong>{{ supplierOverview()?.supplier_count ?? 0 }}</strong>
+          </article>
+          <article class="metric">
+            <span>Verified / high confidence</span
+            ><strong>{{ supplierOverview()?.verified_count ?? 0 }}</strong>
+          </article>
+          <article class="metric">
+            <span>Shortlisted</span
+            ><strong>{{ supplierOverview()?.shortlisted_count ?? 0 }}</strong>
+          </article>
+          <article class="metric">
+            <span>High risk / review</span
+            ><strong>{{ supplierOverview()?.high_risk_count ?? 0 }}</strong>
+          </article>
+          <article class="metric">
+            <span>Stale data</span><strong>{{ supplierOverview()?.stale_count ?? 0 }}</strong>
+          </article>
+          <article class="metric">
+            <span>Provider mode</span
+            ><strong>{{ supplierOverview()?.provider_mode ?? 'local_fixture' }}</strong>
+          </article>
+        </div>
+        <form
+          class="form-grid"
+          (submit)="$event.preventDefault(); createSupplierSearch()"
+          aria-labelledby="supplier-search-title"
+        >
+          <h3 id="supplier-search-title">Find suppliers</h3>
+          <label
+            >Opportunity ID
+            <input
+              name="supplier-opportunity"
+              [(ngModel)]="supplierSearchForm.opportunity_id"
+              placeholder="Optional opportunity UUID" /></label
+          ><label
+            >Product reference
+            <input
+              name="supplier-product"
+              [(ngModel)]="supplierSearchForm.product_id"
+              placeholder="Optional product reference" /></label
+          ><label
+            >Market <input name="supplier-market" [(ngModel)]="supplierSearchForm.market" /></label
+          ><label
+            >Category
+            <input
+              name="supplier-category"
+              required
+              [(ngModel)]="supplierSearchForm.category" /></label
+          ><label
+            >Target unit cost
+            <input
+              name="supplier-cost"
+              type="number"
+              min="0"
+              [(ngModel)]="supplierSearchForm.target_unit_cost" /></label
+          ><label
+            >Maximum MOQ
+            <input
+              name="supplier-moq"
+              type="number"
+              min="0"
+              [(ngModel)]="supplierSearchForm.moq_max" /></label
+          ><label
+            >Maximum lead time (days)
+            <input
+              name="supplier-lead"
+              type="number"
+              min="0"
+              [(ngModel)]="supplierSearchForm.lead_time_max_days" /></label
+          ><label
+            >Countries
+            <input
+              name="supplier-countries"
+              [(ngModel)]="supplierSearchForm.countries"
+              placeholder="IN, CN" /></label
+          ><label class="check-label"
+            ><input
+              name="supplier-private-label"
+              type="checkbox"
+              [(ngModel)]="supplierSearchForm.private_label"
+            />
+            Private label required</label
+          ><button type="submit" [disabled]="submitting() === 'supplier-search'">
+            {{
+              submitting() === 'supplier-search' ? 'Creating search...' : 'Create supplier search'
+            }}
+          </button>
+        </form>
+        <form
+          class="form-grid"
+          (submit)="$event.preventDefault(); createManualSupplier()"
+          aria-labelledby="offline-supplier-title"
+        >
+          <h3 id="offline-supplier-title">Add offline supplier</h3>
+          <label
+            >Name
+            <input
+              name="offline-name"
+              required
+              [(ngModel)]="offlineSupplierForm.display_name" /></label
+          ><label
+            >Type
+            <select name="offline-type" [(ngModel)]="offlineSupplierForm.supplier_type">
+              <option value="manufacturer">Manufacturer</option>
+              <option value="wholesaler">Wholesaler</option>
+              <option value="distributor">Distributor</option>
+              <option value="unknown">Unknown</option>
+            </select></label
+          ><label
+            >Country code
+            <input
+              name="offline-country-code"
+              required
+              maxlength="2"
+              [(ngModel)]="offlineSupplierForm.country_code" /></label
+          ><label
+            >Country
+            <input
+              name="offline-country"
+              required
+              [(ngModel)]="offlineSupplierForm.country" /></label
+          ><label>City <input name="offline-city" [(ngModel)]="offlineSupplierForm.city" /></label
+          ><label
+            >Provenance
+            <input
+              name="offline-provenance"
+              required
+              placeholder="business card / factory visit"
+              [(ngModel)]="offlineSupplierForm.provenance" /></label
+          ><button type="submit" [disabled]="submitting() === 'offline-supplier'">
+            Add offline supplier
+          </button>
+        </form>
+        <div class="toolbar" aria-label="Supplier filters">
+          <label
+            >Source
+            <select
+              name="supplier-source-filter"
+              [(ngModel)]="supplierFilters.source"
+              (change)="loadSuppliers()"
+            >
+              <option value="">All sources</option>
+              <option value="manufacturer_website">Manufacturer</option>
+              <option value="indiamart">IndiaMART fixture</option>
+              <option value="alibaba">Alibaba fixture</option>
+              <option value="offline_market">Offline market</option>
+            </select></label
+          ><label
+            >Verification
+            <select
+              name="supplier-verification-filter"
+              [(ngModel)]="supplierFilters.verification"
+              (change)="loadSuppliers()"
+            >
+              <option value="">All states</option>
+              <option value="unverified">Unverified</option>
+              <option value="self_reported">Self-reported</option>
+              <option value="partially_verified">Partially verified</option>
+              <option value="verified">Verified</option>
+            </select></label
+          ><label class="check-label"
+            ><input
+              type="checkbox"
+              name="offline-only"
+              [(ngModel)]="supplierFilters.offline"
+              (change)="loadSuppliers()"
+            />
+            Offline only</label
+          >
+        </div>
+        @if (suppliers().length === 0) {
+          <p class="empty">No supplier candidates yet. Create and run a local supplier search.</p>
+        }
+        <div class="supplier-table-wrap">
+          <table>
+            <caption>
+              Owner-scoped supplier candidates
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Supplier</th>
+                <th scope="col">Source</th>
+                <th scope="col">Type</th>
+                <th scope="col">Verification</th>
+                <th scope="col">Score</th>
+                <th scope="col">Risk</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (supplier of suppliers(); track supplier.id) {
+                <tr>
+                  <th scope="row">{{ supplier.display_name }}</th>
+                  <td>{{ supplier.source_identity }}</td>
+                  <td>{{ supplier.supplier_type }}</td>
+                  <td>{{ supplier.verification_state }}</td>
+                  <td>{{ supplier.score ?? 'UNKNOWN' }}</td>
+                  <td>{{ supplier.risk | json }}</td>
+                  <td>
+                    <button type="button" (click)="selectSupplier(supplier)">Inspect</button
+                    ><button
+                      type="button"
+                      (click)="decideSupplier(supplier, 'shortlist')"
+                      [disabled]="submitting() === 'supplier-decision-' + supplier.id"
+                    >
+                      Shortlist
+                    </button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (selectedSupplier()) {
+          <article class="detail-panel" aria-labelledby="supplier-detail-title">
+            <h3 id="supplier-detail-title">{{ selectedSupplier()?.display_name }}</h3>
+            <p>
+              <strong>Identity:</strong> {{ selectedSupplier()?.country }} ·
+              {{ selectedSupplier()?.city || 'City unknown' }} ·
+              {{ selectedSupplier()?.supplier_type }}
+            </p>
+            <p>
+              <strong>Verification:</strong> {{ selectedSupplier()?.verification_state }} ·
+              <strong>Recommendation:</strong>
+              {{ selectedSupplier()?.recommendation || 'INSUFFICIENT_EVIDENCE' }}
+            </p>
+            <p>
+              <strong>Evidence:</strong> {{ selectedSupplier()?.evidence_count ?? 0 }} ·
+              <strong>Offerings:</strong> {{ selectedSupplier()?.offering_count ?? 0 }}
+            </p>
+            <h4>Risk dimensions</h4>
+            <pre>{{ selectedSupplier()?.risk | json }}</pre>
+            <p class="notice">
+              OBSERVED / MANUAL / SELF-REPORTED / VERIFIED / ASSUMED / DERIVED labels apply to
+              supplier evidence. No supplier is automatically contacted or legally verified.
+            </p>
+            <button
+              type="button"
+              (click)="verifySupplier(selectedSupplier()!, 'partially_verified')"
+            >
+              Record partial verification</button
+            ><button type="button" (click)="generateSupplierReport(selectedSupplier()!.id)">
+              Generate report
+            </button>
+          </article>
+        }
+        @if (supplierError()) {
+          <p class="error" role="alert">{{ supplierError() }}</p>
+        }
+      </section>
       <section id="research" class="panel">
         <div class="panel-heading">
           <div>
@@ -794,6 +1074,11 @@ export class IntelligenceWorkspaceComponent {
   readonly historyResult = signal<IntelligenceHistory | null>(null);
   readonly compareResult = signal<Record<string, unknown> | null>(null);
   readonly reports = signal<IntelligenceReport[]>([]);
+  readonly supplierOverview = signal<IntelligenceSupplierOverview | null>(null);
+  readonly suppliers = signal<IntelligenceSupplier[]>([]);
+  readonly selectedSupplier = signal<IntelligenceSupplier | null>(null);
+  readonly supplierLoading = signal(false);
+  readonly supplierError = signal('');
   readonly selectedCandidateIds = signal<string[]>([]);
   readonly submitting = signal('');
   readonly missionForm = {
@@ -808,6 +1093,26 @@ export class IntelligenceWorkspaceComponent {
     minimum_score_threshold: 45,
     notification_threshold: 65,
   };
+  readonly supplierSearchForm = {
+    opportunity_id: '',
+    product_id: '',
+    market: '',
+    category: '',
+    target_unit_cost: 0,
+    moq_max: 1000,
+    lead_time_max_days: 90,
+    countries: 'IN',
+    private_label: false,
+  };
+  readonly offlineSupplierForm = {
+    display_name: '',
+    supplier_type: 'manufacturer',
+    country_code: 'IN',
+    country: 'India',
+    city: '',
+    provenance: '',
+  };
+  readonly supplierFilters = { source: '', verification: '', offline: false };
   readonly profileForm = {
     name: '',
     market: '',
@@ -846,6 +1151,7 @@ export class IntelligenceWorkspaceComponent {
       void this.loadRuleCategories();
     }
     if (section === 'evidence' && !this.evidence().length) void this.loadEvidence();
+    if (section === 'suppliers' && !this.suppliers().length) void this.loadSuppliers();
   }
   async createDemoProject(): Promise<void> {
     if (this.submitting() || !this.confirmAction('Create a local deterministic research project?'))
@@ -1173,6 +1479,139 @@ export class IntelligenceWorkspaceComponent {
       await this.loadProfiles();
     } catch (error: unknown) {
       this.error.set(this.apiError(error, 'The research profile could not be created.'));
+    } finally {
+      this.submitting.set('');
+    }
+  }
+
+  async loadSuppliers(): Promise<void> {
+    this.supplierLoading.set(true);
+    this.submitting.set('supplier-load');
+    try {
+      const [summary, list] = await Promise.all([
+        this.service.supplierOverview(),
+        this.service.suppliers(this.supplierFilters),
+      ]);
+      this.supplierOverview.set(summary);
+      this.suppliers.set(list);
+      this.supplierError.set('');
+    } catch (error: unknown) {
+      this.supplierError.set(
+        this.apiError(
+          error,
+          'Supplier data is unavailable. Check the authenticated API connection.',
+        ),
+      );
+    } finally {
+      this.supplierLoading.set(false);
+      this.submitting.set('');
+    }
+  }
+
+  async createSupplierSearch(): Promise<void> {
+    if (this.submitting() || this.supplierSearchForm.category.trim().length < 2) {
+      this.supplierError.set('Supplier category is required.');
+      return;
+    }
+    this.submitting.set('supplier-search');
+    try {
+      const search = await this.service.supplierSearch({
+        opportunity_id: this.supplierSearchForm.opportunity_id || null,
+        product_id: this.supplierSearchForm.product_id || null,
+        requirements: {
+          market: this.supplierSearchForm.market,
+          category: this.supplierSearchForm.category.trim(),
+          target_unit_cost: this.supplierSearchForm.target_unit_cost,
+          moq_max: this.supplierSearchForm.moq_max,
+          lead_time_max_days: this.supplierSearchForm.lead_time_max_days,
+          countries: this.supplierSearchForm.countries
+            .split(',')
+            .map((item) => item.trim())
+            .filter(Boolean),
+          private_label: this.supplierSearchForm.private_label,
+        },
+        source_policy: { mode: 'local_fixture', external_connectors: 'disabled' },
+      });
+      await this.service.runSupplierSearch(String(search['id']));
+      await this.loadSuppliers();
+    } catch (error: unknown) {
+      this.supplierError.set(this.apiError(error, 'The supplier search could not be completed.'));
+    } finally {
+      this.submitting.set('');
+    }
+  }
+
+  async createManualSupplier(): Promise<void> {
+    if (
+      this.submitting() ||
+      this.offlineSupplierForm.display_name.trim().length < 2 ||
+      this.offlineSupplierForm.provenance.trim().length < 2
+    ) {
+      this.supplierError.set('Supplier name and provenance are required.');
+      return;
+    }
+    this.submitting.set('offline-supplier');
+    try {
+      const supplier = await this.service.createManualSupplier({ ...this.offlineSupplierForm });
+      this.selectedSupplier.set(supplier);
+      await this.loadSuppliers();
+    } catch (error: unknown) {
+      this.supplierError.set(this.apiError(error, 'The offline supplier could not be saved.'));
+    } finally {
+      this.submitting.set('');
+    }
+  }
+
+  async selectSupplier(supplier: IntelligenceSupplier): Promise<void> {
+    this.submitting.set('supplier-detail-' + supplier.id);
+    try {
+      this.selectedSupplier.set(await this.service.supplier(supplier.id));
+    } catch (error: unknown) {
+      this.supplierError.set(this.apiError(error, 'Supplier detail is unavailable.'));
+    } finally {
+      this.submitting.set('');
+    }
+  }
+
+  async decideSupplier(supplier: IntelligenceSupplier, decision: string): Promise<void> {
+    if (this.submitting() || !this.confirmAction('Record this supplier decision?')) return;
+    this.submitting.set('supplier-decision-' + supplier.id);
+    try {
+      await this.service.decideSupplier(
+        supplier.id,
+        decision,
+        'Operator decision from Supplier Intelligence.',
+      );
+      await this.loadSuppliers();
+    } catch (error: unknown) {
+      this.supplierError.set(this.apiError(error, 'The supplier decision could not be saved.'));
+    } finally {
+      this.submitting.set('');
+    }
+  }
+
+  async verifySupplier(supplier: IntelligenceSupplier, state: string): Promise<void> {
+    if (this.submitting() || !this.confirmAction('Record this verification state?')) return;
+    this.submitting.set('supplier-verification-' + supplier.id);
+    try {
+      await this.service.verifySupplier(supplier.id, state, 'Evidence review recorded by owner.');
+      await this.selectSupplier(supplier);
+      await this.loadSuppliers();
+    } catch (error: unknown) {
+      this.supplierError.set(this.apiError(error, 'Supplier verification could not be saved.'));
+    } finally {
+      this.submitting.set('');
+    }
+  }
+
+  async generateSupplierReport(id: string): Promise<void> {
+    if (this.submitting() || !this.confirmAction('Generate this supplier report?')) return;
+    this.submitting.set('supplier-report-' + id);
+    try {
+      await this.service.supplierReport(id);
+      this.supplierError.set('Supplier report generated safely.');
+    } catch (error: unknown) {
+      this.supplierError.set(this.apiError(error, 'The supplier report could not be generated.'));
     } finally {
       this.submitting.set('');
     }

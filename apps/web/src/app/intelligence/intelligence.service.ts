@@ -176,6 +176,42 @@ export interface IntelligenceOpportunity {
   updated_at?: string;
 }
 
+export interface IntelligenceSupplier {
+  id: string;
+  display_name: string;
+  legal_name: string | null;
+  supplier_type: string;
+  country_code: string | null;
+  country: string | null;
+  region?: string | null;
+  city?: string | null;
+  website?: string | null;
+  source_identity: string;
+  normalized_identity: string;
+  is_offline: boolean;
+  verification_state: string;
+  communication_status: string;
+  score?: number | null;
+  recommendation?: string | null;
+  risk?: Record<string, unknown>;
+  offering_count?: number;
+  evidence_count?: number;
+  shortlist_state?: string | null;
+  [key: string]: unknown;
+}
+
+export interface IntelligenceSupplierOverview {
+  supplier_count: number;
+  verified_count: number;
+  unverified_count: number;
+  shortlisted_count: number;
+  high_risk_count: number;
+  stale_count: number;
+  recent_searches: number;
+  recent_failures: number;
+  provider_mode: string;
+  external_connectors: Record<string, string>;
+}
 @Injectable({ providedIn: 'root' })
 export class IntelligenceService {
   private readonly http = inject(HttpClient);
@@ -425,6 +461,96 @@ export class IntelligenceService {
     );
   }
 
+  supplierOverview(): Promise<IntelligenceSupplierOverview> {
+    return firstValueFrom(
+      this.http.get<IntelligenceSupplierOverview>(`${this.base}/suppliers/overview`, this.options),
+    );
+  }
+
+  suppliers(filters?: {
+    source?: string;
+    country?: string;
+    verification?: string;
+    offline?: boolean;
+  }): Promise<IntelligenceSupplier[]> {
+    const params = new URLSearchParams();
+    if (filters?.source) params.set('source', filters.source);
+    if (filters?.country) params.set('country', filters.country);
+    if (filters?.verification) params.set('verification', filters.verification);
+    if (filters?.offline !== undefined) params.set('offline', String(filters.offline));
+    const suffix = params.toString() ? `?${params.toString()}` : '';
+    return firstValueFrom(
+      this.http.get<IntelligenceSupplier[]>(`${this.base}/suppliers${suffix}`, this.options),
+    );
+  }
+
+  supplier(id: string): Promise<IntelligenceSupplier> {
+    return firstValueFrom(
+      this.http.get<IntelligenceSupplier>(`${this.base}/suppliers/${id}`, this.options),
+    );
+  }
+
+  supplierSearch(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/suppliers/searches`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+
+  runSupplierSearch(id: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/suppliers/searches/${id}/run`,
+        {},
+        this.options,
+      ),
+    );
+  }
+
+  createManualSupplier(payload: Record<string, unknown>): Promise<IntelligenceSupplier> {
+    return firstValueFrom(
+      this.http.post<IntelligenceSupplier>(`${this.base}/suppliers/manual`, payload, this.options),
+    );
+  }
+
+  decideSupplier(id: string, decision: string, reason: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/suppliers/${id}/decisions`,
+        { decision, reason },
+        this.options,
+      ),
+    );
+  }
+
+  verifySupplier(id: string, state: string, reason: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/suppliers/${id}/verification`,
+        { state, reason },
+        this.options,
+      ),
+    );
+  }
+
+  compareSuppliers(ids: string[]): Promise<IntelligenceSupplier[]> {
+    return firstValueFrom(
+      this.http.post<IntelligenceSupplier[]>(
+        `${this.base}/suppliers/compare`,
+        { supplier_ids: ids },
+        this.options,
+      ),
+    );
+  }
+
+  supplierReport(id: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/suppliers/${id}/report`, this.options),
+    );
+  }
   createProject(payload: {
     name: string;
     description: string;
