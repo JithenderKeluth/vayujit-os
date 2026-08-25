@@ -560,4 +560,145 @@ export class IntelligenceService {
       this.http.post<IntelligenceProject>(`${this.base}/projects`, payload, this.options),
     );
   }
+
+  sourcingOverview(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/sourcing/overview`, this.options),
+    );
+  }
+  createSourcingRequirement(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/sourcing/requirements`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+  sourcingRequirements(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/sourcing/requirements`, this.options),
+    );
+  }
+  createRFQ(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(`${this.base}/sourcing/rfqs`, payload, this.options),
+    );
+  }
+  sourcingQuotes(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/sourcing/quotes`, this.options),
+    );
+  }
+  createSourcingQuote(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/sourcing/quotes`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+  compareSourcingQuotes(rfqId: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${this.base}/sourcing/rfqs/${rfqId}/compare`,
+        this.options,
+      ),
+    );
+  }
+  createSampleRequest(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/sourcing/samples`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+  sourcingSamples(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/sourcing/samples`, this.options),
+    );
+  }
+  createCostScenario(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/sourcing/scenarios`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+  sourcingRFQVersions(rfqId: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${this.base}/sourcing/rfqs/${rfqId}/versions`,
+        this.options,
+      ),
+    );
+  }
+  reviseSourcingRFQ(
+    rfqId: string,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/sourcing/rfqs/${rfqId}/versions`,
+        { payload },
+        this.options,
+      ),
+    );
+  }
+  sourcingCalendar(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/sourcing/calendar`, this.options),
+    );
+  }
+  sourcingHistory(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/sourcing/history/unified`, this.options),
+    );
+  }
+  sourcingReport(format: 'json' | 'markdown' | 'html'): Promise<unknown> {
+    return firstValueFrom(
+      this.http.get<unknown>(`${this.base}/sourcing/report/${format}`, this.options),
+    );
+  }
+  evaluateSourcingScore(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/sourcing/scores/evaluate`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+  calculateSourcingSensitivity(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/sourcing/economics/sensitivity`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+  calculateSourcingCapital(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/sourcing/economics/capital`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+  createSourcingDecision(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/sourcing/decisions`,
+        payload,
+        this.options,
+      ),
+    );
+  }
 }

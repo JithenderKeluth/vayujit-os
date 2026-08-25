@@ -39,6 +39,7 @@ from vayujit_api.intelligence.operations import (
     router as intelligence_operations_router,
 )
 from vayujit_api.intelligence.router import router as intelligence_router
+from vayujit_api.intelligence.sourcing_router import router as intelligence_sourcing_router
 from vayujit_api.intelligence.supplier_router import router as intelligence_supplier_router
 from vayujit_api.media.router import router as media_router
 from vayujit_api.operations.control_center import router as operations_control_router
@@ -138,6 +139,7 @@ def create_app() -> FastAPI:
     application.include_router(video_bulk_router)
     application.include_router(intelligence_router)
     application.include_router(intelligence_supplier_router)
+    application.include_router(intelligence_sourcing_router)
     application.include_router(intelligence_operations_router)
     application.include_router(intelligence_diagnostics_router)
 

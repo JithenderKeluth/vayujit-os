@@ -40,6 +40,13 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
             },
             "freshness_backlog": value["freshness_backlog"],
             "evidence_storage": "ready",
+            "sourcing": {
+                "enabled": True,
+                "mode": "local_deterministic",
+                "worker": "registered",
+                "external_dispatch": "disabled",
+                "purchasing": "not_implemented",
+            },
             "supplier_intelligence": {
                 "enabled": value["enabled"],
                 "provider": "deterministic_local_fixture",

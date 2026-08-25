@@ -27,9 +27,13 @@ The default provider is `LOCAL FIXTURE`. IndiaMART, Alibaba, TradeIndia, and Glo
 
 ## Storage and operations
 
-Supplier-owned tables are listed in `supplier-security.md`; migrations are replay-tested through upgrade/downgrade/upgrade. Owner predicates and foreign keys prevent cross-owner and orphaned records. The worker, recovery projections, source registry, and bounded local provider are visible to the system doctor. Use `npm run intelligence:worker:once` for one bounded local worker pass.
+Supplier-owned tables are listed in `supplier-security.md`; migrations are replay-tested through upgrade/downgrade/upgrade. Owner predicates and foreign keys prevent cross-owner and orphaned records. The worker, recovery projections, source registry, and bounded local provider are visible to the system doctor. Use
+pm run intelligence:worker:once` for one bounded local worker pass.
 
 ## UX and accepted boundaries
 
 The Angular workspace provides overview, local search, supplier list/detail, verification, decisions, report, and offline/manual entry surfaces. Unsafe text is rendered as text, not HTML. Static labels and responsive layout are covered by component checks; axe and automated viewport runs are not configured. External supplier connectors, autonomous contact, purchasing, payment, live scraping, and document ingestion remain intentionally deferred or disabled.
-`n## Final certification record`n`nIndependent PostgreSQL sessions cover search, supplier identity, offerings, evidence, commercial versions, scores, shortlist decisions, certification claims, and recovery. Advisory transaction locks plus owner-scoped uniqueness prevent duplicate logical records; replay and crash-before/after paths remain bounded and idempotent.
+
+## Final certification record
+
+Independent PostgreSQL sessions cover search, supplier identity, offerings, evidence, commercial versions, scores, shortlist decisions, certification claims, and recovery. Advisory transaction locks plus owner-scoped uniqueness prevent duplicate logical records; replay and crash-before/after paths remain bounded and idempotent.

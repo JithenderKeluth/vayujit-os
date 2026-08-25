@@ -107,6 +107,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'intelligence/sourcing',
+    loadComponent: () =>
+      import('./intelligence/sourcing-workspace.component').then(
+        (m) => m.SourcingWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'intelligence',
     loadComponent: () =>
       import('./intelligence/intelligence-workspace.component').then(
