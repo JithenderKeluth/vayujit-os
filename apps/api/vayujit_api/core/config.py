@@ -168,6 +168,9 @@ class Settings(BaseSettings):
     intelligence_enabled: bool = False
     intelligence_research_execution_enabled: bool = False
     intelligence_external_research_enabled: bool = False
+    intelligence_autonomous_research_enabled: bool = False
+    intelligence_web_fetch_enabled: bool = False
+    intelligence_search_provider_enabled: bool = False
 
     @field_validator("environment")
     @classmethod

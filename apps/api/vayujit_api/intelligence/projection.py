@@ -1,4 +1,4 @@
-﻿# ruff: noqa: E501
+# ruff: noqa: E501
 """Bounded Intelligence projection consumed by Operations, with ORM access isolated here."""
 
 from __future__ import annotations
@@ -23,6 +23,12 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
         "enabled": settings.intelligence_enabled,
         "research_execution_enabled": settings.intelligence_research_execution_enabled,
         "external_research_enabled": settings.intelligence_external_research_enabled,
+        "autonomous_research_enabled": settings.intelligence_autonomous_research_enabled,
+        "ai_mode": "LOCAL_DETERMINISTIC",
+        "web_fetch": "DISABLED" if not settings.intelligence_web_fetch_enabled else "CONFIGURED",
+        "search_provider": (
+            "NOT_CONFIGURED" if not settings.intelligence_search_provider_enabled else "CONFIGURED"
+        ),
         "workers": {"registered": True, "status": "local_deterministic_worker"},
         "scheduler": {"registered": True, "status": "local_deterministic_scheduler"},
         "pending_research_runs": int(

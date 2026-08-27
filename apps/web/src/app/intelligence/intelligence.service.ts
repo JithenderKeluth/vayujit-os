@@ -212,6 +212,18 @@ export interface IntelligenceSupplierOverview {
   provider_mode: string;
   external_connectors: Record<string, string>;
 }
+
+export interface AutonomousResearchOverview {
+  active_missions: number;
+  queued_tasks: number;
+  completed_missions: number;
+  partial_missions: number;
+  failed_missions: number;
+  contradictions: number;
+  recovery: number;
+  external_research: string;
+  ai_mode: string;
+}
 @Injectable({ providedIn: 'root' })
 export class IntelligenceService {
   private readonly http = inject(HttpClient);
@@ -688,6 +700,43 @@ export class IntelligenceService {
       this.http.post<Record<string, unknown>>(
         `${this.base}/sourcing/economics/capital`,
         payload,
+        this.options,
+      ),
+    );
+  }
+  autonomousOverview(): Promise<AutonomousResearchOverview> {
+    return firstValueFrom(
+      this.http.get<AutonomousResearchOverview>(`${this.base}/autonomous/overview`, this.options),
+    );
+  }
+
+  autonomousPolicy(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/autonomous/policy`, this.options),
+    );
+  }
+
+  autonomousMissions(): Promise<Record<string, unknown>[]> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>[]>(`${this.base}/autonomous/missions`, this.options),
+    );
+  }
+
+  createAutonomousMission(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/autonomous/missions`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+
+  runAutonomousMission(id: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/autonomous/missions/${id}/run`,
+        { confirm: true },
         this.options,
       ),
     );
