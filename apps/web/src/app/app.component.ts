@@ -23,6 +23,7 @@ export class AppComponent {
     ['Products', '/products'],
     ['Campaigns', '/campaigns'],
     ['Intelligence', '/intelligence'],
+    ['Autonomous Research', '/intelligence/autonomous'],
     ['Sourcing', '/intelligence/sourcing'],
     ['Ads', '/ads'],
     ['Calendar', '/calendar'],
