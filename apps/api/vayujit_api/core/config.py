@@ -171,6 +171,26 @@ class Settings(BaseSettings):
     intelligence_autonomous_research_enabled: bool = False
     intelligence_web_fetch_enabled: bool = False
     intelligence_search_provider_enabled: bool = False
+    intelligence_external_provider_mode: Literal[
+        "DISABLED", "LOCAL_FIXTURE", "SANDBOX", "LIVE_READ_ONLY"
+    ] = "DISABLED"
+    intelligence_search_provider: str = "deterministic"
+    intelligence_search_provider_base_url: str | None = None
+    intelligence_search_provider_api_key: str | None = None
+    intelligence_search_timeout_seconds: float = Field(default=15.0, ge=0.1, le=120)
+    intelligence_external_max_retries: int = Field(default=2, ge=0, le=5)
+    intelligence_external_retry_backoff_seconds: float = Field(default=0.25, ge=0, le=5)
+    intelligence_search_max_results: int = Field(default=10, ge=1, le=50)
+    intelligence_search_requests_per_minute: int = Field(default=10, ge=1, le=1000)
+    intelligence_search_requests_per_hour: int = Field(default=100, ge=1, le=10000)
+    intelligence_search_daily_cap: int = Field(default=500, ge=1, le=100000)
+    intelligence_fetch_max_bytes: int = Field(default=1_000_000, ge=1024, le=20_000_000)
+    intelligence_fetch_max_redirects: int = Field(default=3, ge=0, le=10)
+    intelligence_fetch_timeout_seconds: float = Field(default=15.0, ge=0.1, le=120)
+    intelligence_external_approved_domains: str = ""
+    intelligence_external_blocked_domains: str = ""
+    intelligence_external_kill_switch: bool = False
+    intelligence_search_provider_kill_switch: bool = False
 
     @field_validator("environment")
     @classmethod

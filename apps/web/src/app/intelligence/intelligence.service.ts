@@ -224,6 +224,20 @@ export interface AutonomousResearchOverview {
   external_research: string;
   ai_mode: string;
 }
+
+export type ExternalRecord = Record<string, unknown>;
+
+export interface ExternalResearchPolicy {
+  provider: string;
+  mode: string;
+  status: string;
+  search_enabled: boolean;
+  fetch_enabled: boolean;
+  kill_switch: boolean;
+  provider_kill_switch: boolean;
+  approved_domains_configured: boolean;
+  credentials_configured: boolean;
+}
 @Injectable({ providedIn: 'root' })
 export class IntelligenceService {
   private readonly http = inject(HttpClient);
@@ -713,6 +727,122 @@ export class IntelligenceService {
   autonomousPolicy(): Promise<Record<string, unknown>> {
     return firstValueFrom(
       this.http.get<Record<string, unknown>>(`${this.base}/autonomous/policy`, this.options),
+    );
+  }
+
+  externalPolicy(): Promise<ExternalResearchPolicy> {
+    return firstValueFrom(
+      this.http.get<ExternalResearchPolicy>(`${this.base}/external/policy`, this.options),
+    );
+  }
+
+  externalStatus(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/external/status`, this.options),
+    );
+  }
+
+  externalSearch(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/external/search`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+
+  externalFetch(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(`${this.base}/external/fetch`, payload, this.options),
+    );
+  }
+
+  externalSearches(): Promise<ExternalRecord[]> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord[]>(`${this.base}/external/searches`, this.options),
+    );
+  }
+
+  externalResults(searchId?: string): Promise<ExternalRecord[]> {
+    const suffix = searchId ? `?search_id=${encodeURIComponent(searchId)}` : '';
+    return firstValueFrom(
+      this.http.get<ExternalRecord[]>(`${this.base}/external/results${suffix}`, this.options),
+    );
+  }
+
+  externalFetches(): Promise<ExternalRecord[]> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord[]>(`${this.base}/external/fetches`, this.options),
+    );
+  }
+
+  externalEvidence(): Promise<ExternalRecord[]> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord[]>(`${this.base}/external/evidence`, this.options),
+    );
+  }
+
+  externalHistory(): Promise<ExternalRecord> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord>(`${this.base}/external/history`, this.options),
+    );
+  }
+
+  externalTables(): Promise<ExternalRecord[]> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord[]>(`${this.base}/external/tables`, this.options),
+    );
+  }
+
+  externalIntegrity(): Promise<ExternalRecord> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord>(`${this.base}/external/integrity`, this.options),
+    );
+  }
+
+  externalPerformance(): Promise<ExternalRecord> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord>(`${this.base}/external/performance`, this.options),
+    );
+  }
+
+  externalProductChannel(productId: string): Promise<ExternalRecord> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord>(
+        `${this.base}/external/products/${encodeURIComponent(productId)}/channel`,
+        this.options,
+      ),
+    );
+  }
+
+  externalCalendar(): Promise<ExternalRecord[]> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord[]>(`${this.base}/external/calendar`, this.options),
+    );
+  }
+
+  externalAlerts(): Promise<ExternalRecord[]> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord[]>(`${this.base}/external/alerts`, this.options),
+    );
+  }
+
+  externalRecoveryCatalog(): Promise<ExternalRecord> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord>(`${this.base}/external/recovery/catalog`, this.options),
+    );
+  }
+
+  externalExecutions(): Promise<ExternalRecord[]> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord[]>(`${this.base}/external/executions`, this.options),
+    );
+  }
+
+  externalRecovery(payload: Record<string, unknown>): Promise<ExternalRecord> {
+    return firstValueFrom(
+      this.http.post<ExternalRecord>(`${this.base}/external/recovery`, payload, this.options),
     );
   }
 

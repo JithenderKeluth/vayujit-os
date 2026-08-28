@@ -1117,8 +1117,18 @@ def metrics(_user: CurrentUser) -> dict[str, object]:
 @router.get("/system-doctor")
 def system_doctor(db: DatabaseSession, _user: CurrentUser) -> dict[str, object]:
     value = health_details(db)
+    settings = get_settings()
     return {
         "status": value.status,
+        "external_research": {
+            "configured": settings.intelligence_external_provider_mode != "DISABLED",
+            "provider": settings.intelligence_search_provider,
+            "mode": settings.intelligence_external_provider_mode,
+            "approved_fetch": settings.intelligence_web_fetch_enabled,
+            "kill_switch": settings.intelligence_external_kill_switch,
+            "credentials_configured": bool(settings.intelligence_search_provider_api_key),
+            "allowlist_configured": bool(settings.intelligence_external_approved_domains),
+        },
         "checks": [
             {
                 "component": item.component,

@@ -1,7 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AutonomousResearchOverview, IntelligenceService } from './intelligence.service';
+import {
+  AutonomousResearchOverview,
+  ExternalResearchPolicy,
+  IntelligenceService,
+} from './intelligence.service';
 
 @Component({
   selector: 'app-autonomous-research',
@@ -38,6 +42,44 @@ import { AutonomousResearchOverview, IntelligenceService } from './intelligence.
           Untrusted sources never execute instructions or mutate products, suppliers, campaigns, or
           publishing.
         </p>
+      </section>
+      <section class="panel" aria-labelledby="external-title">
+        <div class="panel-heading">
+          <h2 id="external-title">External research</h2>
+          <span class="status" role="status">{{ external()?.status || 'DISABLED' }}</span>
+        </div>
+        <p>
+          Provider <strong>{{ external()?.provider || 'deterministic' }}</strong> · Mode
+          <strong>{{ external()?.mode || 'DISABLED' }}</strong>
+        </p>
+        <p class="hint">
+          Read-only, allowlisted, bounded, and untrusted by design. Search snippets are discovery
+          results, not verified evidence.
+        </p>
+        <form class="form-grid" (submit)="$event.preventDefault(); searchExternal()">
+          <label
+            >Search query
+            <input name="external-query" required maxlength="500" [(ngModel)]="externalQuery"
+          /></label>
+          <button type="submit" [disabled]="busy() || externalQuery.trim().length < 1">
+            Search approved provider
+          </button>
+        </form>
+        @if (externalResults().length) {
+          <div class="external-results" aria-label="External search results">
+            @for (result of externalResults(); track result['url']) {
+              <article class="row">
+                <div>
+                  <strong>{{ result['title'] }}</strong
+                  ><small>{{ result['domain'] }}</small>
+                </div>
+                <span>{{ result['snippet'] }}</span
+                ><span>{{ result['provider'] }} · rank {{ result['rank'] }}</span>
+                <a [href]="result['url']" target="_blank" rel="noreferrer">Open source</a>
+              </article>
+            }
+          </div>
+        }
       </section>
       <section class="metric-grid" aria-label="Autonomous research overview">
         <article class="metric">
@@ -210,6 +252,9 @@ export class AutonomousResearchComponent {
   private readonly service = inject(IntelligenceService);
   readonly overview = signal<AutonomousResearchOverview | null>(null);
   readonly policy = signal<Record<string, unknown>>({});
+  readonly external = signal<ExternalResearchPolicy | null>(null);
+  readonly externalResults = signal<Record<string, unknown>[]>([]);
+  externalQuery = '';
   readonly missions = signal<Record<string, unknown>[]>([]);
   readonly error = signal('');
   readonly busy = signal(false);
@@ -248,10 +293,37 @@ export class AutonomousResearchComponent {
       this.overview.set(overview);
       this.policy.set(policy);
       this.missions.set(missions);
+      this.external.set({
+        provider: 'deterministic',
+        mode: 'DISABLED',
+        status: 'DISABLED',
+        search_enabled: false,
+        fetch_enabled: false,
+        kill_switch: false,
+        provider_kill_switch: false,
+        approved_domains_configured: false,
+        credentials_configured: false,
+      });
     } catch {
       this.error.set(
         'Autonomous research data is unavailable. Check the authenticated API connection.',
       );
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  async searchExternal(): Promise<void> {
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      const response = await this.service.externalSearch({
+        query: this.externalQuery,
+        max_results: 10,
+        safe_search: true,
+      });
+      this.externalResults.set((response['results'] as Record<string, unknown>[]) || []);
+    } catch {
+      this.error.set('External research is disabled or unavailable.');
     } finally {
       this.busy.set(false);
     }

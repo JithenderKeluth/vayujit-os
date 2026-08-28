@@ -43,9 +43,23 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
             "autonomous_research": {
                 "enabled": value["autonomous_research_enabled"],
                 "provider": "local_deterministic",
-                "external_research": "DISABLED",
+                "external_research": value["external_provider_mode"],
                 "web_fetch": value["web_fetch"],
                 "search_provider": value["search_provider"],
+                "execution_enabled": value["external_research_enabled"]
+                and value["external_provider_mode"] != "DISABLED",
+                "recovery_registered": value["external_execution"]["recovery_registered"],
+                "integrity_state": value["external_integrity"]["classification"],
+                "performance_instrumentation": value["external_performance"]["classification"],
+                "live_search_validation": "NOT_MEASURED",
+                "live_fetch_validation": "NOT_MEASURED",
+                "budget_configuration": value["external_execution"]["budget_configured"],
+                "rate_limit_configuration": value["external_execution"]["rate_limit_configured"],
+                "kill_switches": {
+                    "provider": value["external_execution"]["provider_kill_switch"],
+                    "global": value["external_execution"]["global_kill_switch"],
+                    "emergency_stop": value["external_execution"]["emergency_stop"],
+                },
             },
             "sourcing": {
                 "enabled": True,
