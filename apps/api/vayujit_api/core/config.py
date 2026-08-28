@@ -191,6 +191,10 @@ class Settings(BaseSettings):
     intelligence_fetch_timeout_seconds: float = Field(default=15.0, ge=0.1, le=120)
     intelligence_external_approved_domains: str = ""
     intelligence_external_blocked_domains: str = ""
+    intelligence_external_review_required_domains: str = ""
+    intelligence_external_require_source_approval: bool = False
+    intelligence_external_fetch_user_agent: str = "VAYUJIT-Research/1.0"
+    intelligence_external_fetch_requests_per_minute: int = Field(default=30, ge=1, le=1000)
     intelligence_external_kill_switch: bool = False
     intelligence_search_provider_kill_switch: bool = False
 

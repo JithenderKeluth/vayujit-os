@@ -52,7 +52,9 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
                 "integrity_state": value["external_integrity"]["classification"],
                 "performance_instrumentation": value["external_performance"]["classification"],
                 "live_search_validation": "NOT_MEASURED",
-                "live_fetch_validation": "NOT_MEASURED",
+                "live_fetch_validation": value["external_execution"].get(
+                    "approved_fetch_status", "NOT_MEASURED"
+                ),
                 "budget_configuration": value["external_execution"]["budget_configured"],
                 "rate_limit_configuration": value["external_execution"]["rate_limit_configured"],
                 "kill_switches": {

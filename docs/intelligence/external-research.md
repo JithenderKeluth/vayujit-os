@@ -34,3 +34,7 @@ The `/intelligence/external` workspace provides owner-scoped navigation for Over
 ## Slice 6B live-provider boundary
 
 Brave Web Search is the single official live adapter. It is restricted to `LIVE_READ_ONLY`, uses the subscription-token header, normalizes results through the existing URL and discovery-result boundary, and fails closed when credentials or live switches are absent. See `live-search-provider.md` for configuration and certification evidence.
+
+## Slice 6C approved live web fetch
+
+Approved live fetch is read-only and HTTPS-only. It persists safe provenance/freshness metadata and sends sanitized content through the existing verifier. No raw HTML, credentials, headers, or external mutations are exposed.

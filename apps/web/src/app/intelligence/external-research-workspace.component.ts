@@ -26,7 +26,7 @@ type Section = { id: string; label: string };
 
       <div class="runtime-banner" role="status" aria-live="polite">
         <strong>{{ runtimeLabel() }}</strong>
-        <span>LIVE SEARCH ? NOT VALIDATED ? LIVE FETCH ? NOT VALIDATED</span>
+        <span>LIVE SEARCH ? NOT VALIDATED ? {{ fetchBannerLabel() }}</span>
         <span>External AI disabled ? Unrestricted scraping disabled</span>
       </div>
 
@@ -1116,9 +1116,21 @@ export class ExternalResearchWorkspaceComponent {
   runtimeLabel(): string {
     const mode = this.text(this.policy(), 'mode', 'LOCAL FIXTURE');
     if (mode === 'LIVE_READ_ONLY' && !this.policy()?.credentials_configured) {
-      return 'LIVE SEARCH — BLOCKED BY EXTERNAL CREDENTIALS';
+      return 'LIVE SEARCH â€” BLOCKED BY EXTERNAL CREDENTIALS';
     }
-    return mode === 'LIVE_READ_ONLY' ? 'LIVE SEARCH READ-ONLY — NOT VALIDATED' : mode;
+    return mode === 'LIVE_READ_ONLY' ? 'LIVE SEARCH READ-ONLY â€” NOT VALIDATED' : mode;
+  }
+  fetchBannerLabel(): string {
+    const mode = this.text(this.policy(), 'mode', 'DISABLED');
+    if (mode !== 'LIVE_READ_ONLY') return 'LIVE FETCH ? NOT VALIDATED';
+    const completed = this.fetches().some(
+      (row) => this.text(row, 'status', '').toUpperCase() === 'COMPLETED',
+    );
+    if (completed) return 'LIVE APPROVED FETCH ? VALIDATED';
+    if (!this.policy()?.approved_domains_configured) {
+      return 'LIVE APPROVED FETCH ? BLOCKED BY EXTERNAL CONFIGURATION';
+    }
+    return 'LIVE FETCH ? NOT VALIDATED';
   }
   quotaLabel(): string {
     const quota = this.status()?.['quota'];

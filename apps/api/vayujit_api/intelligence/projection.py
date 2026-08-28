@@ -21,6 +21,7 @@ from vayujit_api.intelligence.external_models import (
     ExternalResearchBudget,
 )
 from vayujit_api.intelligence.external_projection import integrity_projection
+from vayujit_api.intelligence.external_service import approved_fetch_preflight
 from vayujit_api.intelligence.models import (
     IntelligenceEvidence,
     IntelligenceResearchRun,
@@ -31,6 +32,7 @@ from vayujit_api.intelligence.models import (
 def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
     settings = get_settings()
     external_integrity = integrity_projection(db, owner)
+    fetch_preflight = approved_fetch_preflight(settings)
     storage_counts = external_integrity.get("storage", {})
     if not isinstance(storage_counts, dict):
         storage_counts = {}
@@ -209,6 +211,9 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
             "search_enabled": settings.intelligence_search_provider_enabled,
             "fetch_enabled": settings.intelligence_web_fetch_enabled,
             "approved_domain_state": bool(settings.intelligence_external_approved_domains),
+            "approved_fetch_status": fetch_preflight["status"],
+            "approved_domain_count": fetch_preflight["approved_domain_count"],
+            "tls_required": fetch_preflight["tls_required"],
             "rate_limit_count": int(
                 db.scalar(
                     select(func.count())

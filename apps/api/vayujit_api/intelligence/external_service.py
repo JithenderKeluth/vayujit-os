@@ -109,6 +109,37 @@ def _domains(raw: str) -> tuple[str, ...]:
     return tuple(item.strip().lower().rstrip(".") for item in raw.split(",") if item.strip())
 
 
+def _domain_matches(host: str, domains: tuple[str, ...]) -> bool:
+    return any(host == domain or host.endswith("." + domain) for domain in domains)
+
+
+def _source_policy_allowed(
+    host: str,
+    *,
+    profile: ExternalSourceProfile | None,
+    settings: Settings,
+) -> tuple[str, str]:
+    robots = str(profile.robots_policy if profile is not None else "UNKNOWN").upper()
+    terms = str(profile.terms_status if profile is not None else "UNKNOWN").upper()
+    if robots == "MANUAL_REVIEW_REQUIRED":
+        robots = "REVIEW_REQUIRED"
+    if terms == "MANUAL_REVIEW_REQUIRED":
+        terms = "REVIEW_REQUIRED"
+    review_domains = _domains(settings.intelligence_external_review_required_domains)
+    if _domain_matches(host, review_domains):
+        raise HTTPException(403, "External source requires manual review.")
+    if profile is not None and (
+        robots in {"NOT_APPROVED", "REVIEW_REQUIRED", "MANUAL_REVIEW_REQUIRED"}
+        or terms in {"NOT_APPROVED", "REVIEW_REQUIRED", "MANUAL_REVIEW_REQUIRED"}
+    ):
+        raise HTTPException(403, "External source policy does not permit this fetch.")
+    if settings.intelligence_external_require_source_approval and (
+        robots != "APPROVED" or terms != "APPROVED"
+    ):
+        raise HTTPException(403, "External source approval is required before fetching.")
+    return robots, terms
+
+
 def _effective_allowed(requested: tuple[str, ...], configured: tuple[str, ...]) -> tuple[str, ...]:
     if requested and configured:
         return tuple(item for item in requested if item in configured)
@@ -158,6 +189,49 @@ def provider_preflight(settings: Settings | None = None) -> dict[str, object]:
     if settings.intelligence_search_provider.lower() != "brave":
         return base | {"status": "UNAVAILABLE"}
     return BraveSearchProvider(settings).preflight()
+
+
+def approved_fetch_preflight(settings: Settings | None = None) -> dict[str, object]:
+    """Return a non-network readiness report for approved live web fetch."""
+    settings = settings or _settings()
+    approved = _domains(settings.intelligence_external_approved_domains)
+    blocked = _domains(settings.intelligence_external_blocked_domains)
+    review = _domains(settings.intelligence_external_review_required_domains)
+    checks = {
+        "mode": settings.intelligence_external_provider_mode == "LIVE_READ_ONLY",
+        "global_external": settings.intelligence_external_research_enabled,
+        "approved_fetch": settings.intelligence_web_fetch_enabled,
+        "allowlist": bool(approved),
+        "emergency_stop": not settings.external_mutations_emergency_stop,
+        "kill_switch": not settings.intelligence_external_kill_switch,
+        "tls": True,
+        "byte_limit": settings.intelligence_fetch_max_bytes > 0,
+        "redirect_limit": settings.intelligence_fetch_max_redirects >= 0,
+    }
+    if settings.intelligence_external_provider_mode != "LIVE_READ_ONLY":
+        status = (
+            "DISABLED"
+            if settings.intelligence_external_provider_mode == "DISABLED"
+            else "NOT_READY"
+        )
+    elif not all(checks.values()):
+        status = "BLOCKED_BY_EXTERNAL_CONFIGURATION"
+    else:
+        status = "READY"
+    return {
+        "status": status,
+        "mode": settings.intelligence_external_provider_mode,
+        "approved_domains": list(approved),
+        "blocked_domains": list(blocked),
+        "review_required_domains": list(review),
+        "approved_domain_count": len(approved),
+        "tls_required": True,
+        "max_redirects": settings.intelligence_fetch_max_redirects,
+        "max_response_bytes": settings.intelligence_fetch_max_bytes,
+        "user_agent": settings.intelligence_external_fetch_user_agent,
+        "checks": checks,
+        "external_calls": False,
+    }
 
 
 def _guard(settings: Settings, *, operation: str) -> None:
@@ -573,6 +647,9 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
         )
         blocked += tuple(str(item).lower() for item in profile.blocked_domains)
     requested = canonical_url(data.url)
+    robots_policy, terms_status = _source_policy_allowed(
+        host_of(requested), profile=profile, settings=settings
+    )
     identity = _identity(f"{requested}|{data.source_profile}|{data.mission_id}|{data.task_id}")
     existing = db.scalar(
         select(ExternalFetch).where(
@@ -651,20 +728,31 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
                     "fetch_timeout",
                     "fetch_network_failed",
                     "fetch_5xx",
+                    "fetch_rate_limited",
                 }
                 if not retryable or attempt >= settings.intelligence_external_max_retries:
                     execution.status = "FAILED"
                     execution.failure_code = str(exc)
                     execution.safe_error_message = "Approved fetch failed safely."
                     checkpoint(db, execution, "TERMINAL", status="FAILED")
+                    failure_code = str(exc)
+                    suffix = {
+                        "redirect_blocked": "redirect_blocked",
+                        "mime_blocked": "mime_blocked",
+                        "response_too_large": "response_too_large",
+                        "fetch_rate_limited": "rate_limited",
+                        "fetch_timeout": "timeout",
+                        "fetch_network_failed": "network_failed",
+                        "fetch_5xx": "5xx",
+                    }.get(failure_code, "failed")
                     record_event(
                         db,
                         actor_id=owner.id,
-                        action="external.fetch.failed",
+                        action=f"external.fetch.{suffix}",
                         entity_type="external_fetch_execution",
                         entity_id=execution.id,
-                        metadata={"failure_code": str(exc)},
-                        idempotency_key=f"external-fetch:{execution.id}:failed",
+                        metadata={"failure_code": failure_code},
+                        idempotency_key=f"external-fetch:{execution.id}:{suffix}",
                     )
                     db.commit()
                     raise HTTPException(502, "Approved fetch failed safely.") from exc
@@ -729,6 +817,10 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
     row.freshness = freshness.state
     row.extracted = {
         **(row.extracted if isinstance(row.extracted, dict) else {}),
+        "robots_policy": robots_policy,
+        "terms_status": terms_status,
+        "latency_ms": result.get("latency_ms"),
+        "user_agent": result.get("user_agent"),
         "freshness_state": freshness.state,
         "fresh_until": freshness.fresh_until.isoformat() if freshness.fresh_until else None,
         "stale_at": freshness.stale_at.isoformat() if freshness.stale_at else None,
@@ -803,6 +895,11 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
         projection = verify_and_project(db, owner, mission, _task, evidence)
         evidence = cast(AutonomousResearchEvidence, projection["evidence"])
         evidence_id = evidence.id
+        row.extracted = {
+            **(row.extracted if isinstance(row.extracted, dict) else {}),
+            "verification_status": evidence.verification_status,
+            "verification_reason": evidence.verification_reason,
+        }
         checkpoint(db, execution, "VERIFICATION_COMPLETE", result_ids=[str(evidence.id)])
     checkpoint(
         db, execution, "EVIDENCE_PERSISTED", result_ids=[str(evidence_id)] if evidence_id else []

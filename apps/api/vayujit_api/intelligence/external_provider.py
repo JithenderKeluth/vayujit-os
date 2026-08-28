@@ -8,8 +8,9 @@ import re
 import socket
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from html.parser import HTMLParser
 from typing import Any, cast
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urljoin, urlparse, urlunparse
 
 import httpx
 
@@ -30,6 +31,70 @@ INJECTION_MARKERS = (
     "make a payment",
 )
 ALLOWED_MIME = {"text/html", "text/plain", "application/json"}
+
+DEFAULT_USER_AGENT = "VAYUJIT-Research/1.0 (+https://vayujit.local/research)"
+
+
+class _SafeHTMLParser(HTMLParser):
+    """Extract bounded inert text and safe document metadata from HTML."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=True)
+        self.title = ""
+        self.meta_description = ""
+        self.canonical_url = ""
+        self.publication_timestamp = ""
+        self._in_title = False
+        self._blocked_depth = 0
+        self._title_parts: list[str] = []
+        self._text_parts: list[str] = []
+
+    def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
+        attrs_map = {key.lower(): value or "" for key, value in attrs}
+        lowered = tag.lower()
+        if lowered == "title":
+            self._in_title = True
+        if lowered in {"script", "style", "iframe", "form", "noscript", "svg"}:
+            self._blocked_depth += 1
+            return
+        if lowered == "meta":
+            name = attrs_map.get("name", "").lower()
+            property_name = attrs_map.get("property", "").lower()
+            content = attrs_map.get("content", "")
+            if name == "description" and content:
+                self.meta_description = content[:2_000]
+            if name in {"date", "datepublished", "pubdate"} or property_name in {
+                "article:published_time",
+                "og:published_time",
+            }:
+                self.publication_timestamp = content[:120]
+        if lowered == "link" and attrs_map.get("rel", "").lower() == "canonical":
+            self.canonical_url = attrs_map.get("href", "")[:2_000]
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag.lower() in {"script", "style", "iframe", "form", "noscript", "svg"}:
+            self._blocked_depth = max(0, self._blocked_depth - 1)
+            return
+        if tag.lower() == "title":
+            self._in_title = False
+            self.title = sanitize_text(" ".join(self._title_parts), max_length=500)
+
+    def handle_data(self, data: str) -> None:
+        if self._blocked_depth:
+            return
+        if self._in_title:
+            self._title_parts.append(data)
+        if data.strip():
+            self._text_parts.append(data)
+
+    def extracted(self, *, fallback_url: str, max_length: int) -> dict[str, object]:
+        return {
+            "title": self.title,
+            "meta_description": sanitize_text(self.meta_description, max_length=2_000),
+            "canonical_url": self.canonical_url or fallback_url,
+            "text": sanitize_text(" ".join(self._text_parts), max_length=max_length),
+            "publication_timestamp": self.publication_timestamp or None,
+        }
 
 
 def canonical_url(value: str) -> str:
@@ -451,35 +516,110 @@ class ApprovedWebFetcher:
     def fetch(
         self, url: str, *, allowed_domains: tuple[str, ...], blocked_domains: tuple[str, ...] = ()
     ) -> dict[str, object]:
+        """Fetch one approved URL without following an unvalidated redirect.
+
+        Redirects are handled one hop at a time so every target is re-validated,
+        including DNS/IP policy, before another request is issued.
+        """
         requested = validate_external_url(
             url, allowed_domains=allowed_domains, blocked_domains=blocked_domains
         )
+        current = requested
+        redirect_count = 0
+        started = datetime.now(UTC)
         try:
-            with httpx.Client(
-                timeout=self.settings.intelligence_fetch_timeout_seconds,
-                follow_redirects=True,
-                max_redirects=self.settings.intelligence_fetch_max_redirects,
-            ) as client:
-                response = client.get(
-                    requested, headers={"Accept": "text/html,text/plain,application/json"}
-                )
-            final_url = validate_external_url(
-                str(response.url), allowed_domains=allowed_domains, blocked_domains=blocked_domains
+            timeout = httpx.Timeout(
+                self.settings.intelligence_fetch_timeout_seconds,
+                connect=min(self.settings.intelligence_fetch_timeout_seconds, 10.0),
             )
+            with httpx.Client(timeout=timeout, follow_redirects=False) as client:
+                while True:
+                    response = client.get(
+                        current,
+                        headers={
+                            "Accept": "text/html,text/plain,application/json",
+                            "User-Agent": self.settings.intelligence_external_fetch_user_agent
+                            or DEFAULT_USER_AGENT,
+                        },
+                    )
+                    if response.status_code in {301, 302, 303, 307, 308}:
+                        location = response.headers.get("location")
+                        if (
+                            not location
+                            or redirect_count >= self.settings.intelligence_fetch_max_redirects
+                        ):
+                            raise RuntimeError("redirect_blocked")
+                        target = urljoin(current, location)
+                        try:
+                            current = validate_external_url(
+                                target,
+                                allowed_domains=allowed_domains,
+                                blocked_domains=blocked_domains,
+                            )
+                        except UnsafeURL as exc:
+                            raise RuntimeError("redirect_blocked") from exc
+                        redirect_count += 1
+                        continue
+                    break
+
+            final_url = validate_external_url(
+                str(getattr(response, "url", current)),
+                allowed_domains=allowed_domains,
+                blocked_domains=blocked_domains,
+            )
+            if response.status_code == 429:
+                raise RuntimeError("fetch_rate_limited")
+            if response.status_code >= 500:
+                raise RuntimeError("fetch_5xx")
+            response.raise_for_status()
             content_type = response.headers.get("content-type", "").split(";", 1)[0].lower()
             if content_type not in ALLOWED_MIME:
                 raise RuntimeError("mime_blocked")
-            raw = response.content
-            if len(raw) > self.settings.intelligence_fetch_max_bytes:
-                raise RuntimeError("response_too_large")
+            declared_length = response.headers.get("content-length")
+            if declared_length is not None:
+                try:
+                    if int(declared_length) > self.settings.intelligence_fetch_max_bytes:
+                        raise RuntimeError("response_too_large")
+                except ValueError:
+                    pass
+            chunks: list[bytes] = []
+            total = 0
+            iterator = response.iter_bytes()
+            for chunk in iterator:
+                total += len(chunk)
+                if total > self.settings.intelligence_fetch_max_bytes:
+                    raise RuntimeError("response_too_large")
+                chunks.append(chunk)
+            raw = b"".join(chunks)
             text = raw.decode(response.encoding or "utf-8", errors="replace")
-            extracted = {
-                "title": "",
-                "meta_description": "",
-                "text": sanitize_text(text, max_length=self.settings.intelligence_fetch_max_bytes),
-                "canonical_url": final_url,
-                "prompt_injection": classify_prompt_injection(text),
-            }
+            if content_type == "text/html":
+                parser = _SafeHTMLParser()
+                parser.feed(text)
+                extracted = parser.extracted(
+                    fallback_url=final_url, max_length=self.settings.intelligence_fetch_max_bytes
+                )
+                canonical = str(extracted.get("canonical_url") or final_url)
+                try:
+                    extracted["canonical_url"] = validate_external_url(
+                        urljoin(final_url, canonical),
+                        allowed_domains=allowed_domains,
+                        blocked_domains=blocked_domains,
+                    )
+                except UnsafeURL:
+                    extracted["canonical_url"] = final_url
+                safe_text = str(extracted.get("text", ""))
+            else:
+                safe_text = sanitize_text(
+                    text, max_length=self.settings.intelligence_fetch_max_bytes
+                )
+                extracted = {
+                    "title": "",
+                    "meta_description": "",
+                    "text": safe_text,
+                    "canonical_url": final_url,
+                    "publication_timestamp": None,
+                }
+            extracted["prompt_injection"] = classify_prompt_injection(text)
             digest = hashlib.sha256(raw).hexdigest()
             return {
                 "requested_url": requested,
@@ -490,7 +630,12 @@ class ApprovedWebFetcher:
                 "content_type": content_type,
                 "content_length": len(raw),
                 "content_hash": digest,
-                "redirect_count": len(response.history),
+                "redirect_count": redirect_count,
+                "latency_ms": max(0, int((datetime.now(UTC) - started).total_seconds() * 1000)),
+                "user_agent": self.settings.intelligence_external_fetch_user_agent
+                or DEFAULT_USER_AGENT,
+                "robots_policy": "UNKNOWN",
+                "terms_status": "UNKNOWN",
                 "extracted": extracted,
                 "classification": "UNTRUSTED_EXTERNAL_DATA",
             }
