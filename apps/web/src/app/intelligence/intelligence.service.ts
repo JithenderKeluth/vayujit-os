@@ -237,6 +237,7 @@ export interface ExternalResearchPolicy {
   provider_kill_switch: boolean;
   approved_domains_configured: boolean;
   credentials_configured: boolean;
+  credential_status?: 'CONFIGURED' | 'NOT_CONFIGURED' | 'INVALID' | 'UNKNOWN';
 }
 @Injectable({ providedIn: 'root' })
 export class IntelligenceService {
@@ -736,6 +737,11 @@ export class IntelligenceService {
     );
   }
 
+  externalPreflight(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/external/preflight`, this.options),
+    );
+  }
   externalStatus(): Promise<Record<string, unknown>> {
     return firstValueFrom(
       this.http.get<Record<string, unknown>>(`${this.base}/external/status`, this.options),

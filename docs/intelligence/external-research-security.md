@@ -36,3 +36,7 @@ The external research boundary now exposes an owner-scoped table inventory (`/ap
 ## Slice 6A.4 ? External Research UX
 
 The `/intelligence/external` workspace provides owner-scoped navigation for Overview, Providers, Source Policy, Searches, Fetches, Evidence, Contradictions, Changes, Alerts, History, and Recovery. It includes explicit LOCAL FIXTURE and live-validation boundaries, loading/empty/error states, escaped plain-text external content, safe HTTP(S) links, accessible tables/status labels, responsive layouts, Product Channel and Calendar projections, and Operations/System Doctor linkage. Live search and live approved fetch remain NOT VALIDATED until deployment credentials and allowlists exist.
+
+## Slice 6B live-provider boundary
+
+Brave Web Search is the single official live adapter. It is restricted to `LIVE_READ_ONLY`, uses the subscription-token header, normalizes results through the existing URL and discovery-result boundary, and fails closed when credentials or live switches are absent. See `live-search-provider.md` for configuration and certification evidence.

@@ -39,6 +39,7 @@ from vayujit_api.intelligence.external_models import (
 from vayujit_api.intelligence.external_pipeline import verify_and_project
 from vayujit_api.intelligence.external_provider import (
     ApprovedWebFetcher,
+    BraveSearchProvider,
     HttpSearchProvider,
     LocalFixtureSearchProvider,
     SearchProvider,
@@ -121,7 +122,42 @@ def _identity(value: object) -> str:
 def _provider(settings: Settings) -> SearchProvider:
     if settings.intelligence_external_provider_mode in {"LOCAL_FIXTURE", "SANDBOX"}:
         return LocalFixtureSearchProvider()
+    if settings.intelligence_search_provider.lower() == "brave":
+        return BraveSearchProvider(settings)
     return HttpSearchProvider(settings)
+
+
+def provider_preflight(settings: Settings | None = None) -> dict[str, object]:
+    """Return safe live-provider readiness without persisting payloads."""
+    settings = settings or _settings()
+    credential_status = (
+        "CONFIGURED" if settings.intelligence_search_provider_api_key else "NOT_CONFIGURED"
+    )
+    base = {
+        "provider": settings.intelligence_search_provider,
+        "mode": settings.intelligence_external_provider_mode,
+        "credential_status": credential_status,
+        "live": False,
+    }
+    if settings.intelligence_external_provider_mode != "LIVE_READ_ONLY":
+        return base | {
+            "status": (
+                "DISABLED"
+                if settings.intelligence_external_provider_mode == "DISABLED"
+                else "NOT_VALIDATED"
+            )
+        }
+    if not (
+        settings.intelligence_enabled
+        and settings.intelligence_external_research_enabled
+        and settings.intelligence_search_provider_enabled
+    ):
+        return base | {"status": "BLOCKED_BY_CONFIGURATION"}
+    if not settings.intelligence_search_provider_api_key:
+        return base | {"status": "BLOCKED_BY_EXTERNAL_CREDENTIALS"}
+    if settings.intelligence_search_provider.lower() != "brave":
+        return base | {"status": "UNAVAILABLE"}
+    return BraveSearchProvider(settings).preflight()
 
 
 def _guard(settings: Settings, *, operation: str) -> None:
@@ -129,6 +165,12 @@ def _guard(settings: Settings, *, operation: str) -> None:
         raise HTTPException(409, "External research is disabled by the emergency stop.")
     if settings.intelligence_external_provider_mode == "DISABLED":
         raise HTTPException(403, "External research is disabled.")
+    if settings.intelligence_external_provider_mode == "LIVE_READ_ONLY" and not (
+        settings.intelligence_enabled
+        and settings.intelligence_external_research_enabled
+        and settings.intelligence_search_provider_enabled
+    ):
+        raise HTTPException(403, "Live read-only search is blocked by configuration.")
     if operation == "search" and settings.intelligence_search_provider_kill_switch:
         raise HTTPException(409, "Search provider is disabled.")
     if operation == "fetch" and not settings.intelligence_web_fetch_enabled:
@@ -378,12 +420,13 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
                 }
                 if not retryable or attempt >= settings.intelligence_external_max_retries:
                     raise
-                time.sleep(
-                    min(
-                        settings.intelligence_external_retry_backoff_seconds * (2**attempt),
-                        5,
-                    )
+                retry_after = getattr(exc, "retry_after", None)
+                delay = (
+                    retry_after
+                    if isinstance(retry_after, (int, float))
+                    else settings.intelligence_external_retry_backoff_seconds * (2**attempt)
                 )
+                time.sleep(min(float(delay), 5))
         checkpoint(db, execution, "PROVIDER_COMPLETE")
         rows: list[ExternalSearchResult] = []
         seen: set[str] = set()
@@ -474,6 +517,23 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
             metadata={"failure_code": request.failure_code},
             idempotency_key=f"external-search:{request.id}:failed",
         )
+        event_suffix = {
+            "search_auth_failed": "auth_failed",
+            "search_rate_limited": "rate_limited",
+            "search_provider_unavailable": "provider_unavailable",
+            "search_quota_exceeded": "quota_exhausted",
+            "search_blocked": "blocked",
+        }.get(request.failure_code)
+        if event_suffix:
+            record_event(
+                db,
+                actor_id=owner.id,
+                action=f"external.search.{event_suffix}",
+                entity_type="external_search",
+                entity_id=request.id,
+                metadata={"failure_code": request.failure_code},
+                idempotency_key=f"external-search:{request.id}:{event_suffix}",
+            )
         db.commit()
         if isinstance(exc, BudgetExhausted):
             raise exc

@@ -1114,7 +1114,11 @@ export class ExternalResearchWorkspaceComponent {
     return Array.isArray(row[key]) ? (row[key] as ExternalRecord[]) : [];
   }
   runtimeLabel(): string {
-    return this.text(this.policy(), 'mode', 'LOCAL FIXTURE');
+    const mode = this.text(this.policy(), 'mode', 'LOCAL FIXTURE');
+    if (mode === 'LIVE_READ_ONLY' && !this.policy()?.credentials_configured) {
+      return 'LIVE SEARCH — BLOCKED BY EXTERNAL CREDENTIALS';
+    }
+    return mode === 'LIVE_READ_ONLY' ? 'LIVE SEARCH READ-ONLY — NOT VALIDATED' : mode;
   }
   quotaLabel(): string {
     const quota = this.status()?.['quota'];

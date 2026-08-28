@@ -177,6 +177,8 @@ class Settings(BaseSettings):
     intelligence_search_provider: str = "deterministic"
     intelligence_search_provider_base_url: str | None = None
     intelligence_search_provider_api_key: str | None = None
+    intelligence_search_provider_country: str = "US"
+    intelligence_search_provider_language: str = "en"
     intelligence_search_timeout_seconds: float = Field(default=15.0, ge=0.1, le=120)
     intelligence_external_max_retries: int = Field(default=2, ge=0, le=5)
     intelligence_external_retry_backoff_seconds: float = Field(default=0.25, ge=0, le=5)

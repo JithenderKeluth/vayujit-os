@@ -46,11 +46,41 @@ from vayujit_api.intelligence.external_schemas import (
     ExternalFetchRequestBody,
     ExternalSearchRequestBody,
 )
-from vayujit_api.intelligence.external_service import ALLOWED_MODES, fetch, search
+from vayujit_api.intelligence.external_service import (
+    ALLOWED_MODES,
+    fetch,
+    provider_preflight,
+    search,
+)
 
 router = APIRouter(prefix="/api/v1/intelligence/external", tags=["external-research"])
 DB = Annotated[Session, Depends(get_session)]
 Owner = Annotated[User, Depends(current_user)]
+
+
+def _credential_status(settings: object) -> str:
+    value = getattr(settings, "intelligence_search_provider_api_key", None)
+    return "CONFIGURED" if isinstance(value, str) and value else "NOT_CONFIGURED"
+
+
+def _policy_status(settings: object) -> str:
+    mode = getattr(settings, "intelligence_external_provider_mode", "DISABLED")
+    if mode == "DISABLED":
+        return "DISABLED"
+    if mode == "LIVE_READ_ONLY" and not getattr(
+        settings, "intelligence_search_provider_api_key", None
+    ):
+        return "BLOCKED_BY_EXTERNAL_CREDENTIALS"
+    if mode == "LIVE_READ_ONLY" and not all(
+        getattr(settings, key, False)
+        for key in (
+            "intelligence_enabled",
+            "intelligence_external_research_enabled",
+            "intelligence_search_provider_enabled",
+        )
+    ):
+        return "BLOCKED_BY_CONFIGURATION"
+    return "READY"
 
 
 @router.get("/policy")
@@ -60,15 +90,14 @@ def policy() -> dict[str, object]:
         "provider": settings.intelligence_search_provider,
         "mode": settings.intelligence_external_provider_mode,
         "allowed_modes": list(ALLOWED_MODES),
-        "status": (
-            "DISABLED" if settings.intelligence_external_provider_mode == "DISABLED" else "READY"
-        ),
+        "status": _policy_status(settings),
         "search_enabled": settings.intelligence_search_provider_enabled,
         "fetch_enabled": settings.intelligence_web_fetch_enabled,
         "kill_switch": settings.intelligence_external_kill_switch,
         "provider_kill_switch": settings.intelligence_search_provider_kill_switch,
         "approved_domains_configured": bool(settings.intelligence_external_approved_domains),
         "credentials_configured": bool(settings.intelligence_search_provider_api_key),
+        "credential_status": _credential_status(settings),
         "robots_policy": "UNKNOWN",
         "terms_status": "UNKNOWN",
     }
@@ -83,10 +112,9 @@ def status(db: DB, owner: Owner) -> dict[str, object]:
     return {
         "provider": settings.intelligence_search_provider,
         "mode": settings.intelligence_external_provider_mode,
-        "status": (
-            "DISABLED" if settings.intelligence_external_provider_mode == "DISABLED" else "READY"
-        ),
+        "status": _policy_status(settings),
         "credentials_configured": bool(settings.intelligence_search_provider_api_key),
+        "credential_status": _credential_status(settings),
         "quota": [
             {
                 "provider": row.provider,
@@ -99,6 +127,12 @@ def status(db: DB, owner: Owner) -> dict[str, object]:
         ],
         "recent_failures": [row.last_failure for row in states if row.last_failure],
     }
+
+
+@router.get("/preflight")
+def preflight() -> dict[str, object]:
+    """Return safe provider readiness; performs no request without credentials."""
+    return provider_preflight(get_settings())
 
 
 @router.post("/search")
