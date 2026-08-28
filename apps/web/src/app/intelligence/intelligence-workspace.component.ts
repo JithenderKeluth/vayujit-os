@@ -32,6 +32,7 @@ import {
         <p class="lede">Evidence-first deterministic research with human review.</p>
       </div>
       <a routerLink="/dashboard" class="secondary-button">Back to dashboard</a>
+      <a routerLink="/intelligence/external" class="secondary-button">External Research</a>
     </header>
     @if (error()) {
       <p class="error" role="alert">{{ error() }}</p>

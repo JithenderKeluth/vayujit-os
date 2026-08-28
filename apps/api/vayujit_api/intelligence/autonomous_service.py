@@ -38,6 +38,7 @@ from vayujit_api.intelligence.autonomous_planner import (
     contract_for,
 )
 from vayujit_api.intelligence.autonomous_provider import LocalDeterministicResearchProvider
+from vayujit_api.intelligence.external_durability import ensure_budget
 from vayujit_api.intelligence.service import now
 
 
@@ -245,6 +246,7 @@ def create_mission(db: Session, owner: User, data: Any) -> AutonomousResearchMis
     )
     db.add(value)
     db.flush()
+    ensure_budget(db, owner.id, value)
     _audit(
         db,
         owner,
