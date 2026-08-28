@@ -48,6 +48,7 @@ from vayujit_api.intelligence.external_schemas import (
 )
 from vayujit_api.intelligence.external_service import (
     ALLOWED_MODES,
+    approved_fetch_preflight,
     fetch,
     provider_preflight,
     search,
@@ -96,10 +97,25 @@ def policy() -> dict[str, object]:
         "kill_switch": settings.intelligence_external_kill_switch,
         "provider_kill_switch": settings.intelligence_search_provider_kill_switch,
         "approved_domains_configured": bool(settings.intelligence_external_approved_domains),
+        "approved_domain_count": len(
+            [x for x in settings.intelligence_external_approved_domains.split(",") if x.strip()]
+        ),
+        "blocked_domain_count": len(
+            [x for x in settings.intelligence_external_blocked_domains.split(",") if x.strip()]
+        ),
+        "review_required_domain_count": len(
+            [
+                x
+                for x in settings.intelligence_external_review_required_domains.split(",")
+                if x.strip()
+            ]
+        ),
         "credentials_configured": bool(settings.intelligence_search_provider_api_key),
         "credential_status": _credential_status(settings),
         "robots_policy": "UNKNOWN",
         "terms_status": "UNKNOWN",
+        "tls_required": True,
+        "live_fetch_status": approved_fetch_preflight(settings)["status"],
     }
 
 
@@ -133,6 +149,13 @@ def status(db: DB, owner: Owner) -> dict[str, object]:
 def preflight() -> dict[str, object]:
     """Return safe provider readiness; performs no request without credentials."""
     return provider_preflight(get_settings())
+
+
+@router.get("/fetch/preflight")
+@router.get("/fetch-preflight")
+def fetch_preflight() -> dict[str, object]:
+    """Return approved-fetch readiness without making an outbound request."""
+    return approved_fetch_preflight(get_settings())
 
 
 @router.post("/search")
@@ -276,6 +299,15 @@ def fetches(
             "freshness": row.freshness,
             "retrieved_at": row.retrieved_at,
             "source_profile": row.source_profile,
+            "latency_ms": (
+                (row.extracted or {}).get("latency_ms") if isinstance(row.extracted, dict) else None
+            ),
+            "verification": (
+                (row.extracted or {}).get("verification_status")
+                if isinstance(row.extracted, dict)
+                else None
+            ),
+            "failure": row.failure_code,
         }
         for row in rows
     ]

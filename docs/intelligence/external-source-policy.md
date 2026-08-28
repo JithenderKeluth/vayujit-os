@@ -9,3 +9,7 @@ External fetch observations persist freshness windows (`fresh_until`, `stale_at`
 Only accepted (`SUPPORTED` or `VERIFIED`) evidence can project claims. The deterministic verifier records a versioned method, reason, verification timestamp, freshness at verification, and lineage. Diversity normalizes canonical URL/domain/provider/content hash so mirrors and duplicate pages cannot inflate source counts. Confidence is bounded by verification, freshness, diversity, completeness, contradictions, and unknowns.
 
 The handoff services provide order-independent contradiction identities, server-derived materiality for external changes, and stable alert identities for review-worthy changes. Replays return existing rows instead of creating duplicates.
+
+## Slice 6C live domain policy
+
+Approved, blocked, and review-required domain sets are intersected at execution time; blocked/review-required domains fail closed. Robots and terms classifications are operational labels only and never imply legal approval.
