@@ -136,6 +136,14 @@ class SearchProvider:
         raise NotImplementedError
 
 
+class SearchProviderError(RuntimeError):
+    """Safe provider failure with optional server-advertised backoff."""
+
+    def __init__(self, code: str, *, retry_after: float | None = None) -> None:
+        super().__init__(code)
+        self.retry_after = retry_after
+
+
 class LocalFixtureSearchProvider(SearchProvider):
     name = "local-fixture"
 
@@ -160,6 +168,16 @@ class LocalFixtureSearchProvider(SearchProvider):
 
 
 class HttpSearchProvider(SearchProvider):
+    @staticmethod
+    def _retry_after(response: httpx.Response) -> float | None:
+        value = response.headers.get("retry-after")
+        if value is None:
+            return None
+        try:
+            return max(0.0, min(float(value), 60.0))
+        except (TypeError, ValueError):
+            return None
+
     def __init__(self, settings: Settings) -> None:
         self.settings = settings
         self.name = settings.intelligence_search_provider
@@ -169,7 +187,7 @@ class HttpSearchProvider(SearchProvider):
             not self.settings.intelligence_search_provider_base_url
             or not self.settings.intelligence_search_provider_api_key
         ):
-            raise RuntimeError("search_auth_failed")
+            raise SearchProviderError("search_auth_failed")
         try:
             with httpx.Client(
                 timeout=self.settings.intelligence_search_timeout_seconds, follow_redirects=False
@@ -183,15 +201,17 @@ class HttpSearchProvider(SearchProvider):
                     headers={"X-API-Key": self.settings.intelligence_search_provider_api_key},
                 )
             if response.status_code == 429:
-                raise RuntimeError("search_rate_limited")
+                raise SearchProviderError(
+                    "search_rate_limited", retry_after=self._retry_after(response)
+                )
             if response.status_code in {401, 403}:
-                raise RuntimeError("search_auth_failed")
+                raise SearchProviderError("search_auth_failed")
             if response.status_code >= 500:
-                raise RuntimeError("search_provider_unavailable")
+                raise SearchProviderError("search_provider_unavailable")
             response.raise_for_status()
             payload = response.json()
             if not isinstance(payload, list):
-                raise RuntimeError("search_invalid_response")
+                raise SearchProviderError("search_invalid_response")
             now = datetime.now(UTC)
             return [
                 SearchResult(
@@ -213,7 +233,215 @@ class HttpSearchProvider(SearchProvider):
                 for index, item in enumerate(payload)
             ]
         except httpx.TimeoutException as exc:
-            raise RuntimeError("search_timeout") from exc
+            raise SearchProviderError("search_timeout") from exc
+        except httpx.HTTPError as exc:
+            raise SearchProviderError("search_network_failed") from exc
+        except (TypeError, ValueError, KeyError) as exc:
+            raise SearchProviderError("search_invalid_response") from exc
+
+
+class BraveSearchProvider(SearchProvider):
+    """Official Brave Web Search API adapter with a read-only contract."""
+
+    name = "brave"
+    default_base_url = "https://api.search.brave.com/res/v1/web/search"
+
+    def __init__(self, settings: Settings) -> None:
+        self.settings = settings
+
+    @staticmethod
+    def _retry_after(response: httpx.Response) -> float | None:
+        value = response.headers.get("retry-after")
+        if value is None:
+            return None
+        try:
+            return max(0.0, min(float(value), 60.0))
+        except (TypeError, ValueError):
+            return None
+
+    def preflight(self) -> dict[str, object]:
+        """Perform a bounded, non-persisting read-only readiness check."""
+        api_key = self.settings.intelligence_search_provider_api_key
+        endpoint = self.settings.intelligence_search_provider_base_url or self.default_base_url
+        if not api_key:
+            return {
+                "status": "BLOCKED_BY_EXTERNAL_CREDENTIALS",
+                "credential_status": "NOT_CONFIGURED",
+                "provider": self.name,
+                "mode": "LIVE_READ_ONLY",
+                "live": False,
+            }
+        try:
+            started = datetime.now(UTC)
+            timeout = httpx.Timeout(
+                self.settings.intelligence_search_timeout_seconds,
+                connect=min(self.settings.intelligence_search_timeout_seconds, 10.0),
+            )
+            with httpx.Client(timeout=timeout, follow_redirects=False) as client:
+                response = client.get(
+                    endpoint,
+                    params={
+                        "q": "VAYUJIT provider preflight",
+                        "count": 1,
+                        "country": self.settings.intelligence_search_provider_country[:2],
+                        "search_lang": self.settings.intelligence_search_provider_language,
+                        "safesearch": "strict",
+                    },
+                    headers={
+                        "Accept": "application/json",
+                        "Accept-Encoding": "gzip",
+                        "X-Subscription-Token": api_key,
+                    },
+                )
+            latency_ms = max(0, int((datetime.now(UTC) - started).total_seconds() * 1000))
+            base = {
+                "provider": self.name,
+                "mode": "LIVE_READ_ONLY",
+                "live": True,
+                "latency_ms": latency_ms,
+            }
+            if response.status_code in {401, 403}:
+                return base | {
+                    "status": "AUTH_ERROR",
+                    "credential_status": "INVALID",
+                    "http_status": response.status_code,
+                }
+            if response.status_code == 429:
+                result = base | {
+                    "status": "RATE_LIMITED",
+                    "credential_status": "CONFIGURED",
+                    "http_status": response.status_code,
+                }
+                retry_after = self._retry_after(response)
+                return result | (
+                    {"retry_after_seconds": retry_after} if retry_after is not None else {}
+                )
+            if response.status_code >= 500:
+                return base | {
+                    "status": "UNAVAILABLE",
+                    "credential_status": "CONFIGURED",
+                    "http_status": response.status_code,
+                }
+            response.raise_for_status()
+            if not isinstance(response.json(), dict):
+                return base | {"status": "INVALID_RESPONSE", "credential_status": "CONFIGURED"}
+            return base | {"status": "VALIDATED", "credential_status": "CONFIGURED"}
+        except httpx.TimeoutException:
+            return {
+                "status": "TIMEOUT",
+                "credential_status": "CONFIGURED",
+                "provider": self.name,
+                "mode": "LIVE_READ_ONLY",
+                "live": True,
+            }
+        except httpx.HTTPError:
+            return {
+                "status": "UNAVAILABLE",
+                "credential_status": "CONFIGURED",
+                "provider": self.name,
+                "mode": "LIVE_READ_ONLY",
+                "live": True,
+            }
+        except (TypeError, ValueError, KeyError):
+            return {
+                "status": "INVALID_RESPONSE",
+                "credential_status": "CONFIGURED",
+                "provider": self.name,
+                "mode": "LIVE_READ_ONLY",
+                "live": True,
+            }
+
+    def search(self, **kwargs: object) -> list[SearchResult]:
+        api_key = self.settings.intelligence_search_provider_api_key
+        endpoint = self.settings.intelligence_search_provider_base_url or self.default_base_url
+        if not api_key or not endpoint:
+            raise SearchProviderError("search_auth_failed")
+        query = str(kwargs["query"])
+        max_results = int(cast(Any, kwargs["max_results"]))
+        language = str(
+            kwargs.get("language") or self.settings.intelligence_search_provider_language
+        )
+        country = str(
+            kwargs.get("market") or self.settings.intelligence_search_provider_country
+        ).upper()
+        params: dict[str, str | int] = {
+            "q": query,
+            "count": max_results,
+            "country": country[:2],
+            "search_lang": language,
+            "safesearch": "strict" if bool(kwargs.get("safe_search", True)) else "off",
+        }
+        try:
+            with httpx.Client(
+                timeout=httpx.Timeout(
+                    self.settings.intelligence_search_timeout_seconds,
+                    connect=min(self.settings.intelligence_search_timeout_seconds, 10.0),
+                ),
+                follow_redirects=False,
+            ) as client:
+                response = client.get(
+                    endpoint,
+                    params=params,
+                    headers={
+                        "Accept": "application/json",
+                        "Accept-Encoding": "gzip",
+                        "X-Subscription-Token": api_key,
+                    },
+                )
+            if response.status_code in {401, 403}:
+                raise SearchProviderError("search_auth_failed")
+            if response.status_code == 429:
+                raise SearchProviderError(
+                    "search_rate_limited", retry_after=self._retry_after(response)
+                )
+            if response.status_code >= 500:
+                raise SearchProviderError("search_provider_unavailable")
+            response.raise_for_status()
+            payload = response.json()
+            web = payload.get("web") if isinstance(payload, dict) else None
+            raw_results = web.get("results") if isinstance(web, dict) else None
+            if not isinstance(raw_results, list):
+                raise SearchProviderError("search_invalid_response")
+            now = datetime.now(UTC)
+            normalized: list[SearchResult] = []
+            allowed = cast(tuple[str, ...], kwargs.get("allowed_domains", ()))
+            for index, item in enumerate(raw_results[:max_results], start=1):
+                if not isinstance(item, dict) or not item.get("url"):
+                    continue
+                try:
+                    safe_url = validate_external_url(str(item["url"]), allowed_domains=allowed)
+                except UnsafeURL:
+                    continue
+                title = sanitize_text(str(item.get("title", "")), max_length=500)
+                snippet = sanitize_text(str(item.get("description", "")), max_length=2000)
+                if not title or not snippet:
+                    continue
+                normalized.append(
+                    SearchResult(
+                        title=title,
+                        url=safe_url,
+                        domain=host_of(safe_url),
+                        snippet=snippet,
+                        published_at=None,
+                        retrieved_at=now,
+                        provider=self.name,
+                        provider_result_id=str(item.get("url", index)),
+                        rank=index,
+                        metadata={
+                            "country": country[:2],
+                            "language": language,
+                            "safe_search": bool(kwargs.get("safe_search", True)),
+                        },
+                        raw_payload_reference=None,
+                    )
+                )
+            return normalized
+        except httpx.TimeoutException as exc:
+            raise SearchProviderError("search_timeout") from exc
+        except httpx.HTTPError as exc:
+            raise SearchProviderError("search_network_failed") from exc
+        except (TypeError, ValueError, KeyError) as exc:
+            raise SearchProviderError("search_invalid_response") from exc
 
 
 class ApprovedWebFetcher:
