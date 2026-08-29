@@ -95,6 +95,22 @@ TASK_PLAN: dict[str, tuple[tuple[str, str, str], ...]] = {
         ("score_opportunities", "INTERNAL", "Research Critic"),
         ("synthesize_report", "INTERNAL", "Research Synthesizer"),
     ),
+    "MANUFACTURER_RESEARCH": (
+        ("discover_manufacturer_website", "MANUFACTURER_WEBSITE", "Market Researcher"),
+        ("extract_manufacturer_identity", "BUSINESS_IDENTITY", "Evidence Verifier"),
+        ("extract_manufacturer_offerings", "PRODUCT_CATALOG", "Supplier Researcher"),
+        ("verify_evidence", "INTERNAL", "Evidence Verifier"),
+        ("risk_review", "RISK", "Risk Researcher"),
+        ("synthesize_report", "INTERNAL", "Research Synthesizer"),
+    ),
+    "SUPPLIER_WEBSITE_RESEARCH": (
+        ("discover_supplier_website", "SUPPLIER_WEBSITE", "Supplier Researcher"),
+        ("extract_supplier_identity", "BUSINESS_IDENTITY", "Evidence Verifier"),
+        ("extract_supplier_offerings", "PRODUCT_CATALOG", "Supplier Researcher"),
+        ("verify_evidence", "INTERNAL", "Evidence Verifier"),
+        ("risk_review", "RISK", "Risk Researcher"),
+        ("synthesize_report", "INTERNAL", "Research Synthesizer"),
+    ),
 }
 
 STOP_CONDITIONS = (

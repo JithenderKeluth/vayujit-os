@@ -44,3 +44,7 @@ Brave Web Search is the single official live adapter. It is restricted to `LIVE_
 ## Slice 6C live fetch security
 
 Every redirect and DNS resolution is revalidated against the allowlist and reserved-address boundary. Streaming byte limits, MIME allowlisting, inert HTML extraction, bounded retries, and kill-switch checks fail closed before external work.
+
+## Slice 6D website intelligence
+
+Manufacturer and supplier website projections reuse the approved read-only fetch boundary, deterministic extraction, existing supplier verification, owner scoping, and no-contact/no-RFQ policy. See [manufacturer-supplier-web.md](manufacturer-supplier-web.md).

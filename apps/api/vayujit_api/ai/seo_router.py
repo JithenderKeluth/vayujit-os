@@ -1,4 +1,4 @@
-import uuid
+﻿import uuid
 from datetime import UTC, datetime
 from typing import Annotated, Literal, cast
 
@@ -38,6 +38,11 @@ from vayujit_api.commerce.models import MarketplaceListing, MarketplaceMediaMapp
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.intelligence.website_models import (
+    ManufacturerCandidate,
+    SupplierWebsiteCandidate,
+    WebsiteOffering,
+)
 
 router = APIRouter(prefix="/api/v1/ai/seo", tags=["ai-seo"])
 DatabaseSession = Annotated[Session, Depends(get_session)]
@@ -92,6 +97,21 @@ def product_channel_intelligence(
 ) -> list[ProductChannelIntelligence]:
     product = _product(db, owner.id, product_id)
     output: list[ProductChannelIntelligence] = []
+    website_candidates = list(
+        db.scalars(select(ManufacturerCandidate).where(ManufacturerCandidate.owner_id == owner.id))
+    )
+    website_supplier_candidates = list(
+        db.scalars(
+            select(SupplierWebsiteCandidate).where(SupplierWebsiteCandidate.owner_id == owner.id)
+        )
+    )
+    website_offerings = list(
+        db.scalars(
+            select(WebsiteOffering).where(
+                WebsiteOffering.owner_id == owner.id, WebsiteOffering.product_id == product.id
+            )
+        )
+    )
     for channel in ("canonical", "wordpress", "shopify", "amazon", "flipkart", "meesho"):
         artifact = db.scalar(
             select(GeneratedArtifact)
@@ -225,6 +245,12 @@ def product_channel_intelligence(
                 ),
                 listing_gallery_count=max(0, len(image_mappings) - 1),
                 image_update_available=image_update_available,
+                website_candidate_count=len(website_candidates),
+                supplier_website_candidate_count=len(website_supplier_candidates),
+                website_offering_count=len(website_offerings),
+                website_follow_up_required=any(
+                    item.verification_state != "VERIFIED" for item in website_candidates
+                ),
                 readiness=cast(
                     Literal[
                         "not_generated",

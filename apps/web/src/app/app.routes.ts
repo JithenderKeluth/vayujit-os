@@ -115,6 +115,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'intelligence/websites',
+    loadComponent: () =>
+      import('./intelligence/website-intelligence.component').then(
+        (m) => m.WebsiteIntelligenceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'intelligence/external',
     loadComponent: () =>
       import('./intelligence/external-research-workspace.component').then(

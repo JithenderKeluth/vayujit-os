@@ -260,6 +260,45 @@ class LocalDeterministicResearchProvider:
                 ],
                 "score": 82,
             }
+        if task_type in {"discover_manufacturer_website", "discover_supplier_website"}:
+            source = (
+                "MANUFACTURER_WEBSITE"
+                if task_type.startswith("discover_manufacturer")
+                else "SUPPLIER_WEBSITE"
+            )
+            return {
+                "evidence": [
+                    ev(
+                        source,
+                        "website",
+                        {"domain": "example.org", "status": "LOCAL_FIXTURE", "read_only": True},
+                    )
+                ]
+            }
+        if task_type in {"extract_manufacturer_identity", "extract_supplier_identity"}:
+            return {
+                "evidence": [
+                    ev(
+                        "BUSINESS_IDENTITY",
+                        "identity",
+                        {"name": "Local Fixture Business", "state": "SOURCE_PROVIDED"},
+                    )
+                ]
+            }
+        if task_type in {"extract_manufacturer_offerings", "extract_supplier_offerings"}:
+            return {
+                "evidence": [
+                    ev(
+                        "PRODUCT_CATALOG",
+                        "offering",
+                        {
+                            "product_name": "Fixture Offering",
+                            "capabilities": ["OEM"],
+                            "verification": "UNVERIFIED",
+                        },
+                    )
+                ]
+            }
         if task_type == "synthesize_report":
             return {
                 "evidence": [

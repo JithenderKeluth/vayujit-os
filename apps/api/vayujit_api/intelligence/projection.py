@@ -27,6 +27,12 @@ from vayujit_api.intelligence.models import (
     IntelligenceResearchRun,
     IntelligenceSource,
 )
+from vayujit_api.intelligence.website_models import (
+    ManufacturerCandidate,
+    WebsiteObservation,
+    WebsiteRefreshJob,
+    WebsiteSourceProfile,
+)
 
 
 def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
@@ -36,8 +42,84 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
     storage_counts = external_integrity.get("storage", {})
     if not isinstance(storage_counts, dict):
         storage_counts = {}
+    refresh_jobs = list(
+        db.scalars(select(WebsiteRefreshJob).where(WebsiteRefreshJob.owner_id == owner.id))
+    )
+    now = __import__("datetime").datetime.now(__import__("datetime").timezone.utc)
+    refresh_due = int(
+        db.scalar(
+            select(func.count())
+            .select_from(WebsiteSourceProfile)
+            .where(
+                WebsiteSourceProfile.owner_id == owner.id,
+                WebsiteSourceProfile.enabled.is_(True),
+                WebsiteSourceProfile.next_refresh_at.is_not(None),
+                WebsiteSourceProfile.next_refresh_at <= now,
+            )
+        )
+        or 0
+    )
+    refresh_failed = sum(1 for job in refresh_jobs if job.status == "FAILED")
+    refresh_queued = sum(1 for job in refresh_jobs if job.status == "QUEUED")
+    refresh_running = sum(1 for job in refresh_jobs if job.status == "RUNNING")
+    refresh_successes = [
+        job.completed_at for job in refresh_jobs if job.status == "SUCCEEDED" and job.completed_at
+    ]
+    next_due = min(
+        (
+            profile.next_refresh_at
+            for profile in db.scalars(
+                select(WebsiteSourceProfile).where(WebsiteSourceProfile.owner_id == owner.id)
+            )
+            if profile.next_refresh_at
+        ),
+        default=None,
+    )
     return {
         "enabled": settings.intelligence_enabled,
+        "website_intelligence": {
+            "enabled": True,
+            "source_profiles": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(WebsiteSourceProfile)
+                    .where(WebsiteSourceProfile.owner_id == owner.id)
+                )
+                or 0
+            ),
+            "manufacturer_candidates": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(ManufacturerCandidate)
+                    .where(ManufacturerCandidate.owner_id == owner.id)
+                )
+                or 0
+            ),
+            "observation_count": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(WebsiteObservation)
+                    .where(WebsiteObservation.owner_id == owner.id)
+                )
+                or 0
+            ),
+            "approved_fetch_dependency": "single_page_allowlisted",
+            "supplier_contact": "DISABLED",
+            "purchasing": "NOT_IMPLEMENTED",
+            "refresh_policy": "profile-scoped DAILY/WEEKLY/MONTHLY or MANUAL",
+            "refresh_due": refresh_due,
+            "refresh_queued": refresh_queued,
+            "refresh_running": refresh_running,
+            "refresh_failed": refresh_failed,
+            "refresh_job_count": len(refresh_jobs),
+            "last_successful_refresh": max(refresh_successes, default=None),
+            "next_due_refresh": next_due,
+            "scheduler_state": "healthy" if refresh_failed == 0 else "requires_review",
+            "worker_registered": True,
+            "scheduler_registered": True,
+            "integrity": external_integrity.get("refresh", {}),
+            "recovery": {"registered": True, "retryable_failure_code": "refresh_failed"},
+        },
         "research_execution_enabled": settings.intelligence_research_execution_enabled,
         "external_research_enabled": settings.intelligence_external_research_enabled,
         "external_provider_mode": settings.intelligence_external_provider_mode,

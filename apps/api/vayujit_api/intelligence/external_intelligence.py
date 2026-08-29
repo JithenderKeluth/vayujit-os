@@ -422,6 +422,7 @@ def record_external_alert(
     detail: str,
     identity: str,
     severity: str = "REQUIRES_REVIEW",
+    lineage: Mapping[str, object] | None = None,
 ) -> AutonomousResearchAlert:
     key = _fingerprint({"mission": str(mission.id), "type": alert_type, "identity": identity})
     existing = db.scalar(
@@ -441,6 +442,7 @@ def record_external_alert(
         title=title,
         detail=detail[:500],
         identity_key=key,
+        lineage=dict(lineage or {}),
     )
     db.add(row)
     db.flush()

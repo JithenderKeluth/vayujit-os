@@ -38,3 +38,7 @@ Brave Web Search is the single official live adapter. It is restricted to `LIVE_
 ## Slice 6C approved live web fetch
 
 Approved live fetch is read-only and HTTPS-only. It persists safe provenance/freshness metadata and sends sanitized content through the existing verifier. No raw HTML, credentials, headers, or external mutations are exposed.
+
+## Slice 6D website intelligence
+
+Manufacturer and supplier website projections reuse the approved read-only fetch boundary, deterministic extraction, existing supplier verification, owner scoping, and no-contact/no-RFQ policy. See [manufacturer-supplier-web.md](manufacturer-supplier-web.md).

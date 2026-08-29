@@ -39,7 +39,7 @@ def validate_source_url(value: str | None) -> str | None:
         or address.is_unspecified
     ):
         raise UnsafeURL("Private, loopback, link-local, and reserved addresses are not allowed.")
-    if parsed.port and parsed.port not in {80, 443}:
+    if parsed.port is not None and parsed.port not in {80, 443}:
         raise UnsafeURL("Non-standard source URL ports are not allowed.")
     return value.strip()
 

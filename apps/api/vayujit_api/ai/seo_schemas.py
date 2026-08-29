@@ -1,4 +1,4 @@
-import uuid
+﻿import uuid
 from datetime import datetime
 from typing import Annotated, Literal
 
@@ -163,3 +163,14 @@ class ProductChannelIntelligence(BaseModel):
     readiness: Literal[
         "not_generated", "draft", "needs_review", "approved", "update_available", "blocked", "ready"
     ]
+    website_candidate_count: int = 0
+    supplier_website_candidate_count: int = 0
+    website_offering_count: int = 0
+    website_last_researched: datetime | None = None
+    website_freshness: str | None = None
+    website_confidence: float | None = None
+    website_risk: list[str] = Field(default_factory=list)
+    website_verification: str | None = None
+    website_material_change_count: int = 0
+    website_open_contradiction_count: int = 0
+    website_follow_up_required: bool = False

@@ -34,6 +34,8 @@ AUTONOMOUS_MISSION_TYPES = (
     "RISK_RESEARCH",
     "SOURCE_REFRESH",
     "FULL_OPPORTUNITY_RESEARCH",
+    "MANUFACTURER_RESEARCH",
+    "SUPPLIER_WEBSITE_RESEARCH",
 )
 AUTONOMOUS_MISSION_STATUSES = (
     "DRAFT",
@@ -437,6 +439,7 @@ class AutonomousResearchAlert(Base):
     detail: Mapped[str] = mapped_column(String(500), default="")
     acknowledged: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
     identity_key: Mapped[str | None] = mapped_column(String(300), nullable=True, index=True)
+    lineage: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, index=True
     )

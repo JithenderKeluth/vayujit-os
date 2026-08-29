@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any
 
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
@@ -130,6 +130,28 @@ def record_change(
     current: Mapping[str, object],
     evidence_ids: list[str] | None = None,
 ) -> AutonomousResearchChange | None:
+    if evidence_ids:
+        evidence_uuid_values = []
+        for value in evidence_ids:
+            try:
+                evidence_uuid_values.append(uuid.UUID(str(value)))
+            except (ValueError, TypeError, AttributeError):
+                continue
+        if evidence_uuid_values:
+            evidence_rows = list(
+                db.scalars(
+                    select(AutonomousResearchEvidence).where(
+                        AutonomousResearchEvidence.id.in_(evidence_uuid_values),
+                        AutonomousResearchEvidence.owner_id == owner.id,
+                    )
+                )
+            )
+            if len(evidence_rows) != len(evidence_uuid_values) or any(
+                row.verification_status in {"UNVERIFIED", "REJECTED"}
+                or row.freshness_status in {"EXPIRED", "STALE"}
+                for row in evidence_rows
+            ):
+                return None
     identity = _correlation(
         json.dumps({"type": change_type, "previous": previous, "current": current}, sort_keys=True)
     )
@@ -171,6 +193,26 @@ def record_change(
         metadata={"change_type": change_type, "materiality": materiality, "reason": reason},
     )
     if materiality in {"MATERIAL", "REQUIRES_REVIEW"}:
+        alert_lineage: dict[str, object] = {
+            "change_id": str(row.id),
+            "evidence_ids": list(evidence_ids or []),
+            "correlation_id": mission.correlation_id,
+        }
+        if evidence_ids:
+            try:
+                first_evidence_id = uuid.UUID(str(evidence_ids[0]))
+            except (ValueError, TypeError, AttributeError):
+                first_evidence_id = None
+            if first_evidence_id is not None:
+                evidence = db.get(AutonomousResearchEvidence, first_evidence_id)
+                if evidence is not None:
+                    for key in (
+                        "source_profile_id",
+                        "candidate_id",
+                        "supplier_website_candidate_id",
+                    ):
+                        if evidence.lineage.get(key) is not None:
+                            alert_lineage[key] = evidence.lineage[key]
         db.add(
             AutonomousResearchAlert(
                 owner_id=owner.id,
@@ -179,6 +221,8 @@ def record_change(
                 severity=materiality,
                 title=f"{change_type} change requires attention",
                 detail=reason,
+                identity_key=identity,
+                lineage=alert_lineage,
                 created_at=now(),
             )
         )
@@ -200,6 +244,12 @@ def _mission(db: Session, owner: User, mission_id: uuid.UUID) -> AutonomousResea
 
 def create_mission(db: Session, owner: User, data: Any) -> AutonomousResearchMission:
     settings = get_settings()
+    bind = db.get_bind()
+    if bind.dialect.name == "postgresql":
+        db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:identity))"),
+            {"identity": f"autonomous-mission:{owner.id}:{data.idempotency_key}"},
+        )
     if data.provider_mode == "EXTERNAL_AI" and not settings.intelligence_external_research_enabled:
         raise HTTPException(403, "External research is disabled by default.")
     if (
@@ -477,6 +527,13 @@ def _run_task(
     *,
     crash_stage: str | None = None,
 ) -> tuple[list[AutonomousResearchEvidence], dict[str, object]]:
+    bind = db.get_bind()
+    if bind.dialect.name == "postgresql":
+        db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:identity))"),
+            {"identity": f"autonomous-task:{owner.id}:{task.id}"},
+        )
+        db.refresh(task)
     if task.status == "CHECKPOINTED" and task.checkpoint.get("stage") == "after_evidence":
         checkpoint_ids = task.checkpoint.get("evidence_ids", [])
         if not isinstance(checkpoint_ids, list):

@@ -19,3 +19,7 @@ The external research boundary now exposes an owner-scoped table inventory (`/ap
 ## Slice 6C approved live fetch
 
 The production transport now performs one-hop redirect validation, DNS/IP revalidation, bounded streaming, explicit VAYUJIT user-agent, deterministic HTML metadata extraction, and fail-closed robots/terms classifications. Live mode remains disabled until the approved-domain and switch preflight is ready.
+
+## Slice 6D website intelligence
+
+Manufacturer and supplier website projections reuse the approved read-only fetch boundary, deterministic extraction, existing supplier verification, owner scoping, and no-contact/no-RFQ policy. See [manufacturer-supplier-web.md](manufacturer-supplier-web.md).
