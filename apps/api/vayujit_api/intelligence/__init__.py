@@ -1,4 +1,4 @@
-"""Product Research and Supplier Intelligence bounded context."""
+﻿"""Product Research and Supplier Intelligence bounded context."""
 
 from vayujit_api.intelligence.models import (
     IntelligenceClaim,
@@ -97,6 +97,13 @@ __all__ = [
     "AutonomousResearchRecovery",
     "AutonomousResearchAlert",
     "AutonomousResearchReport",
+    "WebsiteSourceProfile",
+    "WebsiteSourceProfileVersion",
+    "ManufacturerCandidate",
+    "SupplierWebsiteCandidate",
+    "WebsiteObservation",
+    "WebsiteOffering",
+    "WebsiteClaim",
 ]
 from vayujit_api.intelligence.autonomous_models import (
     AutonomousResearchAlert,
@@ -140,4 +147,13 @@ from vayujit_api.intelligence.sourcing_models import (
     SupplierQuote,
     SupplierQuoteLine,
     SupplierQuoteVersion,
+)
+from vayujit_api.intelligence.website_models import (
+    ManufacturerCandidate,
+    SupplierWebsiteCandidate,
+    WebsiteClaim,
+    WebsiteObservation,
+    WebsiteOffering,
+    WebsiteSourceProfile,
+    WebsiteSourceProfileVersion,
 )

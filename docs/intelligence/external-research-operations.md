@@ -36,3 +36,13 @@ Brave Web Search is the single official live adapter. It is restricted to `LIVE_
 ## Slice 6C operations
 
 The approved-fetch preflight endpoint reports mode, approved/blocked/review-required domain counts, TLS, redirect and byte limits, user-agent, and switch readiness without making an outbound request.
+
+## Slice 6D website intelligence
+
+Manufacturer and supplier website projections reuse the approved read-only fetch boundary, deterministic extraction, existing supplier verification, owner scoping, and no-contact/no-RFQ policy. See [manufacturer-supplier-web.md](manufacturer-supplier-web.md).
+
+## Slice 6D.2B durable refresh, Product Channel, and Calendar
+
+Website refresh scheduling is profile-scoped and supports `MANUAL`, `DAILY`, `WEEKLY`, and `MONTHLY` policies with an IANA timezone and one bounded next occurrence. Due materialization is owner-scoped, row-locked, unique by profile and scheduled timestamp, and emits `website.refresh.materialized`; replay returns the existing job. Execution records `QUEUED`, `RUNNING`, `SUCCEEDED`, `FAILED`, or `SKIPPED`, reuses the refresh idempotency key, and never retries a completed job. Disabled sources and `BLOCKED`/`REVIEW_REQUIRED` classifications fail closed; the global intelligence emergency stop and disabled switch also skip work safely.
+
+The durable refresh ledger is `intelligence_website_refresh_jobs`; source profiles retain next/last refresh timestamps, timezone, policy version, and failure code. Calendar exposes one server-derived `WEBSITE_SOURCE_REFRESH_DUE` event per scheduled profile with target, profile, domain, frequency, timestamp, timezone, and status. Product Channel remains read-only and server-derived, with website observation/offering/profile counts and existing review-only actions. Operations/System Doctor expose refresh backlog, queued/running/failed counts, next due, last success, scheduler state, and recovery registration without secrets or raw content. Catch-up is bounded to one next occurrence per materialization pass; no durable worker or connector mutation is introduced.

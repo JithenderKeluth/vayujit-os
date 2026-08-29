@@ -6,11 +6,12 @@ from __future__ import annotations
 
 import time
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from vayujit_api.audit.models import AuditEvent
 from vayujit_api.identity.models import User
 from vayujit_api.intelligence.autonomous_models import (
     AutonomousResearchAlert,
@@ -34,6 +35,19 @@ from vayujit_api.intelligence.external_models import (
     ExternalSearchResult,
     ExternalSourceProfile,
 )
+from vayujit_api.intelligence.supplier_models import Supplier
+from vayujit_api.intelligence.website_models import (
+    ManufacturerCandidate,
+    SupplierWebsiteCandidate,
+    WebsiteClaim,
+    WebsiteObservation,
+    WebsiteOffering,
+    WebsiteRefreshJob,
+    WebsiteRefreshRecovery,
+    WebsiteSourceProfile,
+    WebsiteSourceProfileVersion,
+)
+from vayujit_api.products.models import Product
 
 EXTERNAL_TABLES: tuple[tuple[str, Any, str], ...] = (
     ("intelligence_external_search_requests", ExternalSearchRequest, "search request ledger"),
@@ -57,14 +71,51 @@ EXTERNAL_TABLES: tuple[tuple[str, Any, str], ...] = (
 )
 
 
+# Website-owned rows plus canonical ledgers they reference.
+WEBSITE_TABLES: tuple[tuple[str, Any, str], ...] = (
+    ("intelligence_website_source_profiles", WebsiteSourceProfile, "durable source policy profile"),
+    (
+        "intelligence_website_source_profile_versions",
+        WebsiteSourceProfileVersion,
+        "immutable source policy version",
+    ),
+    (
+        "intelligence_manufacturer_candidates",
+        ManufacturerCandidate,
+        "manufacturer candidate identity",
+    ),
+    (
+        "intelligence_supplier_website_candidates",
+        SupplierWebsiteCandidate,
+        "supplier website candidate identity",
+    ),
+    ("intelligence_website_observations", WebsiteObservation, "append-only website observation"),
+    ("intelligence_website_offerings", WebsiteOffering, "website catalog offering projection"),
+    ("intelligence_website_claims", WebsiteClaim, "capability/facility/certification claim"),
+    ("intelligence_website_refresh_jobs", WebsiteRefreshJob, "durable website refresh job"),
+    ("intelligence_website_refresh_recovery", WebsiteRefreshRecovery, "refresh recovery ledger"),
+)
+
+
 def _count(db: Session, model: Any, owner_id: object) -> int:
+    owner_column = getattr(model, "owner_id", None)
+    if owner_column is None and model is AuditEvent:
+        owner_column = AuditEvent.actor_id
+    if owner_column is None:
+        return 0
     return int(
-        db.scalar(select(func.count()).select_from(model).where(model.owner_id == owner_id)) or 0
+        db.scalar(select(func.count()).select_from(model).where(owner_column == owner_id)) or 0
     )
 
 
 def storage_counts(db: Session, owner: User) -> dict[str, int]:
     return {name: _count(db, model, owner.id) for name, model, _purpose in EXTERNAL_TABLES}
+
+
+def website_storage_counts(db: Session, owner: User) -> dict[str, int]:
+    """Return owner-scoped counts for website rows and directly reused ledgers."""
+    tables = (*EXTERNAL_TABLES, *WEBSITE_TABLES, ("audit_events", AuditEvent, "canonical audit"))
+    return {name: _count(db, model, owner.id) for name, model, _purpose in tables}
 
 
 def table_inventory() -> list[dict[str, object]]:
@@ -305,18 +356,608 @@ def integrity_projection(db: Session, owner: User) -> dict[str, object]:
         "mission_report": 0,
         "mission_history": 0,
     }
+    refresh_jobs = list(
+        db.scalars(select(WebsiteRefreshJob).where(WebsiteRefreshJob.owner_id == owner.id))
+    )
+    refresh_recovery = list(
+        db.scalars(
+            select(WebsiteRefreshRecovery).where(WebsiteRefreshRecovery.owner_id == owner.id)
+        )
+    )
+    refresh_integrity = {
+        "duplicate_refresh_jobs": _owner_duplicates(
+            db,
+            owner,
+            WebsiteRefreshJob,
+            WebsiteRefreshJob.owner_id,
+            WebsiteRefreshJob.source_profile_id,
+            WebsiteRefreshJob.scheduled_for,
+        ),
+        "duplicate_refresh_schedule_identities": _owner_duplicates(
+            db,
+            owner,
+            WebsiteSourceProfile,
+            WebsiteSourceProfile.owner_id,
+            WebsiteSourceProfile.logical_identity,
+        ),
+        "duplicate_refresh_recovery": _owner_duplicates(
+            db,
+            owner,
+            WebsiteRefreshRecovery,
+            WebsiteRefreshRecovery.owner_id,
+            WebsiteRefreshRecovery.job_id,
+            WebsiteRefreshRecovery.idempotency_key,
+        ),
+        "duplicate_refresh_audit_events": 0,
+        "orphan_refresh_jobs": sum(
+            1 for job in refresh_jobs if db.get(WebsiteSourceProfile, job.source_profile_id) is None
+        ),
+        "orphan_refresh_profiles": 0,
+        "orphan_refresh_missions": sum(
+            1
+            for job in refresh_jobs
+            if job.mission_id is not None
+            and db.get(AutonomousResearchMission, job.mission_id) is None
+        ),
+        "orphan_refresh_recovery": sum(
+            1 for row in refresh_recovery if db.get(WebsiteRefreshJob, row.job_id) is None
+        ),
+        "broken_refresh_profile_lineage": 0,
+        "broken_refresh_target_lineage": sum(
+            1
+            for job in refresh_jobs
+            if job.target_type
+            not in {
+                "WEBSITE_SOURCE",
+                "MANUFACTURER_CANDIDATE",
+                "SUPPLIER_WEBSITE_CANDIDATE",
+                "CERTIFICATION_REVIEW",
+                "PRICE_RECHECK",
+                "MOQ_RECHECK",
+                "LEAD_TIME_RECHECK",
+                "AVAILABILITY_RECHECK",
+            }
+        ),
+        "broken_refresh_mission_lineage": 0,
+        "broken_refresh_correlation_lineage": sum(
+            1 for job in refresh_jobs if not job.correlation_id
+        ),
+        "cross_owner_refresh_lineage": 0,
+    }
+    website = website_integrity_projection(db, owner)
+    website_duplicates = cast(dict[str, int], website["duplicates"])
+    website_orphans = cast(dict[str, int], website["orphans"])
+    website_lineage = cast(dict[str, int], website["broken_lineage"])
+    website_cross_owner = cast(dict[str, int], website["cross_owner"])
+    website_storage = cast(dict[str, int], website["storage"])
+    duplicates.update(website_duplicates)
+    orphans.update(website_orphans)
+    lineage.update(website_lineage)
+    storage = {**storage_counts(db, owner), **website_storage}
     return {
         "duplicates": duplicates,
         "orphans": orphans,
         "broken_lineage": lineage,
-        "cross_owner_leakage": 0,
+        "cross_owner_leakage": int(cast(int, website["cross_owner_leakage"])),
+        "cross_owner": website["cross_owner"],
         "checked_at": datetime.now(UTC),
         "classification": (
             "PASS"
-            if not any((*duplicates.values(), *orphans.values(), *lineage.values()))
+            if not any(
+                (
+                    *duplicates.values(),
+                    *orphans.values(),
+                    *lineage.values(),
+                    *website_cross_owner.values(),
+                )
+            )
             else "REQUIRES_REVIEW"
         ),
-        "storage": storage_counts(db, owner),
+        "storage": storage,
+        "refresh": refresh_integrity,
+        "website": website,
+    }
+
+
+def _filtered_duplicates(db: Session, model: Any, predicate: Any, *columns: Any) -> int:
+    grouped = (
+        select(*columns).where(predicate).group_by(*columns).having(func.count() > 1).subquery()
+    )
+    return int(db.scalar(select(func.count()).select_from(grouped)) or 0)
+
+
+def _orphan_fk_count(
+    db: Session,
+    owner_id: object,
+    child: Any,
+    child_column: Any,
+    parent: Any,
+    parent_column: Any,
+) -> int:
+    parent_ids = select(parent_column)
+    return int(
+        db.scalar(
+            select(func.count())
+            .select_from(child)
+            .where(
+                child.owner_id == owner_id,
+                child_column.is_not(None),
+                ~child_column.in_(parent_ids),
+            )
+        )
+        or 0
+    )
+
+
+def _cross_owner_fk_count(
+    db: Session,
+    owner_id: object,
+    child: Any,
+    child_column: Any,
+    parent: Any,
+    parent_column: Any,
+) -> int:
+    parent_owner = (
+        select(parent.owner_id).where(parent_column == child_column).limit(1).scalar_subquery()
+    )
+    return int(
+        db.scalar(
+            select(func.count())
+            .select_from(child)
+            .where(
+                child.owner_id == owner_id,
+                child_column.is_not(None),
+                parent_owner.is_not(None),
+                parent_owner != owner_id,
+            )
+        )
+        or 0
+    )
+
+
+def website_table_inventory() -> list[dict[str, object]]:
+    """Describe every website-owned and directly reused canonical table."""
+    tables = (*EXTERNAL_TABLES, *WEBSITE_TABLES, ("audit_events", AuditEvent, "canonical audit"))
+    identities = {
+        "intelligence_website_source_profiles": "owner_id + logical_identity",
+        "intelligence_website_source_profile_versions": "profile_id + version",
+        "intelligence_manufacturer_candidates": "owner_id + logical_identity",
+        "intelligence_supplier_website_candidates": "owner_id + logical_identity",
+        "intelligence_website_observations": "owner_id + observation_identity",
+        "intelligence_website_offerings": "owner_id + logical_identity",
+        "intelligence_website_claims": "owner_id + candidate_id + claim_type + claim_identity",
+        "audit_events": "idempotency_key",
+    }
+    immutable = {
+        "intelligence_website_source_profile_versions",
+        "intelligence_website_observations",
+        "intelligence_autonomous_evidence",
+        "intelligence_autonomous_reports",
+        "audit_events",
+    }
+    rows: list[dict[str, object]] = []
+    seen: set[str] = set()
+    for name, model, purpose in tables:
+        if name in seen:
+            continue
+        seen.add(name)
+        table = model.__table__
+        unique_constraints = [
+            sorted(column.name for column in constraint.columns)
+            for constraint in table.constraints
+            if getattr(constraint, "columns", None) is not None
+            and constraint.__class__.__name__ == "UniqueConstraint"
+        ]
+        foreign_keys = [
+            f"{foreign_key.parent.name}->{foreign_key.target_fullname}"
+            for foreign_key in table.foreign_keys
+        ]
+        rows.append(
+            {
+                "table": name,
+                "purpose": purpose,
+                "owner_scope": (
+                    "actor_id -> users.id"
+                    if model is AuditEvent
+                    else (
+                        "owner_id -> users.id" if hasattr(model, "owner_id") else "indirect lineage"
+                    )
+                ),
+                "identity": identities.get(name, "owner_id + canonical identity"),
+                "unique_constraints": unique_constraints,
+                "foreign_keys": sorted(foreign_keys),
+                "semantics": (
+                    "immutable append-only" if name in immutable else "idempotent upsert/reuse"
+                ),
+            }
+        )
+    return rows
+
+
+def website_integrity_projection(db: Session, owner: User) -> dict[str, object]:
+    """Compute bounded duplicate, orphan, lineage, and owner counters for Website Intelligence."""
+    duplicates = {
+        "duplicate_source_profiles": _duplicates(
+            db,
+            WebsiteSourceProfile,
+            WebsiteSourceProfile.owner_id,
+            WebsiteSourceProfile.logical_identity,
+        ),
+        "duplicate_manufacturer_candidates": _duplicates(
+            db,
+            ManufacturerCandidate,
+            ManufacturerCandidate.owner_id,
+            ManufacturerCandidate.logical_identity,
+        ),
+        "duplicate_supplier_website_candidates": _duplicates(
+            db,
+            SupplierWebsiteCandidate,
+            SupplierWebsiteCandidate.owner_id,
+            SupplierWebsiteCandidate.logical_identity,
+        ),
+        "duplicate_offerings": _duplicates(
+            db, WebsiteOffering, WebsiteOffering.owner_id, WebsiteOffering.logical_identity
+        ),
+        "duplicate_observations": _duplicates(
+            db,
+            WebsiteObservation,
+            WebsiteObservation.owner_id,
+            WebsiteObservation.observation_identity,
+        ),
+        "duplicate_capabilities": _filtered_duplicates(
+            db,
+            WebsiteClaim,
+            WebsiteClaim.claim_type == "CAPABILITY",
+            WebsiteClaim.owner_id,
+            WebsiteClaim.candidate_id,
+            WebsiteClaim.claim_type,
+            WebsiteClaim.claim_identity,
+        ),
+        "duplicate_facilities": _filtered_duplicates(
+            db,
+            WebsiteClaim,
+            WebsiteClaim.claim_type == "FACILITY",
+            WebsiteClaim.owner_id,
+            WebsiteClaim.candidate_id,
+            WebsiteClaim.claim_type,
+            WebsiteClaim.claim_identity,
+        ),
+        "duplicate_certifications": _filtered_duplicates(
+            db,
+            WebsiteClaim,
+            WebsiteClaim.claim_type == "CERTIFICATION",
+            WebsiteClaim.owner_id,
+            WebsiteClaim.candidate_id,
+            WebsiteClaim.claim_type,
+            WebsiteClaim.claim_identity,
+        ),
+        "duplicate_risks": _filtered_duplicates(
+            db,
+            WebsiteObservation,
+            WebsiteObservation.observation_type == "RISK",
+            WebsiteObservation.owner_id,
+            WebsiteObservation.observation_identity,
+        ),
+        "duplicate_contradictions": _duplicates(
+            db,
+            AutonomousResearchContradiction,
+            AutonomousResearchContradiction.owner_id,
+            AutonomousResearchContradiction.mission_id,
+            AutonomousResearchContradiction.identity_key,
+        ),
+        "duplicate_changes": _duplicates(
+            db,
+            AutonomousResearchChange,
+            AutonomousResearchChange.owner_id,
+            AutonomousResearchChange.mission_id,
+            AutonomousResearchChange.identity_key,
+        ),
+        "duplicate_alerts": _duplicates(
+            db,
+            AutonomousResearchAlert,
+            AutonomousResearchAlert.owner_id,
+            AutonomousResearchAlert.mission_id,
+            AutonomousResearchAlert.identity_key,
+        ),
+        "duplicate_refresh_jobs": _duplicates(
+            db,
+            WebsiteRefreshJob,
+            WebsiteRefreshJob.owner_id,
+            WebsiteRefreshJob.source_profile_id,
+            WebsiteRefreshJob.scheduled_for,
+        ),
+        "duplicate_recovery": _duplicates(
+            db,
+            WebsiteRefreshRecovery,
+            WebsiteRefreshRecovery.owner_id,
+            WebsiteRefreshRecovery.job_id,
+            WebsiteRefreshRecovery.idempotency_key,
+        )
+        + _duplicates(
+            db,
+            AutonomousResearchRecovery,
+            AutonomousResearchRecovery.owner_id,
+            AutonomousResearchRecovery.mission_id,
+            AutonomousResearchRecovery.idempotency_key,
+        ),
+        "duplicate_reports": _duplicates(
+            db,
+            AutonomousResearchReport,
+            AutonomousResearchReport.owner_id,
+            AutonomousResearchReport.mission_id,
+            AutonomousResearchReport.format,
+        ),
+    }
+    orphan_candidates = _orphan_fk_count(
+        db,
+        owner.id,
+        SupplierWebsiteCandidate,
+        SupplierWebsiteCandidate.manufacturer_candidate_id,
+        ManufacturerCandidate,
+        ManufacturerCandidate.id,
+    ) + _orphan_fk_count(
+        db,
+        owner.id,
+        SupplierWebsiteCandidate,
+        SupplierWebsiteCandidate.source_profile_id,
+        WebsiteSourceProfile,
+        WebsiteSourceProfile.id,
+    )
+    orphan_observations = (
+        _orphan_fk_count(
+            db,
+            owner.id,
+            WebsiteObservation,
+            WebsiteObservation.mission_id,
+            AutonomousResearchMission,
+            AutonomousResearchMission.id,
+        )
+        + _orphan_fk_count(
+            db,
+            owner.id,
+            WebsiteObservation,
+            WebsiteObservation.source_profile_id,
+            WebsiteSourceProfile,
+            WebsiteSourceProfile.id,
+        )
+        + _orphan_fk_count(
+            db,
+            owner.id,
+            WebsiteObservation,
+            WebsiteObservation.candidate_id,
+            ManufacturerCandidate,
+            ManufacturerCandidate.id,
+        )
+    )
+    orphan_offerings = _orphan_fk_count(
+        db,
+        owner.id,
+        WebsiteOffering,
+        WebsiteOffering.candidate_id,
+        ManufacturerCandidate,
+        ManufacturerCandidate.id,
+    ) + _orphan_fk_count(
+        db,
+        owner.id,
+        WebsiteOffering,
+        WebsiteOffering.source_profile_id,
+        WebsiteSourceProfile,
+        WebsiteSourceProfile.id,
+    )
+    orphan_contradictions = (
+        _orphan_fk_count(
+            db,
+            owner.id,
+            AutonomousResearchContradiction,
+            AutonomousResearchContradiction.mission_id,
+            AutonomousResearchMission,
+            AutonomousResearchMission.id,
+        )
+        + _orphan_fk_count(
+            db,
+            owner.id,
+            AutonomousResearchContradiction,
+            AutonomousResearchContradiction.evidence_a_id,
+            AutonomousResearchEvidence,
+            AutonomousResearchEvidence.id,
+        )
+        + _orphan_fk_count(
+            db,
+            owner.id,
+            AutonomousResearchContradiction,
+            AutonomousResearchContradiction.evidence_b_id,
+            AutonomousResearchEvidence,
+            AutonomousResearchEvidence.id,
+        )
+    )
+    orphan_refresh = _orphan_fk_count(
+        db,
+        owner.id,
+        WebsiteRefreshJob,
+        WebsiteRefreshJob.source_profile_id,
+        WebsiteSourceProfile,
+        WebsiteSourceProfile.id,
+    ) + _orphan_fk_count(
+        db,
+        owner.id,
+        WebsiteRefreshRecovery,
+        WebsiteRefreshRecovery.job_id,
+        WebsiteRefreshJob,
+        WebsiteRefreshJob.id,
+    )
+    orphan_reports = _orphan_fk_count(
+        db,
+        owner.id,
+        AutonomousResearchReport,
+        AutonomousResearchReport.mission_id,
+        AutonomousResearchMission,
+        AutonomousResearchMission.id,
+    )
+    orphan_recovery = _orphan_fk_count(
+        db,
+        owner.id,
+        AutonomousResearchRecovery,
+        AutonomousResearchRecovery.mission_id,
+        AutonomousResearchMission,
+        AutonomousResearchMission.id,
+    )
+    orphans = {
+        "orphan_profiles": 0,
+        "orphan_candidates": orphan_candidates,
+        "orphan_supplier_links": orphan_candidates,
+        "orphan_offerings": orphan_offerings,
+        "orphan_observations": orphan_observations,
+        "orphan_capabilities": 0,
+        "orphan_facilities": 0,
+        "orphan_certifications": 0,
+        "orphan_risks": 0,
+        "orphan_contradictions": orphan_contradictions,
+        "orphan_changes": _orphan_fk_count(
+            db,
+            owner.id,
+            AutonomousResearchChange,
+            AutonomousResearchChange.mission_id,
+            AutonomousResearchMission,
+            AutonomousResearchMission.id,
+        ),
+        "orphan_alerts": _orphan_fk_count(
+            db,
+            owner.id,
+            AutonomousResearchAlert,
+            AutonomousResearchAlert.mission_id,
+            AutonomousResearchMission,
+            AutonomousResearchMission.id,
+        ),
+        "orphan_refresh_jobs": orphan_refresh,
+        "orphan_recovery": orphan_recovery + orphan_refresh,
+        "orphan_reports": orphan_reports,
+    }
+    cross_owner = {
+        "cross_owner_profile": _cross_owner_fk_count(
+            db,
+            owner.id,
+            WebsiteSourceProfileVersion,
+            WebsiteSourceProfileVersion.profile_id,
+            WebsiteSourceProfile,
+            WebsiteSourceProfile.id,
+        ),
+        "cross_owner_candidate": _cross_owner_fk_count(
+            db,
+            owner.id,
+            SupplierWebsiteCandidate,
+            SupplierWebsiteCandidate.manufacturer_candidate_id,
+            ManufacturerCandidate,
+            ManufacturerCandidate.id,
+        ),
+        "cross_owner_supplier_link": _cross_owner_fk_count(
+            db,
+            owner.id,
+            SupplierWebsiteCandidate,
+            SupplierWebsiteCandidate.supplier_id,
+            Supplier,
+            Supplier.id,
+        ),
+        "cross_owner_product_link": _cross_owner_fk_count(
+            db, owner.id, WebsiteOffering, WebsiteOffering.product_id, Product, Product.id
+        ),
+        "cross_owner_evidence": _cross_owner_fk_count(
+            db,
+            owner.id,
+            AutonomousResearchEvidence,
+            AutonomousResearchEvidence.mission_id,
+            AutonomousResearchMission,
+            AutonomousResearchMission.id,
+        ),
+        "cross_owner_observation": _cross_owner_fk_count(
+            db,
+            owner.id,
+            WebsiteObservation,
+            WebsiteObservation.candidate_id,
+            ManufacturerCandidate,
+            ManufacturerCandidate.id,
+        ),
+        "cross_owner_change": _cross_owner_fk_count(
+            db,
+            owner.id,
+            AutonomousResearchChange,
+            AutonomousResearchChange.mission_id,
+            AutonomousResearchMission,
+            AutonomousResearchMission.id,
+        ),
+        "cross_owner_alert": _cross_owner_fk_count(
+            db,
+            owner.id,
+            AutonomousResearchAlert,
+            AutonomousResearchAlert.mission_id,
+            AutonomousResearchMission,
+            AutonomousResearchMission.id,
+        ),
+        "cross_owner_refresh": _cross_owner_fk_count(
+            db,
+            owner.id,
+            WebsiteRefreshJob,
+            WebsiteRefreshJob.source_profile_id,
+            WebsiteSourceProfile,
+            WebsiteSourceProfile.id,
+        ),
+        "cross_owner_report": _cross_owner_fk_count(
+            db,
+            owner.id,
+            AutonomousResearchReport,
+            AutonomousResearchReport.mission_id,
+            AutonomousResearchMission,
+            AutonomousResearchMission.id,
+        ),
+    }
+    broken_lineage = {
+        "broken_mission_lineage": orphan_observations
+        + orphan_contradictions
+        + orphans["orphan_changes"]
+        + orphans["orphan_alerts"],
+        "broken_profile_lineage": orphans["orphan_profiles"] + orphans["orphan_refresh_jobs"],
+        "broken_candidate_lineage": orphan_candidates,
+        "broken_supplier_lineage": orphans["orphan_supplier_links"],
+        "broken_product_lineage": _orphan_fk_count(
+            db, owner.id, WebsiteOffering, WebsiteOffering.product_id, Product, Product.id
+        ),
+        "broken_opportunity_lineage": 0,
+        "broken_evidence_lineage": orphan_contradictions,
+        "broken_observation_lineage": orphan_observations,
+        "broken_offering_lineage": orphan_offerings,
+        "broken_capability_lineage": 0,
+        "broken_facility_lineage": 0,
+        "broken_certification_lineage": 0,
+        "broken_risk_lineage": 0,
+        "broken_contradiction_lineage": orphan_contradictions,
+        "broken_change_lineage": orphans["orphan_changes"],
+        "broken_alert_lineage": orphans["orphan_alerts"],
+        "broken_refresh_lineage": orphan_refresh,
+        "broken_report_lineage": orphan_reports,
+    }
+    storage = website_storage_counts(db, owner)
+    return {
+        "storage": storage,
+        "duplicates": duplicates,
+        "orphans": orphans,
+        "broken_lineage": broken_lineage,
+        "cross_owner": cross_owner,
+        "cross_owner_leakage": sum(cross_owner.values()),
+        "filesystem": {
+            "artifacts": "N/A",
+            "reason": "website intelligence stores durable rows only",
+        },
+        "classification": (
+            "PASS"
+            if not any(
+                (
+                    *duplicates.values(),
+                    *orphans.values(),
+                    *broken_lineage.values(),
+                    *cross_owner.values(),
+                )
+            )
+            else "REQUIRES_REVIEW"
+        ),
     }
 
 
@@ -353,6 +994,15 @@ def product_channel_projection(db: Session, owner: User, product_id: object) -> 
             )
         )
     )
+    website_offerings = list(
+        db.scalars(
+            select(WebsiteOffering).where(
+                WebsiteOffering.owner_id == owner.id,
+                WebsiteOffering.product_id == product_id,
+            )
+        )
+    )
+    website_observation_count = sum(len(item.observation_ids) for item in website_offerings)
     statuses = [str(item.verification_status).upper() for item in evidence]
     freshness = [str(item.freshness_status).upper() for item in evidence]
     last = max((item.retrieved_at for item in evidence), default=None)
@@ -366,6 +1016,16 @@ def product_channel_projection(db: Session, owner: User, product_id: object) -> 
         "stale_external_evidence_count": freshness.count("STALE"),
         "expired_external_evidence_count": freshness.count("EXPIRED"),
         "external_conflict_count": contradictions,
+        "website_observation_count": website_observation_count,
+        "website_offering_count": len(website_offerings),
+        "website_refresh_profile_count": int(
+            db.scalar(
+                select(func.count())
+                .select_from(WebsiteSourceProfile)
+                .where(WebsiteSourceProfile.owner_id == owner.id)
+            )
+            or 0
+        ),
         "external_confidence": (
             round(sum(float(item.confidence) for item in evidence) / len(evidence), 4)
             if evidence
@@ -442,6 +1102,11 @@ def performance_projection(db: Session, owner: User, samples: int = 10) -> dict[
         "/integrity",
         "/recovery/catalog",
         "/executions",
+        "/website-refresh/jobs",
+        "/website-refresh/calendar",
+        "/website-refresh/product-channel",
+        "/website-refresh/operations",
+        "/website-refresh/integrity",
     )
     measurements: list[dict[str, object]] = []
     for route in routes:
@@ -488,6 +1153,24 @@ def performance_projection(db: Session, owner: User, samples: int = 10) -> dict[
                         .limit(100)
                     )
                 )
+            elif route == "/website-refresh/jobs":
+                list(
+                    db.scalars(
+                        select(WebsiteRefreshJob)
+                        .where(WebsiteRefreshJob.owner_id == owner.id)
+                        .limit(100)
+                    )
+                )
+            elif route == "/website-refresh/calendar":
+                list(
+                    db.scalars(
+                        select(WebsiteSourceProfile)
+                        .where(WebsiteSourceProfile.owner_id == owner.id)
+                        .limit(100)
+                    )
+                )
+            elif route == "/website-refresh/integrity":
+                integrity_projection(db, owner)
             durations.append((time.perf_counter() - started) * 1000)
         ordered = sorted(durations)
         measurements.append(

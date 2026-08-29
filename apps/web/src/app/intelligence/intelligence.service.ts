@@ -239,6 +239,113 @@ export interface ExternalResearchPolicy {
   credentials_configured: boolean;
   credential_status?: 'CONFIGURED' | 'NOT_CONFIGURED' | 'INVALID' | 'UNKNOWN';
 }
+export interface WebsiteOverview {
+  manufacturer_candidates: number;
+  supplier_websites: number;
+  offering_count: number;
+  last_researched: string | null;
+  status: string;
+  queue: number;
+  running: number;
+  failed: number;
+  refresh_backlog: number;
+  stale_sources: number;
+  expired_sources: number;
+  high_risk_suppliers: number;
+  unresolved_contradictions: number;
+  recovery: number;
+}
+
+export interface WebsiteManufacturer {
+  id: string;
+  name: string;
+  website: string;
+  domain: string;
+  country: string;
+  region: string;
+  business_type: string;
+  verification: string;
+  freshness: string;
+  confidence: number;
+  risk: string[];
+  source_count: number;
+  evidence_count: number;
+}
+
+export interface WebsiteContradiction {
+  [key: string]: unknown;
+  id: string;
+  field?: string;
+  resolution_state?: string;
+  correlation_id?: string;
+}
+export interface WebsiteChange {
+  [key: string]: unknown;
+  id: string;
+  field?: string;
+  materiality?: string;
+  correlation_id?: string;
+}
+export interface WebsiteAlert {
+  [key: string]: unknown;
+  id: string;
+  type?: string;
+  severity?: string;
+  review_state?: string;
+  correlation_id?: string;
+}
+export interface WebsiteReport {
+  [key: string]: unknown;
+  id: string;
+  mission_id?: string;
+  format?: string;
+  status?: string;
+  content?: string;
+}
+export interface WebsiteSourceProfile {
+  id: string;
+  domain: string;
+  display_name: string;
+  source_type: string;
+  classification: string;
+  enabled: boolean;
+  search_allowed: boolean;
+  fetch_allowed: boolean;
+  freshness_policy: string;
+  verification_policy: string;
+  robots_terms_status: string;
+  refresh_target_type: string;
+  timezone: string;
+  next_refresh_at: string | null;
+  last_refresh_at: string | null;
+  last_success_at: string | null;
+  last_failure_at: string | null;
+  refresh_failure_code: string | null;
+  known_mirror_domains: string[];
+  notes: string;
+}
+
+export interface WebsiteRefreshJob {
+  id: string;
+  source_profile_id: string;
+  target_type: string;
+  scheduled_for: string;
+  status: string;
+  failure_code: string | null;
+  mission_id: string | null;
+}
+
+export interface WebsiteCalendarEvent {
+  id: string;
+  type: string;
+  target_type: string;
+  source_profile_id: string;
+  domain: string;
+  frequency: string;
+  scheduled_at: string;
+  timezone: string;
+  status: string;
+}
 @Injectable({ providedIn: 'root' })
 export class IntelligenceService {
   private readonly http = inject(HttpClient);
@@ -852,6 +959,192 @@ export class IntelligenceService {
     );
   }
 
+  websiteOverview(): Promise<WebsiteOverview> {
+    return firstValueFrom(
+      this.http.get<WebsiteOverview>(`${this.base}/websites/overview`, this.options),
+    );
+  }
+
+  websiteManufacturers(filters?: {
+    country?: string;
+    region?: string;
+    category?: string;
+    verification?: string;
+    freshness?: string;
+    min_confidence?: string;
+    risk?: string;
+    business_type?: string;
+    status?: string;
+  }): Promise<WebsiteManufacturer[]> {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(filters ?? {})) {
+      if (value) params.set(key, value);
+    }
+    const suffix = params.toString() ? `?${params.toString()}` : '';
+    return firstValueFrom(
+      this.http.get<WebsiteManufacturer[]>(
+        `${this.base}/websites/manufacturers${suffix}`,
+        this.options,
+      ),
+    );
+  }
+
+  websiteSuppliers(): Promise<Record<string, unknown>[]> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>[]>(`${this.base}/websites/suppliers`, this.options),
+    );
+  }
+
+  websiteManufacturer(id: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${this.base}/websites/manufacturers/${id}`,
+        this.options,
+      ),
+    );
+  }
+
+  websiteProfiles(): Promise<{ profiles: WebsiteSourceProfile[]; status: string }> {
+    return firstValueFrom(
+      this.http.get<{ profiles: WebsiteSourceProfile[]; status: string }>(
+        `${this.base}/websites/profiles`,
+        this.options,
+      ),
+    );
+  }
+
+  websiteHistory(): Promise<Record<string, unknown>[]> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>[]>(`${this.base}/websites/history`, this.options),
+    );
+  }
+
+  websiteContradictions(filters?: Record<string, string>): Promise<WebsiteContradiction[]> {
+    return firstValueFrom(
+      this.http.get<WebsiteContradiction[]>(
+        `${this.base}/websites/contradictions${this.query(filters)}`,
+        this.options,
+      ),
+    );
+  }
+  websiteContradiction(id: string): Promise<WebsiteContradiction> {
+    return firstValueFrom(
+      this.http.get<WebsiteContradiction>(
+        `${this.base}/websites/contradictions/${encodeURIComponent(id)}`,
+        this.options,
+      ),
+    );
+  }
+  websiteChanges(filters?: Record<string, string>): Promise<WebsiteChange[]> {
+    return firstValueFrom(
+      this.http.get<WebsiteChange[]>(
+        `${this.base}/websites/changes${this.query(filters)}`,
+        this.options,
+      ),
+    );
+  }
+  websiteChange(id: string): Promise<WebsiteChange> {
+    return firstValueFrom(
+      this.http.get<WebsiteChange>(
+        `${this.base}/websites/changes/${encodeURIComponent(id)}`,
+        this.options,
+      ),
+    );
+  }
+  websiteAlerts(filters?: Record<string, string>): Promise<WebsiteAlert[]> {
+    return firstValueFrom(
+      this.http.get<WebsiteAlert[]>(
+        `${this.base}/websites/alerts${this.query(filters)}`,
+        this.options,
+      ),
+    );
+  }
+  websiteAlert(id: string): Promise<WebsiteAlert> {
+    return firstValueFrom(
+      this.http.get<WebsiteAlert>(
+        `${this.base}/websites/alerts/${encodeURIComponent(id)}`,
+        this.options,
+      ),
+    );
+  }
+  websiteReports(): Promise<WebsiteReport[]> {
+    return firstValueFrom(
+      this.http.get<WebsiteReport[]>(`${this.base}/websites/reports`, this.options),
+    );
+  }
+  websiteReport(id: string): Promise<WebsiteReport> {
+    return firstValueFrom(
+      this.http.get<WebsiteReport>(
+        `${this.base}/websites/reports/${encodeURIComponent(id)}`,
+        this.options,
+      ),
+    );
+  }
+  websiteProductChannel(productId: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${this.base}/websites/product-channel/${encodeURIComponent(productId)}`,
+        this.options,
+      ),
+    );
+  }
+  websiteHistoryFiltered(filters?: Record<string, string>): Promise<Record<string, unknown>[]> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>[]>(
+        `${this.base}/websites/history${this.query(filters)}`,
+        this.options,
+      ),
+    );
+  }
+  private query(filters?: Record<string, string>): string {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(filters ?? {})) if (value) params.set(key, value);
+    const suffix = params.toString();
+    return suffix ? `?${suffix}` : '';
+  }
+  websiteRefreshJobs(): Promise<WebsiteRefreshJob[]> {
+    return firstValueFrom(
+      this.http.get<WebsiteRefreshJob[]>(`${this.base}/websites/refresh/jobs`, this.options),
+    );
+  }
+
+  websiteCalendar(): Promise<WebsiteCalendarEvent[]> {
+    return firstValueFrom(
+      this.http.get<WebsiteCalendarEvent[]>(`${this.base}/websites/calendar`, this.options),
+    );
+  }
+
+  websiteRecoveryCatalog(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${this.base}/websites/refresh/recovery/catalog`,
+        this.options,
+      ),
+    );
+  }
+
+  runWebsiteRefresh(id: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/websites/refresh/jobs/${id}/run`,
+        {},
+        this.options,
+      ),
+    );
+  }
+
+  recoverWebsiteRefresh(
+    id: string,
+    payload: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/websites/refresh/jobs/${id}/recover`,
+        payload,
+        this.options,
+      ),
+    );
+  }
   autonomousMissions(): Promise<Record<string, unknown>[]> {
     return firstValueFrom(
       this.http.get<Record<string, unknown>[]>(`${this.base}/autonomous/missions`, this.options),

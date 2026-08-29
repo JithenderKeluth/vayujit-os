@@ -38,6 +38,10 @@ from vayujit_api.commerce.meesho_worker import (
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import SessionFactory
 from vayujit_api.identity.models import User
+from vayujit_api.intelligence.website_refresh import (
+    recover_expired_refresh_leases,
+    run_refresh_jobs_once,
+)
 from vayujit_api.publishing.job_queue import (
     claim_jobs,
     finish_job,
@@ -275,11 +279,18 @@ def run_worker(*, once: bool = False) -> None:
                 maintenance = marker.exists()
                 with SessionFactory() as db:
                     recover_expired_leases(db)
+                    recover_expired_refresh_leases(db)
                     resume_terminal_publishing_waits(db)
                 if not maintenance:
+                    capacity = settings.publishing_worker_concurrency - len(futures)
                     with SessionFactory() as db:
                         materialize_due_schedules(db)
-                    capacity = settings.publishing_worker_concurrency - len(futures)
+                        run_refresh_jobs_once(
+                            db,
+                            worker_id,
+                            min(max(capacity, 1), 4),
+                            settings.publishing_job_lease_seconds,
+                        )
                     with SessionFactory() as db:
                         run_ai_jobs_once(
                             db,

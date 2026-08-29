@@ -13,3 +13,7 @@ The handoff services provide order-independent contradiction identities, server-
 ## Slice 6C live domain policy
 
 Approved, blocked, and review-required domain sets are intersected at execution time; blocked/review-required domains fail closed. Robots and terms classifications are operational labels only and never imply legal approval.
+
+## Slice 6D website intelligence
+
+Manufacturer and supplier website projections reuse the approved read-only fetch boundary, deterministic extraction, existing supplier verification, owner scoping, and no-contact/no-RFQ policy. See [manufacturer-supplier-web.md](manufacturer-supplier-web.md).
