@@ -433,6 +433,7 @@ def operational_summary(db: Session, owner: User, settings: Settings) -> dict[st
         "failure_count": failure_count,
         "budget": {
             "requests_per_minute": settings.indiamart_requests_per_minute,
+            "requests_per_hour": settings.indiamart_requests_per_hour,
             "daily_quota": settings.indiamart_daily_quota,
             "max_results": settings.indiamart_max_results,
             "retry_max_attempts": settings.indiamart_retry_max_attempts,

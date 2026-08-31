@@ -146,7 +146,7 @@ The strict 7A hard gate is not claimed closed: minute/hour rate-limit exhaustion
 | CASE | EVIDENCE | RESULT |
 | --- | --- | --- |
 | Minute available/exhausted | Existing minute-window guard; no new 7A.9 matrix run | NOT CLOSED |
-| Hour available/exhausted | No hour-window implementation exists | NOT APPLICABLE |
+| Hour available/exhausted | Shared runtime hour-window guard exists; IndiaMART-specific route proof remains pending | PARTIAL |
 | Retry/provider budgets | Shared autonomous budget guards tested separately | PASS (existing) |
 | Retry-After within/above maximum | Focused parser assertions | PASS |
 | Route Recovery concurrency | Two authenticated HTTP submissions; 23 focused tests pass | PASS |
@@ -154,3 +154,12 @@ The strict 7A hard gate is not claimed closed: minute/hour rate-limit exhaustion
 | Repeatability 3/3 | Not run independently three times | NOT CLOSED |
 | Canonical E2E/lineage/replay | No single production-service scenario | NOT CLOSED |
 | Accessibility regression | Focused IndiaMART spec: 5 tests pass | PASS (focused) |
+
+## Shared runtime evidence (2026-08-31)
+
+IndiaMART is registered with the provider-neutral marketplace runtime for local
+fixture execution. The runtime proves durable owner-scoped identity, nine checkpoint
+states, minute/hour limits, fresh-session recovery across six injected boundaries,
+and idempotent replay (11/11 focused runtime tests; 97/97 IndiaMART regression).
+Live provider access remains unconfigured and no purchasing, contact, RFQ, payment,
+or credential-bearing operation is exposed.

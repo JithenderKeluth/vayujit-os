@@ -72,6 +72,18 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
             },
             "website_intelligence": value["website_intelligence"],
             "indiamart": value["indiamart"],
+            "marketplace_runtime": {
+                "runtime_registered": True,
+                "rate_window_subsystem_registered": True,
+                "retry_subsystem_registered": True,
+                "recovery_registered": True,
+                "fault_injection": "DISABLED_BY_DEFAULT",
+                "registered": value.get("marketplace", {}).get("registered_providers", []),
+                "rate_windows": value.get("marketplace", {}).get("rate_windows", []),
+                "retry_budget": value.get("marketplace", {}).get("retry_budget", {}),
+                "integrity": value.get("marketplace", {}).get("integrity", {}),
+                "live_validation": value.get("marketplace", {}).get("live_validation", "NOT_RUN"),
+            },
             "supplier_intelligence": {
                 "enabled": value["enabled"],
                 "provider": "deterministic_local_fixture",

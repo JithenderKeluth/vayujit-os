@@ -27,6 +27,7 @@ from vayujit_api.intelligence.indiamart_models import (
     IndiaMartDiscoveryRequest,
     IndiaMartDiscoveryResult,
 )
+from vayujit_api.intelligence.marketplace_runtime import consume_rate_window
 from vayujit_api.intelligence.supplier_models import (
     Supplier,
     SupplierEvidence,
@@ -266,19 +267,14 @@ def discover(
     if result_limit > settings.indiamart_max_results:
         raise HTTPException(422, "IndiaMART result limit exceeds the configured safety bound.")
     now = _now()
-    minute_count = (
-        db.scalar(
-            select(func.count())
-            .select_from(IndiaMartDiscoveryRequest)
-            .where(
-                IndiaMartDiscoveryRequest.owner_id == owner.id,
-                IndiaMartDiscoveryRequest.created_at >= now - timedelta(minutes=1),
-            )
-        )
-        or 0
+    consume_rate_window(
+        db,
+        owner,
+        "INDIAMART",
+        requests_per_minute=settings.indiamart_requests_per_minute,
+        requests_per_hour=settings.indiamart_requests_per_hour,
+        now=now,
     )
-    if int(minute_count) >= settings.indiamart_requests_per_minute:
-        raise HTTPException(429, "IndiaMART request rate limit reached; retry later.")
     day_count = (
         db.scalar(
             select(func.count())
@@ -578,6 +574,7 @@ def operations(db: Session, owner: User, settings: Settings) -> dict[str, object
         "live_validation": "NOT_RUN",
         "budget": {
             "requests_per_minute": settings.indiamart_requests_per_minute,
+            "requests_per_hour": settings.indiamart_requests_per_hour,
             "daily_quota": settings.indiamart_daily_quota,
             "max_results": settings.indiamart_max_results,
             "retry_max_attempts": settings.indiamart_retry_max_attempts,
