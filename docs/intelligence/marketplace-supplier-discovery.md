@@ -64,3 +64,13 @@ The remaining strict closure items are minute/hour quota exhaustion, route-level
 ### 7A.9 evidence ledger
 
 The route-level Recovery race is now covered by two synchronized authenticated HTTP requests (23 focused tests pass). Provider crash injection, the three-run repeatability proof, and the canonical E2E/lineage/replay scenario remain unclosed because the current IndiaMART implementation exposes no test-only crash hooks or single canonical orchestration entrypoint. Rate-limit evidence is limited to the implemented minute/day guards and bounded Retry-After parsing; no hour-window guard exists.
+## Shared marketplace runtime closure evidence (2026-08-31)
+
+The provider-neutral runtime now persists owner/provider execution identity,
+mission/task correlation, nine checkpoints, bounded minute/hour rate windows,
+retry metadata, safe lineage, and bounded counters. The LOCAL_FIXTURE crash suite
+covers all six checkpoint boundaries with fresh-session recovery; canonical replay
+reuses the existing execution and performs no second provider call. Focused runtime
+certification is 11/11 and the full IndiaMART regression is 97/97. This evidence is
+local and deterministic only; it does not certify live IndiaMART traffic, purchasing,
+contact, RFQ, payment, or external credentials.

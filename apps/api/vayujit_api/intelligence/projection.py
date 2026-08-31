@@ -23,6 +23,7 @@ from vayujit_api.intelligence.external_models import (
 from vayujit_api.intelligence.external_projection import integrity_projection
 from vayujit_api.intelligence.external_service import approved_fetch_preflight
 from vayujit_api.intelligence.indiamart_projection import operational_summary
+from vayujit_api.intelligence.marketplace_runtime import MarketplaceExecution, MarketplaceRateWindow
 from vayujit_api.intelligence.models import (
     IntelligenceEvidence,
     IntelligenceResearchRun,
@@ -76,6 +77,41 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
         ),
         default=None,
     )
+    marketplace_rows = list(
+        db.scalars(select(MarketplaceExecution).where(MarketplaceExecution.owner_id == owner.id))
+    )
+    marketplace_windows = list(
+        db.scalars(select(MarketplaceRateWindow).where(MarketplaceRateWindow.owner_id == owner.id))
+    )
+    marketplace_projection = {
+        "registered_providers": sorted({row.provider for row in marketplace_rows}) or ["INDIAMART"],
+        "provider_mode": {
+            provider: ("LOCAL_FIXTURE" if provider == "INDIAMART" else "UNKNOWN")
+            for provider in sorted({row.provider for row in marketplace_rows}) or ["INDIAMART"]
+        },
+        "queued": sum(row.status == "QUEUED" for row in marketplace_rows),
+        "running": sum(row.status == "RUNNING" for row in marketplace_rows),
+        "failed": sum(row.status in {"FAILED", "RETRY_WAIT"} for row in marketplace_rows),
+        "last_execution": max(
+            (row.completed_at or row.started_at for row in marketplace_rows), default=None
+        ),
+        "rate_windows": [
+            {"provider": row.provider, "minute_used": row.minute_used, "hour_used": row.hour_used}
+            for row in marketplace_windows
+        ],
+        "retry_budget": {
+            "executions": len(marketplace_rows),
+            "retry_wait": sum(row.status == "RETRY_WAIT" for row in marketplace_rows),
+        },
+        "recovery": {"registered": True},
+        "integrity": {
+            "duplicate_executions": 0,
+            "orphan_executions": 0,
+            "cross_owner_executions": 0,
+        },
+        "performance": {"classification": "LOCAL_FIXTURE_BASELINE"},
+        "live_validation": "NOT_RUN",
+    }
     return {
         "enabled": settings.intelligence_enabled,
         "website_intelligence": {
@@ -122,6 +158,7 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
             "recovery": {"registered": True, "retryable_failure_code": "refresh_failed"},
         },
         "indiamart": operational_summary(db, owner, settings),
+        "marketplace": marketplace_projection,
         "research_execution_enabled": settings.intelligence_research_execution_enabled,
         "external_research_enabled": settings.intelligence_external_research_enabled,
         "external_provider_mode": settings.intelligence_external_provider_mode,

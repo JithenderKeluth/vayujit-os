@@ -204,6 +204,7 @@ class Settings(BaseSettings):
     indiamart_timeout_seconds: float = Field(default=15.0, ge=0.1, le=120)
     indiamart_max_results: int = Field(default=10, ge=1, le=20)
     indiamart_requests_per_minute: int = Field(default=10, ge=1, le=1000)
+    indiamart_requests_per_hour: int = Field(default=100, ge=1, le=10000)
     indiamart_daily_quota: int = Field(default=500, ge=1, le=100000)
     indiamart_retry_max_attempts: int = Field(default=2, ge=0, le=5)
     indiamart_kill_switch: bool = False
