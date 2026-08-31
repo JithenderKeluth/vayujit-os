@@ -942,7 +942,29 @@ def recover_mission(
         created_at=now(),
     )
     db.add(row)
-    db.flush()
+    from sqlalchemy.exc import IntegrityError
+
+    try:
+        db.flush()
+    except IntegrityError:
+        # The unique owner/mission/idempotency constraint arbitrates a race
+        # between independent recovery workers.
+        db.rollback()
+        existing = db.scalar(
+            select(AutonomousResearchRecovery).where(
+                AutonomousResearchRecovery.owner_id == owner.id,
+                AutonomousResearchRecovery.mission_id == mission.id,
+                AutonomousResearchRecovery.idempotency_key == data.idempotency_key,
+            )
+        )
+        if existing is None:
+            raise
+        return {
+            "status": existing.status,
+            "action": existing.action,
+            "idempotent_reuse": True,
+            "safe_reason_code": existing.safe_reason_code,
+        }
     _audit(
         db,
         owner,

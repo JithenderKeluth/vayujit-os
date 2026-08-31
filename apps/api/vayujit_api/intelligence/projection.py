@@ -22,6 +22,7 @@ from vayujit_api.intelligence.external_models import (
 )
 from vayujit_api.intelligence.external_projection import integrity_projection
 from vayujit_api.intelligence.external_service import approved_fetch_preflight
+from vayujit_api.intelligence.indiamart_projection import operational_summary
 from vayujit_api.intelligence.models import (
     IntelligenceEvidence,
     IntelligenceResearchRun,
@@ -120,6 +121,7 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
             "integrity": external_integrity.get("refresh", {}),
             "recovery": {"registered": True, "retryable_failure_code": "refresh_failed"},
         },
+        "indiamart": operational_summary(db, owner, settings),
         "research_execution_enabled": settings.intelligence_research_execution_enabled,
         "external_research_enabled": settings.intelligence_external_research_enabled,
         "external_provider_mode": settings.intelligence_external_provider_mode,

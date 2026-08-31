@@ -27,6 +27,7 @@ export class AppComponent {
     ['Website Intelligence', '/intelligence/websites'],
     ['Autonomous Research', '/intelligence/autonomous'],
     ['Sourcing', '/intelligence/sourcing'],
+    ['IndiaMART Discovery', '/intelligence/indiamart'],
     ['Ads', '/ads'],
     ['Calendar', '/calendar'],
     ['Social', '/social'],
