@@ -346,6 +346,60 @@ export interface WebsiteCalendarEvent {
   timezone: string;
   status: string;
 }
+export interface IndiaMartPreflight {
+  provider: string;
+  mode: string;
+  status: string;
+  credentials_configured: boolean;
+  live_validation: string;
+  read_only: boolean;
+  network_call: boolean;
+}
+
+export interface IndiaMartDiscoveryRequestRecord {
+  id: string;
+  provider: string;
+  mode: string;
+  status: string;
+  query: string;
+  result_count: number;
+  correlation_id: string;
+  idempotency_key: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IndiaMartDiscoveryResult {
+  id: string;
+  request_id: string;
+  provider: string;
+  provider_result_id: string;
+  supplier_id: string | null;
+  supplier_name: string;
+  listing_name: string;
+  source_url: string | null;
+  location: string | null;
+  category: string | null;
+  price_claim: number | null;
+  currency: string | null;
+  moq_claim: number | null;
+  moq_unit: string | null;
+  lead_time_claim: string | null;
+  availability_claim: string | null;
+  verification_claim: string | null;
+  identity_match: string;
+  product_match: string;
+  freshness_status: string;
+  classification: string;
+  evidence_id: string | null;
+  correlation_id: string;
+  retrieved_at: string;
+}
+
+export interface IndiaMartDiscoveryResponse {
+  request: IndiaMartDiscoveryRequestRecord;
+  results: IndiaMartDiscoveryResult[];
+}
 @Injectable({ providedIn: 'root' })
 export class IntelligenceService {
   private readonly http = inject(HttpClient);
@@ -1166,6 +1220,54 @@ export class IntelligenceService {
       this.http.post<Record<string, unknown>>(
         `${this.base}/autonomous/missions/${id}/run`,
         { confirm: true },
+        this.options,
+      ),
+    );
+  }
+  indiamartPreflight(): Promise<IndiaMartPreflight> {
+    return firstValueFrom(
+      this.http.get<IndiaMartPreflight>(`${this.base}/indiamart/preflight`, this.options),
+    );
+  }
+
+  indiamartOperations(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/indiamart/operations`, this.options),
+    );
+  }
+
+  indiamartHistory(): Promise<IndiaMartDiscoveryRequestRecord[]> {
+    return firstValueFrom(
+      this.http.get<IndiaMartDiscoveryRequestRecord[]>(
+        `${this.base}/indiamart/discoveries`,
+        this.options,
+      ),
+    );
+  }
+
+  indiamartDiscover(payload: Record<string, unknown>): Promise<IndiaMartDiscoveryResponse> {
+    return firstValueFrom(
+      this.http.post<IndiaMartDiscoveryResponse>(
+        `${this.base}/indiamart/discover`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+
+  indiamartDetail(id: string): Promise<IndiaMartDiscoveryResponse> {
+    return firstValueFrom(
+      this.http.get<IndiaMartDiscoveryResponse>(
+        `${this.base}/indiamart/discoveries/${encodeURIComponent(id)}`,
+        this.options,
+      ),
+    );
+  }
+
+  indiamartProductChannel(productId: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${this.base}/indiamart/product-channel/${encodeURIComponent(productId)}`,
         this.options,
       ),
     );

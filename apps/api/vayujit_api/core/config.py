@@ -197,6 +197,16 @@ class Settings(BaseSettings):
     intelligence_external_fetch_requests_per_minute: int = Field(default=30, ge=1, le=1000)
     intelligence_external_kill_switch: bool = False
     intelligence_search_provider_kill_switch: bool = False
+    indiamart_enabled: bool = False
+    indiamart_mode: Literal["DISABLED", "LOCAL_FIXTURE", "LIVE_READ_ONLY"] = "DISABLED"
+    indiamart_base_url: str | None = None
+    indiamart_token_ref: str | None = None
+    indiamart_timeout_seconds: float = Field(default=15.0, ge=0.1, le=120)
+    indiamart_max_results: int = Field(default=10, ge=1, le=20)
+    indiamart_requests_per_minute: int = Field(default=10, ge=1, le=1000)
+    indiamart_daily_quota: int = Field(default=500, ge=1, le=100000)
+    indiamart_retry_max_attempts: int = Field(default=2, ge=0, le=5)
+    indiamart_kill_switch: bool = False
 
     @field_validator("environment")
     @classmethod

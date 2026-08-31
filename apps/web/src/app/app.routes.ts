@@ -115,6 +115,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'intelligence/indiamart',
+    loadComponent: () =>
+      import('./intelligence/indiamart-discovery.component').then(
+        (m) => m.IndiaMartDiscoveryComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'intelligence/websites',
     loadComponent: () =>
       import('./intelligence/website-intelligence.component').then(
