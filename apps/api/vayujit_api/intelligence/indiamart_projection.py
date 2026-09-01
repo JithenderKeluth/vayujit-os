@@ -23,6 +23,11 @@ from vayujit_api.intelligence.indiamart_models import (
     IndiaMartDiscoveryRequest,
     IndiaMartDiscoveryResult,
 )
+from vayujit_api.intelligence.marketplace_runtime import (
+    MarketplaceExecution,
+    MarketplaceRateWindow,
+    marketplace_integrity_counters,
+)
 from vayujit_api.intelligence.supplier_models import Supplier, SupplierEvidence
 
 
@@ -346,6 +351,9 @@ def calendar(db: Session, owner: User) -> list[dict[str, object]]:
             "status": row.status,
             "scheduled_at": row.created_at,
             "correlation_id": row.correlation_id,
+            "marketplace_execution_id": (
+                str(row.marketplace_execution_id) if row.marketplace_execution_id else None
+            ),
         }
         for row in rows
     ]
@@ -362,6 +370,10 @@ def report(db: Session, owner: User) -> dict[str, object]:
                 "status": row.status,
                 "query": row.query,
                 "result_count": row.result_count,
+                "correlation_id": row.correlation_id,
+                "marketplace_execution_id": (
+                    str(row.marketplace_execution_id) if row.marketplace_execution_id else None
+                ),
             }
             for row in db.scalars(
                 select(IndiaMartDiscoveryRequest)
@@ -382,6 +394,9 @@ def storage_inventory() -> dict[str, object]:
             "intelligence_supplier_sources (reused)",
             "intelligence_supplier_products (reused)",
             "intelligence_supplier_evidence (reused)",
+            "marketplace_executions (shared runtime)",
+            "marketplace_rate_windows (shared runtime)",
+            "marketplace_ledger (shared runtime)",
         ],
         "provider_specific_reason": (
             "Request/result lineage and provider-result idempotency require durable records."
@@ -417,6 +432,22 @@ def operational_summary(db: Session, owner: User, settings: Settings) -> dict[st
         )
         or 0
     )
+    executions = list(
+        db.scalars(
+            select(MarketplaceExecution).where(
+                MarketplaceExecution.owner_id == owner.id,
+                MarketplaceExecution.provider == "INDIAMART",
+            )
+        )
+    )
+    windows = list(
+        db.scalars(
+            select(MarketplaceRateWindow).where(
+                MarketplaceRateWindow.owner_id == owner.id,
+                MarketplaceRateWindow.provider == "INDIAMART",
+            )
+        )
+    )
     return {
         "provider": "INDIAMART",
         "preflight": {
@@ -438,7 +469,28 @@ def operational_summary(db: Session, owner: User, settings: Settings) -> dict[st
             "max_results": settings.indiamart_max_results,
             "retry_max_attempts": settings.indiamart_retry_max_attempts,
         },
-        "queue": {"pending": 0, "running": 0},
+        "queue": {
+            "pending": sum(row.status == "QUEUED" for row in executions),
+            "running": sum(row.status == "RUNNING" for row in executions),
+        },
+        "runtime": {
+            "registered": True,
+            "execution_count": len(executions),
+            "failed": sum(row.status in {"FAILED", "RETRY_WAIT"} for row in executions),
+            "retry_wait": sum(row.status == "RETRY_WAIT" for row in executions),
+            "last_execution": max(
+                (row.completed_at or row.started_at for row in executions), default=None
+            ),
+            "rate_windows": [
+                {
+                    "minute_used": row.minute_used,
+                    "hour_used": row.hour_used,
+                }
+                for row in windows
+            ],
+            "integrity": marketplace_integrity_counters(db, owner),
+            "live_validation": "NOT_RUN",
+        },
         "recovery": {"registered": True, "separate_recovery_system": False},
         "prohibited_actions": ["contact", "rfq", "order", "payment", "supplier_modification"],
     }

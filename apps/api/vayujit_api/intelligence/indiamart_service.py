@@ -6,11 +6,14 @@ from __future__ import annotations
 import hashlib
 import json
 import uuid
+from collections.abc import Mapping
+from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
+from typing import cast
 
 from fastapi import HTTPException
-from sqlalchemy import func, select, text
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
@@ -22,12 +25,19 @@ from vayujit_api.intelligence.autonomous_models import (
     AutonomousResearchTask,
 )
 from vayujit_api.intelligence.external_pipeline import verify_and_project
-from vayujit_api.intelligence.indiamart import discover_local, provider_preflight
+from vayujit_api.intelligence.indiamart import (
+    IndiaMartListing,
+    discover_local,
+    provider_preflight,
+)
 from vayujit_api.intelligence.indiamart_models import (
     IndiaMartDiscoveryRequest,
     IndiaMartDiscoveryResult,
 )
-from vayujit_api.intelligence.marketplace_runtime import consume_rate_window
+from vayujit_api.intelligence.marketplace_runtime import (
+    MarketplaceExecution,
+    execute_marketplace_lifecycle,
+)
 from vayujit_api.intelligence.supplier_models import (
     Supplier,
     SupplierEvidence,
@@ -42,17 +52,85 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
-def _lock(db: Session, key: str) -> None:
-    if db.bind is not None and db.bind.dialect.name == "postgresql":
-        number = int.from_bytes(hashlib.sha256(key.encode()).digest()[:8], "big") & ((1 << 63) - 1)
-        db.execute(text("SELECT pg_advisory_xact_lock(:key)"), {"key": number})
-
-
 def preflight(settings: Settings) -> dict[str, object]:
     value = provider_preflight(settings)
     if settings.indiamart_mode == "LIVE_READ_ONLY":
         value = {**value, "status": "BLOCKED_BY_EXTERNAL_CONFIGURATION"}
     return value
+
+
+class _IndiaMartAdapter:
+    """Adapt the read-only IndiaMART provider to the shared runtime contract."""
+
+    def __init__(self, settings: Settings, *, result_limit: int, country_code: str | None) -> None:
+        self.settings = settings
+        self.result_limit = result_limit
+        self.country_code = country_code
+
+    def preflight(self) -> dict[str, object]:
+        return preflight(self.settings)
+
+    def search(self, query: str) -> object:
+        return [
+            asdict(value)
+            for value in discover_local(
+                query=query, limit=self.result_limit, country_code=self.country_code
+            )
+        ]
+
+    def normalize(self, payload: object) -> list[dict[str, object]]:
+        if not isinstance(payload, list) or not all(
+            isinstance(value, Mapping) for value in payload
+        ):
+            raise ValueError("IndiaMART provider returned an invalid response")
+        return [dict(value) for value in payload]
+
+    def classify_failure(self, error: Exception) -> str:
+        message = str(error).upper()
+        if "TIMEOUT" in message:
+            return "TIMEOUT"
+        if "429" in message or "RATE" in message:
+            return "RATE_LIMITED"
+        if "401" in message or "403" in message or "AUTH" in message:
+            return "AUTH_FAILURE"
+        if "NETWORK" in message or "CONNECTION" in message:
+            return "NETWORK_FAILURE"
+        if any(code in message for code in ("500", "502", "503")):
+            return "PROVIDER_5XX"
+        return "INVALID_RESPONSE"
+
+
+def _optional_str(value: object) -> str | None:
+    return value if isinstance(value, str) else None
+
+
+def _optional_float(value: object) -> float | None:
+    return float(value) if isinstance(value, (int, float)) and not isinstance(value, bool) else None
+
+
+def _listing(value: Mapping[str, object]) -> IndiaMartListing:
+    """Convert the runtime JSON-safe payload to the normalized provider type."""
+    metadata_value = value.get("metadata")
+    return IndiaMartListing(
+        provider_result_id=str(value["provider_result_id"]),
+        supplier_name=str(value["supplier_name"]),
+        listing_name=str(value["listing_name"]),
+        source_url=str(value["source_url"]),
+        location=_optional_str(value.get("location")),
+        category=_optional_str(value.get("category")),
+        price=_optional_float(value.get("price")),
+        currency=_optional_str(value.get("currency")),
+        moq=_optional_float(value.get("moq")),
+        moq_unit=_optional_str(value.get("moq_unit")),
+        lead_time=_optional_str(value.get("lead_time")),
+        availability=(_optional_str(value.get("availability"))),
+        verification_claim=(_optional_str(value.get("verification_claim"))),
+        metadata=(
+            dict(cast(Mapping[str, object], metadata_value))
+            if isinstance(metadata_value, Mapping)
+            else {}
+        ),
+    )
 
 
 def _identity(name: str, location: str | None) -> str:
@@ -242,7 +320,6 @@ def discover(
             f"{owner.id}|{query.casefold()}|{product_id}|{country_code}|{region}|{result_limit}".encode()
         ).hexdigest()
     )
-    _lock(db, f"indiamart:{owner.id}:{key}")
     request = db.scalar(
         select(IndiaMartDiscoveryRequest).where(
             IndiaMartDiscoveryRequest.owner_id == owner.id,
@@ -267,14 +344,6 @@ def discover(
     if result_limit > settings.indiamart_max_results:
         raise HTTPException(422, "IndiaMART result limit exceeds the configured safety bound.")
     now = _now()
-    consume_rate_window(
-        db,
-        owner,
-        "INDIAMART",
-        requests_per_minute=settings.indiamart_requests_per_minute,
-        requests_per_hour=settings.indiamart_requests_per_hour,
-        now=now,
-    )
     day_count = (
         db.scalar(
             select(func.count())
@@ -289,6 +358,51 @@ def discover(
     if int(day_count) >= settings.indiamart_daily_quota:
         raise HTTPException(429, "IndiaMART daily quota reached; retry later.")
     stamp = now
+    runtime_result = execute_marketplace_lifecycle(
+        db,
+        owner,
+        _IndiaMartAdapter(settings, result_limit=result_limit, country_code=country_code),
+        provider="INDIAMART",
+        mission_id=mission_id,
+        task_id=task_id,
+        correlation_id=correlation_id,
+        identity_key=key,
+        query=query,
+        mode=settings.indiamart_mode,
+        requests_per_minute=settings.indiamart_requests_per_minute,
+        requests_per_hour=settings.indiamart_requests_per_hour,
+    )
+    if runtime_result.status != "SUCCEEDED":
+        raise HTTPException(409, "IndiaMART discovery could not be completed safely.")
+    execution = db.scalar(
+        select(MarketplaceExecution)
+        .where(MarketplaceExecution.id == runtime_result.execution_id)
+        .with_for_update()
+    )
+    if execution is None:
+        raise HTTPException(409, "IndiaMART discovery execution is unavailable.")
+    listings = _IndiaMartAdapter(
+        settings, result_limit=result_limit, country_code=country_code
+    ).normalize(execution.provider_payload)
+    request = db.scalar(
+        select(IndiaMartDiscoveryRequest).where(
+            IndiaMartDiscoveryRequest.owner_id == owner.id,
+            IndiaMartDiscoveryRequest.idempotency_key == key,
+        )
+    )
+    if request is not None:
+        existing_rows = list(
+            db.scalars(
+                select(IndiaMartDiscoveryResult)
+                .where(IndiaMartDiscoveryResult.request_id == request.id)
+                .order_by(IndiaMartDiscoveryResult.created_at)
+            )
+        )
+        return {
+            "request": _request_payload(request),
+            "results": [_payload(row) for row in existing_rows],
+        }
+    stamp = _now()
     request = IndiaMartDiscoveryRequest(
         owner_id=owner.id,
         product_id=product_id,
@@ -300,9 +414,10 @@ def discover(
         mode=settings.indiamart_mode,
         status="running",
         result_count=0,
-        correlation_id=correlation_id or uuid.uuid4().hex,
+        correlation_id=execution.correlation_id,
         mission_id=mission_id,
         task_id=task_id,
+        marketplace_execution_id=execution.id,
         idempotency_key=key,
         created_at=stamp,
         updated_at=stamp,
@@ -317,7 +432,8 @@ def discover(
         entity_id=request.id,
     )
     rows: list[IndiaMartDiscoveryResult] = []
-    for listing in discover_local(query=query, limit=result_limit, country_code=country_code):
+    for payload in listings:
+        listing = _listing(payload)
         supplier_identity = _identity(listing.supplier_name, listing.location)
         supplier = next(
             (
@@ -529,6 +645,9 @@ def _request_payload(row: IndiaMartDiscoveryRequest) -> dict[str, object]:
         "query": row.query,
         "result_count": row.result_count,
         "correlation_id": row.correlation_id,
+        "marketplace_execution_id": (
+            str(row.marketplace_execution_id) if row.marketplace_execution_id else None
+        ),
         "idempotency_key": row.idempotency_key,
         "created_at": row.created_at,
         "updated_at": row.updated_at,
