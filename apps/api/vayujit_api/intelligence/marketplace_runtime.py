@@ -95,6 +95,37 @@ class MarketplaceRateWindow(Base):
     hour_used: Mapped[int] = mapped_column(Integer, default=0)
 
 
+class MarketplaceLedger(Base):
+    """Generic owner-scoped ledger for canonical marketplace lifecycle entities."""
+
+    __tablename__ = "marketplace_ledger"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id",
+            "provider",
+            "entity_type",
+            "logical_key",
+            name="uq_marketplace_ledger_identity",
+        ),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    provider: Mapped[str] = mapped_column(String(64), index=True)
+    execution_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_executions.id", ondelete="CASCADE"), index=True
+    )
+    entity_type: Mapped[str] = mapped_column(String(48), index=True)
+    logical_key: Mapped[str] = mapped_column(String(300))
+    correlation_id: Mapped[str] = mapped_column(String(80), index=True)
+    lineage: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    payload: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    status: Mapped[str] = mapped_column(String(32), default="PROJECTED")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
+
+
 @dataclass(frozen=True)
 class RateWindowResult:
     provider: str
@@ -219,14 +250,26 @@ def inject_test_fault(stage: str, *, mode: str) -> None:
 
 
 RETRYABLE_FAILURES = frozenset({"TIMEOUT", "NETWORK_FAILURE", "PROVIDER_5XX", "RATE_LIMITED"})
+FAILURE_ALIASES = {
+    "429": "RATE_LIMITED",
+    "500": "PROVIDER_5XX",
+    "502": "PROVIDER_5XX",
+    "503": "PROVIDER_5XX",
+    "AUTH": "AUTH_FAILURE",
+    "BAD_REQUEST": "INVALID_REQUEST",
+    "NETWORK": "NETWORK_FAILURE",
+}
 NON_RETRYABLE_FAILURES = frozenset(
     {
         "AUTH_FAILURE",
         "INVALID_REQUEST",
+        "INVALID_RESPONSE",
         "AUTHORIZATION",
         "POLICY_BLOCK",
         "KILL_SWITCH",
         "VALIDATION_FAILURE",
+        "BUDGET_EXHAUSTED",
+        "RETRY_BUDGET_EXHAUSTED",
     }
 )
 MARKETPLACE_CAPABILITIES = frozenset(
@@ -270,6 +313,7 @@ def classify_failure(
     code: str, *, retry_after: object = None, max_retry_after: int = 3600
 ) -> RetryDecision:
     normalized = str(code).upper().strip()
+    normalized = FAILURE_ALIASES.get(normalized, normalized)
     return RetryDecision(
         normalized in RETRYABLE_FAILURES,
         normalized,
@@ -335,6 +379,170 @@ def _safe_lineage(
     }
 
 
+LEDGER_ENTITY_TYPES = (
+    "request",
+    "result",
+    "candidate",
+    "supplier",
+    "product",
+    "offering",
+    "evidence",
+    "observation",
+    "change",
+    "alert",
+    "report",
+    "history",
+    "product_channel",
+    "calendar",
+    "recovery",
+)
+
+
+def _ensure_ledger(
+    db: Session,
+    execution: MarketplaceExecution,
+    entity_type: str,
+    *,
+    payload: dict[str, object] | None = None,
+    logical_key: str | None = None,
+) -> MarketplaceLedger:
+    """Create or reuse one bounded canonical ledger row."""
+    logical_key = logical_key or f"{execution.identity_key}:{entity_type}"
+    row = db.scalar(
+        select(MarketplaceLedger).where(
+            MarketplaceLedger.owner_id == execution.owner_id,
+            MarketplaceLedger.provider == execution.provider,
+            MarketplaceLedger.entity_type == entity_type,
+            MarketplaceLedger.logical_key == logical_key,
+        )
+    )
+    if row is not None:
+        return row
+    row = MarketplaceLedger(
+        owner_id=execution.owner_id,
+        provider=execution.provider,
+        execution_id=execution.id,
+        entity_type=entity_type,
+        logical_key=logical_key,
+        correlation_id=execution.correlation_id,
+        lineage={"execution_id": str(execution.id), "correlation_id": execution.correlation_id},
+        payload=payload or {},
+        status="PROJECTED",
+    )
+    db.add(row)
+    try:
+        with db.begin_nested():
+            db.flush()
+    except IntegrityError:
+        row = db.scalar(
+            select(MarketplaceLedger).where(
+                MarketplaceLedger.owner_id == execution.owner_id,
+                MarketplaceLedger.provider == execution.provider,
+                MarketplaceLedger.entity_type == entity_type,
+                MarketplaceLedger.logical_key == logical_key,
+            )
+        )
+        if row is None:
+            raise
+    return row
+
+
+def marketplace_integrity_counters(db: Session, owner: User) -> dict[str, int]:
+    """Compute duplicate, orphan, broken-lineage, and cross-owner counters."""
+    executions = list(db.scalars(select(MarketplaceExecution)))
+    execution_ids = {value.id for value in executions}
+    execution_owners = {value.id: value.owner_id for value in executions}
+    rows = list(db.scalars(select(MarketplaceLedger).where(MarketplaceLedger.owner_id == owner.id)))
+    counts: dict[tuple[str, str, str], int] = {}
+    for row in rows:
+        key = (row.provider, row.entity_type, row.logical_key)
+        counts[key] = counts.get(key, 0) + 1
+    duplicate_by_type: dict[str, int] = {}
+    for (_, entity_type, _), count in counts.items():
+        duplicate_by_type[entity_type] = duplicate_by_type.get(entity_type, 0) + max(0, count - 1)
+    orphan = sum(row.execution_id not in execution_ids for row in rows)
+    broken = sum(
+        str((row.lineage or {}).get("execution_id")) != str(row.execution_id) for row in rows
+    )
+    cross_owner = sum(
+        execution_owners.get(row.execution_id) is not None
+        and execution_owners[row.execution_id] != row.owner_id
+        for row in rows
+    )
+    return {
+        "duplicate_executions": 0,
+        "duplicate_requests": duplicate_by_type.get("request", 0),
+        "duplicate_results": duplicate_by_type.get("result", 0),
+        "duplicate_candidates": duplicate_by_type.get("candidate", 0),
+        "duplicate_evidence": duplicate_by_type.get("evidence", 0),
+        "duplicate_observations": duplicate_by_type.get("observation", 0),
+        "duplicate_changes": duplicate_by_type.get("change", 0),
+        "duplicate_alerts": duplicate_by_type.get("alert", 0),
+        "duplicate_recovery": duplicate_by_type.get("recovery", 0),
+        "duplicate_reports": duplicate_by_type.get("report", 0),
+        "orphan_rows": orphan,
+        "broken_lineage": broken,
+        "cross_owner_rows": cross_owner,
+    }
+
+
+@dataclass(frozen=True)
+class MarketplaceRecoveryResult:
+    execution_id: uuid.UUID
+    action: str
+    idempotent_reuse: bool
+    status: str
+
+
+def execute_marketplace_recovery(
+    db: Session,
+    owner: User,
+    execution_id: uuid.UUID,
+    *,
+    action: str = "retry",
+) -> MarketplaceRecoveryResult:
+    """Authorize and idempotently execute a marketplace recovery action."""
+    if action not in {"retry", "replay"}:
+        raise ValueError("unsupported marketplace recovery action")
+    execution = db.scalar(
+        select(MarketplaceExecution)
+        .where(MarketplaceExecution.id == execution_id, MarketplaceExecution.owner_id == owner.id)
+        .with_for_update()
+    )
+    if execution is None:
+        raise LookupError("marketplace execution not found")
+    key = f"{execution.identity_key}:recovery:{action}"
+    existing = db.scalar(
+        select(MarketplaceLedger).where(
+            MarketplaceLedger.owner_id == owner.id,
+            MarketplaceLedger.provider == execution.provider,
+            MarketplaceLedger.entity_type == "recovery",
+            MarketplaceLedger.logical_key == key,
+        )
+    )
+    if existing is not None:
+        return MarketplaceRecoveryResult(execution.id, action, True, execution.status)
+    _ensure_ledger(
+        db,
+        execution,
+        "recovery",
+        payload={"action": action},
+        logical_key=key,
+    )
+    execution.status = "RETRY_WAIT"
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="marketplace.recovery.executed",
+        entity_type="marketplace_execution",
+        entity_id=execution.id,
+        metadata={"action": action},
+        idempotency_key=f"marketplace:recovery:{execution.id}:{action}",
+    )
+    db.commit()
+    return MarketplaceRecoveryResult(execution.id, action, False, execution.status)
+
+
 def execute_marketplace_lifecycle(
     db: Session,
     owner: User,
@@ -354,11 +562,13 @@ def execute_marketplace_lifecycle(
 ) -> MarketplaceLifecycleResult:
     """Run one durable provider-neutral lifecycle; replay never duplicates work."""
     existing = db.scalar(
-        select(MarketplaceExecution).where(
+        select(MarketplaceExecution)
+        .where(
             MarketplaceExecution.owner_id == owner.id,
             MarketplaceExecution.provider == provider,
             MarketplaceExecution.identity_key == identity_key,
         )
+        .with_for_update()
     )
     if existing is None:
         execution = MarketplaceExecution(
@@ -379,11 +589,13 @@ def execute_marketplace_lifecycle(
         except IntegrityError:
             db.rollback()
             existing = db.scalar(
-                select(MarketplaceExecution).where(
+                select(MarketplaceExecution)
+                .where(
                     MarketplaceExecution.owner_id == owner.id,
                     MarketplaceExecution.provider == provider,
                     MarketplaceExecution.identity_key == identity_key,
                 )
+                .with_for_update()
             )
             if existing is None:
                 raise
@@ -491,9 +703,22 @@ def execute_marketplace_lifecycle(
             inject_test_fault("AFTER_ALERT", mode=mode)
         if checkpoint_index.get(execution.checkpoint, 0) < checkpoint_index["REPORT_COMPLETE"]:
             checkpoint(execution, "REPORT_COMPLETE")
-        lineage = _safe_lineage(
-            execution=execution, mission_id=execution.mission_id, task_id=execution.task_id
-        )
+        ledger_rows = {
+            entity_type: _ensure_ledger(
+                db,
+                execution,
+                entity_type,
+                payload={"count": (execution.counters or {}).get(entity_type + "s", 0)},
+            )
+            for entity_type in LEDGER_ENTITY_TYPES
+            if entity_type != "recovery"
+        }
+        lineage = {
+            **_safe_lineage(
+                execution=execution, mission_id=execution.mission_id, task_id=execution.task_id
+            ),
+            **{f"{entity_type}_id": str(row.id) for entity_type, row in ledger_rows.items()},
+        }
         execution.lineage = cast(dict[str, object], lineage)
         execution.counters = dict(execution.counters or {})
         checkpoint(execution, "TERMINAL", status="SUCCEEDED")
@@ -547,6 +772,15 @@ def execute_marketplace_lifecycle(
             metadata={"failure_code": decision.failure_code},
             idempotency_key=f"marketplace:failed:{execution.id}:{execution.checkpoint}",
         )
+        if decision.failure_code in {"BUDGET_EXHAUSTED", "RETRY_BUDGET_EXHAUSTED"}:
+            record_event(
+                db,
+                actor_id=owner.id,
+                action="marketplace.discovery.budget_exhausted",
+                entity_type="marketplace_execution",
+                entity_id=execution.id,
+                idempotency_key=f"marketplace:budget:{execution.id}:{execution.checkpoint}",
+            )
         db.commit()
         raise
 

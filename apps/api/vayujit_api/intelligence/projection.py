@@ -23,7 +23,12 @@ from vayujit_api.intelligence.external_models import (
 from vayujit_api.intelligence.external_projection import integrity_projection
 from vayujit_api.intelligence.external_service import approved_fetch_preflight
 from vayujit_api.intelligence.indiamart_projection import operational_summary
-from vayujit_api.intelligence.marketplace_runtime import MarketplaceExecution, MarketplaceRateWindow
+from vayujit_api.intelligence.marketplace_runtime import (
+    MarketplaceExecution,
+    MarketplaceLedger,
+    MarketplaceRateWindow,
+    marketplace_integrity_counters,
+)
 from vayujit_api.intelligence.models import (
     IntelligenceEvidence,
     IntelligenceResearchRun,
@@ -83,6 +88,26 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
     marketplace_windows = list(
         db.scalars(select(MarketplaceRateWindow).where(MarketplaceRateWindow.owner_id == owner.id))
     )
+    marketplace_ledger = list(
+        db.scalars(select(MarketplaceLedger).where(MarketplaceLedger.owner_id == owner.id))
+    )
+    marketplace_counts = {
+        entity_type: sum(row.entity_type == entity_type for row in marketplace_ledger)
+        for entity_type in (
+            "request",
+            "result",
+            "candidate",
+            "supplier",
+            "product",
+            "offering",
+            "evidence",
+            "observation",
+            "change",
+            "alert",
+            "report",
+            "recovery",
+        )
+    }
     marketplace_projection = {
         "registered_providers": sorted({row.provider for row in marketplace_rows}) or ["INDIAMART"],
         "provider_mode": {
@@ -103,12 +128,12 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
             "executions": len(marketplace_rows),
             "retry_wait": sum(row.status == "RETRY_WAIT" for row in marketplace_rows),
         },
-        "recovery": {"registered": True},
-        "integrity": {
-            "duplicate_executions": 0,
-            "orphan_executions": 0,
-            "cross_owner_executions": 0,
+        "ledger": marketplace_counts,
+        "recovery": {
+            "registered": True,
+            "executions": marketplace_counts["recovery"],
         },
+        "integrity": marketplace_integrity_counters(db, owner),
         "performance": {"classification": "LOCAL_FIXTURE_BASELINE"},
         "live_validation": "NOT_RUN",
     }

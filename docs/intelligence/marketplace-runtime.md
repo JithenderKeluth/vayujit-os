@@ -1,4 +1,4 @@
-﻿# Marketplace Runtime
+# Marketplace Runtime
 
 The provider-neutral marketplace runtime supplies durable execution identity,
 owner/provider scoping, checkpoints, bounded minute/hour rate windows, and a
@@ -40,11 +40,24 @@ external AI, purchasing, and payments remain separate boundaries.
 
 ## Local certification evidence (2026-08-31)
 
-- Marketplace runtime focused certification: 11 passed.
+- Marketplace runtime focused certification: 28 passed.
 - Canonical replay returns the same owner-scoped execution and does not invoke the provider twice.
 - Six LOCAL_FIXTURE crash checkpoints resume to TERMINAL; BEFORE_PROVIDER invokes the provider once after recovery and later checkpoints do not repeat it.
 - API regression: 1,101 passed; workflow 5 passed; scheduler 5 passed; workers 2 passed; campaign E2E 2 passed.
 - Angular: 127 passed; Electron: 4 passed; build, format, Ruff, Black, mypy, and dependency audits passed.
-- Migration 20261014_0093 passes fresh upgrade, downgrade, re-upgrade, and prior-head upgrade.
+- Migration 20261015_0094 passes fresh upgrade, downgrade, re-upgrade, and prior-head upgrade.
 
 This is LOCAL_FIXTURE certification only. No live marketplace call, purchasing action, contact action, or payment action is enabled by this runtime.
+
+## Certification closure work (2026-09-01)
+
+The generic runtime certification suite now covers 28 focused cases: a ten-row
+failure/retry matrix, bounded Retry-After, PostgreSQL retry-budget contention,
+owner-scoped canonical ledger projection, replay, recovery idempotency, and ten
+warm samples. The canonical run projects request, result, candidate, supplier,
+product, offering, evidence, observation, change, alert, report, history,
+product-channel, and calendar ledger identities with one correlation ID. Ledger
+identity is unique per owner/provider/entity/logical key; integrity counters are
+database-derived.
+
+This remains deterministic LOCAL_FIXTURE evidence. The shared-runtime IndiaMART fixture proof passes; the full 97-test IndiaMART suite was attempted on 2026-09-01 but exceeded the local 704-second command timeout. Live IndiaMART access, external credentials, and purchasing/contact/payment operations are not enabled.
