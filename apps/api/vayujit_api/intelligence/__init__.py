@@ -105,9 +105,12 @@ __all__ = [
     "WebsiteOffering",
     "WebsiteClaim",
     "MarketplaceExecution",
+    "MarketplaceLedger",
     "MarketplaceLifecycleResult",
     "MarketplaceRateWindow",
+    "MarketplaceRecoveryResult",
     "execute_marketplace_lifecycle",
+    "execute_marketplace_recovery",
 ]
 from vayujit_api.intelligence.autonomous_models import (
     AutonomousResearchAlert,
@@ -124,9 +127,12 @@ from vayujit_api.intelligence.autonomous_models import (
 )
 from vayujit_api.intelligence.marketplace_runtime import (
     MarketplaceExecution,
+    MarketplaceLedger,
     MarketplaceLifecycleResult,
     MarketplaceRateWindow,
+    MarketplaceRecoveryResult,
     execute_marketplace_lifecycle,
+    execute_marketplace_recovery,
 )
 from vayujit_api.intelligence.sourcing_models import (
     CostScenario,

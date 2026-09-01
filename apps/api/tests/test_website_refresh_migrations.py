@@ -12,4 +12,4 @@ def test_refresh_migration_is_current_head():
         text=True,
         check=True,
     )
-    assert "20261014_0093" in result.stdout
+    assert "20261015_0094" in result.stdout
