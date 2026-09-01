@@ -45,7 +45,7 @@ external AI, purchasing, and payments remain separate boundaries.
 - Six LOCAL_FIXTURE crash checkpoints resume to TERMINAL; BEFORE_PROVIDER invokes the provider once after recovery and later checkpoints do not repeat it.
 - API regression: 1,101 passed; workflow 5 passed; scheduler 5 passed; workers 2 passed; campaign E2E 2 passed.
 - Angular: 127 passed; Electron: 4 passed; build, format, Ruff, Black, mypy, and dependency audits passed.
-- Migration 20261015_0094 passes fresh upgrade, downgrade, re-upgrade, and prior-head upgrade.
+- Migration 20261016_0095 passes fresh upgrade, downgrade, re-upgrade, and prior-head upgrade.
 
 This is LOCAL_FIXTURE certification only. No live marketplace call, purchasing action, contact action, or payment action is enabled by this runtime.
 
@@ -60,4 +60,4 @@ product-channel, and calendar ledger identities with one correlation ID. Ledger
 identity is unique per owner/provider/entity/logical key; integrity counters are
 database-derived.
 
-This remains deterministic LOCAL_FIXTURE evidence. The shared-runtime IndiaMART fixture proof passes; the full 97-test IndiaMART suite was attempted on 2026-09-01 but exceeded the local 704-second command timeout. Live IndiaMART access, external credentials, and purchasing/contact/payment operations are not enabled.
+This remains deterministic LOCAL_FIXTURE evidence. IndiaMART discovery now invokes the shared runtime adapter exactly once per logical identity, persists the execution link on each request, and replays from the existing request without another provider call. The focused IndiaMART certification suite (including adoption and lineage proof) passes 10 tests. The full 97-test IndiaMART suite was attempted on 2026-09-01 but exceeded the local 704-second command timeout. Live IndiaMART access, external credentials, and purchasing/contact/payment operations are not enabled.

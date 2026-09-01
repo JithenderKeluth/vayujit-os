@@ -42,6 +42,12 @@ class IndiaMartDiscoveryRequest(Base):
     correlation_id: Mapped[str] = mapped_column(String(80), index=True)
     mission_id: Mapped[uuid.UUID | None] = mapped_column(nullable=True, index=True)
     task_id: Mapped[uuid.UUID | None] = mapped_column(nullable=True, index=True)
+    marketplace_execution_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("marketplace_executions.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     idempotency_key: Mapped[str] = mapped_column(String(180))
     failure_code: Mapped[str | None] = mapped_column(String(80))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))

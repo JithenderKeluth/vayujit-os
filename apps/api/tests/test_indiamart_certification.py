@@ -13,11 +13,12 @@ from test_ai_integration import ORIGIN, setup_context
 from vayujit_api.core.config import Settings
 from vayujit_api.identity.models import User
 from vayujit_api.intelligence import indiamart_service
-from vayujit_api.intelligence.indiamart import provider_preflight
+from vayujit_api.intelligence.indiamart import IndiaMartListing, provider_preflight
 from vayujit_api.intelligence.indiamart_models import (
     IndiaMartDiscoveryRequest,
     IndiaMartDiscoveryResult,
 )
+from vayujit_api.intelligence.marketplace_runtime import MarketplaceExecution, MarketplaceLedger
 from vayujit_api.intelligence.supplier_models import Supplier, SupplierEvidence
 
 pytest_plugins = ("test_ai_integration",)
@@ -132,6 +133,53 @@ def test_normalized_claims_are_null_safe_and_discovery_only(client: TestClient) 
         assert len(suppliers) == 2
         assert all(row.verification_status == "unverified" for row in evidence)
         assert all(row.source_url and "indiamart.com" in row.source_url for row in evidence)
+
+
+def test_shared_runtime_adoption_persists_execution_lineage_and_replays(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    context = setup_context(client)
+    calls: list[dict[str, object]] = []
+    original = indiamart_service.discover_local
+
+    def counted_discovery(**kwargs: Any) -> list[IndiaMartListing]:
+        calls.append(dict(kwargs))
+        return original(**kwargs)
+
+    monkeypatch.setattr(indiamart_service, "discover_local", counted_discovery)
+    payload = {
+        "query": "shared runtime bottle",
+        "product_id": context["product"]["id"],
+        "idempotency_key": "indiamart-shared-runtime-adoption",
+        "correlation_id": "indiamart-runtime-correlation",
+    }
+    first = client.post("/api/v1/intelligence/indiamart/discover", json=payload, headers=ORIGIN)
+    assert first.status_code == 200, first.text
+    replay = client.post("/api/v1/intelligence/indiamart/discover", json=payload, headers=ORIGIN)
+    assert replay.status_code == 200, replay.text
+    assert replay.json() == first.json()
+    assert len(calls) == 1
+
+    assert test_ai_integration.factory is not None
+    with test_ai_integration.factory() as db:
+        request = db.scalar(select(IndiaMartDiscoveryRequest))
+        assert request is not None
+        execution = db.scalar(
+            select(MarketplaceExecution).where(
+                MarketplaceExecution.id == request.marketplace_execution_id
+            )
+        )
+        assert execution is not None
+        assert execution.provider == "INDIAMART"
+        assert execution.status == "SUCCEEDED"
+        assert execution.correlation_id == request.correlation_id
+        assert execution.provider_payload is not None
+        ledger = list(
+            db.scalars(
+                select(MarketplaceLedger).where(MarketplaceLedger.execution_id == execution.id)
+            )
+        )
+        assert {row.entity_type for row in ledger} >= {"request", "result", "evidence"}
 
 
 def test_replay_and_storage_ledger_have_zero_duplicate_deltas(client: TestClient) -> None:
