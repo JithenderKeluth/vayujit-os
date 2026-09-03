@@ -61,3 +61,11 @@ identity is unique per owner/provider/entity/logical key; integrity counters are
 database-derived.
 
 This remains deterministic LOCAL_FIXTURE evidence. IndiaMART discovery now invokes the shared runtime adapter exactly once per logical identity, persists the execution link on each request, and replays from the existing request without another provider call. The focused IndiaMART certification suite (including adoption and lineage proof) passes 10 tests. The full 97-test IndiaMART suite was attempted on 2026-09-01 but exceeded the local 704-second command timeout. Live IndiaMART access, external credentials, and purchasing/contact/payment operations are not enabled.
+
+## Alibaba adoption
+
+Alibaba uses `execute_marketplace_lifecycle` and does not add provider-specific lifecycle machinery.
+
+## Alibaba Slice 7B.4 local evidence (2026-09-02)
+
+Alibaba now uses the shared runtime with three focused PostgreSQL integration tests passing for deterministic discovery/replay, owner-scoped projections, evidence handoff/replay, and System Doctor visibility. No live provider call or mutation was attempted; strict provider rate/retry/crash/concurrency and live certification remain open.

@@ -208,6 +208,17 @@ class Settings(BaseSettings):
     indiamart_daily_quota: int = Field(default=500, ge=1, le=100000)
     indiamart_retry_max_attempts: int = Field(default=2, ge=0, le=5)
     indiamart_kill_switch: bool = False
+    alibaba_enabled: bool = False
+    alibaba_mode: Literal["DISABLED", "LOCAL_FIXTURE", "LIVE_READ_ONLY"] = "DISABLED"
+    alibaba_base_url: str | None = None
+    alibaba_token_ref: str | None = None
+    alibaba_timeout_seconds: float = Field(default=15.0, ge=0.1, le=120)
+    alibaba_max_results: int = Field(default=10, ge=1, le=20)
+    alibaba_requests_per_minute: int = Field(default=8, ge=1, le=1000)
+    alibaba_requests_per_hour: int = Field(default=8, ge=1, le=10000)
+    alibaba_daily_quota: int = Field(default=500, ge=1, le=100000)
+    alibaba_retry_max_attempts: int = Field(default=2, ge=0, le=5)
+    alibaba_kill_switch: bool = False
 
     @field_validator("environment")
     @classmethod

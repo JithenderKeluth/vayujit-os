@@ -10,6 +10,9 @@ from sqlalchemy.orm import Session
 
 from vayujit_api.core.config import get_settings
 from vayujit_api.identity.models import User
+from vayujit_api.intelligence.alibaba_projection import (
+    operational_summary as alibaba_operational_summary,
+)
 from vayujit_api.intelligence.autonomous_models import (
     AutonomousResearchAlert,
     AutonomousResearchContradiction,
@@ -183,6 +186,7 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
             "recovery": {"registered": True, "retryable_failure_code": "refresh_failed"},
         },
         "indiamart": operational_summary(db, owner, settings),
+        "alibaba": alibaba_operational_summary(db, owner, settings),
         "marketplace": marketplace_projection,
         "research_execution_enabled": settings.intelligence_research_execution_enabled,
         "external_research_enabled": settings.intelligence_external_research_enabled,
