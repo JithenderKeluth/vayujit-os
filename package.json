@@ -239,6 +239,7 @@
     "test:intelligence:indiamart": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-indiamart.ps1",
     "test:intelligence:alibaba": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-alibaba.ps1",
     "test:intelligence:tradeindia": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-tradeindia.ps1",
+    "test:intelligence:cross-marketplace": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-cross-marketplace.ps1",
     "test:intelligence:global-sources": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-global-sources.ps1"
   },
   "devDependencies": {

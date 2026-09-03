@@ -116,3 +116,13 @@ Ten warm samples per endpoint (median and p95, milliseconds):
 - Quality gates: build, lint (0 errors, 2 pre-existing warnings), Prettier format check, Ruff, Black, mypy, production and development npm audits all passed; System Doctor passed with optional-provider/encryption warnings only.
 
 Accepted boundaries remain: AXE not configured; viewport automation not configured; external supplier contact disabled; live freight/FX/duty-tax not configured; purchasing/payments/PO/inventory receiving not implemented; document parsing and autonomous sourcing not enabled; aggregate integration is bounded by total runtime and is not used as the certification gate.
+## Slice 8A — Cross-Marketplace Supplier Intelligence
+
+A provider-independent canonical Supplier projection now consolidates accepted owner-scoped
+Supplier, Source, Product, Evidence, verification, capability, certification, risk, and sourcing
+records. It is server-derived and read-only against external systems. Exact identities may be
+matched deterministically; possible matches remain review-only and are never auto-merged. Price,
+MOQ, lead-time, availability, freshness, contradictions, confidence, source diversity, ranking,
+reports, Product Channel contribution, Calendar reminders, and Operations/System Doctor summaries
+remain lineage-preserving. Supplier contact, RFQ dispatch, purchasing, payments, and live connector
+calls remain disabled or separately configured.
