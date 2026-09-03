@@ -129,6 +129,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'intelligence/tradeindia',
+    loadComponent: () =>
+      import('./intelligence/tradeindia-discovery.component').then(
+        (m) => m.TradeIndiaDiscoveryComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'intelligence/websites',
     loadComponent: () =>
       import('./intelligence/website-intelligence.component').then(

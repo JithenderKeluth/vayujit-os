@@ -397,6 +397,57 @@ export interface AlibabaDiscoveryResponse {
   request: AlibabaDiscoveryRequestRecord;
   results: AlibabaDiscoveryResult[];
 }
+export interface TradeIndiaPreflight {
+  provider: string;
+  mode: string;
+  status: string;
+  credentials_configured: boolean;
+  live_validation: string;
+  read_only: boolean;
+  network_call: boolean;
+}
+export interface TradeIndiaDiscoveryRequestRecord {
+  id: string;
+  provider: string;
+  mode: string;
+  status: string;
+  query: string;
+  result_count: number;
+  correlation_id: string;
+  idempotency_key: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface TradeIndiaDiscoveryResult {
+  id: string;
+  request_id: string;
+  provider: string;
+  provider_result_id: string;
+  supplier_id: string | null;
+  supplier_name: string;
+  listing_name: string;
+  source_url: string | null;
+  location: string | null;
+  category: string | null;
+  price_claim: number | null;
+  currency: string | null;
+  moq_claim: number | null;
+  moq_unit: string | null;
+  lead_time_claim: string | null;
+  availability_claim: string | null;
+  verification_claim: string | null;
+  identity_match: string;
+  product_match: string;
+  freshness_status: string;
+  classification: string;
+  evidence_id: string | null;
+  correlation_id: string;
+  retrieved_at: string;
+}
+export interface TradeIndiaDiscoveryResponse {
+  request: TradeIndiaDiscoveryRequestRecord;
+  results: TradeIndiaDiscoveryResult[];
+}
 export interface IndiaMartPreflight {
   provider: string;
   mode: string;
@@ -1301,6 +1352,54 @@ export class IntelligenceService {
     return firstValueFrom(
       this.http.get<AlibabaDiscoveryResponse>(
         `${this.base}/alibaba/discoveries/${encodeURIComponent(id)}`,
+        this.options,
+      ),
+    );
+  }
+  tradeindiaPreflight(): Promise<TradeIndiaPreflight> {
+    return firstValueFrom(
+      this.http.get<TradeIndiaPreflight>(`${this.base}/tradeindia/preflight`, this.options),
+    );
+  }
+
+  tradeindiaOperations(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(`${this.base}/tradeindia/operations`, this.options),
+    );
+  }
+
+  tradeindiaHistory(): Promise<TradeIndiaDiscoveryRequestRecord[]> {
+    return firstValueFrom(
+      this.http.get<TradeIndiaDiscoveryRequestRecord[]>(
+        `${this.base}/tradeindia/discoveries`,
+        this.options,
+      ),
+    );
+  }
+
+  tradeindiaDiscover(payload: Record<string, unknown>): Promise<TradeIndiaDiscoveryResponse> {
+    return firstValueFrom(
+      this.http.post<TradeIndiaDiscoveryResponse>(
+        `${this.base}/tradeindia/discover`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+
+  tradeindiaDetail(id: string): Promise<TradeIndiaDiscoveryResponse> {
+    return firstValueFrom(
+      this.http.get<TradeIndiaDiscoveryResponse>(
+        `${this.base}/tradeindia/discoveries/${encodeURIComponent(id)}`,
+        this.options,
+      ),
+    );
+  }
+
+  tradeindiaProductChannel(productId: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${this.base}/tradeindia/product-channel/${encodeURIComponent(productId)}`,
         this.options,
       ),
     );
