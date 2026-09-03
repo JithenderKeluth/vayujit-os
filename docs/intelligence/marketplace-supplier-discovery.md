@@ -84,3 +84,5 @@ Alibaba Slice 7B.4 local evidence includes thirteen deterministic normalization 
 ## TradeIndia Slice 7C
 
 TradeIndia adds read-only supplier/listing discovery on the same normalized supplier intelligence and Marketplace Runtime contracts. Local fixtures cover incomplete source fields, duplicate and similar supplier identities, provider claims, changed/disappeared listings, commercial disagreement, and stale observations. No contact, RFQ, purchasing, payment, or provider mutation is implemented.
+
+Global Sources supplier discovery (Slice 7D) is a thin read-only adapter over the shared Marketplace Runtime. Local fixtures cover normalized listings, identity/product/offering matching, evidence handoff, claims, freshness, changes, alerts, and replay; contact, RFQ, purchasing, payment, scraping, and mutations remain unavailable.

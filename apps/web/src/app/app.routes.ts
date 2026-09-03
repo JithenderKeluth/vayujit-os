@@ -137,6 +137,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'intelligence/global-sources',
+    loadComponent: () =>
+      import('./intelligence/global-sources-discovery.component').then(
+        (m) => m.GlobalSourcesDiscoveryComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'intelligence/websites',
     loadComponent: () =>
       import('./intelligence/website-intelligence.component').then(

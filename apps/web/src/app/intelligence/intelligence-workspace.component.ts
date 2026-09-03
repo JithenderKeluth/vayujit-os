@@ -264,6 +264,7 @@ import {
               <option value="indiamart">IndiaMART fixture</option>
               <option value="alibaba">Alibaba fixture</option>
               <option value="tradeindia">TradeIndia fixture</option>
+              <option value="global_sources">Global Sources fixture</option>
               <option value="offline_market">Offline market</option>
             </select></label
           ><label

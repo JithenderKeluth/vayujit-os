@@ -73,3 +73,5 @@ Alibaba now uses the shared runtime with three focused PostgreSQL integration te
 ## TradeIndia adoption (Slice 7C)
 
 TradeIndia is registered as a read-only adapter through `execute_marketplace_lifecycle`. It contributes deterministic `LOCAL_FIXTURE` discovery only; shared rate windows, retry metadata, checkpoints, owner/provider identity, evidence, and integrity projections remain runtime-owned. `LIVE_READ_ONLY` is fail-closed pending official external configuration.
+
+Global Sources adoption (Slice 7D) uses the same Marketplace Runtime contract and owner-scoped persistence. It is disabled by default; LOCAL_FIXTURE is deterministic and read-only, while LIVE_READ_ONLY is fail-closed until approved external configuration exists. No provider-specific runtime, retry, rate limiter, recovery, or mutation framework is introduced.

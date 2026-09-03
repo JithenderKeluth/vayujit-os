@@ -448,6 +448,57 @@ export interface TradeIndiaDiscoveryResponse {
   request: TradeIndiaDiscoveryRequestRecord;
   results: TradeIndiaDiscoveryResult[];
 }
+export interface GlobalSourcesPreflight {
+  provider: string;
+  mode: string;
+  status: string;
+  credentials_configured: boolean;
+  live_validation: string;
+  read_only: boolean;
+  network_call: boolean;
+}
+export interface GlobalSourcesDiscoveryRequestRecord {
+  id: string;
+  provider: string;
+  mode: string;
+  status: string;
+  query: string;
+  result_count: number;
+  correlation_id: string;
+  idempotency_key: string;
+  created_at: string;
+  updated_at: string;
+}
+export interface GlobalSourcesDiscoveryResult {
+  id: string;
+  request_id: string;
+  provider: string;
+  provider_result_id: string;
+  supplier_id: string | null;
+  supplier_name: string;
+  listing_name: string;
+  source_url: string | null;
+  location: string | null;
+  category: string | null;
+  price_claim: number | null;
+  currency: string | null;
+  moq_claim: number | null;
+  moq_unit: string | null;
+  lead_time_claim: string | null;
+  availability_claim: string | null;
+  verification_claim: string | null;
+  identity_match: string;
+  product_match: string;
+  freshness_status: string;
+  classification: string;
+  evidence_id: string | null;
+  correlation_id: string;
+  retrieved_at: string;
+}
+export interface GlobalSourcesDiscoveryResponse {
+  request: GlobalSourcesDiscoveryRequestRecord;
+  results: GlobalSourcesDiscoveryResult[];
+}
 export interface IndiaMartPreflight {
   provider: string;
   mode: string;
@@ -1400,6 +1451,57 @@ export class IntelligenceService {
     return firstValueFrom(
       this.http.get<Record<string, unknown>>(
         `${this.base}/tradeindia/product-channel/${encodeURIComponent(productId)}`,
+        this.options,
+      ),
+    );
+  }
+  globalSourcesPreflight(): Promise<GlobalSourcesPreflight> {
+    return firstValueFrom(
+      this.http.get<GlobalSourcesPreflight>(`${this.base}/global_sources/preflight`, this.options),
+    );
+  }
+
+  globalSourcesOperations(): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${this.base}/global_sources/operations`,
+        this.options,
+      ),
+    );
+  }
+
+  globalSourcesHistory(): Promise<GlobalSourcesDiscoveryRequestRecord[]> {
+    return firstValueFrom(
+      this.http.get<GlobalSourcesDiscoveryRequestRecord[]>(
+        `${this.base}/global_sources/discoveries`,
+        this.options,
+      ),
+    );
+  }
+
+  globalSourcesDiscover(payload: Record<string, unknown>): Promise<GlobalSourcesDiscoveryResponse> {
+    return firstValueFrom(
+      this.http.post<GlobalSourcesDiscoveryResponse>(
+        `${this.base}/global_sources/discover`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+
+  globalSourcesDetail(id: string): Promise<GlobalSourcesDiscoveryResponse> {
+    return firstValueFrom(
+      this.http.get<GlobalSourcesDiscoveryResponse>(
+        `${this.base}/global_sources/discoveries/${encodeURIComponent(id)}`,
+        this.options,
+      ),
+    );
+  }
+
+  globalSourcesProductChannel(productId: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${this.base}/global_sources/product-channel/${encodeURIComponent(productId)}`,
         this.options,
       ),
     );
