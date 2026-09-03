@@ -31,6 +31,7 @@ export class AppComponent {
     ['Alibaba Discovery', '/intelligence/alibaba'],
     ['TradeIndia Discovery', '/intelligence/tradeindia'],
     ['Global Sources Discovery', '/intelligence/global-sources'],
+    ['Cross-marketplace Suppliers', '/intelligence/cross-marketplace'],
     ['Ads', '/ads'],
     ['Calendar', '/calendar'],
     ['Social', '/social'],

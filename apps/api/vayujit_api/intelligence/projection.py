@@ -17,6 +17,9 @@ from vayujit_api.intelligence.autonomous_models import (
     AutonomousResearchAlert,
     AutonomousResearchContradiction,
 )
+from vayujit_api.intelligence.cross_marketplace_service import (
+    operations as cross_marketplace_operations,
+)
 from vayujit_api.intelligence.external_models import (
     ExternalExecution,
     ExternalProviderState,
@@ -195,6 +198,7 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
         "alibaba": alibaba_operational_summary(db, owner, settings),
         "tradeindia": tradeindia_operational_summary(db, owner, settings),
         "global_sources": global_sources_operational_summary(db, owner, settings),
+        "cross_marketplace_supplier_intelligence": cross_marketplace_operations(db, owner),
         "marketplace": marketplace_projection,
         "research_execution_enabled": settings.intelligence_research_execution_enabled,
         "external_research_enabled": settings.intelligence_external_research_enabled,

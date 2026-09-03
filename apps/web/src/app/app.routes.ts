@@ -782,4 +782,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   { path: '**', redirectTo: 'dashboard' },
+  {
+    path: 'intelligence/cross-marketplace',
+    loadComponent: () =>
+      import('./intelligence/cross-marketplace-supplier.component').then(
+        (m) => m.CrossMarketplaceSupplierComponent,
+      ),
+    canActivate: [authGuard],
+  },
 ];

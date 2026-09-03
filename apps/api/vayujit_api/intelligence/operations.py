@@ -75,6 +75,9 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
             "alibaba": value["alibaba"],
             "tradeindia": value["tradeindia"],
             "global_sources": value["global_sources"],
+            "cross_marketplace_supplier_intelligence": value[
+                "cross_marketplace_supplier_intelligence"
+            ],
             "marketplace_runtime": {
                 "runtime_registered": True,
                 "rate_window_subsystem_registered": True,
