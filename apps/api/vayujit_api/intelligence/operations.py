@@ -72,6 +72,7 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
             },
             "website_intelligence": value["website_intelligence"],
             "indiamart": value["indiamart"],
+            "alibaba": value["alibaba"],
             "marketplace_runtime": {
                 "runtime_registered": True,
                 "rate_window_subsystem_registered": True,

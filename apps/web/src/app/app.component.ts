@@ -28,6 +28,7 @@ export class AppComponent {
     ['Autonomous Research', '/intelligence/autonomous'],
     ['Sourcing', '/intelligence/sourcing'],
     ['IndiaMART Discovery', '/intelligence/indiamart'],
+    ['Alibaba Discovery', '/intelligence/alibaba'],
     ['Ads', '/ads'],
     ['Calendar', '/calendar'],
     ['Social', '/social'],

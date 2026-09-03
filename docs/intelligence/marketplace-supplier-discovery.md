@@ -74,3 +74,9 @@ reuses the existing execution and performs no second provider call. Focused runt
 certification is 11/11 and the full IndiaMART regression is 97/97. This evidence is
 local and deterministic only; it does not certify live IndiaMART traffic, purchasing,
 contact, RFQ, payment, or external credentials.
+
+## Alibaba
+
+See [Alibaba discovery](alibaba-discovery.md) for the read-only provider boundary and local fixture usage.
+
+Alibaba Slice 7B.4 local evidence includes thirteen deterministic normalization cases (including a duplicate-provider input), owner-scoped supplier/evidence persistence, shared-runtime replay, evidence handoff/replay, and a five-test Angular accessibility/responsive specification. These are local fixture proofs only; cross-source contradiction, strict durability matrices, and live provider access remain unclaimed.
