@@ -35,6 +35,9 @@ from vayujit_api.identity.router import router as auth_router
 from vayujit_api.intelligence.alibaba_router import router as intelligence_alibaba_router
 from vayujit_api.intelligence.autonomous_router import router as intelligence_autonomous_router
 from vayujit_api.intelligence.external_router import router as intelligence_external_router
+from vayujit_api.intelligence.global_sources_router import (
+    router as intelligence_global_sources_router,
+)
 from vayujit_api.intelligence.indiamart_router import router as intelligence_indiamart_router
 from vayujit_api.intelligence.operations import (
     diagnostics_router as intelligence_diagnostics_router,
@@ -151,6 +154,7 @@ def create_app() -> FastAPI:
     application.include_router(intelligence_indiamart_router)
     application.include_router(intelligence_alibaba_router)
     application.include_router(intelligence_tradeindia_router)
+    application.include_router(intelligence_global_sources_router)
     application.include_router(intelligence_sourcing_router)
     application.include_router(intelligence_operations_router)
     application.include_router(intelligence_diagnostics_router)

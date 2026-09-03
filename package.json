@@ -238,7 +238,8 @@
     "test:ads:marketing:ux": "npm run test --workspace @vayujit/web -- --watch=false --include='**/marketing-plan.component.spec.ts'",
     "test:intelligence:indiamart": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-indiamart.ps1",
     "test:intelligence:alibaba": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-alibaba.ps1",
-    "test:intelligence:tradeindia": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-tradeindia.ps1"
+    "test:intelligence:tradeindia": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-tradeindia.ps1",
+    "test:intelligence:global-sources": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-global-sources.ps1"
   },
   "devDependencies": {
     "concurrently": "9.2.4",
