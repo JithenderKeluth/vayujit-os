@@ -37,6 +37,9 @@ from vayujit_api.intelligence.models import (
     IntelligenceResearchRun,
     IntelligenceSource,
 )
+from vayujit_api.intelligence.tradeindia_projection import (
+    operational_summary as tradeindia_operational_summary,
+)
 from vayujit_api.intelligence.website_models import (
     ManufacturerCandidate,
     WebsiteObservation,
@@ -187,6 +190,7 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
         },
         "indiamart": operational_summary(db, owner, settings),
         "alibaba": alibaba_operational_summary(db, owner, settings),
+        "tradeindia": tradeindia_operational_summary(db, owner, settings),
         "marketplace": marketplace_projection,
         "research_execution_enabled": settings.intelligence_research_execution_enabled,
         "external_research_enabled": settings.intelligence_external_research_enabled,

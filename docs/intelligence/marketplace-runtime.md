@@ -69,3 +69,7 @@ Alibaba uses `execute_marketplace_lifecycle` and does not add provider-specific 
 ## Alibaba Slice 7B.4 local evidence (2026-09-02)
 
 Alibaba now uses the shared runtime with three focused PostgreSQL integration tests passing for deterministic discovery/replay, owner-scoped projections, evidence handoff/replay, and System Doctor visibility. No live provider call or mutation was attempted; strict provider rate/retry/crash/concurrency and live certification remain open.
+
+## TradeIndia adoption (Slice 7C)
+
+TradeIndia is registered as a read-only adapter through `execute_marketplace_lifecycle`. It contributes deterministic `LOCAL_FIXTURE` discovery only; shared rate windows, retry metadata, checkpoints, owner/provider identity, evidence, and integrity projections remain runtime-owned. `LIVE_READ_ONLY` is fail-closed pending official external configuration.

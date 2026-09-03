@@ -29,6 +29,7 @@ export class AppComponent {
     ['Sourcing', '/intelligence/sourcing'],
     ['IndiaMART Discovery', '/intelligence/indiamart'],
     ['Alibaba Discovery', '/intelligence/alibaba'],
+    ['TradeIndia Discovery', '/intelligence/tradeindia'],
     ['Ads', '/ads'],
     ['Calendar', '/calendar'],
     ['Social', '/social'],

@@ -80,3 +80,7 @@ contact, RFQ, payment, or external credentials.
 See [Alibaba discovery](alibaba-discovery.md) for the read-only provider boundary and local fixture usage.
 
 Alibaba Slice 7B.4 local evidence includes thirteen deterministic normalization cases (including a duplicate-provider input), owner-scoped supplier/evidence persistence, shared-runtime replay, evidence handoff/replay, and a five-test Angular accessibility/responsive specification. These are local fixture proofs only; cross-source contradiction, strict durability matrices, and live provider access remain unclaimed.
+
+## TradeIndia Slice 7C
+
+TradeIndia adds read-only supplier/listing discovery on the same normalized supplier intelligence and Marketplace Runtime contracts. Local fixtures cover incomplete source fields, duplicate and similar supplier identities, provider claims, changed/disappeared listings, commercial disagreement, and stale observations. No contact, RFQ, purchasing, payment, or provider mutation is implemented.

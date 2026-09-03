@@ -219,6 +219,17 @@ class Settings(BaseSettings):
     alibaba_daily_quota: int = Field(default=500, ge=1, le=100000)
     alibaba_retry_max_attempts: int = Field(default=2, ge=0, le=5)
     alibaba_kill_switch: bool = False
+    tradeindia_enabled: bool = False
+    tradeindia_mode: Literal["DISABLED", "LOCAL_FIXTURE", "LIVE_READ_ONLY"] = "DISABLED"
+    tradeindia_base_url: str | None = None
+    tradeindia_token_ref: str | None = None
+    tradeindia_timeout_seconds: float = Field(default=15.0, ge=0.1, le=120)
+    tradeindia_max_results: int = Field(default=10, ge=1, le=20)
+    tradeindia_requests_per_minute: int = Field(default=10, ge=1, le=1000)
+    tradeindia_requests_per_hour: int = Field(default=100, ge=1, le=10000)
+    tradeindia_daily_quota: int = Field(default=500, ge=1, le=100000)
+    tradeindia_retry_max_attempts: int = Field(default=2, ge=0, le=5)
+    tradeindia_kill_switch: bool = False
 
     @field_validator("environment")
     @classmethod
