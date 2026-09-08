@@ -181,6 +181,11 @@ def test_marketplace_rollback_restores_fake_amazon_budget(client: Any) -> None:
 
         second = run_next_ads_job(db, worker_id="amazon-v2")
         assert second is not None and second.status == "succeeded"
+    remote = next(
+        campaign
+        for campaign in connector.state.entities["campaign"].values()
+        if campaign.get("plan_id") == plan_id
+    )
     assert remote["budget_version"] == 2
     rollback_preview = client.post(
         f"/api/v1/ads/marketing/plans/{plan_id}/rollback/preview", headers=ORIGIN

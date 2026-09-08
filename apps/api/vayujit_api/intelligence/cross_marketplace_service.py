@@ -72,6 +72,45 @@ def _json(value: Any) -> Any:
     return value
 
 
+_PRIVATE_PUBLIC_KEY_PARTS = (
+    "authorization",
+    "access_token",
+    "refresh_token",
+    "api_key",
+    "apikey",
+    "cookie",
+    "credential",
+    "database",
+    "dsn",
+    "password",
+    "secret",
+    "token",
+    "provider_auth",
+    "private",
+    "contact",
+    "phone",
+    "email",
+    "customer",
+    "local_path",
+    "traceback",
+    "sql",
+)
+
+
+def _safe_public_value(value: Any) -> Any:
+    if isinstance(value, dict):
+        result: dict[str, Any] = {}
+        for key, item in value.items():
+            normalized = str(key).casefold().replace("-", "_")
+            if any(part in normalized for part in _PRIVATE_PUBLIC_KEY_PARTS):
+                continue
+            result[str(key)] = _safe_public_value(item)
+        return result
+    if isinstance(value, list):
+        return [_safe_public_value(item) for item in value]
+    return value
+
+
 def _tokens(name: str) -> set[str]:
     ignored = {"co", "company", "corp", "corporation", "inc", "ltd", "limited", "llc"}
     return {item for item in re.findall(r"[a-z0-9]+", name.casefold()) if item not in ignored}
@@ -799,7 +838,7 @@ def list_canonical(
 
 
 def _public_row(row: CrossMarketplaceSupplier) -> dict[str, Any]:
-    view = _json(row.view_json or {})
+    view = _safe_public_value(_json(row.view_json or {}))
     view["id"] = str(row.id)
     view["canonical_key"] = row.canonical_key
     view["identity_state"] = row.identity_state

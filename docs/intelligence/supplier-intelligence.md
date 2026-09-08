@@ -37,3 +37,11 @@ The Angular workspace provides overview, local search, supplier list/detail, ver
 ## Final certification record
 
 Independent PostgreSQL sessions cover search, supplier identity, offerings, evidence, commercial versions, scores, shortlist decisions, certification claims, and recovery. Advisory transaction locks plus owner-scoped uniqueness prevent duplicate logical records; replay and crash-before/after paths remain bounded and idempotent.
+
+## Slice 8B boundary
+
+Supplier shortlisting is owner-scoped, deterministic, append-only, and human-approved. External supplier contact, RFQ dispatch, purchasing, payment, and autonomous approval remain disabled; live marketplace certification is separate.
+
+## 8B.1 certification evidence
+
+Local PostgreSQL-backed shortlisting closure is validated by `npm.cmd run test:api` (1,115 selected tests passed), `npm.cmd run test:intelligence:shortlisting`, the migration cycle, web tests, build, lint, format check, Ruff, Black, mypy, and a production-only npm audit with zero findings. The full audit command timed out in the current network environment. Live marketplace certification and browser automation remain explicit external boundaries.
