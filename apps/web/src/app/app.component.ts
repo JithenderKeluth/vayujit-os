@@ -27,6 +27,7 @@ export class AppComponent {
     ['Website Intelligence', '/intelligence/websites'],
     ['Autonomous Research', '/intelligence/autonomous'],
     ['Sourcing', '/intelligence/sourcing'],
+    ['Supplier Shortlisting', '/intelligence/supplier-shortlisting'],
     ['IndiaMART Discovery', '/intelligence/indiamart'],
     ['Alibaba Discovery', '/intelligence/alibaba'],
     ['TradeIndia Discovery', '/intelligence/tradeindia'],

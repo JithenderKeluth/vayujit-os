@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import uuid
 from typing import Any
@@ -50,7 +50,11 @@ def test_meta_budget_rollback_is_provider_backed_and_idempotent(client: Any) -> 
         assert first is not None and first.status == "succeeded"
     connector = connector_for("meta")
     initial_calls = len(connector.state.calls)
-    remote = next(iter(connector.state.entities["campaign"].values()))
+    remote = next(
+        campaign
+        for campaign in connector.state.entities["campaign"].values()
+        if campaign.get("plan_id") == plan_id
+    )
     assert remote["budget_version"] == 1
 
     proposed = {

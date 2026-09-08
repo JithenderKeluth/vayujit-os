@@ -43,6 +43,7 @@ from vayujit_api.intelligence.models import (
     IntelligenceResearchRun,
     IntelligenceSource,
 )
+from vayujit_api.intelligence.shortlisting_service import operations as shortlisting_operations
 from vayujit_api.intelligence.tradeindia_projection import (
     operational_summary as tradeindia_operational_summary,
 )
@@ -199,6 +200,7 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
         "tradeindia": tradeindia_operational_summary(db, owner, settings),
         "global_sources": global_sources_operational_summary(db, owner, settings),
         "cross_marketplace_supplier_intelligence": cross_marketplace_operations(db, owner),
+        "supplier_shortlisting": shortlisting_operations(db, owner),
         "marketplace": marketplace_projection,
         "research_execution_enabled": settings.intelligence_research_execution_enabled,
         "external_research_enabled": settings.intelligence_external_research_enabled,

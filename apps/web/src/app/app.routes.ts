@@ -781,6 +781,14 @@ export const routes: Routes = [
     loadComponent: () => import('./operations/settings.component').then((m) => m.SettingsComponent),
     canActivate: [authGuard],
   },
+  {
+    path: 'intelligence/supplier-shortlisting',
+    loadComponent: () =>
+      import('./intelligence/supplier-shortlisting.component').then(
+        (m) => m.SupplierShortlistingComponent,
+      ),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'dashboard' },
   {
     path: 'intelligence/cross-marketplace',

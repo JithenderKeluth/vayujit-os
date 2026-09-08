@@ -113,7 +113,7 @@ Ten warm samples per endpoint (median and p95, milliseconds):
 - Supplier Intelligence regression: 134 unit tests passed.
 - Sourcing core closure: 4 integration tests passed; concurrency: 2 passed; worker/recovery: 5 passed; security: 68 passed.
 - Angular full suite: 31 files / 102 tests passed. Electron: 1 file / 4 tests passed; smoke passed. API unit: 786 passed (629 deselected). Migration cycle and head validation passed.
-- Quality gates: build, lint (0 errors, 2 pre-existing warnings), Prettier format check, Ruff, Black, mypy, production and development npm audits all passed; System Doctor passed with optional-provider/encryption warnings only.
+- Quality gates: build, lint (0 errors, 2 pre-existing warnings), Prettier format check, Ruff, Black, mypy, production npm audit passed; full development audit timed out in the current network environment; System Doctor passed with optional-provider/encryption warnings only.
 
 Accepted boundaries remain: AXE not configured; viewport automation not configured; external supplier contact disabled; live freight/FX/duty-tax not configured; purchasing/payments/PO/inventory receiving not implemented; document parsing and autonomous sourcing not enabled; aggregate integration is bounded by total runtime and is not used as the certification gate.
 ## Slice 8A — Cross-Marketplace Supplier Intelligence
@@ -126,3 +126,10 @@ MOQ, lead-time, availability, freshness, contradictions, confidence, source dive
 reports, Product Channel contribution, Calendar reminders, and Operations/System Doctor summaries
 remain lineage-preserving. Supplier contact, RFQ dispatch, purchasing, payments, and live connector
 calls remain disabled or separately configured.
+## Slice 8B boundary
+
+Supplier shortlisting is owner-scoped, deterministic, append-only, and human-approved. External supplier contact, RFQ dispatch, purchasing, payment, and autonomous approval remain disabled; live marketplace certification is separate.
+
+## 8B.1 certification evidence
+
+Local PostgreSQL-backed shortlisting closure is validated by `npm.cmd run test:api` (1,115 selected tests passed), `npm.cmd run test:intelligence:shortlisting`, the migration cycle, web tests, build, lint, format check, Ruff, Black, mypy, and a production-only npm audit with zero findings. The full audit command timed out in the current network environment. Live marketplace certification and browser automation remain explicit external boundaries.
