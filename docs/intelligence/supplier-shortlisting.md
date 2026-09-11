@@ -196,3 +196,5 @@ shard 07 attempt described above.
 **Status: SLICE 8B — LOCAL CERTIFIED.** The supplier-shortlisting certification
 matrix is green under LOCAL_FIXTURE. Production provider certification has not
 been performed and remains out of scope.
+
+See [Supplier Due Diligence](supplier-due-diligence.md) for evidence-gap orchestration and bounded research planning.

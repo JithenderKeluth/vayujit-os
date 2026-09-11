@@ -469,6 +469,29 @@ def handoff(
         raise HTTPException(404, "Decision not found.")
     if decision.decision != "APPROVE_FOR_SOURCING":
         raise HTTPException(409, "Only approved decisions can be handed off.")
+    from vayujit_api.intelligence.due_diligence_models import (
+        SupplierDueDiligenceContext,
+    )
+    from vayujit_api.intelligence.due_diligence_service import sourcing_guard
+
+    due_context = db.scalar(
+        select(SupplierDueDiligenceContext).where(
+            SupplierDueDiligenceContext.owner_id == owner.id,
+            SupplierDueDiligenceContext.product_id == context.product_id,
+            SupplierDueDiligenceContext.supplier_id == decision.supplier_id,
+        )
+    )
+    if due_context is not None:
+        guard = sourcing_guard(db, owner, due_context.id)
+        if guard["outcome"] != "ALLOWED":
+            raise HTTPException(
+                409,
+                {
+                    "code": "DUE_DILIGENCE_NOT_READY",
+                    "message": "Supplier due diligence requires review before sourcing handoff.",
+                    "guard": guard,
+                },
+            )
     existing = db.scalar(
         select(SupplierShortlistHandoff).where(
             SupplierShortlistHandoff.owner_id == owner.id,
@@ -568,6 +591,137 @@ def product_channel(db: Session, owner: User, product_id: uuid.UUID) -> dict[str
         for version in versions
         for item in cast(dict[str, Any], version.payload).get("blocked", [])
     ]
+    from vayujit_api.intelligence.due_diligence_models import (
+        SupplierDueDiligenceAssessment,
+        SupplierDueDiligenceContext,
+        SupplierEvidenceGap,
+        SupplierResearchPlan,
+    )
+
+    due_contexts = list(
+        db.scalars(
+            select(SupplierDueDiligenceContext).where(
+                SupplierDueDiligenceContext.owner_id == owner.id,
+                SupplierDueDiligenceContext.product_id == product_id,
+            )
+        )
+    )
+    due_summaries: list[dict[str, object]] = []
+    from vayujit_api.audit.models import AuditEvent
+    from vayujit_api.intelligence.autonomous_models import AutonomousResearchEvidence
+    from vayujit_api.intelligence.due_diligence_models import SupplierResearchTask
+
+    for due_context in due_contexts:
+        assessment = db.scalar(
+            select(SupplierDueDiligenceAssessment)
+            .where(
+                SupplierDueDiligenceAssessment.owner_id == owner.id,
+                SupplierDueDiligenceAssessment.context_id == due_context.id,
+            )
+            .order_by(SupplierDueDiligenceAssessment.version.desc())
+        )
+        due_gaps = list(
+            db.scalars(
+                select(SupplierEvidenceGap).where(
+                    SupplierEvidenceGap.owner_id == owner.id,
+                    SupplierEvidenceGap.context_id == due_context.id,
+                    SupplierEvidenceGap.assessment_version
+                    == due_context.current_assessment_version,
+                )
+            )
+        )
+        due_tasks = list(
+            db.scalars(
+                select(SupplierResearchTask).where(
+                    SupplierResearchTask.owner_id == owner.id,
+                    SupplierResearchTask.plan_id.in_(
+                        select(SupplierResearchPlan.id).where(
+                            SupplierResearchPlan.owner_id == owner.id,
+                            SupplierResearchPlan.context_id == due_context.id,
+                        )
+                    ),
+                )
+            )
+        )
+        evidence_ids: set[str] = set()
+        for task in due_tasks:
+            result = cast(dict[str, object], task.result or {})
+            evidence_values = cast(list[object], result.get("evidence_ids", []))
+            evidence_ids.update(str(evidence_id) for evidence_id in evidence_values)
+        latest_evidence = None
+        if evidence_ids:
+            latest_evidence = db.scalar(
+                select(AutonomousResearchEvidence)
+                .where(
+                    AutonomousResearchEvidence.owner_id == owner.id,
+                    AutonomousResearchEvidence.id.in_(evidence_ids),
+                )
+                .order_by(AutonomousResearchEvidence.observed_at.desc())
+            )
+        latest_action = next(
+            (
+                event
+                for event in db.scalars(
+                    select(AuditEvent)
+                    .where(
+                        AuditEvent.actor_id == owner.id,
+                        AuditEvent.action.like("supplier.due_diligence.%"),
+                    )
+                    .order_by(AuditEvent.occurred_at.desc())
+                )
+                if (event.metadata_json or {}).get("context_id") == str(due_context.id)
+            ),
+            None,
+        )
+        completion_times = [
+            task.updated_at
+            for task in due_tasks
+            if task.status == "COMPLETED" and task.updated_at is not None
+        ]
+        due_summaries.append(
+            {
+                "supplier_id": str(due_context.supplier_id),
+                "due_diligence_status": due_context.status,
+                "due_diligence_readiness": assessment.readiness if assessment else "NOT_ASSESSED",
+                "critical_gap_count": sum(
+                    g.severity == "CRITICAL" and g.status not in {"RESOLVED", "WAIVED_BY_HUMAN"}
+                    for g in due_gaps
+                ),
+                "high_gap_count": sum(
+                    g.severity == "HIGH" and g.status not in {"RESOLVED", "WAIVED_BY_HUMAN"}
+                    for g in due_gaps
+                ),
+                "required_open_gap_count": sum(
+                    g.classification == "REQUIRED"
+                    and g.status not in {"RESOLVED", "WAIVED_BY_HUMAN"}
+                    for g in due_gaps
+                ),
+                "research_in_progress": any(g.status == "RESEARCHING" for g in due_gaps),
+                "last_assessment_at": assessment.created_at.isoformat() if assessment else None,
+                "last_research_completion": (
+                    max(completion_times).isoformat() if completion_times else None
+                ),
+                "latest_material_finding": (
+                    {
+                        "evidence_id": str(latest_evidence.id),
+                        "verification_status": latest_evidence.verification_status,
+                        "freshness_status": latest_evidence.freshness_status,
+                        "evidence_class": latest_evidence.evidence_class,
+                    }
+                    if latest_evidence
+                    else None
+                ),
+                "latest_human_action": (
+                    {
+                        "action": latest_action.action,
+                        "reason": (latest_action.metadata_json or {}).get("reason"),
+                        "occurred_at": latest_action.occurred_at.isoformat(),
+                    }
+                    if latest_action
+                    else None
+                ),
+            }
+        )
     recommendation = candidates[0] if candidates else None
     return {
         "product_id": str(product_id),
@@ -589,6 +743,7 @@ def product_channel(db: Session, owner: User, product_id: uuid.UUID) -> dict[str
             else "Create or evaluate a shortlist context."
         ),
         "context_count": len(contexts),
+        "due_diligence": due_summaries,
     }
 
 
@@ -623,6 +778,26 @@ def operations(db: Session, owner: User) -> dict[str, object]:
         )
         or 0
     )
+    from vayujit_api.intelligence.due_diligence_models import (
+        SupplierDueDiligenceContext,
+        SupplierEvidenceGap,
+        SupplierResearchTask,
+    )
+
+    due_contexts = list(
+        db.scalars(
+            select(SupplierDueDiligenceContext).where(
+                SupplierDueDiligenceContext.owner_id == owner.id
+            )
+        )
+    )
+    due_context_ids = {context.id for context in due_contexts}
+    due_gaps = list(
+        db.scalars(select(SupplierEvidenceGap).where(SupplierEvidenceGap.owner_id == owner.id))
+    )
+    due_tasks = list(
+        db.scalars(select(SupplierResearchTask).where(SupplierResearchTask.owner_id == owner.id))
+    )
     return {
         "context_count": len(contexts),
         "active_contexts": len(contexts),
@@ -641,6 +816,35 @@ def operations(db: Session, owner: User) -> dict[str, object]:
         or 0,
         "failure_count": 0,
         "integrity": integrity(db, owner),
+        "due_diligence": {
+            "open_contexts": sum(
+                context.status in {"OPEN", "RESEARCH_REQUIRED", "RESEARCH_IN_PROGRESS"}
+                for context in due_contexts
+            ),
+            "review_required": sum(context.status == "REVIEW_REQUIRED" for context in due_contexts),
+            "blocked": sum(context.status == "BLOCKED" for context in due_contexts),
+            "research_running": sum(task.status in {"QUEUED", "RUNNING"} for task in due_tasks),
+            "research_failed": sum(
+                task.status in {"FAILED", "CANCELLED", "STALE"} for task in due_tasks
+            ),
+            "critical_gaps": sum(
+                gap.severity == "CRITICAL" and gap.status not in {"RESOLVED", "WAIVED_BY_HUMAN"}
+                for gap in due_gaps
+            ),
+            "high_gaps": sum(
+                gap.severity == "HIGH" and gap.status not in {"RESOLVED", "WAIVED_BY_HUMAN"}
+                for gap in due_gaps
+            ),
+            "required_gaps": sum(
+                gap.classification == "REQUIRED"
+                and gap.status not in {"RESOLVED", "WAIVED_BY_HUMAN"}
+                for gap in due_gaps
+            ),
+            "recovery_needed": sum(
+                task.status in {"FAILED", "CANCELLED", "STALE"} for task in due_tasks
+            ),
+            "owner_context_count": len(due_context_ids),
+        },
         "performance": {"bounded": True},
     }
 
@@ -754,7 +958,7 @@ def calendar(db: Session, owner: User) -> list[dict[str, object]]:
         "SAMPLE_FOLLOW_UP",
         "INSPECTION_FOLLOW_UP",
     )
-    return [
+    events: list[dict[str, object]] = [
         {
             "type": event_type,
             "status": "informational",
@@ -763,6 +967,72 @@ def calendar(db: Session, owner: User) -> list[dict[str, object]]:
         }
         for event_type in types
     ]
+    from vayujit_api.intelligence.due_diligence_models import (
+        SupplierDueDiligenceContext,
+        SupplierResearchPlan,
+        SupplierResearchTask,
+    )
+
+    due_contexts = list(
+        db.scalars(
+            select(SupplierDueDiligenceContext).where(
+                SupplierDueDiligenceContext.owner_id == owner.id
+            )
+        )
+    )
+    for context in due_contexts:
+        key = f"supplier-due-diligence:{context.id}:{context.current_assessment_version}"
+        for kind, suffix, title in (
+            ("SUPPLIER_DUE_DILIGENCE_REVIEW_DUE", "review", "Review supplier due diligence"),
+            ("SUPPLIER_EVIDENCE_RECHECK_DUE", "evidence", "Recheck supplier evidence"),
+            ("SUPPLIER_VERIFICATION_REVIEW_DUE", "verification", "Review supplier verification"),
+        ):
+            events.append(
+                {
+                    "type": kind,
+                    "kind": kind,
+                    "event_id": f"{key}:{suffix}",
+                    "context_id": str(context.id),
+                    "status": "informational",
+                    "external_action": False,
+                    "title": title,
+                    "source_ref": f"due-diligence:{context.id}",
+                    "owner_id": str(owner.id),
+                    "supplier_id": str(context.supplier_id),
+                    "due_at": context.updated_at.isoformat(),
+                }
+            )
+        active_research = (
+            db.scalar(
+                select(func.count())
+                .select_from(SupplierResearchTask)
+                .join(SupplierResearchPlan, SupplierResearchPlan.id == SupplierResearchTask.plan_id)
+                .where(
+                    SupplierResearchTask.owner_id == owner.id,
+                    SupplierResearchPlan.owner_id == owner.id,
+                    SupplierResearchPlan.context_id == context.id,
+                    SupplierResearchTask.status.in_({"QUEUED", "RUNNING"}),
+                )
+            )
+            or 0
+        )
+        if context.status in {"RESEARCH_REQUIRED", "RESEARCH_IN_PROGRESS"} or active_research:
+            events.append(
+                {
+                    "type": "SUPPLIER_RESEARCH_DUE",
+                    "kind": "SUPPLIER_RESEARCH_DUE",
+                    "event_id": f"{key}:research",
+                    "context_id": str(context.id),
+                    "status": "informational",
+                    "external_action": False,
+                    "title": "Complete supplier research",
+                    "source_ref": f"due-diligence:{context.id}",
+                    "owner_id": str(owner.id),
+                    "supplier_id": str(context.supplier_id),
+                    "due_at": context.updated_at.isoformat(),
+                }
+            )
+    return events
 
 
 def history(db: Session, owner: User, context: SupplierShortlistContext) -> dict[str, object]:

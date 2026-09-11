@@ -1093,6 +1093,26 @@ def sourcing_handoff(
     _owned_canonical(db, owner, canonical_id)
     if not confirmed:
         raise HTTPException(409, "Confirmation is required for the internal sourcing handoff.")
+    from vayujit_api.intelligence.due_diligence_models import SupplierDueDiligenceContext
+    from vayujit_api.intelligence.due_diligence_service import sourcing_guard
+
+    due_context = db.scalar(
+        select(SupplierDueDiligenceContext).where(
+            SupplierDueDiligenceContext.owner_id == owner.id,
+            SupplierDueDiligenceContext.supplier_id == canonical_id,
+            SupplierDueDiligenceContext.product_id == product_id,
+        )
+    )
+    guard = sourcing_guard(db, owner, due_context.id) if due_context is not None else None
+    if guard is not None and guard["outcome"] != "ALLOWED":
+        raise HTTPException(
+            409,
+            {
+                "code": "DUE_DILIGENCE_NOT_READY",
+                "message": "Supplier due diligence requires review before sourcing handoff.",
+                "guard": guard,
+            },
+        )
     return {
         "status": "ready_for_human_sourcing",
         "canonical_supplier_id": str(canonical_id),
@@ -1139,7 +1159,7 @@ def operations(db: Session, owner: User) -> dict[str, Any]:
 
 def calendar(db: Session, owner: User) -> list[dict[str, Any]]:
     rows = list_canonical(db, owner)
-    return [
+    events = [
         {
             "kind": "commercial_recheck",
             "title": f"Review {row.get('display_name')} supplier evidence",
@@ -1149,6 +1169,55 @@ def calendar(db: Session, owner: User) -> list[dict[str, Any]]:
         for row in rows
         if row.get("freshness_status") in {"aging", "stale"}
     ]
+    from vayujit_api.intelligence.due_diligence_models import SupplierDueDiligenceContext
+
+    contexts = list(
+        db.scalars(
+            select(SupplierDueDiligenceContext).where(
+                SupplierDueDiligenceContext.owner_id == owner.id
+            )
+        )
+    )
+    for context in contexts:
+        key = f"supplier-due-diligence:{context.id}:{context.current_assessment_version}"
+        events.append(
+            {
+                "kind": "SUPPLIER_DUE_DILIGENCE_REVIEW_DUE",
+                "event_id": key,
+                "title": "Review supplier due diligence",
+                "context_id": str(context.id),
+                "informational": True,
+            }
+        )
+        events.append(
+            {
+                "kind": "SUPPLIER_EVIDENCE_RECHECK_DUE",
+                "event_id": f"{key}:evidence",
+                "title": "Recheck supplier evidence",
+                "context_id": str(context.id),
+                "informational": True,
+            }
+        )
+        events.append(
+            {
+                "kind": "SUPPLIER_VERIFICATION_REVIEW_DUE",
+                "event_id": f"{key}:verification",
+                "title": "Review supplier verification",
+                "context_id": str(context.id),
+                "informational": True,
+            }
+        )
+        if context.status in {"RESEARCH_REQUIRED", "RESEARCH_IN_PROGRESS"}:
+            events.append(
+                {
+                    "kind": "SUPPLIER_RESEARCH_DUE",
+                    "event_id": f"{key}:research",
+                    "title": "Complete supplier research",
+                    "context_id": str(context.id),
+                    "informational": True,
+                }
+            )
+    return events
 
 
 def product_channel(db: Session, owner: User, product_id: uuid.UUID) -> dict[str, Any]:
@@ -1159,10 +1228,61 @@ def product_channel(db: Session, owner: User, product_id: uuid.UUID) -> dict[str
         is None
     ):
         raise HTTPException(404, "Product not found.")
+    from vayujit_api.intelligence.due_diligence_models import (
+        SupplierDueDiligenceAssessment,
+        SupplierDueDiligenceContext,
+        SupplierEvidenceGap,
+    )
+
+    due_diligence: list[dict[str, Any]] = []
+    contexts = list(
+        db.scalars(
+            select(SupplierDueDiligenceContext).where(
+                SupplierDueDiligenceContext.owner_id == owner.id,
+                SupplierDueDiligenceContext.product_id == product_id,
+            )
+        )
+    )
+    for context in contexts:
+        assessment = db.scalar(
+            select(SupplierDueDiligenceAssessment)
+            .where(SupplierDueDiligenceAssessment.context_id == context.id)
+            .order_by(SupplierDueDiligenceAssessment.version.desc())
+        )
+        gaps = list(
+            db.scalars(
+                select(SupplierEvidenceGap).where(
+                    SupplierEvidenceGap.context_id == context.id,
+                    SupplierEvidenceGap.assessment_version == context.current_assessment_version,
+                )
+            )
+        )
+        due_diligence.append(
+            {
+                "supplier_id": str(context.supplier_id),
+                "readiness": assessment.readiness if assessment else "NOT_ASSESSED",
+                "open_required_gaps": sum(
+                    g.classification == "REQUIRED"
+                    and g.status not in {"RESOLVED", "WAIVED_BY_HUMAN"}
+                    for g in gaps
+                ),
+                "critical_high_gaps": sum(
+                    g.severity in {"CRITICAL", "HIGH"}
+                    and g.status not in {"RESOLVED", "WAIVED_BY_HUMAN"}
+                    for g in gaps
+                ),
+                "active_research": any(g.status == "RESEARCHING" for g in gaps),
+                "last_assessment_at": assessment.created_at.isoformat() if assessment else None,
+                "last_research_completion": None,
+                "latest_material_finding": None,
+                "latest_human_action": None,
+            }
+        )
     return {
         "product_id": str(product_id),
         "supplier_intelligence": list_canonical(db, owner),
         "server_derived": True,
+        "due_diligence": due_diligence,
     }
 
 

@@ -45,3 +45,6 @@ Supplier shortlisting is owner-scoped, deterministic, append-only, and human-app
 ## 8B.1 certification evidence
 
 Local PostgreSQL-backed shortlisting closure is validated by `npm.cmd run test:api` (1,115 selected tests passed), `npm.cmd run test:intelligence:shortlisting`, the migration cycle, web tests, build, lint, format check, Ruff, Black, mypy, and a production-only npm audit with zero findings. The full audit command timed out in the current network environment. Live marketplace certification and browser automation remain explicit external boundaries.
+
+
+See [Supplier Due Diligence](supplier-due-diligence.md) for evidence-gap orchestration and bounded research planning.

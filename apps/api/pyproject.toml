@@ -41,6 +41,7 @@ testpaths = ["tests"]
 addopts = "--strict-config --strict-markers --cov=vayujit_api --cov-report=term-missing"
 markers = [
   "integration: requires the explicitly configured marked PostgreSQL test database",
+  "certification_infrastructure: test-only certification harness checks",
 ]
 
 [tool.ruff]

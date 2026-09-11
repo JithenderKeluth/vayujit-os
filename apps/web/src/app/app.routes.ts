@@ -169,6 +169,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'intelligence/due-diligence',
+    loadComponent: () =>
+      import('./intelligence/supplier-due-diligence.component').then(
+        (m) => m.SupplierDueDiligenceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'intelligence',
     loadComponent: () =>
       import('./intelligence/intelligence-workspace.component').then(

@@ -1,9 +1,11 @@
 param(
     [ValidateSet("integration", "migration")]
-    [string]$Purpose = "integration"
+    [string]$Purpose = "integration",
+    [string]$DatabaseName = ""
 )
 $ErrorActionPreference = "Stop"
-$database = if ($Purpose -eq "migration") { "vayujit_migration_test" } else { "vayujit_test" }
+$database = if ($DatabaseName) { $DatabaseName } elseif ($Purpose -eq "migration") { "vayujit_migration_test" } else { "vayujit_test" }
+if ($database -notmatch "^vayujit_(?:[a-z0-9]+_)?test$") { throw "Refusing non-disposable test database name: $database" }
 $container = "infrastructure-postgres-1"
 
 $exists = docker exec $container psql -U vayujit -d postgres -tAc `
