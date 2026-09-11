@@ -243,7 +243,10 @@
     "test:intelligence:alibaba": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-alibaba.ps1",
     "test:intelligence:tradeindia": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-tradeindia.ps1",
     "test:intelligence:cross-marketplace": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-cross-marketplace.ps1",
-    "test:intelligence:global-sources": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-global-sources.ps1"
+    "test:intelligence:global-sources": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-global-sources.ps1",
+    "certification:inventory": "python scripts/certification_inventory.py",
+    "test:certification:infrastructure": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-api-integration.ps1 -TestPath tests/test_supplier_due_diligence_certification_infrastructure.py -Marker certification_infrastructure",
+    "test:certification:migrations": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-certification-migrations.ps1"
   },
   "devDependencies": {
     "concurrently": "9.2.4",

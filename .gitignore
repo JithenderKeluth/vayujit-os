@@ -39,3 +39,8 @@ var/exports/
 # Windows packaging outputs
 release/
 release-*/
+
+var/certification/
+
+# Runtime/generated media
+var/media/

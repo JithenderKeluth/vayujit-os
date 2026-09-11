@@ -8,5 +8,5 @@ $target = if ($TestPath.Count) {
 } else {
     Join-Path $PSScriptRoot "..\apps\api"
 }
-& $pytest $target -m "not integration"
+& $pytest $target -m "not integration and not certification_infrastructure"
 exit $LASTEXITCODE

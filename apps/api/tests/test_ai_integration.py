@@ -23,6 +23,7 @@ from vayujit_api.identity.models import User
 from vayujit_api.identity.router import attempts
 from vayujit_api.identity.service import now
 from vayujit_api.main import create_app
+from vayujit_api.workflows.models import WorkflowTemplate
 
 TEST_DATABASE_URL = os.getenv("VAYUJIT_TEST_DATABASE_URL")
 pytestmark = pytest.mark.integration
@@ -52,6 +53,39 @@ def client() -> Generator[TestClient, None, None]:
                 system_instructions="Structured output only.",
                 user_template="Generate product content.",
                 output_schema={"type": "object"},
+                status="enabled",
+                is_default=True,
+                created_at=stamp,
+                updated_at=stamp,
+            )
+        )
+        db.add(
+            WorkflowTemplate(
+                id=uuid.UUID("b1000000-0000-4000-8000-000000000001"),
+                key="product-content-publish",
+                name="Product content and publish",
+                description=(
+                    "Generate product content, pause for owner approval, then publish to a "
+                    "destination."
+                ),
+                version=1,
+                workflow_type="product_content_publish",
+                definition_json={
+                    "schema_version": 1,
+                    "steps": [
+                        {"key": "generate_content", "type": "ai_generate"},
+                        {
+                            "key": "wait_for_approval",
+                            "type": "human_approval",
+                            "depends_on": ["generate_content"],
+                        },
+                        {
+                            "key": "publish_content",
+                            "type": "publish",
+                            "depends_on": ["wait_for_approval"],
+                        },
+                    ],
+                },
                 status="enabled",
                 is_default=True,
                 created_at=stamp,

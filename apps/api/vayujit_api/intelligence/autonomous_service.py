@@ -766,6 +766,11 @@ def execute_mission(
     else:
         mission.status = "COMPLETED"
     mission.updated_at = now()
+    due_context_id = mission.scope.get("due_diligence_context_id")
+    if isinstance(due_context_id, str):
+        from vayujit_api.intelligence.due_diligence_service import sync_research_completion
+
+        sync_research_completion(db, owner, uuid.UUID(due_context_id), mission.id)
     db.commit()
     return {
         "mission_id": str(mission.id),
