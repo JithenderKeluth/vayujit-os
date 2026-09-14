@@ -1,7 +1,7 @@
 ﻿from __future__ import annotations
 
 import uuid
-from typing import Any
+from typing import Any, cast
 
 import pytest
 import test_ai_integration
@@ -623,32 +623,34 @@ def test_due_diligence_integrity_self_proof_covers_all_fourteen_counters(client:
         gap.assessment_version = context_version + 99
         db.commit()
         assert counters()["orphan_gap_versions"] >= 1
-        gap.assessment_version = original_gap_state["assessment_version"]
+        gap.assessment_version = cast(int, original_gap_state["assessment_version"])
         db.commit()
 
         task.shared_execution_id = uuid.uuid4()
         db.commit()
         assert counters()["broken_execution_lineage"] >= 1
-        task.shared_execution_id = original_gap_state["shared_execution_id"]
+        task.shared_execution_id = cast(uuid.UUID | None, original_gap_state["shared_execution_id"])
         db.commit()
 
         gap.resolution_evidence_refs = [str(uuid.uuid4())]
         db.commit()
         assert counters()["broken_evidence_lineage"] >= 1
-        gap.resolution_evidence_refs = original_gap_state["resolution_evidence_refs"]
+        gap.resolution_evidence_refs = cast(
+            list[object], original_gap_state["resolution_evidence_refs"]
+        )
         db.commit()
 
         gap.status = "WAIVED_BY_HUMAN"
         db.commit()
         assert counters()["invalid_human_waivers"] >= 1
-        gap.status = original_gap_state["status"]
+        gap.status = cast(str, original_gap_state["status"])
         db.commit()
 
         gap.status = "RESOLVED"
         gap.resolution_evidence_refs = []
         db.commit()
         assert counters()["resolved_gap_without_evidence_or_waiver"] >= 1
-        gap.status = original_gap_state["status"]
+        gap.status = cast(str, original_gap_state["status"])
         db.commit()
 
         context.current_assessment_version = context_version + 999

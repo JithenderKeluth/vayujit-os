@@ -2235,3 +2235,9 @@ export interface AIImageBulkStatus {
   progress_percentage: number;
   outputs: AIImageBulkOutput[];
 }
+export type {
+  SourcingScenarioResult,
+  SourcingComparison,
+  SourcingContextSummary,
+  SourcingScenarioDetail,
+} from './sourcing-scenarios.js';

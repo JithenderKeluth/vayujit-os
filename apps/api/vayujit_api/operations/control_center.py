@@ -54,6 +54,9 @@ CurrentUser = Annotated[User, Depends(current_user)]
 class ConfirmationRequest(BaseModel):
     confirm: bool = False
     idempotency_key: str | None = Field(default=None, max_length=200)
+    scenario_id: uuid.UUID | None = None
+    expected_version: int | None = Field(default=None, gt=0)
+    reason: str | None = Field(default=None, max_length=500)
 
 
 def _safe_worker_id(value: str) -> str:
@@ -1191,10 +1194,34 @@ def recovery_history(db: DatabaseSession, user: CurrentUser) -> dict[str, object
 def recovery_action(
     data: ConfirmationRequest,
     action: Annotated[str, Query(min_length=1, max_length=64)],
-    _user: CurrentUser,
+    db: DatabaseSession,
+    user: CurrentUser,
 ) -> dict[str, object]:
     if not data.confirm:
         raise HTTPException(422, "Explicit confirmation is required for a Recovery action.")
+    from vayujit_api.intelligence.scenario_recovery import (
+        SCENARIO_RECOVERY_ACTION_REGISTRY,
+        UNSUPPORTED_SCENARIO_RECOVERY_ACTIONS,
+    )
+    from vayujit_api.intelligence.scenario_schemas import VersionCommand
+
+    executor = SCENARIO_RECOVERY_ACTION_REGISTRY.get(action)
+    if executor is not None:
+        if (
+            data.scenario_id is None
+            or data.expected_version is None
+            or data.idempotency_key is None
+            or data.reason is None
+        ):
+            raise HTTPException(422, "Scenario, version, reason, and idempotency key are required.")
+        command = VersionCommand(
+            expected_version=data.expected_version,
+            reason=data.reason,
+            idempotency_key=data.idempotency_key,
+        )
+        return executor(db, user, data.scenario_id, command)
+    if action in UNSUPPORTED_SCENARIO_RECOVERY_ACTIONS:
+        raise HTTPException(409, "This scenario Recovery action is not safely implemented.")
     raise HTTPException(
         409,
         f"Recovery action '{action}' is available through the domain-specific Recovery API.",
