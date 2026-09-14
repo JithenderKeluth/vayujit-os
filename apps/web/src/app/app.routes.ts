@@ -7,6 +7,14 @@ import { AdsOptimizationComponent } from './ads/ads-optimization.component';
 import { MarketingPlanComponent } from './ads/marketing-plan.component';
 
 export const routes: Routes = [
+  {
+    path: 'intelligence/sourcing-scenarios',
+    loadComponent: () =>
+      import('./intelligence/sourcing-scenarios.component').then(
+        (m) => m.SourcingScenariosComponent,
+      ),
+    canActivate: [authGuard],
+  },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: 'setup', component: AuthPageComponent, canActivate: [guestGuard] },
   { path: 'login', component: AuthPageComponent, canActivate: [guestGuard] },

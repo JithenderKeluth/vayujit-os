@@ -5,6 +5,7 @@ from __future__ import annotations
 import re
 from collections.abc import Mapping
 from datetime import UTC, datetime
+from decimal import Decimal, InvalidOperation
 from html import escape
 from math import isfinite
 from typing import Any
@@ -191,7 +192,9 @@ def convert_currency(
     }
 
 
-def landed_cost(inputs: Mapping[str, Any], *, currency: str = "INR") -> dict[str, Any]:
+def landed_cost(
+    inputs: Mapping[str, Any], *, currency: str = "INR", exact: bool = False
+) -> dict[str, Any]:
     keys = (
         "unit_supplier_price",
         "tooling",
@@ -209,9 +212,21 @@ def landed_cost(inputs: Mapping[str, Any], *, currency: str = "INR") -> dict[str
         "other",
     )
     components: list[dict[str, Any]] = []
+    value: Any
     for key in keys:
         raw = inputs.get(key, 0)
-        value = finite_nonnegative(raw, key) if raw is not None else 0.0
+        if exact:
+            # Exact callers account for every component, including explicit zeroes.
+            if key not in inputs or raw is None or isinstance(raw, (bool, float)):
+                raise ValueError("Exact landed cost requires explicit decimal components.")
+            try:
+                value = Decimal(raw)
+            except (InvalidOperation, TypeError, ValueError) as exc:
+                raise ValueError("Invalid exact cost component.") from exc
+            if not value.is_finite() or value < 0 or value > Decimal("1e18"):
+                raise ValueError("Invalid exact cost component.")
+        else:
+            value = finite_nonnegative(raw, key) if raw is not None else 0.0
         classification = str(
             inputs.get(f"{key}_classification", "ASSUMED" if value else "UNKNOWN")
         ).upper()
@@ -236,7 +251,12 @@ def landed_cost(inputs: Mapping[str, Any], *, currency: str = "INR") -> dict[str
             }
         )
     total = round(sum(item["value"] for item in components), 6)
-    quantity = max(int(finite_nonnegative(inputs.get("quantity", 1), "quantity")), 1)
+    if exact:
+        quantity = inputs.get("quantity")
+        if isinstance(quantity, bool) or not isinstance(quantity, int) or quantity <= 0:
+            raise ValueError("Exact cost requires a positive whole quantity.")
+    else:
+        quantity = max(int(finite_nonnegative(inputs.get("quantity", 1), "quantity")), 1)
     unknown_critical = any(
         item["classification"] == "UNKNOWN"
         for item in components

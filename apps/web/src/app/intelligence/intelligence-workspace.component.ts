@@ -33,6 +33,9 @@ import {
       </div>
       <a routerLink="/dashboard" class="secondary-button">Back to dashboard</a>
       <a routerLink="/intelligence/external" class="secondary-button">External Research</a>
+      <a routerLink="/intelligence/sourcing-scenarios" class="secondary-button"
+        >Sourcing Scenarios</a
+      >
     </header>
     @if (error()) {
       <p class="error" role="alert">{{ error() }}</p>

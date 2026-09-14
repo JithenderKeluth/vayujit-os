@@ -784,6 +784,7 @@ def calendar_list(db: DB, owner: Owner):
 
 @router.get("/product-channel/{product_id}")
 def sourcing_product_channel(product_id: uuid.UUID, db: DB, owner: Owner):
+    from vayujit_api.intelligence.scenario_projection import product_channel
     from vayujit_api.products.models import Product
 
     get_owned(db, Product, owner.id, product_id)
@@ -816,6 +817,7 @@ def sourcing_product_channel(product_id: uuid.UUID, db: DB, owner: Owner):
         "inspection_status": "available" if rfqs else "not_started",
         "economics_status": "available" if rfqs else "not_started",
         "sourcing_decision": "review_required",
+        "sourcing_scenarios": product_channel(db, owner, product_id),
     }
 
 
