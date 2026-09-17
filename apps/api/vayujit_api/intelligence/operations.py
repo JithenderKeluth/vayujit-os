@@ -90,6 +90,7 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
                 "integrity": value.get("marketplace", {}).get("integrity", {}),
                 "live_validation": value.get("marketplace", {}).get("live_validation", "NOT_RUN"),
             },
+            "supplier_portfolios": value["supplier_portfolios"],
             "supplier_intelligence": {
                 "enabled": value["enabled"],
                 "provider": "deterministic_local_fixture",

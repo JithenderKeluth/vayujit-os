@@ -125,5 +125,15 @@ def reset_test_schema(engine: Engine, metadata: MetaData, *, database_url: str) 
     if terminated:
         print(f"Terminated {terminated} stale disposable test-database session(s).")
     with engine.begin() as connection:
-        metadata.drop_all(connection)
-        metadata.create_all(connection)
+        if os.environ.get("VAYUJIT_FAST_TEST_RESET") == "1":
+            # Certification runs opt into a fast, equivalent reset after the
+            # same fail-closed target validation above. Truncating every
+            # mapped table with CASCADE preserves per-test isolation while
+            # avoiding repeated DDL/schema rebuilds.
+            tables = [table.name for table in metadata.sorted_tables]
+            if tables:
+                quoted = ", ".join(f'"{name}"' for name in tables)
+                connection.execute(text(f"TRUNCATE TABLE {quoted} RESTART IDENTITY CASCADE"))
+        else:
+            metadata.drop_all(connection)
+            metadata.create_all(connection)

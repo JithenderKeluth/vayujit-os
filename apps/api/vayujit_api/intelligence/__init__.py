@@ -11,6 +11,18 @@ from vayujit_api.intelligence.models import (
     IntelligenceRuleEvaluation,
     IntelligenceSource,
 )
+from vayujit_api.intelligence.portfolio_models import (
+    PortfolioScopeType,
+    PortfolioStatus,
+    SupplierPortfolioAlternateReadiness,
+    SupplierPortfolioAssessmentVersion,
+    SupplierPortfolioConcentrationMetric,
+    SupplierPortfolioContext,
+    SupplierPortfolioDependencyFinding,
+    SupplierPortfolioHumanAction,
+    SupplierPortfolioInputSnapshot,
+    SupplierPortfolioMembership,
+)
 from vayujit_api.intelligence.supplier_models import (
     Supplier,
     SupplierCapability,
@@ -32,6 +44,16 @@ from vayujit_api.intelligence.supplier_models import (
 )
 
 __all__ = [
+    "PortfolioScopeType",
+    "PortfolioStatus",
+    "SupplierPortfolioContext",
+    "SupplierPortfolioMembership",
+    "SupplierPortfolioAssessmentVersion",
+    "SupplierPortfolioInputSnapshot",
+    "SupplierPortfolioHumanAction",
+    "SupplierPortfolioConcentrationMetric",
+    "SupplierPortfolioDependencyFinding",
+    "SupplierPortfolioAlternateReadiness",
     "IntelligenceClaim",
     "IntelligenceEvidence",
     "IntelligenceOpportunity",
@@ -134,6 +156,18 @@ from vayujit_api.intelligence.marketplace_runtime import (
     execute_marketplace_lifecycle,
     execute_marketplace_recovery,
 )
+from vayujit_api.intelligence.resilience_models import (
+    SupplierPortfolioConfidenceProjection,
+    SupplierPortfolioRecommendation,
+    SupplierPortfolioResilienceDimensionResult,
+    SupplierPortfolioResilienceScore,
+    SupplierPortfolioRiskProjection,
+)
+from vayujit_api.intelligence.simulation_models import (
+    PortfolioSimulation,
+    PortfolioSimulationLifecycle,
+    PortfolioSimulationResult,
+)
 from vayujit_api.intelligence.sourcing_models import (
     CostScenario,
     DutyTaxAssumption,
@@ -173,3 +207,14 @@ from vayujit_api.intelligence.website_models import (
     WebsiteSourceProfile,
     WebsiteSourceProfileVersion,
 )
+
+__all__ += [
+    "SupplierPortfolioResilienceDimensionResult",
+    "SupplierPortfolioResilienceScore",
+    "SupplierPortfolioConfidenceProjection",
+    "SupplierPortfolioRiskProjection",
+    "SupplierPortfolioRecommendation",
+    "PortfolioSimulationLifecycle",
+    "PortfolioSimulation",
+    "PortfolioSimulationResult",
+]
