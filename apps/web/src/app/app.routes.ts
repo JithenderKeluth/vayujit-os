@@ -805,6 +805,22 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard],
   },
+  {
+    path: 'intelligence/supplier-portfolios/:portfolioId',
+    loadComponent: () =>
+      import('./intelligence/supplier-portfolio-workspace.component').then(
+        (m) => m.SupplierPortfolioWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'intelligence/supplier-portfolios',
+    loadComponent: () =>
+      import('./intelligence/supplier-portfolio-workspace.component').then(
+        (m) => m.SupplierPortfolioWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
   { path: '**', redirectTo: 'dashboard' },
   {
     path: 'intelligence/cross-marketplace',
