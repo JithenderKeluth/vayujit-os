@@ -55,6 +55,24 @@ from vayujit_api.intelligence.portfolio_integration_router import (
     router as intelligence_portfolio_integration_router,
 )
 from vayujit_api.intelligence.portfolio_router import router as intelligence_portfolio_router
+from vayujit_api.intelligence.product_opportunity_commercial_router import (
+    router as intelligence_product_opportunity_commercial_router,
+)
+from vayujit_api.intelligence.product_opportunity_feasibility_router import (
+    router as intelligence_product_opportunity_feasibility_router,
+)
+from vayujit_api.intelligence.product_opportunity_intelligence_router import (
+    router as intelligence_product_opportunity_intelligence_router,
+)
+from vayujit_api.intelligence.product_opportunity_router import (
+    router as intelligence_product_opportunity_router,
+)
+from vayujit_api.intelligence.product_opportunity_scoring_router import (
+    router as intelligence_product_opportunity_scoring_router,
+)
+from vayujit_api.intelligence.product_opportunity_synthesis_router import (
+    router as intelligence_product_opportunity_synthesis_router,
+)
 from vayujit_api.intelligence.resilience_router import router as intelligence_resilience_router
 from vayujit_api.intelligence.router import router as intelligence_router
 from vayujit_api.intelligence.scenario_router import router as intelligence_scenario_router
@@ -176,6 +194,12 @@ def create_app() -> FastAPI:
     application.include_router(intelligence_scenario_router)
     application.include_router(intelligence_portfolio_integration_router)
     application.include_router(intelligence_portfolio_router)
+    application.include_router(intelligence_product_opportunity_commercial_router)
+    application.include_router(intelligence_product_opportunity_feasibility_router)
+    application.include_router(intelligence_product_opportunity_intelligence_router)
+    application.include_router(intelligence_product_opportunity_synthesis_router)
+    application.include_router(intelligence_product_opportunity_scoring_router)
+    application.include_router(intelligence_product_opportunity_router)
     application.include_router(intelligence_resilience_router)
     application.include_router(intelligence_simulation_router)
     application.include_router(intelligence_operations_router)

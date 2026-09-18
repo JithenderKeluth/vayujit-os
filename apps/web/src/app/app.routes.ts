@@ -15,6 +15,22 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard],
   },
+  {
+    path: 'intelligence/product-opportunities',
+    loadComponent: () =>
+      import('./intelligence/product-opportunity-workspace.component').then(
+        (m) => m.ProductOpportunityWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'intelligence/product-opportunities/:opportunityId',
+    loadComponent: () =>
+      import('./intelligence/product-opportunity-workspace.component').then(
+        (m) => m.ProductOpportunityWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: 'setup', component: AuthPageComponent, canActivate: [guestGuard] },
   { path: 'login', component: AuthPageComponent, canActivate: [guestGuard] },
