@@ -1,4 +1,4 @@
-﻿"""Product Research and Supplier Intelligence bounded context."""
+"""Product Research and Supplier Intelligence bounded context."""
 
 from vayujit_api.intelligence.models import (
     IntelligenceClaim,
@@ -156,6 +156,28 @@ from vayujit_api.intelligence.marketplace_runtime import (
     execute_marketplace_lifecycle,
     execute_marketplace_recovery,
 )
+from vayujit_api.intelligence.product_opportunity_commercial_models import (
+    ProductOpportunityCommercialOutput,
+)
+from vayujit_api.intelligence.product_opportunity_feasibility_models import (
+    ProductOpportunitySourcingFeasibilityOutput,
+)
+from vayujit_api.intelligence.product_opportunity_intelligence_models import (
+    ProductOpportunityIntelligenceOutput,
+)
+from vayujit_api.intelligence.product_opportunity_models import (
+    ProductOpportunity,
+    ProductOpportunityAssessment,
+    ProductOpportunityConstraintVersion,
+    ProductOpportunityInputSnapshot,
+)
+from vayujit_api.intelligence.product_opportunity_scoring_models import (
+    ProductOpportunityDecision,
+    ProductOpportunityScore,
+)
+from vayujit_api.intelligence.product_opportunity_synthesis_models import (
+    ProductOpportunityRiskEvidenceSynthesis,
+)
 from vayujit_api.intelligence.resilience_models import (
     SupplierPortfolioConfidenceProjection,
     SupplierPortfolioRecommendation,
@@ -217,4 +239,14 @@ __all__ += [
     "PortfolioSimulationLifecycle",
     "PortfolioSimulation",
     "PortfolioSimulationResult",
+    "ProductOpportunity",
+    "ProductOpportunityConstraintVersion",
+    "ProductOpportunityInputSnapshot",
+    "ProductOpportunityAssessment",
+    "ProductOpportunityIntelligenceOutput",
+    "ProductOpportunityCommercialOutput",
+    "ProductOpportunitySourcingFeasibilityOutput",
+    "ProductOpportunityRiskEvidenceSynthesis",
+    "ProductOpportunityScore",
+    "ProductOpportunityDecision",
 ]
