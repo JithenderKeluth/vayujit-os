@@ -68,6 +68,29 @@ export interface CompetitorProductDetail {
   snapshots: CompetitorSnapshot[];
 }
 
+export interface CompetitorDiscoveryRequest {
+  id: string;
+  context_id: string;
+  provider_mode: string;
+  status: string;
+  maximum_candidates: number;
+  version: number;
+}
+export interface CompetitorDiscoveryCandidate {
+  id: string;
+  request_id: string;
+  raw_title: string;
+  normalized_title: string;
+  marketplace: string;
+  identity_state: string;
+  match_level: string;
+  match_score: string | null;
+  supporting_signals: unknown[];
+  conflicting_signals: unknown[];
+  missing_signals: unknown[];
+  evidence_state: string;
+  freshness_state: string;
+}
 export interface CompetitorIntegrity {
   status: string;
   counts: Record<string, number>;
@@ -118,6 +141,49 @@ export class CompetitorIntelligenceService {
       this.http.patch<CompetitorProduct>(`${this.base}/products/${productId}/identity`, {
         identity_state: identityState,
       }),
+    );
+  }
+
+  createDiscoveryRequest(
+    contextId: string,
+    payload: Record<string, unknown>,
+  ): Promise<CompetitorDiscoveryRequest> {
+    return firstValueFrom(
+      this.http.post<CompetitorDiscoveryRequest>(
+        this.base + '/discovery/contexts/' + contextId + '/requests',
+        payload,
+      ),
+    );
+  }
+
+  executeDiscovery(
+    requestId: string,
+  ): Promise<{ request: CompetitorDiscoveryRequest; candidates: CompetitorDiscoveryCandidate[] }> {
+    return firstValueFrom(
+      this.http.post<{
+        request: CompetitorDiscoveryRequest;
+        candidates: CompetitorDiscoveryCandidate[];
+      }>(this.base + '/discovery/requests/' + requestId + '/execute', {}),
+    );
+  }
+
+  discoveryCandidates(requestId: string): Promise<CompetitorDiscoveryCandidate[]> {
+    return firstValueFrom(
+      this.http.get<CompetitorDiscoveryCandidate[]>(
+        this.base + '/discovery/requests/' + requestId + '/candidates',
+      ),
+    );
+  }
+
+  resolveDiscoveryCandidate(
+    candidateId: string,
+    state: 'confirm' | 'reject' | 'ambiguous',
+  ): Promise<CompetitorDiscoveryCandidate> {
+    return firstValueFrom(
+      this.http.post<CompetitorDiscoveryCandidate>(
+        this.base + '/discovery/candidates/' + candidateId + '/' + state,
+        { confirm: state === 'confirm', reason: 'Reviewed in Competitor Intelligence workspace.' },
+      ),
     );
   }
 
