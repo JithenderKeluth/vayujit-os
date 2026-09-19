@@ -9,6 +9,9 @@ from sqlalchemy.orm import Session
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.intelligence.competitor_commercial_service import (
+    integrity_report as commercial_integrity_report,
+)
 from vayujit_api.intelligence.competitor_discovery_service import (
     integrity_report as discovery_integrity_report,
 )
@@ -31,6 +34,7 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
     value = get_operations_projection(db, owner)
     competitor = integrity_report(db, owner)
     discovery = discovery_integrity_report(db, owner)
+    commercial = commercial_integrity_report(db, owner)
     return {
         "status": "healthy" if value["enabled"] else "disabled",
         "checks": {
@@ -99,6 +103,7 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
             "supplier_portfolios": value["supplier_portfolios"],
             "competitor_intelligence": competitor,
             "competitor_discovery": discovery,
+            "competitor_commercial": commercial,
             "supplier_intelligence": {
                 "enabled": value["enabled"],
                 "provider": "deterministic_local_fixture",
