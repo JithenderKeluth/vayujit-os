@@ -147,6 +147,10 @@ from vayujit_api.intelligence.autonomous_models import (
     AutonomousResearchSchedule,
     AutonomousResearchTask,
 )
+from vayujit_api.intelligence.competitor_commercial_models import (
+    CompetitorCommercialAnalysis,
+    CompetitorComparableCohortEntry,
+)
 from vayujit_api.intelligence.competitor_discovery_models import (
     CompetitorDiscoveryCandidate,
     CompetitorDiscoveryRequest,
@@ -261,6 +265,8 @@ __all__ += [
     "ProductOpportunityRiskEvidenceSynthesis",
     "ProductOpportunityScore",
     "ProductOpportunityDecision",
+    "CompetitorCommercialAnalysis",
+    "CompetitorComparableCohortEntry",
     "CompetitorContext",
     "CompetitorEntity",
     "CompetitorProduct",

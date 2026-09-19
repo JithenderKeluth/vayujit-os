@@ -97,6 +97,34 @@ export interface CompetitorIntegrity {
   duplicate_counts: Record<string, number>;
 }
 
+export interface CompetitorCommercialAnalysis {
+  id: string;
+  owner_id: string;
+  context_id: string;
+  discovery_snapshot_id: string | null;
+  opportunity_id: string | null;
+  analysis_version: number;
+  calculation_version: string;
+  status: string;
+  input_fingerprint: string;
+  input_snapshot: Record<string, unknown>;
+  cohort_summary: Record<string, unknown>;
+  pricing_analysis: Record<string, unknown>;
+  concentration_analysis: Record<string, unknown>;
+  rating_analysis: Record<string, unknown>;
+  review_analysis: Record<string, unknown>;
+  assortment_analysis: Record<string, unknown>;
+  positioning_analysis: Record<string, unknown>;
+  differentiation_analysis: Array<Record<string, unknown>>;
+  competitive_gaps: Array<Record<string, unknown>>;
+  evidence_coverage: Record<string, unknown>;
+  freshness_summary: Record<string, unknown>;
+  contradictions: Array<Record<string, unknown>>;
+  research_gaps: Array<Record<string, unknown>>;
+  explanation: Record<string, unknown>;
+  idempotency_key: string;
+  created_at: string;
+}
 @Injectable({ providedIn: 'root' })
 export class CompetitorIntelligenceService {
   private readonly http = inject(HttpClient);
@@ -187,6 +215,33 @@ export class CompetitorIntelligenceService {
     );
   }
 
+  runCommercialAnalysis(
+    contextId: string,
+    payload: Record<string, unknown> = {},
+  ): Promise<CompetitorCommercialAnalysis> {
+    return firstValueFrom(
+      this.http.post<CompetitorCommercialAnalysis>(
+        this.base + '/commercial-analysis/contexts/' + contextId + '/analyses/run',
+        payload,
+      ),
+    );
+  }
+
+  currentCommercialAnalysis(contextId: string): Promise<CompetitorCommercialAnalysis> {
+    return firstValueFrom(
+      this.http.get<CompetitorCommercialAnalysis>(
+        this.base + '/commercial-analysis/contexts/' + contextId + '/analyses/current',
+      ),
+    );
+  }
+
+  commercialAnalysisHistory(contextId: string): Promise<CompetitorCommercialAnalysis[]> {
+    return firstValueFrom(
+      this.http.get<CompetitorCommercialAnalysis[]>(
+        this.base + '/commercial-analysis/contexts/' + contextId + '/analyses',
+      ),
+    );
+  }
   doctor(): Promise<CompetitorIntegrity> {
     return firstValueFrom(this.http.get<CompetitorIntegrity>(`${this.base}/system-doctor`));
   }

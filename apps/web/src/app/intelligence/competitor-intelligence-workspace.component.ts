@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import {
+  CompetitorCommercialAnalysis,
   CompetitorContext,
   CompetitorDiscoveryCandidate,
   CompetitorEntity,
@@ -138,6 +139,34 @@ import {
             <p>No discovery candidates yet.</p>
           }
         </section>
+        <section class="panel" aria-labelledby="commercial-title">
+          <h2 id="commercial-title">Pricing, positioning, and assortment</h2>
+          <p class="muted">
+            Deterministic commercial analysis uses the confirmed evidence in this context. Currency
+            mismatches remain non-comparable and research gaps stay visible.
+          </p>
+          <button type="button" (click)="runCommercialAnalysis(context)" [disabled]="loading()">
+            Run commercial analysis
+          </button>
+          @if (commercialAnalysis(); as analysis) {
+            <article class="list-item" aria-label="Commercial analysis summary">
+              <strong
+                >{{ analysis.status }} ·
+                {{ analysis.pricing_analysis['currency'] || 'NOT_COMPARABLE' }}</strong
+              >
+              <span
+                >Calculation {{ analysis.calculation_version }} ·
+                {{ analysis.pricing_analysis['currency'] || 'Currency unknown' }}</span
+              >
+              <small
+                >Pricing, concentration, ratings, assortment, positioning, and evidence coverage are
+                versioned.</small
+              >
+            </article>
+          } @else {
+            <p>No commercial analysis has been run for this context.</p>
+          }
+        </section>
         <section class="panel" aria-labelledby="product-title">
           <h2 id="product-title">Products in {{ context.marketplace || 'this context' }}</h2>
           <form (ngSubmit)="createProduct()">
@@ -180,6 +209,7 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
   readonly entities = signal<CompetitorEntity[]>([]);
   readonly products = signal<CompetitorProduct[]>([]);
   readonly discoveryCandidates = signal<CompetitorDiscoveryCandidate[]>([]);
+  readonly commercialAnalysis = signal<CompetitorCommercialAnalysis | null>(null);
   private discoveryRequestId = '';
   readonly selectedContext = signal<CompetitorContext | null>(null);
   readonly doctor = signal<{ status: string } | null>(null);
@@ -277,6 +307,16 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
     }, 'The discovery candidate could not be resolved.');
   }
 
+  async runCommercialAnalysis(context: CompetitorContext): Promise<void> {
+    await this.run(async () => {
+      this.commercialAnalysis.set(
+        await this.service.runCommercialAnalysis(context.id, {
+          idempotency_key: `competitor-commercial-${context.id}`,
+          confirmation: true,
+        }),
+      );
+    }, 'The commercial analysis could not be completed.');
+  }
   async createProduct(): Promise<void> {
     const context = this.selectedContext();
     if (!context) return;
