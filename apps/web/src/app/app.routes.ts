@@ -24,6 +24,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'intelligence/competitors',
+    loadComponent: () =>
+      import('./intelligence/competitor-intelligence-workspace.component').then(
+        (m) => m.CompetitorIntelligenceWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'intelligence/product-opportunities',
     loadComponent: () =>
       import('./intelligence/product-opportunity-workspace.component').then(

@@ -147,6 +147,13 @@ from vayujit_api.intelligence.autonomous_models import (
     AutonomousResearchSchedule,
     AutonomousResearchTask,
 )
+from vayujit_api.intelligence.competitor_models import (
+    CompetitorContext,
+    CompetitorEntity,
+    CompetitorObservation,
+    CompetitorProduct,
+    CompetitorSnapshot,
+)
 from vayujit_api.intelligence.marketplace_runtime import (
     MarketplaceExecution,
     MarketplaceLedger,
@@ -249,4 +256,9 @@ __all__ += [
     "ProductOpportunityRiskEvidenceSynthesis",
     "ProductOpportunityScore",
     "ProductOpportunityDecision",
+    "CompetitorContext",
+    "CompetitorEntity",
+    "CompetitorProduct",
+    "CompetitorObservation",
+    "CompetitorSnapshot",
 ]
