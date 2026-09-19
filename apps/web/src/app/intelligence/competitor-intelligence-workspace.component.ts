@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 
 import {
+  CompetitorChangeEvent,
   CompetitorCommercialAnalysis,
   CompetitorContext,
   CompetitorDiscoveryCandidate,
@@ -167,6 +168,40 @@ import {
             <p>No commercial analysis has been run for this context.</p>
           }
         </section>
+        <section class="panel" aria-labelledby="changes-title">
+          <h2 id="changes-title">Competitive changes</h2>
+          <p class="muted">
+            Reproducible changes compare immutable commercial analyses. Materiality is not a
+            business recommendation; unresolved evidence remains visible for review.
+          </p>
+          <button type="button" (click)="runChangeComparison(context)" [disabled]="loading()">
+            Run change comparison
+          </button>
+          @if (changes().length) {
+            <div role="region" aria-label="Competitive change timeline">
+              @for (change of changes(); track change.id) {
+                <article class="list-item">
+                  <strong>{{ change.change_type }} · {{ change.materiality }}</strong>
+                  <span
+                    >{{ change.status }} · {{ change.alert_eligibility }} ·
+                    {{ change.evidence_state }}</span
+                  >
+                  <small>
+                    {{ change.observed_or_derived }} ·
+                    {{
+                      change.percentage_delta
+                        ? change.percentage_delta + '%'
+                        : 'No percentage delta'
+                    }}
+                    · {{ change.freshness_state }}
+                  </small>
+                </article>
+              }
+            </div>
+          } @else {
+            <p>No competitive changes have been compared for this context.</p>
+          }
+        </section>
         <section class="panel" aria-labelledby="product-title">
           <h2 id="product-title">Products in {{ context.marketplace || 'this context' }}</h2>
           <form (ngSubmit)="createProduct()">
@@ -210,6 +245,7 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
   readonly products = signal<CompetitorProduct[]>([]);
   readonly discoveryCandidates = signal<CompetitorDiscoveryCandidate[]>([]);
   readonly commercialAnalysis = signal<CompetitorCommercialAnalysis | null>(null);
+  readonly changes = signal<CompetitorChangeEvent[]>([]);
   private discoveryRequestId = '';
   readonly selectedContext = signal<CompetitorContext | null>(null);
   readonly doctor = signal<{ status: string } | null>(null);
@@ -307,6 +343,15 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
     }, 'The discovery candidate could not be resolved.');
   }
 
+  async runChangeComparison(context: CompetitorContext): Promise<void> {
+    await this.run(async () => {
+      const result = await this.service.runChangeComparison(context.id, {
+        idempotency_key: `competitor-change-${context.id}`,
+      });
+      this.changes.set(result.events);
+    }, 'The competitive change comparison could not be completed.');
+  }
+
   async runCommercialAnalysis(context: CompetitorContext): Promise<void> {
     await this.run(async () => {
       this.commercialAnalysis.set(
@@ -343,6 +388,11 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
 
   private async loadProducts(context: CompetitorContext): Promise<void> {
     this.products.set(await this.service.products(context.id));
+    try {
+      this.changes.set((await this.service.currentChanges(context.id)).items);
+    } catch {
+      this.changes.set([]);
+    }
   }
 
   private async run(action: () => Promise<void>, message: string): Promise<void> {

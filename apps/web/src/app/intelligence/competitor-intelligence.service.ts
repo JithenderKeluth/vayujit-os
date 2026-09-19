@@ -125,6 +125,29 @@ export interface CompetitorCommercialAnalysis {
   idempotency_key: string;
   created_at: string;
 }
+
+export interface CompetitorChangeEvent {
+  id: string;
+  context_id: string;
+  comparison_id: string;
+  product_id: string | null;
+  change_type: string;
+  observed_or_derived: string;
+  old_value: unknown;
+  new_value: unknown;
+  absolute_delta: string | null;
+  percentage_delta: string | null;
+  currency: string | null;
+  freshness_state: string;
+  evidence_state: string;
+  materiality: string;
+  status: string;
+  confidence: string | null;
+  alert_eligibility: string;
+  first_observed: string | null;
+  last_observed: string | null;
+  calculation_version: string;
+}
 @Injectable({ providedIn: 'root' })
 export class CompetitorIntelligenceService {
   private readonly http = inject(HttpClient);
@@ -239,6 +262,26 @@ export class CompetitorIntelligenceService {
     return firstValueFrom(
       this.http.get<CompetitorCommercialAnalysis[]>(
         this.base + '/commercial-analysis/contexts/' + contextId + '/analyses',
+      ),
+    );
+  }
+
+  runChangeComparison(
+    contextId: string,
+    payload: Record<string, unknown> = {},
+  ): Promise<{ comparison: Record<string, unknown>; events: CompetitorChangeEvent[] }> {
+    return firstValueFrom(
+      this.http.post<{ comparison: Record<string, unknown>; events: CompetitorChangeEvent[] }>(
+        this.base + '/change-intelligence/contexts/' + contextId + '/comparisons/run',
+        payload,
+      ),
+    );
+  }
+
+  currentChanges(contextId: string): Promise<{ items: CompetitorChangeEvent[]; total: number }> {
+    return firstValueFrom(
+      this.http.get<{ items: CompetitorChangeEvent[]; total: number }>(
+        this.base + '/change-intelligence/contexts/' + contextId + '/changes',
       ),
     );
   }
