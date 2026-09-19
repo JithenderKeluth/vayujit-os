@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 
 import {
   CompetitorContext,
+  CompetitorDiscoveryCandidate,
   CompetitorEntity,
   CompetitorIntelligenceService,
   CompetitorProduct,
@@ -22,8 +23,7 @@ import {
           <p class="eyebrow">Intelligence / Competitors</p>
           <h1 id="competitor-title">Competitor intelligence</h1>
           <p class="lede">
-            Owner-scoped factual observations and immutable snapshots. Matching and analytics remain
-            deliberately out of scope for this foundation.
+            Deterministic, owner-scoped discovery with explainable matching and human review.
           </p>
         </div>
         <a routerLink="/intelligence">Back to Intelligence</a>
@@ -95,6 +95,49 @@ import {
       </section>
 
       @if (selectedContext(); as context) {
+        <section class="panel" aria-labelledby="discovery-title">
+          <h2 id="discovery-title">Discovery and identity review</h2>
+          <p class="muted">
+            LOCAL_FIXTURE is deterministic and read-only; live providers fail closed until
+            configured.
+          </p>
+          <button type="button" (click)="discover(context)" [disabled]="loading()">
+            Run local discovery
+          </button>
+          @for (candidate of discoveryCandidates(); track candidate.id) {
+            <article class="list-item">
+              <strong>{{ candidate.raw_title }}</strong>
+              <span
+                >{{ candidate.identity_state }} &middot; {{ candidate.match_level }} &middot;
+                {{ candidate.evidence_state }}</span
+              >
+              <small>Signals: {{ candidate.supporting_signals.join(', ') || 'none' }}</small>
+              <button
+                type="button"
+                (click)="resolveCandidate(candidate, 'confirm')"
+                [disabled]="loading()"
+              >
+                Confirm
+              </button>
+              <button
+                type="button"
+                (click)="resolveCandidate(candidate, 'reject')"
+                [disabled]="loading()"
+              >
+                Reject
+              </button>
+              <button
+                type="button"
+                (click)="resolveCandidate(candidate, 'ambiguous')"
+                [disabled]="loading()"
+              >
+                Mark ambiguous
+              </button>
+            </article>
+          } @empty {
+            <p>No discovery candidates yet.</p>
+          }
+        </section>
         <section class="panel" aria-labelledby="product-title">
           <h2 id="product-title">Products in {{ context.marketplace || 'this context' }}</h2>
           <form (ngSubmit)="createProduct()">
@@ -136,6 +179,8 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
   readonly contexts = signal<CompetitorContext[]>([]);
   readonly entities = signal<CompetitorEntity[]>([]);
   readonly products = signal<CompetitorProduct[]>([]);
+  readonly discoveryCandidates = signal<CompetitorDiscoveryCandidate[]>([]);
+  private discoveryRequestId = '';
   readonly selectedContext = signal<CompetitorContext | null>(null);
   readonly doctor = signal<{ status: string } | null>(null);
   readonly loading = signal(false);
@@ -204,6 +249,32 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
   async selectContext(context: CompetitorContext): Promise<void> {
     this.selectedContext.set(context);
     await this.loadProducts(context);
+  }
+
+  async discover(context: CompetitorContext): Promise<void> {
+    await this.run(async () => {
+      const request = await this.service.createDiscoveryRequest(context.id, {
+        provider_mode: 'LOCAL_FIXTURE',
+        maximum_candidates: 50,
+        filters: { fixture_candidates: [] },
+        idempotency_key: 'competitor-discovery-' + context.id,
+      });
+      this.discoveryRequestId = request.id;
+      const result = await this.service.executeDiscovery(request.id);
+      this.discoveryCandidates.set(result.candidates);
+    }, 'Competitor discovery could not be completed.');
+  }
+
+  async resolveCandidate(
+    candidate: CompetitorDiscoveryCandidate,
+    state: 'confirm' | 'reject' | 'ambiguous',
+  ): Promise<void> {
+    await this.run(async () => {
+      const updated = await this.service.resolveDiscoveryCandidate(candidate.id, state);
+      this.discoveryCandidates.update((values) =>
+        values.map((value) => (value.id === updated.id ? updated : value)),
+      );
+    }, 'The discovery candidate could not be resolved.');
   }
 
   async createProduct(): Promise<void> {

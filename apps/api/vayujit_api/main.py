@@ -37,6 +37,9 @@ from vayujit_api.intelligence.autonomous_router import router as intelligence_au
 from vayujit_api.intelligence.business_agent_router import (
     router as intelligence_business_agent_router,
 )
+from vayujit_api.intelligence.competitor_discovery_router import (
+    router as intelligence_competitor_discovery_router,
+)
 from vayujit_api.intelligence.competitor_router import router as intelligence_competitor_router
 from vayujit_api.intelligence.cross_marketplace_router import (
     router as intelligence_cross_marketplace_router,
@@ -194,6 +197,7 @@ def create_app() -> FastAPI:
     application.include_router(intelligence_global_sources_router)
     application.include_router(intelligence_cross_marketplace_router)
     application.include_router(intelligence_competitor_router)
+    application.include_router(intelligence_competitor_discovery_router)
     application.include_router(intelligence_sourcing_router)
     application.include_router(intelligence_shortlisting_router)
     application.include_router(intelligence_due_diligence_router)
