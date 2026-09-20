@@ -20,6 +20,7 @@ from vayujit_api.intelligence.competitor_discovery_service import (
 )
 from vayujit_api.intelligence.competitor_service import integrity_report
 from vayujit_api.intelligence.projection import get_operations_projection
+from vayujit_api.intelligence.review_service import integrity_report as review_integrity_report
 
 router = APIRouter(prefix="/api/v1/operations/intelligence", tags=["operations-intelligence"])
 diagnostics_router = APIRouter(prefix="/api/v1/intelligence", tags=["intelligence"])
@@ -109,6 +110,7 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
             "competitor_discovery": discovery,
             "competitor_commercial": commercial,
             "competitor_changes": changes,
+            "reviews": {"integrity": review_integrity_report(db, owner)},
             "supplier_intelligence": {
                 "enabled": value["enabled"],
                 "provider": "deterministic_local_fixture",

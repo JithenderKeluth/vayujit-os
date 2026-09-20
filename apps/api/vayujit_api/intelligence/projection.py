@@ -44,6 +44,7 @@ from vayujit_api.intelligence.models import (
     IntelligenceSource,
 )
 from vayujit_api.intelligence.portfolio_integration import operations as portfolio_operations
+from vayujit_api.intelligence.review_models import ReviewContext, ReviewRecord, ReviewSnapshot
 from vayujit_api.intelligence.shortlisting_service import operations as shortlisting_operations
 from vayujit_api.intelligence.tradeindia_projection import (
     operational_summary as tradeindia_operational_summary,
@@ -203,6 +204,70 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
         "cross_marketplace_supplier_intelligence": cross_marketplace_operations(db, owner),
         "supplier_shortlisting": shortlisting_operations(db, owner),
         "supplier_portfolios": portfolio_operations(db, owner),
+        "reviews": {
+            "enabled": True,
+            "contexts": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(ReviewContext)
+                    .where(ReviewContext.owner_id == owner.id)
+                )
+                or 0
+            ),
+            "active_contexts": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(ReviewContext)
+                    .where(ReviewContext.owner_id == owner.id, ReviewContext.status == "ACTIVE")
+                )
+                or 0
+            ),
+            "review_records": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(ReviewRecord)
+                    .where(ReviewRecord.owner_id == owner.id)
+                )
+                or 0
+            ),
+            "snapshots": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(ReviewSnapshot)
+                    .where(ReviewSnapshot.owner_id == owner.id)
+                )
+                or 0
+            ),
+            "stale_evidence": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(ReviewRecord)
+                    .where(
+                        ReviewRecord.owner_id == owner.id, ReviewRecord.freshness_status == "STALE"
+                    )
+                )
+                or 0
+            ),
+            "missing_evidence": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(ReviewRecord)
+                    .where(
+                        ReviewRecord.owner_id == owner.id, ReviewRecord.evidence_state == "MISSING"
+                    )
+                )
+                or 0
+            ),
+            "source_counts": {
+                str(provider): int(count)
+                for provider, count in db.execute(
+                    select(ReviewRecord.provider, func.count())
+                    .where(ReviewRecord.owner_id == owner.id)
+                    .group_by(ReviewRecord.provider)
+                ).tuples()
+            },
+            "external_writes": "DISABLED",
+        },
         "marketplace": marketplace_projection,
         "research_execution_enabled": settings.intelligence_research_execution_enabled,
         "external_research_enabled": settings.intelligence_external_research_enabled,

@@ -87,6 +87,7 @@ from vayujit_api.intelligence.product_opportunity_synthesis_router import (
     router as intelligence_product_opportunity_synthesis_router,
 )
 from vayujit_api.intelligence.resilience_router import router as intelligence_resilience_router
+from vayujit_api.intelligence.review_router import router as intelligence_review_router
 from vayujit_api.intelligence.router import router as intelligence_router
 from vayujit_api.intelligence.scenario_router import router as intelligence_scenario_router
 from vayujit_api.intelligence.shortlisting_router import router as intelligence_shortlisting_router
@@ -219,6 +220,7 @@ def create_app() -> FastAPI:
     application.include_router(intelligence_product_opportunity_scoring_router)
     application.include_router(intelligence_product_opportunity_router)
     application.include_router(intelligence_resilience_router)
+    application.include_router(intelligence_review_router)
     application.include_router(intelligence_simulation_router)
     application.include_router(intelligence_operations_router)
     application.include_router(intelligence_diagnostics_router)

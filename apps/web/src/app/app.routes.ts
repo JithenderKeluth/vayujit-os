@@ -24,6 +24,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'intelligence/reviews',
+    loadComponent: () =>
+      import('./intelligence/review-intelligence-workspace.component').then(
+        (m) => m.ReviewIntelligenceWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'intelligence/competitors',
     loadComponent: () =>
       import('./intelligence/competitor-intelligence-workspace.component').then(

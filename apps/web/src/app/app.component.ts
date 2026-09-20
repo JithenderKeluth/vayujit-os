@@ -24,6 +24,7 @@ export class AppComponent {
     ['Campaigns', '/campaigns'],
     ['Intelligence', '/intelligence'],
     ['Competitors', '/intelligence/competitors'],
+    ['Reviews', '/intelligence/reviews'],
     ['Business Agent', '/intelligence/business-agent'],
     ['External Research', '/intelligence/external'],
     ['Website Intelligence', '/intelligence/websites'],
