@@ -44,7 +44,12 @@ from vayujit_api.intelligence.models import (
     IntelligenceSource,
 )
 from vayujit_api.intelligence.portfolio_integration import operations as portfolio_operations
-from vayujit_api.intelligence.review_models import ReviewContext, ReviewRecord, ReviewSnapshot
+from vayujit_api.intelligence.review_models import (
+    ReviewContext,
+    ReviewIngestionBatch,
+    ReviewRecord,
+    ReviewSnapshot,
+)
 from vayujit_api.intelligence.shortlisting_service import operations as shortlisting_operations
 from vayujit_api.intelligence.tradeindia_projection import (
     operational_summary as tradeindia_operational_summary,
@@ -266,6 +271,71 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
                     .group_by(ReviewRecord.provider)
                 ).tuples()
             },
+            "ingestion_batches": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(ReviewIngestionBatch)
+                    .where(ReviewIngestionBatch.owner_id == owner.id)
+                )
+                or 0
+            ),
+            "successful_ingestion_batches": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(ReviewIngestionBatch)
+                    .where(
+                        ReviewIngestionBatch.owner_id == owner.id,
+                        ReviewIngestionBatch.status == "COMPLETED",
+                    )
+                )
+                or 0
+            ),
+            "partial_ingestion_batches": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(ReviewIngestionBatch)
+                    .where(
+                        ReviewIngestionBatch.owner_id == owner.id,
+                        ReviewIngestionBatch.status == "PARTIAL",
+                    )
+                )
+                or 0
+            ),
+            "failed_ingestion_batches": int(
+                db.scalar(
+                    select(func.count())
+                    .select_from(ReviewIngestionBatch)
+                    .where(
+                        ReviewIngestionBatch.owner_id == owner.id,
+                        ReviewIngestionBatch.status == "FAILED",
+                    )
+                )
+                or 0
+            ),
+            "accepted_ingestion_candidates": int(
+                db.scalar(
+                    select(func.sum(ReviewIngestionBatch.accepted_count)).where(
+                        ReviewIngestionBatch.owner_id == owner.id
+                    )
+                )
+                or 0
+            ),
+            "rejected_ingestion_candidates": int(
+                db.scalar(
+                    select(func.sum(ReviewIngestionBatch.rejected_count)).where(
+                        ReviewIngestionBatch.owner_id == owner.id
+                    )
+                )
+                or 0
+            ),
+            "duplicate_ingestion_candidates": int(
+                db.scalar(
+                    select(func.sum(ReviewIngestionBatch.duplicate_count)).where(
+                        ReviewIngestionBatch.owner_id == owner.id
+                    )
+                )
+                or 0
+            ),
             "external_writes": "DISABLED",
         },
         "marketplace": marketplace_projection,

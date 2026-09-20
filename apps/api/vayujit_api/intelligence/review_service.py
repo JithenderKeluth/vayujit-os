@@ -22,6 +22,9 @@ from vayujit_api.intelligence.models import IntelligenceEvidence, IntelligenceSo
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
 from vayujit_api.intelligence.review_models import (
     ReviewContext,
+    ReviewIngestionBatch,
+    ReviewIngestionCandidate,
+    ReviewObservation,
     ReviewRecord,
     ReviewSnapshot,
     ReviewSource,
@@ -661,6 +664,68 @@ def integrity_report(db: Session, owner: User) -> dict[str, object]:
             or 0
         ),
         "unsafe_external_write_capabilities": 0,
+        "orphan_ingestion_batches": int(
+            db.scalar(
+                select(func.count())
+                .select_from(ReviewIngestionBatch)
+                .where(
+                    ReviewIngestionBatch.owner_id == owner.id,
+                    ~ReviewIngestionBatch.context_id.in_(contexts),
+                )
+            )
+            or 0
+        ),
+        "orphan_ingestion_candidates": int(
+            db.scalar(
+                select(func.count())
+                .select_from(ReviewIngestionCandidate)
+                .where(
+                    ReviewIngestionCandidate.owner_id == owner.id,
+                    ~ReviewIngestionCandidate.context_id.in_(contexts),
+                )
+            )
+            or 0
+        ),
+        "orphan_review_observations": int(
+            db.scalar(
+                select(func.count())
+                .select_from(ReviewObservation)
+                .where(
+                    ReviewObservation.owner_id == owner.id,
+                    ~ReviewObservation.context_id.in_(contexts),
+                )
+            )
+            or 0
+        ),
+        "broken_record_batch_lineage": int(
+            db.scalar(
+                select(func.count())
+                .select_from(ReviewRecord)
+                .where(
+                    ReviewRecord.owner_id == owner.id,
+                    ReviewRecord.ingestion_batch_id.is_not(None),
+                    ~exists(
+                        select(ReviewIngestionBatch.id).where(
+                            ReviewIngestionBatch.id == ReviewRecord.ingestion_batch_id,
+                            ReviewIngestionBatch.owner_id == owner.id,
+                            ReviewIngestionBatch.context_id == ReviewRecord.context_id,
+                        )
+                    ),
+                )
+            )
+            or 0
+        ),
+        "invalid_normalization_versions": int(
+            db.scalar(
+                select(func.count())
+                .select_from(ReviewObservation)
+                .where(
+                    ReviewObservation.owner_id == owner.id,
+                    ReviewObservation.normalization_version != "review-normalization-v1",
+                )
+            )
+            or 0
+        ),
     }
     total = sum(counts.values())
     return {"status": "PASS" if total == 0 else "FAIL", "counts": counts}

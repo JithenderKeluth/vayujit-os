@@ -27,6 +27,16 @@ REVIEW_FRESHNESS = ("CURRENT", "STALE", "UNKNOWN")
 REVIEW_EVIDENCE_STATES = ("AVAILABLE", "PARTIAL", "MISSING", "UNKNOWN", "UNVERIFIED")
 REVIEW_VERIFICATION_STATES = ("UNVERIFIED", "VERIFIED", "REJECTED", "UNKNOWN")
 VERIFIED_PURCHASE_STATES = ("TRUE", "FALSE", "UNKNOWN")
+INGESTION_MODES = ("DISABLED", "LOCAL_FIXTURE", "LIVE_READ_ONLY")
+INGESTION_BATCH_STATUSES = ("REQUESTED", "RUNNING", "COMPLETED", "PARTIAL", "FAILED")
+DUPLICATE_CLASSIFICATIONS = (
+    "EXACT_REPLAY",
+    "AUTHORITATIVE_DUPLICATE",
+    "FINGERPRINT_DUPLICATE",
+    "POSSIBLE_DUPLICATE",
+    "DISTINCT",
+)
+QUALITY_STATES = ("COMPLETE", "PARTIAL", "MINIMAL", "INVALID")
 
 
 class ReviewContext(Base):
@@ -170,6 +180,11 @@ class ReviewRecord(Base):
     fingerprint: Mapped[str] = mapped_column(String(128), index=True)
     fingerprint_version: Mapped[str] = mapped_column(String(32), default="review-fingerprint-v1")
     idempotency_key: Mapped[str] = mapped_column(String(180))
+    ingestion_batch_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_ingestion_batches.id", ondelete="SET NULL"),
+        index=True,
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
 
 
@@ -209,4 +224,149 @@ class ReviewSnapshot(Base):
     statistics_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
     input_fingerprint: Mapped[str] = mapped_column(String(128), index=True)
     calculation_version: Mapped[str] = mapped_column(String(80), default="review-foundation-v1")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ReviewIngestionBatch(Base):
+    __tablename__ = "intelligence_review_ingestion_batches"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id",
+            "context_id",
+            "idempotency_key",
+            name="uq_review_ingestion_batch_idempotency",
+        ),
+        Index("ix_review_ingestion_batch_context_created", "owner_id", "context_id", "created_at"),
+        CheckConstraint(
+            "mode IN ('DISABLED','LOCAL_FIXTURE','LIVE_READ_ONLY')",
+            name="ck_review_ingestion_batch_mode",
+        ),
+        CheckConstraint(
+            "status IN ('REQUESTED','RUNNING','COMPLETED','PARTIAL','FAILED')",
+            name="ck_review_ingestion_batch_status",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    context_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_contexts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    source_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("intelligence_review_sources.id", ondelete="SET NULL")
+    )
+    provider: Mapped[str] = mapped_column(String(120), default="LOCAL_FIXTURE", index=True)
+    mode: Mapped[str] = mapped_column(String(32), default="LOCAL_FIXTURE", index=True)
+    status: Mapped[str] = mapped_column(String(24), default="REQUESTED", index=True)
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    input_count: Mapped[int] = mapped_column(Integer, default=0)
+    accepted_count: Mapped[int] = mapped_column(Integer, default=0)
+    rejected_count: Mapped[int] = mapped_column(Integer, default=0)
+    duplicate_count: Mapped[int] = mapped_column(Integer, default=0)
+    updated_observation_count: Mapped[int] = mapped_column(Integer, default=0)
+    error_count: Mapped[int] = mapped_column(Integer, default=0)
+    input_fingerprint: Mapped[str] = mapped_column(String(128), index=True)
+    adapter_version: Mapped[str] = mapped_column(String(40), default="review-adapter-v1")
+    normalization_version: Mapped[str] = mapped_column(
+        String(40), default="review-normalization-v1"
+    )
+    idempotency_key: Mapped[str] = mapped_column(String(180))
+    error_message: Mapped[str | None] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ReviewIngestionCandidate(Base):
+    __tablename__ = "intelligence_review_ingestion_candidates"
+    __table_args__ = (
+        UniqueConstraint("batch_id", "ordinal", name="uq_review_ingestion_candidate_ordinal"),
+        Index("ix_review_ingestion_candidate_batch_status", "owner_id", "batch_id", "accepted"),
+        Index(
+            "ix_review_ingestion_candidate_duplicate",
+            "owner_id",
+            "batch_id",
+            "duplicate_classification",
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    batch_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_ingestion_batches.id", ondelete="CASCADE"),
+        index=True,
+    )
+    context_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_contexts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    source_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("intelligence_review_sources.id", ondelete="SET NULL")
+    )
+    ordinal: Mapped[int] = mapped_column(Integer)
+    provider_review_id: Mapped[str | None] = mapped_column(String(240))
+    fingerprint: Mapped[str | None] = mapped_column(String(128), index=True)
+    duplicate_classification: Mapped[str] = mapped_column(
+        String(32), default="DISTINCT", index=True
+    )
+    quality_state: Mapped[str] = mapped_column(String(16), default="INVALID", index=True)
+    accepted: Mapped[bool] = mapped_column(default=False, index=True)
+    rejection_reason: Mapped[str | None] = mapped_column(String(80), index=True)
+    raw_payload: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    normalized_payload: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    review_record_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("intelligence_review_records.id", ondelete="SET NULL")
+    )
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ReviewObservation(Base):
+    __tablename__ = "intelligence_review_observations"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id",
+            "review_record_id",
+            "source_fingerprint",
+            name="uq_review_observation_source_state",
+        ),
+        Index(
+            "ix_review_observation_record_observed", "owner_id", "review_record_id", "observed_at"
+        ),
+        Index("ix_review_observation_batch", "owner_id", "batch_id"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    context_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_contexts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    review_record_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_records.id", ondelete="CASCADE"),
+        index=True,
+    )
+    batch_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_ingestion_batches.id", ondelete="CASCADE"),
+        index=True,
+    )
+    source_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("intelligence_review_sources.id", ondelete="SET NULL")
+    )
+    provider: Mapped[str] = mapped_column(String(120), default="LOCAL_FIXTURE")
+    provider_review_id: Mapped[str | None] = mapped_column(String(240))
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+    source_fingerprint: Mapped[str] = mapped_column(String(128), index=True)
+    normalization_version: Mapped[str] = mapped_column(
+        String(40), default="review-normalization-v1"
+    )
+    raw_snapshot: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)

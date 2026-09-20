@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
   ReviewContext,
+  ReviewIngestionBatch,
   ReviewIntelligenceService,
   ReviewRecord,
   ReviewSnapshot,
@@ -105,6 +106,41 @@ import {
             </article>
           </section>
         }
+        <section class="panel">
+          <h2>Deterministic ingestion</h2>
+          <p class="muted">
+            Local fixtures only. Live read-only providers fail closed until configured.
+          </p>
+          <form (ngSubmit)="ingestReviews()">
+            <label
+              >Provider <input name="ingestionProvider" [(ngModel)]="ingestionProvider"
+            /></label>
+            <label
+              >Mode
+              <select name="ingestionMode" [(ngModel)]="ingestionMode">
+                <option value="LOCAL_FIXTURE">LOCAL_FIXTURE</option>
+                <option value="DISABLED">DISABLED</option>
+                <option value="LIVE_READ_ONLY">LIVE_READ_ONLY</option>
+              </select></label
+            >
+            <label
+              >Records JSON
+              <textarea name="ingestionRecords" [(ngModel)]="ingestionRecords" rows="5"></textarea>
+            </label>
+            <button type="submit" [disabled]="loading()">Ingest fixture batch</button>
+          </form>
+          @for (batch of ingestionBatches(); track batch.id) {
+            <p class="list-item">
+              <strong>{{ batch.status }} � {{ batch.provider }}</strong
+              ><span
+                >{{ batch.accepted_count }} accepted � {{ batch.rejected_count }} rejected �
+                {{ batch.duplicate_count }} duplicates</span
+              >
+            </p>
+          } @empty {
+            <p>No ingestion batches yet.</p>
+          }
+        </section>
         <section class="panel">
           <h2>Reviews</h2>
           @for (review of reviews(); track review.id) {
@@ -242,6 +278,7 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
   readonly contexts = signal<ReviewContext[]>([]);
   readonly selectedContext = signal<ReviewContext | null>(null);
   readonly reviews = signal<ReviewRecord[]>([]);
+  readonly ingestionBatches = signal<ReviewIngestionBatch[]>([]);
   readonly snapshots = signal<ReviewSnapshot[]>([]);
   readonly statistics = signal<ReviewStatistics | null>(null);
   readonly doctor = signal<{ status: string; counts: Record<string, number> } | null>(null);
@@ -257,6 +294,10 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
   body = '';
   providerReviewId = '';
   provider = 'manual';
+  ingestionProvider = 'LOCAL_FIXTURE';
+  ingestionMode = 'LOCAL_FIXTURE';
+  ingestionRecords =
+    '[{"id":"fixture-1","rating":"5","rating_scale":"5","title":"Useful","body":"Local fixture review"}]';
   ngOnInit(): void {
     void this.refresh();
   }
@@ -282,14 +323,31 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
   }
   async selectContext(context: ReviewContext): Promise<void> {
     this.selectedContext.set(context);
-    const [page, stats, snapshots] = await Promise.all([
+    const [page, stats, snapshots, batches] = await Promise.all([
       this.service.reviews(context.id),
       this.service.statistics(context.id),
       this.service.snapshots(context.id),
+      this.service.ingestions(context.id),
     ]);
     this.reviews.set(page.items);
     this.statistics.set(stats);
     this.snapshots.set(snapshots);
+    this.ingestionBatches.set(batches);
+  }
+  async ingestReviews(): Promise<void> {
+    const context = this.selectedContext();
+    if (!context) return;
+    await this.run(async () => {
+      const records = JSON.parse(this.ingestionRecords) as unknown;
+      if (!Array.isArray(records)) throw new Error('records must be an array');
+      await this.service.ingest(context.id, {
+        provider: this.ingestionProvider.trim() || 'LOCAL_FIXTURE',
+        mode: this.ingestionMode,
+        records,
+        idempotency_key: `review-ingestion-${Date.now()}`,
+      });
+      await this.selectContext(context);
+    }, 'The review ingestion batch could not be completed.');
   }
   async addReview(): Promise<void> {
     const context = this.selectedContext();
