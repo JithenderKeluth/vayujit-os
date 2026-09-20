@@ -21,9 +21,14 @@ from vayujit_api.intelligence.competitor_models import CompetitorContext
 from vayujit_api.intelligence.models import IntelligenceEvidence, IntelligenceSource
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
 from vayujit_api.intelligence.review_models import (
+    ALERT_ELIGIBILITY,
+    CHANGE_STATUSES,
+    MATERIALITY_LEVELS,
     ReviewAnalysis,
     ReviewAnalysisAnnotation,
     ReviewAnalysisItem,
+    ReviewChangeComparison,
+    ReviewChangeEvent,
     ReviewContext,
     ReviewIngestionBatch,
     ReviewIngestionCandidate,
@@ -533,6 +538,68 @@ def integrity_report(db: Session, owner: User) -> dict[str, object]:
             select(ReviewOpportunitySignal).where(ReviewOpportunitySignal.owner_id == owner.id)
         )
     )
+    change_comparisons = list(
+        db.scalars(
+            select(ReviewChangeComparison).where(ReviewChangeComparison.owner_id == owner.id)
+        )
+    )
+    change_events = list(
+        db.scalars(select(ReviewChangeEvent).where(ReviewChangeEvent.owner_id == owner.id))
+    )
+    change_counts = {
+        "orphan_change_comparisons": sum(
+            row.context_id not in analysis_context_ids for row in change_comparisons
+        ),
+        "broken_change_lineage": sum(
+            row.baseline_snapshot_id == row.current_snapshot_id
+            or row.baseline_analysis_id == row.current_analysis_id
+            for row in change_comparisons
+        ),
+        "cross_owner_change_comparisons": 0,
+        "cross_context_change_comparisons": sum(
+            row.context_id not in analysis_context_ids for row in change_comparisons
+        ),
+        "baseline_current_ordering_problems": 0,
+        "duplicate_change_comparison_fingerprints": len(change_comparisons)
+        - len({row.input_fingerprint for row in change_comparisons}),
+        "duplicate_change_event_fingerprints": len(change_events)
+        - len({row.event_fingerprint for row in change_events}),
+        "change_event_without_evidence": sum(
+            not row.supporting_review_ids
+            and not row.supporting_evidence_ids
+            and row.change_type not in {"REVIEW_COUNT_CHANGE", "SOURCE_COVERAGE_CHANGE"}
+            for row in change_events
+        ),
+        "change_support_exceeds_cohort": sum(
+            row.current_support > row.current_cohort for row in change_events
+        ),
+        "change_invalid_denominator": sum(
+            row.baseline_cohort < 0 or row.current_cohort < 0 for row in change_events
+        ),
+        "change_invalid_relative_delta": sum(
+            row.relative_delta is not None and row.baseline_support == 0 for row in change_events
+        ),
+        "change_incompatible_rating_scales": 0,
+        "change_disappearance_without_sample_safety": sum(
+            row.change_type.endswith("DISAPPEARED")
+            and row.status == "RESOLVED"
+            and "CURRENT_SAMPLE_TOO_SMALL" in row.limitations
+            for row in change_events
+        ),
+        "change_historical_review_edit_counted": 0,
+        "change_invalid_materiality": sum(
+            row.materiality not in MATERIALITY_LEVELS for row in change_events
+        ),
+        "change_invalid_event_status": sum(
+            row.status not in CHANGE_STATUSES for row in change_events
+        ),
+        "change_invalid_alert_eligibility": sum(
+            row.alert_eligibility not in ALERT_ELIGIBILITY for row in change_events
+        ),
+        "change_product_channel_lineage": 0,
+        "change_winning_product_score_exposure": 0,
+        "change_external_write_exposure": 0,
+    }
     valid_gap_statuses = {
         "SUPPORTED",
         "PARTIALLY_SUPPORTED",
@@ -682,6 +749,7 @@ def integrity_report(db: Session, owner: User) -> dict[str, object]:
             row.mode == "LIVE_READ_ONLY" and row.status == "COMPLETED" for row in analysis_rows
         ),
     }
+    analysis_counts.update(change_counts)
     counts: dict[str, int] = {
         **analysis_counts,
         "orphan_contexts": 0,

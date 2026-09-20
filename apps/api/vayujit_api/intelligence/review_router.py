@@ -28,6 +28,11 @@ from vayujit_api.intelligence.review_schemas import (
     ReviewAnalysisItemResponse,
     ReviewAnalysisRequest,
     ReviewAnalysisResponse,
+    ReviewChangeComparisonDetail,
+    ReviewChangeComparisonRequest,
+    ReviewChangeComparisonResponse,
+    ReviewChangeEventResponse,
+    ReviewChangeListResponse,
     ReviewContextCreate,
     ReviewContextResponse,
     ReviewContextUpdate,
@@ -617,3 +622,217 @@ def opportunity_signals_get(
             .limit(limit)
         )
     ]
+
+
+def _change_detail_response(
+    db: Session, owner: User, comparison_id: uuid.UUID
+) -> ReviewChangeComparisonDetail:
+    from vayujit_api.intelligence.review_change_service import comparison_detail
+
+    comparison, events = comparison_detail(db, owner, comparison_id)
+    return ReviewChangeComparisonDetail(
+        comparison=ReviewChangeComparisonResponse.model_validate(comparison),
+        events=[ReviewChangeEventResponse.model_validate(item) for item in events],
+    )
+
+
+@router.post(
+    "/contexts/{context_id}/change-comparisons",
+    response_model=ReviewChangeComparisonDetail,
+    status_code=201,
+)
+def change_comparison_create(
+    context_id: uuid.UUID,
+    data: ReviewChangeComparisonRequest,
+    db: DB,
+    owner: Owner,
+) -> ReviewChangeComparisonDetail:
+    context = _context_or_404(db, owner, context_id)
+    from vayujit_api.intelligence.review_change_service import create_comparison
+
+    value = create_comparison(db, owner, context, data)
+    return _change_detail_response(db, owner, value.id)
+
+
+@router.get(
+    "/contexts/{context_id}/change-comparisons",
+    response_model=list[ReviewChangeComparisonResponse],
+)
+def change_comparison_history(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> list[ReviewChangeComparisonResponse]:
+    _context_or_404(db, owner, context_id)
+    from vayujit_api.intelligence.review_change_service import comparison_history
+
+    rows, _ = comparison_history(db, owner, context_id, limit, offset)
+    return [ReviewChangeComparisonResponse.model_validate(row) for row in rows]
+
+
+@router.get(
+    "/contexts/{context_id}/change-comparisons/current",
+    response_model=ReviewChangeComparisonDetail | None,
+)
+def change_comparison_current(
+    context_id: uuid.UUID, db: DB, owner: Owner
+) -> ReviewChangeComparisonDetail | None:
+    _context_or_404(db, owner, context_id)
+    from vayujit_api.intelligence.review_change_service import current_comparison
+
+    value = current_comparison(db, owner, context_id)
+    return _change_detail_response(db, owner, value.id) if value else None
+
+
+@router.get("/change-comparisons/{comparison_id}", response_model=ReviewChangeComparisonDetail)
+def change_comparison_get(
+    comparison_id: uuid.UUID, db: DB, owner: Owner
+) -> ReviewChangeComparisonDetail:
+    return _change_detail_response(db, owner, comparison_id)
+
+
+@router.get("/change-comparisons/{comparison_id}/events", response_model=ReviewChangeListResponse)
+def change_events_get(
+    comparison_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+    change_type: str | None = None,
+    subject: str | None = None,
+    materiality: str | None = None,
+    status: str | None = None,
+    alert_eligibility: str | None = None,
+) -> ReviewChangeListResponse:
+    from vayujit_api.intelligence.review_change_service import comparison_events, get_comparison
+
+    get_comparison(db, owner, comparison_id)
+    rows, total = comparison_events(
+        db,
+        owner,
+        comparison_id,
+        limit,
+        offset,
+        change_type=change_type,
+        subject=subject,
+        materiality=materiality,
+        status=status,
+        alert_eligibility=alert_eligibility,
+    )
+    return ReviewChangeListResponse(
+        items=[ReviewChangeEventResponse.model_validate(row) for row in rows],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get("/contexts/{context_id}/material-changes", response_model=ReviewChangeListResponse)
+def review_material_changes(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> ReviewChangeListResponse:
+    _context_or_404(db, owner, context_id)
+    from vayujit_api.intelligence.review_change_service import comparison_events, current_comparison
+
+    comparison = current_comparison(db, owner, context_id)
+    if comparison is None:
+        return ReviewChangeListResponse(items=[], total=0, limit=limit, offset=offset)
+    rows, total = comparison_events(db, owner, comparison.id, limit, offset, materiality="MODERATE")
+    high, high_total = comparison_events(
+        db, owner, comparison.id, limit, offset, materiality="HIGH"
+    )
+    rows = (rows + high)[:limit]
+    return ReviewChangeListResponse(
+        items=[ReviewChangeEventResponse.model_validate(row) for row in rows],
+        total=total + high_total,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get("/contexts/{context_id}/unresolved-changes", response_model=ReviewChangeListResponse)
+def review_unresolved_changes(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> ReviewChangeListResponse:
+    _context_or_404(db, owner, context_id)
+    from vayujit_api.intelligence.review_change_service import comparison_events, current_comparison
+
+    comparison = current_comparison(db, owner, context_id)
+    if comparison is None:
+        return ReviewChangeListResponse(items=[], total=0, limit=limit, offset=offset)
+    rows, total = comparison_events(db, owner, comparison.id, limit, offset, status="UNRESOLVED")
+    return ReviewChangeListResponse(
+        items=[ReviewChangeEventResponse.model_validate(row) for row in rows],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get(
+    "/contexts/{context_id}/alert-eligible-changes", response_model=ReviewChangeListResponse
+)
+def review_alert_eligible_changes(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> ReviewChangeListResponse:
+    _context_or_404(db, owner, context_id)
+    from vayujit_api.intelligence.review_change_service import comparison_events, current_comparison
+
+    comparison = current_comparison(db, owner, context_id)
+    if comparison is None:
+        return ReviewChangeListResponse(items=[], total=0, limit=limit, offset=offset)
+    rows, total = comparison_events(
+        db, owner, comparison.id, limit, offset, alert_eligibility="ALERT"
+    )
+    return ReviewChangeListResponse(
+        items=[ReviewChangeEventResponse.model_validate(row) for row in rows],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get("/contexts/{context_id}/research-gaps", response_model=ReviewChangeListResponse)
+def review_change_research_gaps(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> ReviewChangeListResponse:
+    _context_or_404(db, owner, context_id)
+    from vayujit_api.intelligence.review_change_service import comparison_events, current_comparison
+
+    comparison = current_comparison(db, owner, context_id)
+    if comparison is None:
+        return ReviewChangeListResponse(items=[], total=0, limit=limit, offset=offset)
+    rows, _ = comparison_events(db, owner, comparison.id, 200, 0)
+    filtered = [row for row in rows if row.research_gaps]
+    page = filtered[offset : offset + limit]
+    return ReviewChangeListResponse(
+        items=[ReviewChangeEventResponse.model_validate(row) for row in page],
+        total=len(filtered),
+        limit=limit,
+        offset=offset,
+    )
+
+
+@router.get("/system-doctor/change-intelligence")
+def review_change_system_doctor(db: DB, owner: Owner) -> dict[str, object]:
+    from vayujit_api.intelligence.review_change_service import integrity_report
+
+    return integrity_report(db, owner)

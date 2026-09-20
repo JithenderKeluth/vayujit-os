@@ -424,6 +424,56 @@ SIGNAL_STATUSES = (
     "RESEARCH_REQUIRED",
 )
 EVIDENCE_STRENGTHS = ("WEAK", "MODERATE", "STRONG", "UNKNOWN")
+CHANGE_COMPARISON_STATUSES = ("COMPLETED", "PARTIALLY_COMPLETED", "FAILED")
+REVIEW_CHANGE_TYPES = (
+    "REVIEW_COUNT_CHANGE",
+    "SOURCE_COVERAGE_CHANGE",
+    "EVIDENCE_COVERAGE_CHANGE",
+    "FRESHNESS_CHANGE",
+    "RATING_DISTRIBUTION_CHANGE",
+    "SENTIMENT_DISTRIBUTION_CHANGE",
+    "THEME_APPEARED",
+    "THEME_DISAPPEARED",
+    "THEME_SUPPORT_CHANGED",
+    "PAIN_POINT_APPEARED",
+    "PAIN_POINT_DISAPPEARED",
+    "PAIN_POINT_SUPPORT_CHANGED",
+    "PAIN_POINT_SEVERITY_CHANGED",
+    "PRAISE_APPEARED",
+    "PRAISE_DISAPPEARED",
+    "PRAISE_SUPPORT_CHANGED",
+    "FEATURE_REQUEST_APPEARED",
+    "FEATURE_REQUEST_DISAPPEARED",
+    "FEATURE_REQUEST_SUPPORT_CHANGED",
+    "QUALITY_SIGNAL_APPEARED",
+    "QUALITY_SIGNAL_DISAPPEARED",
+    "QUALITY_SIGNAL_CHANGED",
+    "QUALITY_SIGNAL_SEVERITY_CHANGED",
+    "PRODUCT_GAP_APPEARED",
+    "PRODUCT_GAP_DISAPPEARED",
+    "PRODUCT_GAP_SUPPORT_CHANGED",
+    "OPPORTUNITY_SIGNAL_APPEARED",
+    "OPPORTUNITY_SIGNAL_DISAPPEARED",
+    "OPPORTUNITY_SIGNAL_STATUS_CHANGED",
+    "OPPORTUNITY_SIGNAL_STRENGTH_CHANGED",
+    "CONTRADICTION_CHANGED",
+    "RESEARCH_GAP_CHANGED",
+    "REVIEW_OBSERVATION_CHANGED",
+)
+CHANGE_SEMANTICS = ("OBSERVED_CHANGE", "DERIVED_DETERMINISTIC_CHANGE", "DERIVED_SEMANTIC_CHANGE")
+CHANGE_STATUSES = (
+    "NEW",
+    "ONGOING",
+    "RESOLVED",
+    "REVERTED",
+    "SUPERSEDED",
+    "UNRESOLVED",
+    "POSSIBLY_DISAPPEARED",
+)
+MATERIALITY_LEVELS = ("IMMATERIAL", "LOW", "MODERATE", "HIGH", "UNKNOWN")
+ALERT_ELIGIBILITY = ("NO_ALERT", "REVIEW", "ALERT")
+REVIEW_CHANGE_CALCULATION_VERSION = "review-change-calculation-v1"
+REVIEW_CHANGE_MATERIALITY_VERSION = "review-change-materiality-v1"
 
 
 class ReviewAnalysis(Base):
@@ -697,4 +747,149 @@ class ReviewOpportunitySignal(Base):
     required_validations: Mapped[list[str]] = mapped_column(JSONB, default=list)
     limitations: Mapped[list[str]] = mapped_column(JSONB, default=list)
     rule_version: Mapped[str] = mapped_column(String(40), default="review-gap-rules-v1")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ReviewChangeComparison(Base):
+    __tablename__ = "intelligence_review_change_comparisons"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "context_id", "input_fingerprint", name="uq_review_change_comparison_input"
+        ),
+        CheckConstraint(
+            "status IN ('COMPLETED','PARTIALLY_COMPLETED','FAILED')",
+            name="ck_review_change_comparison_status",
+        ),
+        Index(
+            "ix_review_change_comparison_context_created", "owner_id", "context_id", "created_at"
+        ),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    context_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_contexts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    baseline_snapshot_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_snapshots.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    current_snapshot_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_snapshots.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    baseline_analysis_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_analyses.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    current_analysis_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_analyses.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    baseline_gap_analysis_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_product_gap_analyses.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    current_gap_analysis_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_product_gap_analyses.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    comparison_version: Mapped[int] = mapped_column(Integer, default=1)
+    calculation_version: Mapped[str] = mapped_column(
+        String(80), default=REVIEW_CHANGE_CALCULATION_VERSION
+    )
+    materiality_version: Mapped[str] = mapped_column(
+        String(80), default=REVIEW_CHANGE_MATERIALITY_VERSION
+    )
+    input_fingerprint: Mapped[str] = mapped_column(String(128), index=True)
+    status: Mapped[str] = mapped_column(String(32), default="COMPLETED", index=True)
+    summary: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    limitations: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ReviewChangeEvent(Base):
+    __tablename__ = "intelligence_review_change_events"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "event_fingerprint", name="uq_review_change_event_fingerprint"
+        ),
+        CheckConstraint(
+            "change_type IN (" + ",".join("'" + item + "'" for item in REVIEW_CHANGE_TYPES) + ")",
+            name="ck_review_change_event_type",
+        ),
+        CheckConstraint(
+            "observed_or_derived IN ('OBSERVED_CHANGE','DERIVED_DETERMINISTIC_CHANGE','DERIVED_SEMANTIC_CHANGE')",  # noqa: E501
+            name="ck_review_change_event_semantics",
+        ),
+        CheckConstraint(
+            "status IN (" + ",".join("'" + item + "'" for item in CHANGE_STATUSES) + ")",
+            name="ck_review_change_event_status",
+        ),
+        CheckConstraint(
+            "materiality IN (" + ",".join("'" + item + "'" for item in MATERIALITY_LEVELS) + ")",
+            name="ck_review_change_event_materiality",
+        ),
+        CheckConstraint(
+            "alert_eligibility IN ('NO_ALERT','REVIEW','ALERT')",
+            name="ck_review_change_event_alert",
+        ),
+        Index("ix_review_change_event_context_created", "owner_id", "context_id", "created_at"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    context_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_contexts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    comparison_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_change_comparisons.id", ondelete="CASCADE"),
+        index=True,
+    )
+    change_type: Mapped[str] = mapped_column(String(64), index=True)
+    subject_type: Mapped[str] = mapped_column(String(48), default="REVIEW_ANALYSIS")
+    subject_key: Mapped[str] = mapped_column(String(180), index=True)
+    observed_or_derived: Mapped[str] = mapped_column(String(40), default="DERIVED_SEMANTIC_CHANGE")
+    baseline_value: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    current_value: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    absolute_delta: Mapped[float | None] = mapped_column(Numeric(18, 8), nullable=True)
+    relative_delta: Mapped[float | None] = mapped_column(Numeric(18, 8), nullable=True)
+    baseline_support: Mapped[int] = mapped_column(Integer, default=0)
+    current_support: Mapped[int] = mapped_column(Integer, default=0)
+    baseline_cohort: Mapped[int] = mapped_column(Integer, default=0)
+    current_cohort: Mapped[int] = mapped_column(Integer, default=0)
+    baseline_evidence: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    current_evidence: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    source_distribution: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    freshness: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    confidence: Mapped[str] = mapped_column(String(16), default="UNKNOWN")
+    materiality: Mapped[str] = mapped_column(String(16), default="UNKNOWN", index=True)
+    materiality_version: Mapped[str] = mapped_column(
+        String(80), default=REVIEW_CHANGE_MATERIALITY_VERSION
+    )
+    status: Mapped[str] = mapped_column(String(32), default="NEW", index=True)
+    alert_eligibility: Mapped[str] = mapped_column(String(16), default="NO_ALERT", index=True)
+    alert_reason: Mapped[str] = mapped_column(String(300), default="")
+    research_gaps: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    limitations: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    explanation: Mapped[str] = mapped_column(String(1200), default="")
+    supporting_review_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    supporting_evidence_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    event_fingerprint: Mapped[str] = mapped_column(String(128), index=True)
+    rule_version: Mapped[str] = mapped_column(String(80), default=REVIEW_CHANGE_CALCULATION_VERSION)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)

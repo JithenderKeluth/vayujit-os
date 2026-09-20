@@ -172,6 +172,68 @@ export interface ReviewPage {
   limit: number;
   offset: number;
 }
+export interface ReviewChangeEvent {
+  id: string;
+  comparison_id: string;
+  change_type: string;
+  subject_type: string;
+  subject_key: string;
+  observed_or_derived: string;
+  baseline_value: Record<string, unknown> | null;
+  current_value: Record<string, unknown> | null;
+  absolute_delta: unknown;
+  relative_delta: unknown;
+  baseline_support: number;
+  current_support: number;
+  baseline_cohort: number;
+  current_cohort: number;
+  baseline_evidence: Record<string, unknown>;
+  current_evidence: Record<string, unknown>;
+  source_distribution: Record<string, unknown>;
+  freshness: Record<string, unknown>;
+  confidence: string;
+  materiality: string;
+  materiality_version: string;
+  status: string;
+  alert_eligibility: string;
+  alert_reason: string;
+  research_gaps: string[];
+  limitations: string[];
+  explanation: string;
+  supporting_review_ids: string[];
+  supporting_evidence_ids: string[];
+  event_fingerprint: string;
+  rule_version: string;
+  created_at: string;
+}
+export interface ReviewChangeComparison {
+  id: string;
+  context_id: string;
+  baseline_snapshot_id: string;
+  current_snapshot_id: string;
+  baseline_analysis_id: string;
+  current_analysis_id: string;
+  baseline_gap_analysis_id: string | null;
+  current_gap_analysis_id: string | null;
+  comparison_version: number;
+  calculation_version: string;
+  materiality_version: string;
+  input_fingerprint: string;
+  status: string;
+  summary: Record<string, unknown>;
+  limitations: string[];
+  created_at: string;
+}
+export interface ReviewChangeComparisonDetail {
+  comparison: ReviewChangeComparison;
+  events: ReviewChangeEvent[];
+}
+export interface ReviewChangeList {
+  items: ReviewChangeEvent[];
+  total: number;
+  limit: number;
+  offset: number;
+}
 
 @Injectable({ providedIn: 'root' })
 export class ReviewIntelligenceService {
@@ -268,6 +330,44 @@ export class ReviewIntelligenceService {
       this.http.get<ReviewAnalysisDetail>(
         `${this.base}/contexts/${contextId}/analyses/${analysisId}`,
       ),
+    );
+  }
+  createChangeComparison(
+    contextId: string,
+    payload: {
+      baseline_analysis_id: string;
+      current_analysis_id: string;
+      baseline_gap_analysis_id?: string;
+      current_gap_analysis_id?: string;
+    },
+  ): Promise<ReviewChangeComparisonDetail> {
+    return firstValueFrom(
+      this.http.post<ReviewChangeComparisonDetail>(
+        `${this.base}/contexts/${contextId}/change-comparisons`,
+        payload,
+      ),
+    );
+  }
+  currentChangeComparison(contextId: string): Promise<ReviewChangeComparisonDetail | null> {
+    return firstValueFrom(
+      this.http.get<ReviewChangeComparisonDetail | null>(
+        `${this.base}/contexts/${contextId}/change-comparisons/current`,
+      ),
+    );
+  }
+  changeEvents(
+    comparisonId: string,
+    params: Record<string, string> = {},
+  ): Promise<ReviewChangeList> {
+    return firstValueFrom(
+      this.http.get<ReviewChangeList>(`${this.base}/change-comparisons/${comparisonId}/events`, {
+        params,
+      }),
+    );
+  }
+  researchGaps(contextId: string): Promise<ReviewChangeList> {
+    return firstValueFrom(
+      this.http.get<ReviewChangeList>(`${this.base}/contexts/${contextId}/research-gaps`),
     );
   }
   doctor(): Promise<{ status: string; counts: Record<string, number> }> {
