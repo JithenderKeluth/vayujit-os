@@ -5,6 +5,7 @@ import {
   ReviewAnalysisDetail,
   ReviewAnalysisItem,
   ReviewContext,
+  ReviewGapAnalysisDetail,
   ReviewIngestionBatch,
   ReviewIntelligenceService,
   ReviewRecord,
@@ -196,6 +197,47 @@ import {
           }
         </section>
         <section class="panel">
+          <h2>Product gaps and opportunity signals</h2>
+          <p class="muted">
+            Review-derived signals only. These are hypotheses requiring explicit validation, not
+            demand, revenue, or commercial scores.
+          </p>
+          <button type="button" (click)="deriveGapAnalysis()" [disabled]="loading() || !analysis()">
+            Derive product gaps
+          </button>
+          @if (gapAnalysis(); as gaps) {
+            <p role="status">
+              {{ gaps.analysis.status }} · {{ gaps.product_gaps.length }} product gaps ·
+              {{ gaps.opportunity_signals.length }} opportunity signals
+            </p>
+            @for (gap of gaps.product_gaps; track gap.id) {
+              <article class="list-item">
+                <strong>{{ gap.gap_type }}: {{ gap.canonical_label }}</strong>
+                <span
+                  >Review-derived signal · {{ gap.support_classification }} ·
+                  {{ gap.evidence_strength }} evidence</span
+                >
+                <span
+                  >Requires validation:
+                  {{ gap.required_validations.join(', ') || 'None recorded' }}</span
+                >
+                <p>{{ gap.hypothesis }}</p>
+              </article>
+            }
+            @for (signal of gaps.opportunity_signals; track signal.id) {
+              <article class="list-item">
+                <strong>{{ signal.signal_type }}: {{ signal.canonical_label }}</strong>
+                <span>{{ signal.status }} · {{ signal.confidence }} confidence</span>
+                <span
+                  >Requires validation:
+                  {{ signal.required_validations.join(', ') || 'None recorded' }}</span
+                >
+                <p>{{ signal.explanation }}</p>
+              </article>
+            }
+          }
+        </section>
+        <section class="panel">
           <h2>Snapshots</h2>
           <button type="button" (click)="createSnapshot()" [disabled]="loading()">
             Create immutable snapshot
@@ -318,6 +360,7 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
   readonly snapshots = signal<ReviewSnapshot[]>([]);
   readonly statistics = signal<ReviewStatistics | null>(null);
   readonly analysis = signal<ReviewAnalysisDetail | null>(null);
+  readonly gapAnalysis = signal<ReviewGapAnalysisDetail | null>(null);
   readonly doctor = signal<{ status: string; counts: Record<string, number> } | null>(null);
   readonly loading = signal(false);
   readonly error = signal('');
@@ -360,16 +403,18 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
   }
   async selectContext(context: ReviewContext): Promise<void> {
     this.selectedContext.set(context);
-    const [page, stats, snapshots, batches] = await Promise.all([
+    const [page, stats, snapshots, batches, gapAnalysis] = await Promise.all([
       this.service.reviews(context.id),
       this.service.statistics(context.id),
       this.service.snapshots(context.id),
       this.service.ingestions(context.id),
+      this.service.currentGapAnalysis(context.id),
     ]);
     this.reviews.set(page.items);
     this.statistics.set(stats);
     this.snapshots.set(snapshots);
     this.ingestionBatches.set(batches);
+    this.gapAnalysis.set(gapAnalysis);
   }
   async ingestReviews(): Promise<void> {
     const context = this.selectedContext();
@@ -418,6 +463,15 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
       this.analysis.set(result);
     }, 'The deterministic review analysis could not be completed.');
   }
+  async deriveGapAnalysis(): Promise<void> {
+    const context = this.selectedContext();
+    const analysis = this.analysis();
+    if (!context || !analysis) return;
+    await this.run(async () => {
+      this.gapAnalysis.set(await this.service.createGapAnalysis(context.id, analysis.analysis.id));
+    }, 'The product-gap analysis could not be completed.');
+  }
+
   analysisItems(result: ReviewAnalysisDetail, type: string): ReviewAnalysisItem[] {
     return result.items.filter((item) => item.item_type === type);
   }

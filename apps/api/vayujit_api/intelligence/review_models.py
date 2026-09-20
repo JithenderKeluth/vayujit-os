@@ -384,6 +384,46 @@ ANALYSIS_ITEM_TYPES = (
     "QUALITY_ISSUE",
 )
 SEVERITY_LEVELS = ("LOW", "MODERATE", "HIGH", "UNKNOWN")
+GAP_TYPES = (
+    "MISSING_FEATURE",
+    "FEATURE_IMPROVEMENT",
+    "QUALITY_IMPROVEMENT",
+    "DURABILITY_IMPROVEMENT",
+    "SIZE_OR_FIT_GAP",
+    "VARIANT_GAP",
+    "PACKAGING_GAP",
+    "USABILITY_GAP",
+    "PERFORMANCE_GAP",
+    "VALUE_CONCERN",
+    "ACCESSORY_GAP",
+    "INFORMATION_GAP",
+    "PRESERVE_ATTRIBUTE",
+    "TRADE_OFF",
+    "OTHER",
+    "UNKNOWN",
+)
+GAP_SUPPORT = ("SINGLE_OBSERVATION", "LIMITED", "REPEATED", "STRONG", "UNKNOWN")
+SIGNAL_TYPES = (
+    "PRODUCT_IMPROVEMENT",
+    "FEATURE_ADDITION",
+    "QUALITY_IMPROVEMENT",
+    "VARIANT_EXPANSION",
+    "ACCESSORY_OPPORTUNITY",
+    "USABILITY_IMPROVEMENT",
+    "POSITIONING_HYPOTHESIS",
+    "DIFFERENTIATION_HYPOTHESIS",
+    "PRESERVE_STRENGTH",
+    "TRADE_OFF",
+    "RESEARCH_REQUIRED",
+)
+SIGNAL_STATUSES = (
+    "SUPPORTED",
+    "PARTIALLY_SUPPORTED",
+    "INSUFFICIENT_EVIDENCE",
+    "CONTRADICTORY",
+    "RESEARCH_REQUIRED",
+)
+EVIDENCE_STRENGTHS = ("WEAK", "MODERATE", "STRONG", "UNKNOWN")
 
 
 class ReviewAnalysis(Base):
@@ -515,4 +555,146 @@ class ReviewAnalysisItem(Base):
     classification_type: Mapped[str] = mapped_column(String(24), default="DERIVED_SEMANTIC")
     method_version: Mapped[str] = mapped_column(String(60), default="local-rules-v1")
     limitation: Mapped[str | None] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ReviewProductGapAnalysis(Base):
+    __tablename__ = "intelligence_review_product_gap_analyses"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "context_id", "input_fingerprint", name="uq_review_gap_analysis_input"
+        ),
+        Index("ix_review_gap_analysis_context_created", "owner_id", "context_id", "created_at"),
+        CheckConstraint("status IN ('COMPLETED','FAILED')", name="ck_review_gap_analysis_status"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    context_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_contexts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    snapshot_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_snapshots.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    review_analysis_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_analyses.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    product_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="SET NULL"), index=True
+    )
+    product_opportunity_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_product_opportunities.id", ondelete="SET NULL"),
+        index=True,
+    )
+    analysis_version: Mapped[str] = mapped_column(String(40), default="review-gap-analysis-v1")
+    calculation_version: Mapped[str] = mapped_column(
+        String(40), default="review-gap-calculation-v1"
+    )
+    rule_version: Mapped[str] = mapped_column(String(40), default="review-gap-rules-v1")
+    input_fingerprint: Mapped[str] = mapped_column(String(128), index=True)
+    status: Mapped[str] = mapped_column(String(24), default="COMPLETED", index=True)
+    gap_count: Mapped[int] = mapped_column(Integer, default=0)
+    signal_count: Mapped[int] = mapped_column(Integer, default=0)
+    limitations: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ReviewProductGap(Base):
+    __tablename__ = "intelligence_review_product_gaps"
+    __table_args__ = (
+        UniqueConstraint(
+            "analysis_id", "gap_type", "canonical_label", name="uq_review_product_gap"
+        ),
+        Index("ix_review_product_gap_analysis", "owner_id", "analysis_id"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    analysis_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_product_gap_analyses.id", ondelete="CASCADE"),
+        index=True,
+    )
+    context_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_contexts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    gap_type: Mapped[str] = mapped_column(String(40), index=True)
+    canonical_label: Mapped[str] = mapped_column(String(120))
+    hypothesis: Mapped[str] = mapped_column(String(500))
+    source_item_types: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    support_classification: Mapped[str] = mapped_column(String(32), default="UNKNOWN")
+    support_count: Mapped[int] = mapped_column(Integer, default=0)
+    cohort_count: Mapped[int] = mapped_column(Integer, default=0)
+    coverage: Mapped[dict[str, int | float]] = mapped_column(JSONB, default=dict)
+    source_distribution: Mapped[dict[str, int]] = mapped_column(JSONB, default=dict)
+    supporting_review_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    supporting_evidence_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    opposing_review_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    severity: Mapped[str] = mapped_column(String(16), default="UNKNOWN")
+    evidence_strength: Mapped[str] = mapped_column(String(16), default="UNKNOWN")
+    confidence: Mapped[str] = mapped_column(String(16), default="UNKNOWN")
+    freshness: Mapped[dict[str, int]] = mapped_column(JSONB, default=dict)
+    status: Mapped[str] = mapped_column(String(32), default="RESEARCH_REQUIRED")
+    required_validations: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    limitations: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    rule_version: Mapped[str] = mapped_column(String(40), default="review-gap-rules-v1")
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ReviewOpportunitySignal(Base):
+    __tablename__ = "intelligence_review_opportunity_signals"
+    __table_args__ = (
+        UniqueConstraint(
+            "analysis_id", "signal_type", "canonical_label", name="uq_review_opportunity_signal"
+        ),
+        Index("ix_review_opportunity_signal_analysis", "owner_id", "analysis_id"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    analysis_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_product_gap_analyses.id", ondelete="CASCADE"),
+        index=True,
+    )
+    gap_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_product_gaps.id", ondelete="SET NULL"),
+        index=True,
+    )
+    context_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_contexts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    signal_type: Mapped[str] = mapped_column(String(40), index=True)
+    canonical_label: Mapped[str] = mapped_column(String(120))
+    hypothesis: Mapped[str] = mapped_column(String(500))
+    explanation: Mapped[str] = mapped_column(String(1000))
+    status: Mapped[str] = mapped_column(String(32), default="RESEARCH_REQUIRED", index=True)
+    evidence_strength: Mapped[str] = mapped_column(String(16), default="UNKNOWN")
+    support_count: Mapped[int] = mapped_column(Integer, default=0)
+    cohort_count: Mapped[int] = mapped_column(Integer, default=0)
+    coverage: Mapped[dict[str, int | float]] = mapped_column(JSONB, default=dict)
+    source_distribution: Mapped[dict[str, int]] = mapped_column(JSONB, default=dict)
+    supporting_review_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    supporting_evidence_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    opposing_review_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    confidence: Mapped[str] = mapped_column(String(16), default="UNKNOWN")
+    freshness: Mapped[dict[str, int]] = mapped_column(JSONB, default=dict)
+    required_validations: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    limitations: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    rule_version: Mapped[str] = mapped_column(String(40), default="review-gap-rules-v1")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
