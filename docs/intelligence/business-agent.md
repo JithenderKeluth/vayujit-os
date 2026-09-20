@@ -19,3 +19,16 @@ owner-scoped retry/cancel controls.
 Local route: `/intelligence/business-agent`
 
 API prefix: `/api/v1/intelligence/business-agent`
+
+## Competitor operational integration (10F)
+
+When a goal includes `include_competitor_intelligence` (or explicitly asks for
+competitor work), the registry adds the local-only
+`COMPETITOR_DISCOVERY`, `COMPETITOR_ANALYSIS`, and
+`COMPETITOR_CHANGE_ANALYSIS` capabilities. These invoke the existing 10A-10E
+services and the 9B/9F Product Opportunity boundaries using deterministic local
+fixtures. Their side effect class is `INTERNAL_WRITE`; `external.write` remains
+disabled. The run remains approval-gated and exposes persisted artifacts,
+findings, tool-invocation status, projection lineage, evidence gaps, freshness,
+and contradiction state to the owner. No new Recovery action or Calendar item is
+created because these operations are bounded and have no external mutation.

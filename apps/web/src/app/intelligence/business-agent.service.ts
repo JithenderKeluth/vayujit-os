@@ -26,12 +26,16 @@ export interface BusinessAgentPlan {
 export interface BusinessAgentRun {
   id: string;
   status: string;
-  result?: { decision?: string } & Record<string, unknown>;
+  result?: { decision?: string; integrated_slices?: string[] } & Record<string, unknown>;
+  artifacts?: Array<{ artifact_type: string; payload: Record<string, unknown> }>;
+  findings?: Array<{ finding_type: string; value: Record<string, unknown> }>;
+  tool_invocations?: Array<{ capability_id: string; status: string; side_effect_class: string }>;
 }
 
 export interface BusinessGoalCreatePayload {
   raw_goal: string;
   idempotency_key: string;
+  structured_goal?: Record<string, unknown>;
 }
 
 export interface BusinessRunCreatePayload {

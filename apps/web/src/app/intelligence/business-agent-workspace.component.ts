@@ -39,6 +39,10 @@ import {
             >Goal <textarea name="goal" [(ngModel)]="rawGoal" required minlength="5"></textarea>
           </label>
           <label>Idempotency key <input name="key" [(ngModel)]="idempotencyKey" required /></label>
+          <label>
+            <input type="checkbox" name="competitor" [(ngModel)]="includeCompetitorIntelligence" />
+            Include competitor intelligence in the bounded run
+          </label>
           <button type="submit" [disabled]="loading() || !rawGoal.trim()">Create goal</button>
         </form>
       </section>
@@ -66,6 +70,15 @@ import {
               <p role="status">
                 Run {{ run.status }} · {{ run.result?.decision || 'checkpointed' }}
               </p>
+              @if (run.result?.integrated_slices?.length) {
+                <small>Integrated slices: {{ integratedSlices(run) }}</small>
+              }
+              @if (run.artifacts?.length) {
+                <small
+                  >Review artifacts: {{ artifactCount(run) }}; Findings:
+                  {{ findingCount(run) }}</small
+                >
+              }
             }
           </article>
         } @empty {
@@ -94,6 +107,19 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   readonly error = signal('');
   rawGoal = 'Find three winning products for Amazon India within INR 300000 capital.';
   idempotencyKey = `business-goal-${Date.now()}`;
+  includeCompetitorIntelligence = false;
+
+  integratedSlices(run: BusinessAgentRun): string {
+    return run.result?.integrated_slices?.join(', ') || '';
+  }
+
+  artifactCount(run: BusinessAgentRun): number {
+    return run.artifacts?.length || 0;
+  }
+
+  findingCount(run: BusinessAgentRun): number {
+    return run.findings?.length || 0;
+  }
 
   ngOnInit(): void {
     void this.refresh();
@@ -119,6 +145,9 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
       await this.service.createGoal({
         raw_goal: this.rawGoal,
         idempotency_key: this.idempotencyKey,
+        structured_goal: this.includeCompetitorIntelligence
+          ? { marketplace: 'AMAZON_IN', include_competitor_intelligence: true }
+          : undefined,
       });
       await this.refresh();
     } catch {

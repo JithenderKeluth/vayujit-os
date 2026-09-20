@@ -29,6 +29,10 @@ from vayujit_api.intelligence.business_agent_models import (
     agent_now,
 )
 from vayujit_api.intelligence.business_agent_registry import capability_map
+from vayujit_api.intelligence.competitor_agent_service import (
+    competitor_decision_brief,
+    execute_competitor_capability,
+)
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
 from vayujit_api.intelligence.business_agent_schemas import BusinessGoalCreate, RunCreate
 
@@ -155,22 +159,61 @@ def create_goal(db: Session, owner: User, data: BusinessGoalCreate) -> BusinessA
     return value
 
 
+def _competitor_enabled(goal: BusinessAgentGoal) -> bool:
+    structured = goal.structured_goal or {}
+    return bool(
+        structured.get("include_competitor_intelligence")
+        or structured.get("competitor_intelligence")
+        or "competitor" in goal.raw_goal.casefold()
+    )
+
+
 def _steps(goal: BusinessAgentGoal) -> list[dict[str, object]]:
-    return [
+    enabled = _competitor_enabled(goal)
+    steps: list[dict[str, object]] = [
         {"key": "opportunity", "capability": "product_opportunity.create", "deps": []},
         {"key": "demand", "capability": "demand.intelligence", "deps": ["opportunity"]},
-        {"key": "competition", "capability": "competition.intelligence", "deps": ["opportunity"]},
-        {"key": "commercial", "capability": "commercial.assessment", "deps": ["opportunity"]},
-        {"key": "supplier", "capability": "supplier.discovery", "deps": ["opportunity"]},
-        {"key": "feasibility", "capability": "supplier.feasibility", "deps": ["supplier"]},
-        {
-            "key": "score",
-            "capability": "winning_product.score",
-            "deps": ["demand", "competition", "commercial", "feasibility"],
-        },
-        {"key": "rank", "capability": "winning_product.rank", "deps": ["score"]},
-        {"key": "brief", "capability": "decision_brief.generate", "deps": ["rank"]},
     ]
+    if enabled:
+        steps.extend(
+            [
+                {
+                    "key": "competitor_discovery",
+                    "capability": "COMPETITOR_DISCOVERY",
+                    "deps": ["opportunity"],
+                },
+                {
+                    "key": "competitor_analysis",
+                    "capability": "COMPETITOR_ANALYSIS",
+                    "deps": ["competitor_discovery"],
+                },
+                {
+                    "key": "competitor_change",
+                    "capability": "COMPETITOR_CHANGE_ANALYSIS",
+                    "deps": ["competitor_analysis"],
+                },
+            ]
+        )
+    steps.extend(
+        [
+            {
+                "key": "competition",
+                "capability": "competition.intelligence",
+                "deps": ["opportunity", "competitor_analysis"] if enabled else ["opportunity"],
+            },
+            {"key": "commercial", "capability": "commercial.assessment", "deps": ["opportunity"]},
+            {"key": "supplier", "capability": "supplier.discovery", "deps": ["opportunity"]},
+            {"key": "feasibility", "capability": "supplier.feasibility", "deps": ["supplier"]},
+            {
+                "key": "score",
+                "capability": "winning_product.score",
+                "deps": ["demand", "competition", "commercial", "feasibility"],
+            },
+            {"key": "rank", "capability": "winning_product.rank", "deps": ["score"]},
+            {"key": "brief", "capability": "decision_brief.generate", "deps": ["rank"]},
+        ]
+    )
+    return steps
 
 
 def create_plan(db: Session, owner: User, goal: BusinessAgentGoal) -> BusinessAgentPlan:
@@ -353,12 +396,73 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
         )
         db.add(attempt)
         db.flush()
-        output = {
-            "capability": step.capability_id,
-            "mode": "LOCAL_DETERMINISTIC",
-            "opportunity_id": str(opportunity.id),
-            "external_mutation": False,
-        }
+        try:
+            if _competitor_enabled(goal_record) and (
+                step.capability_id
+                in {
+                    "COMPETITOR_DISCOVERY",
+                    "COMPETITOR_ANALYSIS",
+                    "COMPETITOR_CHANGE_ANALYSIS",
+                    "competition.intelligence",
+                    "winning_product.score",
+                }
+            ):
+                output = execute_competitor_capability(
+                    db,
+                    owner,
+                    opportunity,
+                    step.capability_id,
+                    goal_record.structured_goal,
+                )
+                output["mode"] = "LOCAL_DETERMINISTIC"
+                output["opportunity_id"] = str(opportunity.id)
+                output["external_mutation"] = False
+                _audit(
+                    db,
+                    owner,
+                    "competitor.capability_invoked",
+                    run.id,
+                    f"{run.id}:{step.id}:{step.attempt_count}",
+                    {"capability": step.capability_id, "opportunity_id": str(opportunity.id)},
+                )
+            else:
+                output = {
+                    "capability": step.capability_id,
+                    "mode": "LOCAL_DETERMINISTIC",
+                    "opportunity_id": str(opportunity.id),
+                    "external_mutation": False,
+                }
+        except Exception:
+            safe_message = "Competitor intelligence execution could not be completed safely."
+            step.status = "FAILED"
+            step.result = {"code": "COMPETITOR_EXECUTION_FAILED", "message": safe_message}
+            step.updated_at = agent_now()
+            attempt.status = "FAILED"
+            attempt.output = {"code": "COMPETITOR_EXECUTION_FAILED", "message": safe_message}
+            attempt.error_code = "COMPETITOR_EXECUTION_FAILED"
+            attempt.completed_at = agent_now()
+            db.add(
+                BusinessAgentCheckpoint(
+                    owner_id=owner.id,
+                    run_id=run.id,
+                    step_key=step.step_key,
+                    state={"status": "FAILED", "attempt": step.attempt_count},
+                    created_at=agent_now(),
+                )
+            )
+            run.status = "PAUSED"
+            run.failure = {"code": "COMPETITOR_EXECUTION_FAILED", "message": safe_message}
+            _audit(
+                db,
+                owner,
+                "run.paused",
+                run.id,
+                f"{run.id}:competitor-failure:{step.step_key}",
+                run.failure,
+            )
+            db.commit()
+            db.refresh(run)
+            return run
         step.result = output
         step.status = "COMPLETED"
         step.updated_at = agent_now()
@@ -413,24 +517,33 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
         return run
     if all(step.status == "COMPLETED" for step in steps):
         run.status = "WAITING_APPROVAL"
+        competitor_enabled = _competitor_enabled(goal_record)
+        integrated_slices = ["9A", "9B", "9C", "9D", "9E", "9F"]
+        if competitor_enabled:
+            integrated_slices.extend(["10A", "10B", "10C", "10D", "10E", "10F"])
         run.result = {
             "opportunity_id": str(opportunity.id),
             "decision": "REVIEW_REQUIRED",
             "evidence_gap_loops": _bounded_int(usage.get("gap_loops"), 0),
             "external_writes": [],
-            "integrated_slices": ["9A", "9B", "9C", "9D", "9E", "9F"],
+            "integrated_slices": integrated_slices,
         }
+        brief_payload: dict[str, object] = {
+            "summary": "Evidence-first opportunity brief ready for human decision.",
+            "opportunity_id": str(opportunity.id),
+            "assumptions": goal_record.assumptions,
+            "unresolved_questions": goal_record.unresolved_questions,
+        }
+        if competitor_enabled:
+            brief_payload["competitor_intelligence"] = competitor_decision_brief(
+                db, owner, opportunity
+            )
         db.add(
             BusinessAgentArtifact(
                 owner_id=owner.id,
                 run_id=run.id,
                 artifact_type="BUSINESS_DECISION_BRIEF",
-                payload={
-                    "summary": "Evidence-first opportunity brief ready for human decision.",
-                    "opportunity_id": str(opportunity.id),
-                    "assumptions": goal_record.assumptions,
-                    "unresolved_questions": goal_record.unresolved_questions,
-                },
+                payload=brief_payload,
                 provenance={"source": "business-agent", "provider": "LOCAL_DETERMINISTIC"},
                 created_at=agent_now(),
             )

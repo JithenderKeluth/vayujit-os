@@ -51,6 +51,36 @@ CAPABILITY_REGISTRY: tuple[CapabilitySpec, ...] = (
         False,
     ),
     CapabilitySpec(
+        "COMPETITOR_DISCOVERY",
+        "1",
+        "CompetitorContextRef",
+        "DiscoverySnapshot",
+        "autonomous_research",
+        "INTERNAL_WRITE",
+        False,
+        False,
+    ),
+    CapabilitySpec(
+        "COMPETITOR_ANALYSIS",
+        "1",
+        "CompetitorContextRef",
+        "CommercialAnalysisProjection",
+        "autonomous_research",
+        "INTERNAL_WRITE",
+        False,
+        False,
+    ),
+    CapabilitySpec(
+        "COMPETITOR_CHANGE_ANALYSIS",
+        "1",
+        "CompetitorContextRef",
+        "ChangeComparison",
+        "autonomous_research",
+        "INTERNAL_WRITE",
+        False,
+        False,
+    ),
+    CapabilitySpec(
         "commercial.assessment",
         "1",
         "OpportunityRef",
@@ -138,6 +168,10 @@ def authorize_capability(capability_id: object, request: object | None = None) -
     spec = capability_map().get(capability_id)
     if spec is None:
         raise ValueError("Unknown capability.")
-    if spec.availability != "LOCAL" or spec.side_effect_class != "NONE":
+    if spec.availability != "LOCAL" or spec.side_effect_class not in {
+        "NONE",
+        "READ_ONLY",
+        "INTERNAL_WRITE",
+    }:
         raise PermissionError("Capability is disabled for local certification.")
     return spec
