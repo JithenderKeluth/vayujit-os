@@ -2,6 +2,8 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
+  ReviewAnalysisDetail,
+  ReviewAnalysisItem,
   ReviewContext,
   ReviewIngestionBatch,
   ReviewIntelligenceService,
@@ -160,6 +162,40 @@ import {
           }
         </section>
         <section class="panel">
+          <h2>Deterministic analysis</h2>
+          <p class="muted">
+            Local rules classify review text with explicit evidence and limitations. No live AI
+            provider is called.
+          </p>
+          <button type="button" (click)="runAnalysis()" [disabled]="loading()">
+            Analyze current snapshot
+          </button>
+          @if (analysis(); as result) {
+            <p role="status">
+              {{ result.analysis.status }} · {{ result.analysis.included_records }} included ·
+              {{ result.analysis.excluded_records }} excluded
+            </p>
+            <div class="list-item">
+              <strong>Sentiment</strong><span>{{ sentimentLabel(result) }}</span>
+            </div>
+            @for (item of analysisItems(result, 'PAIN_POINT'); track item.id) {
+              <div class="list-item">
+                <strong>Pain point: {{ item.canonical_label }}</strong
+                ><span
+                  >{{ item.sentiment }} · {{ item.support_count }} supporting reviews ·
+                  {{ item.confidence }} confidence</span
+                >
+              </div>
+            }
+            @for (item of analysisItems(result, 'PRAISED_ATTRIBUTE'); track item.id) {
+              <div class="list-item">
+                <strong>Praised: {{ item.canonical_label }}</strong
+                ><span>{{ item.support_count }} supporting reviews</span>
+              </div>
+            }
+          }
+        </section>
+        <section class="panel">
           <h2>Snapshots</h2>
           <button type="button" (click)="createSnapshot()" [disabled]="loading()">
             Create immutable snapshot
@@ -281,6 +317,7 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
   readonly ingestionBatches = signal<ReviewIngestionBatch[]>([]);
   readonly snapshots = signal<ReviewSnapshot[]>([]);
   readonly statistics = signal<ReviewStatistics | null>(null);
+  readonly analysis = signal<ReviewAnalysisDetail | null>(null);
   readonly doctor = signal<{ status: string; counts: Record<string, number> } | null>(null);
   readonly loading = signal(false);
   readonly error = signal('');
@@ -372,6 +409,24 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
       this.providerReviewId = '';
       await this.selectContext(context);
     }, 'The review could not be imported.');
+  }
+  async runAnalysis(): Promise<void> {
+    const context = this.selectedContext();
+    if (!context) return;
+    await this.run(async () => {
+      const result = await this.service.createAnalysis(context.id, { mode: 'LOCAL_FIXTURE' });
+      this.analysis.set(result);
+    }, 'The deterministic review analysis could not be completed.');
+  }
+  analysisItems(result: ReviewAnalysisDetail, type: string): ReviewAnalysisItem[] {
+    return result.items.filter((item) => item.item_type === type);
+  }
+  sentimentLabel(result: ReviewAnalysisDetail): string {
+    return (
+      Object.entries(result.analysis.sentiment_distribution) as Array<[string, { count: number }]>
+    )
+      .map(([key, value]) => `${key}: ${value.count}`)
+      .join(' · ');
   }
   async createSnapshot(): Promise<void> {
     const context = this.selectedContext();

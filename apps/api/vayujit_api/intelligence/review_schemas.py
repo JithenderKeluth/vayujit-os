@@ -278,3 +278,95 @@ class ReviewIngestionResult(BaseModel):
     candidates: list[ReviewIngestionCandidateResponse]
     snapshot: ReviewSnapshotResponse | None = None
     summary: dict[str, object] = Field(default_factory=dict)
+
+
+AnalysisMode = Literal["DISABLED", "LOCAL_FIXTURE", "LIVE_READ_ONLY"]
+
+
+class ReviewAnalysisRequest(BaseModel):
+    snapshot_id: uuid.UUID | None = None
+    mode: AnalysisMode = "LOCAL_FIXTURE"
+    analysis_version: str = Field(default="review-analysis-v1", max_length=40)
+    calculation_version: str = Field(default="review-calculation-v1", max_length=40)
+    taxonomy_version: str = Field(default="review-taxonomy-v1", max_length=40)
+    idempotency_key: str | None = Field(default=None, max_length=180)
+
+
+class ReviewAnalysisItemResponse(ReviewAPIModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    analysis_id: uuid.UUID
+    context_id: uuid.UUID
+    item_type: str
+    canonical_label: str
+    raw_labels: list[str]
+    sentiment: str
+    sentiment_distribution: dict[str, int]
+    severity: str
+    support_count: int
+    cohort_count: int
+    coverage: dict[str, int | float]
+    source_distribution: dict[str, int]
+    supporting_review_ids: list[str]
+    supporting_evidence_ids: list[str]
+    freshness: dict[str, int]
+    confidence: str
+    evidence_state: str
+    classification_type: str
+    method_version: str
+    limitation: str | None
+    created_at: datetime
+
+
+class ReviewAnalysisAnnotationResponse(ReviewAPIModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    analysis_id: uuid.UUID
+    context_id: uuid.UUID
+    input_language: str
+    analysis_language: str
+    translation_lineage: dict[str, object]
+    review_record_id: uuid.UUID
+    sentiment: str
+    aspect_sentiments: dict[str, str]
+    topics: list[str]
+    quality_state: str
+    classification_type: str
+    method_version: str
+    confidence: str
+    limitation: str | None
+    created_at: datetime
+
+
+class ReviewAnalysisResponse(ReviewAPIModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    context_id: uuid.UUID
+    snapshot_id: uuid.UUID
+    snapshot_version: int
+    analysis_version: str
+    calculation_version: str
+    normalization_version: str
+    taxonomy_version: str
+    semantic_method_version: str
+    input_fingerprint: str
+    mode: str
+    status: str
+    total_records: int
+    included_records: int
+    excluded_records: int
+    cohort_json: dict[str, object]
+    rating_distribution: dict[str, object]
+    sentiment_distribution: dict[str, object]
+    source_distribution: dict[str, int]
+    evidence_gaps: list[dict[str, object]]
+    limitations: list[str]
+    error_message: str | None
+    created_at: datetime
+
+
+class ReviewAnalysisDetail(BaseModel):
+    analysis: ReviewAnalysisResponse
+    items: list[ReviewAnalysisItemResponse]
+    annotations: list[ReviewAnalysisAnnotationResponse]
+    summary: dict[str, object] = Field(default_factory=dict)

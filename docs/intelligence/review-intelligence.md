@@ -34,3 +34,13 @@ Identity uses provider plus provider review ID first and a versioned structural 
 The API provides ingestion create, bounded batch history/detail, candidate/rejection views, and an ingestion summary under `/api/v1/intelligence/reviews`. Operations and System Doctor expose batch counts and lineage checks. Ingestion is not connected to Recovery, scheduler, worker, Product Channel, Calendar, Business Agent, or Winning Product intelligence. A future live provider requires a separately reviewed adapter, explicit configuration, and certification; it is not enabled by this slice.
 
 Migration `20261114_0123_review_ingestion_normalization` adds the ingestion batch, candidate, observation tables and the `ReviewRecord.ingestion_batch_id` lineage column.
+
+# Review Intelligence 11C topics, sentiment, themes, and pain points
+
+11C adds immutable, owner-scoped analysis snapshots over accepted `ReviewSnapshot` evidence. `LOCAL_FIXTURE` runs a deterministic lexical engine; `DISABLED` and `LIVE_READ_ONLY` fail closed without external calls. A request is idempotent for the same owner, context, snapshot, and version tuple; a changed snapshot creates a new analysis version.
+
+The cohort records every accepted review as included or excluded with an explicit reason (`UNSUPPORTED_LANGUAGE` or `INSUFFICIENT_TEXT`). Reviews without ratings remain eligible for text analysis. Unsupported languages are not translated; annotations retain input language, analysis language, and translation lineage for future providers. Sentiment is limited to POSITIVE, NEGATIVE, MIXED, NEUTRAL, or UNKNOWN. Topics, recurring themes, pain points, praised attributes, feature requests, and quality/defect signals are derived only from deterministic lexical matches and retain support counts, confidence, severity, evidence review IDs, and a calculation method version. Rating distributions include count/min/max/mean/median/buckets and an evidence-backed text/rating disagreement summary.
+
+The API exposes create/list/current/detail and item-type-filtered analysis views under `/api/v1/intelligence/reviews/contexts/{context_id}/analyses`. Operations projections and System Doctor expose analysis counts, excluded/unsupported reviews, unknown sentiment, gaps, annotations, and items. Analysis rows and annotations/items are append-only; no business inference is made about sales, demand, conversion, revenue, market size, or commercial success. This slice does not add Product Channel, Calendar, Recovery, scheduler, worker, Business Agent, Winning Product, or external provider behavior.
+
+Migration: `20261115_0124_review_analysis` (down revision `20261114_0123`).

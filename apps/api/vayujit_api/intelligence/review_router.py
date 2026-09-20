@@ -13,6 +13,8 @@ from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
 from vayujit_api.intelligence.review_models import (
+    ReviewAnalysis,
+    ReviewAnalysisItem,
     ReviewContext,
     ReviewIngestionBatch,
     ReviewIngestionCandidate,
@@ -21,6 +23,11 @@ from vayujit_api.intelligence.review_models import (
     ReviewSource,
 )
 from vayujit_api.intelligence.review_schemas import (
+    ReviewAnalysisAnnotationResponse,
+    ReviewAnalysisDetail,
+    ReviewAnalysisItemResponse,
+    ReviewAnalysisRequest,
+    ReviewAnalysisResponse,
     ReviewContextCreate,
     ReviewContextResponse,
     ReviewContextUpdate,
@@ -39,6 +46,7 @@ from vayujit_api.intelligence.review_schemas import (
     ReviewStatisticsResponse,
 )
 from vayujit_api.intelligence.review_service import (
+    _context_or_404,
     archive_context,
     create_context,
     create_review,
@@ -381,3 +389,89 @@ def ingestion_summary(context_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, 
 @router.get("/system-doctor", response_model=ReviewIntegrityResponse)
 def review_system_doctor(db: DB, owner: Owner) -> dict[str, object]:
     return integrity_report(db, owner)
+
+
+def _analysis_response(value: ReviewAnalysis) -> ReviewAnalysisResponse:
+    return ReviewAnalysisResponse.model_validate(value)
+
+
+def _analysis_detail_response(
+    db: Session, owner: User, context_id: uuid.UUID, analysis_id: uuid.UUID
+) -> ReviewAnalysisDetail:
+    from vayujit_api.intelligence.review_analysis_service import analysis_detail
+
+    analysis, items, annotations = analysis_detail(db, owner, context_id, analysis_id)
+    return ReviewAnalysisDetail(
+        analysis=_analysis_response(analysis),
+        items=[ReviewAnalysisItemResponse.model_validate(item) for item in items],
+        annotations=[ReviewAnalysisAnnotationResponse.model_validate(item) for item in annotations],
+        summary={"item_count": len(items), "annotation_count": len(annotations)},
+    )
+
+
+@router.post(
+    "/contexts/{context_id}/analyses", response_model=ReviewAnalysisDetail, status_code=201
+)
+def analysis_create(
+    context_id: uuid.UUID, data: ReviewAnalysisRequest, db: DB, owner: Owner
+) -> ReviewAnalysisDetail:
+    from vayujit_api.intelligence.review_analysis_service import create_analysis
+
+    value = create_analysis(db, owner, _context_or_404(db, owner, context_id), data)
+    return _analysis_detail_response(db, owner, context_id, value.id)
+
+
+@router.get("/contexts/{context_id}/analyses", response_model=list[ReviewAnalysisResponse])
+def analysis_list(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> list[ReviewAnalysis]:
+    _context_or_404(db, owner, context_id)
+    return list(
+        db.scalars(
+            select(ReviewAnalysis)
+            .where(ReviewAnalysis.owner_id == owner.id, ReviewAnalysis.context_id == context_id)
+            .order_by(ReviewAnalysis.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+    )
+
+
+@router.get("/contexts/{context_id}/analyses/current", response_model=ReviewAnalysisDetail | None)
+def analysis_current(context_id: uuid.UUID, db: DB, owner: Owner) -> ReviewAnalysisDetail | None:
+    from vayujit_api.intelligence.review_analysis_service import current_analysis
+
+    value = current_analysis(db, owner, context_id)
+    return _analysis_detail_response(db, owner, context_id, value.id) if value else None
+
+
+@router.get("/contexts/{context_id}/analyses/{analysis_id}", response_model=ReviewAnalysisDetail)
+def analysis_get(
+    context_id: uuid.UUID, analysis_id: uuid.UUID, db: DB, owner: Owner
+) -> ReviewAnalysisDetail:
+    return _analysis_detail_response(db, owner, context_id, analysis_id)
+
+
+@router.get(
+    "/contexts/{context_id}/analyses/{analysis_id}/{item_type}",
+    response_model=list[ReviewAnalysisItemResponse],
+)
+def analysis_items(
+    context_id: uuid.UUID, analysis_id: uuid.UUID, item_type: str, db: DB, owner: Owner
+) -> list[ReviewAnalysisItem]:
+    _analysis_detail_response(db, owner, context_id, analysis_id)
+    return list(
+        db.scalars(
+            select(ReviewAnalysisItem)
+            .where(
+                ReviewAnalysisItem.owner_id == owner.id,
+                ReviewAnalysisItem.analysis_id == analysis_id,
+                ReviewAnalysisItem.item_type == item_type.upper(),
+            )
+            .order_by(ReviewAnalysisItem.canonical_label)
+        )
+    )
