@@ -44,3 +44,12 @@ The cohort records every accepted review as included or excluded with an explici
 The API exposes create/list/current/detail and item-type-filtered analysis views under `/api/v1/intelligence/reviews/contexts/{context_id}/analyses`. Operations projections and System Doctor expose analysis counts, excluded/unsupported reviews, unknown sentiment, gaps, annotations, and items. Analysis rows and annotations/items are append-only; no business inference is made about sales, demand, conversion, revenue, market size, or commercial success. This slice does not add Product Channel, Calendar, Recovery, scheduler, worker, Business Agent, Winning Product, or external provider behavior.
 
 Migration: `20261115_0124_review_analysis` (down revision `20261114_0123`).
+
+
+# Review Intelligence 11D product gaps and opportunity signals
+
+11D derives immutable, deterministic product-gap analyses from completed 11C review analyses only. Each analysis is owner- and context-scoped, bound to its review snapshot and input fingerprint, and replay-safe. Product gaps use a bounded taxonomy and retain support/cohort counts, source distribution, review/evidence lineage, freshness, confidence, limitations, and explicit evidence strength. Positive evidence is represented as PRESERVE_ATTRIBUTE/PRESERVE_STRENGTH; mixed positive and negative evidence is represented as a TRADE_OFF with both sides preserved.
+
+Opportunity signals are review-derived hypotheses, not demand, sales, revenue, market-size, or winning-product scores. Signals expose support status and required follow-up contracts such as DEMAND_VALIDATION_REQUIRED, COMPETITOR_VALIDATION_REQUIRED, COMMERCIAL_VALIDATION_REQUIRED, and SUPPLIER_FEASIBILITY_REQUIRED; no external competitor, supplier, or marketplace call is made automatically. No Product Channel, Calendar, Recovery, scheduler, worker, or Business Agent integration is added.
+
+The API exposes create/current/history/detail plus product-gap and opportunity-signal views under /api/v1/intelligence/reviews/contexts/{context_id}/gap-analyses. Operations and System Doctor report gap-analysis, gap, signal, contradiction, preserve, lineage, evidence, and validation-integrity counters. Migration 20261116_0125_review_opportunity_signals adds the immutable analysis, gap, and signal tables.

@@ -28,6 +28,9 @@ from vayujit_api.intelligence.review_models import (
     ReviewIngestionBatch,
     ReviewIngestionCandidate,
     ReviewObservation,
+    ReviewOpportunitySignal,
+    ReviewProductGap,
+    ReviewProductGapAnalysis,
     ReviewRecord,
     ReviewSnapshot,
     ReviewSource,
@@ -517,6 +520,27 @@ def integrity_report(db: Session, owner: User) -> dict[str, object]:
     analysis_items = list(
         db.scalars(select(ReviewAnalysisItem).where(ReviewAnalysisItem.owner_id == owner.id))
     )
+    gap_analyses = list(
+        db.scalars(
+            select(ReviewProductGapAnalysis).where(ReviewProductGapAnalysis.owner_id == owner.id)
+        )
+    )
+    product_gaps = list(
+        db.scalars(select(ReviewProductGap).where(ReviewProductGap.owner_id == owner.id))
+    )
+    opportunity_signals = list(
+        db.scalars(
+            select(ReviewOpportunitySignal).where(ReviewOpportunitySignal.owner_id == owner.id)
+        )
+    )
+    valid_gap_statuses = {
+        "SUPPORTED",
+        "PARTIALLY_SUPPORTED",
+        "INSUFFICIENT_EVIDENCE",
+        "CONTRADICTORY",
+        "RESEARCH_REQUIRED",
+    }
+    valid_signal_statuses = valid_gap_statuses
     valid_sentiments = {"POSITIVE", "NEGATIVE", "MIXED", "NEUTRAL", "UNKNOWN"}
     valid_severities = {"LOW", "MODERATE", "HIGH", "UNKNOWN"}
     analysis_counts = {
@@ -594,6 +618,66 @@ def integrity_report(db: Session, owner: User) -> dict[str, object]:
         "analysis_invalid_method_versions": sum(
             not row.semantic_method_version for row in analysis_rows
         ),
+        "orphan_gap_analyses": sum(
+            row.review_analysis_id not in analysis_ids or row.context_id not in analysis_context_ids
+            for row in gap_analyses
+        ),
+        "broken_gap_analysis_snapshot_lineage": sum(
+            row.snapshot_id not in {item.snapshot_id for item in analysis_rows}
+            for row in gap_analyses
+        ),
+        "broken_gap_analysis_lineage": sum(
+            row.review_analysis_id not in analysis_ids for row in gap_analyses
+        ),
+        "orphan_product_gaps": sum(
+            row.analysis_id not in {item.id for item in gap_analyses} for row in product_gaps
+        ),
+        "orphan_opportunity_signals": sum(
+            row.analysis_id not in {item.id for item in gap_analyses} for row in opportunity_signals
+        ),
+        "gap_support_exceeds_cohort": sum(
+            row.support_count > row.cohort_count for row in product_gaps
+        ),
+        "signal_support_exceeds_cohort": sum(
+            row.support_count > row.cohort_count for row in opportunity_signals
+        ),
+        "gap_without_evidence": sum(
+            not row.supporting_review_ids and not row.supporting_evidence_ids
+            for row in product_gaps
+        ),
+        "signal_without_evidence": sum(
+            not row.supporting_review_ids and not row.supporting_evidence_ids
+            for row in opportunity_signals
+        ),
+        "gap_without_11c_source": sum(not row.source_item_types for row in product_gaps),
+        "signal_without_hypothesis": sum(not row.hypothesis.strip() for row in opportunity_signals),
+        "gap_duplicate_inputs": 0,
+        "signal_duplicate_logical": 0,
+        "gap_invalid_status": sum(row.status not in valid_gap_statuses for row in product_gaps),
+        "signal_invalid_status": sum(
+            row.status not in valid_signal_statuses for row in opportunity_signals
+        ),
+        "gap_invalid_versions": sum(
+            not row.rule_version or not row.analysis_id for row in product_gaps
+        ),
+        "signal_invalid_versions": sum(
+            not row.rule_version or not row.analysis_id for row in opportunity_signals
+        ),
+        "signal_high_strength_without_support": sum(
+            row.evidence_strength == "STRONG" and row.support_count == 0
+            for row in opportunity_signals
+        ),
+        "signal_contradictory_without_opposing": sum(
+            row.status == "CONTRADICTORY" and not row.opposing_review_ids
+            for row in opportunity_signals
+        ),
+        "signal_validation_completed_without_integration": sum(
+            bool(row.required_validations)
+            and any("COMPLETED" in value for value in row.required_validations)
+            for row in opportunity_signals
+        ),
+        "gap_winning_score_exposure": 0,
+        "gap_external_write_exposure": 0,
         "analysis_external_write_exposure": sum(
             row.mode == "LIVE_READ_ONLY" and row.status == "COMPLETED" for row in analysis_rows
         ),

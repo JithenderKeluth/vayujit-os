@@ -50,6 +50,9 @@ from vayujit_api.intelligence.review_models import (
     ReviewAnalysisItem,
     ReviewContext,
     ReviewIngestionBatch,
+    ReviewOpportunitySignal,
+    ReviewProductGap,
+    ReviewProductGapAnalysis,
     ReviewRecord,
     ReviewSnapshot,
 )
@@ -112,6 +115,19 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
     )
     analysis_items = list(
         db.scalars(select(ReviewAnalysisItem).where(ReviewAnalysisItem.owner_id == owner.id))
+    )
+    gap_analyses = list(
+        db.scalars(
+            select(ReviewProductGapAnalysis).where(ReviewProductGapAnalysis.owner_id == owner.id)
+        )
+    )
+    product_gaps = list(
+        db.scalars(select(ReviewProductGap).where(ReviewProductGap.owner_id == owner.id))
+    )
+    opportunity_signals = list(
+        db.scalars(
+            select(ReviewOpportunitySignal).where(ReviewOpportunitySignal.owner_id == owner.id)
+        )
     )
     latest_analysis = max(analysis_rows, key=lambda row: row.created_at, default=None)
     refresh_successes = [
@@ -382,6 +398,21 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
             "analysis_annotations": len(analysis_annotations),
             "analysis_items": len(analysis_items),
             "latest_analysis_id": str(latest_analysis.id) if latest_analysis else None,
+            "gap_analyses": len(gap_analyses),
+            "product_gaps": len(product_gaps),
+            "opportunity_signals": len(opportunity_signals),
+            "research_required_signals": sum(
+                item.status == "RESEARCH_REQUIRED" for item in opportunity_signals
+            ),
+            "contradictory_signals": sum(
+                item.status == "CONTRADICTORY" for item in opportunity_signals
+            ),
+            "preserve_signals": sum(
+                item.signal_type == "PRESERVE_STRENGTH" for item in opportunity_signals
+            ),
+            "latest_gap_analysis_id": (
+                str(max(gap_analyses, key=lambda row: row.created_at).id) if gap_analyses else None
+            ),
         },
         "marketplace": marketplace_projection,
         "research_execution_enabled": settings.intelligence_research_execution_enabled,

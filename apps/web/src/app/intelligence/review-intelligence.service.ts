@@ -82,6 +82,49 @@ export interface ReviewAnalysisDetail {
   annotations: ReviewAnalysisAnnotation[];
   summary: Record<string, unknown>;
 }
+export interface ReviewProductGap {
+  id: string;
+  gap_type: string;
+  canonical_label: string;
+  hypothesis: string;
+  support_classification: string;
+  support_count: number;
+  cohort_count: number;
+  evidence_strength: string;
+  confidence: string;
+  status: string;
+  required_validations: string[];
+  limitations: string[];
+}
+export interface ReviewOpportunitySignal {
+  id: string;
+  signal_type: string;
+  canonical_label: string;
+  hypothesis: string;
+  explanation: string;
+  status: string;
+  evidence_strength: string;
+  support_classification: string;
+  confidence: string;
+  required_validations: string[];
+  limitations: string[];
+}
+export interface ReviewGapAnalysis {
+  id: string;
+  status: string;
+  gap_count: number;
+  signal_count: number;
+  snapshot_id: string;
+  review_analysis_id: string;
+  input_fingerprint: string;
+  limitations: string[];
+}
+export interface ReviewGapAnalysisDetail {
+  analysis: ReviewGapAnalysis;
+  product_gaps: ReviewProductGap[];
+  opportunity_signals: ReviewOpportunitySignal[];
+  summary: Record<string, unknown>;
+}
 export interface ReviewStatistics {
   review_count: number;
   rated_review_count: number;
@@ -203,6 +246,20 @@ export class ReviewIntelligenceService {
     return firstValueFrom(
       this.http.get<ReviewAnalysisDetail | null>(
         `${this.base}/contexts/${contextId}/analyses/current`,
+      ),
+    );
+  }
+  createGapAnalysis(contextId: string, reviewAnalysisId: string): Promise<ReviewGapAnalysisDetail> {
+    return firstValueFrom(
+      this.http.post<ReviewGapAnalysisDetail>(`${this.base}/contexts/${contextId}/gap-analyses`, {
+        review_analysis_id: reviewAnalysisId,
+      }),
+    );
+  }
+  currentGapAnalysis(contextId: string): Promise<ReviewGapAnalysisDetail | null> {
+    return firstValueFrom(
+      this.http.get<ReviewGapAnalysisDetail | null>(
+        `${this.base}/contexts/${contextId}/gap-analyses/current`,
       ),
     );
   }

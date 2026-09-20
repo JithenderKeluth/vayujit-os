@@ -370,3 +370,88 @@ class ReviewAnalysisDetail(BaseModel):
     items: list[ReviewAnalysisItemResponse]
     annotations: list[ReviewAnalysisAnnotationResponse]
     summary: dict[str, object] = Field(default_factory=dict)
+
+
+class ReviewGapAnalysisRequest(BaseModel):
+    review_analysis_id: uuid.UUID
+
+
+class ReviewGapAnalysisResponse(ReviewAPIModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    context_id: uuid.UUID
+    snapshot_id: uuid.UUID
+    review_analysis_id: uuid.UUID
+    product_id: uuid.UUID | None
+    product_opportunity_id: uuid.UUID | None
+    analysis_version: str
+    calculation_version: str
+    rule_version: str
+    input_fingerprint: str
+    status: str
+    gap_count: int
+    signal_count: int
+    limitations: list[str]
+    created_at: datetime
+
+
+class ReviewProductGapResponse(ReviewAPIModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    analysis_id: uuid.UUID
+    context_id: uuid.UUID
+    gap_type: str
+    canonical_label: str
+    hypothesis: str
+    source_item_types: list[str]
+    support_classification: str
+    support_count: int
+    cohort_count: int
+    coverage: dict[str, int | float]
+    source_distribution: dict[str, int]
+    supporting_review_ids: list[str]
+    supporting_evidence_ids: list[str]
+    opposing_review_ids: list[str]
+    severity: str
+    evidence_strength: str
+    confidence: str
+    freshness: dict[str, int]
+    status: str
+    required_validations: list[str]
+    limitations: list[str]
+    rule_version: str
+    created_at: datetime
+
+
+class ReviewOpportunitySignalResponse(ReviewAPIModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    analysis_id: uuid.UUID
+    gap_id: uuid.UUID | None
+    context_id: uuid.UUID
+    signal_type: str
+    canonical_label: str
+    hypothesis: str
+    explanation: str
+    status: str
+    evidence_strength: str
+    support_count: int
+    cohort_count: int
+    coverage: dict[str, int | float]
+    source_distribution: dict[str, int]
+    supporting_review_ids: list[str]
+    supporting_evidence_ids: list[str]
+    opposing_review_ids: list[str]
+    confidence: str
+    freshness: dict[str, int]
+    required_validations: list[str]
+    limitations: list[str]
+    rule_version: str
+    created_at: datetime
+
+
+class ReviewGapAnalysisDetail(BaseModel):
+    analysis: ReviewGapAnalysisResponse
+    product_gaps: list[ReviewProductGapResponse]
+    opportunity_signals: list[ReviewOpportunitySignalResponse]
+    summary: dict[str, object] = Field(default_factory=dict)

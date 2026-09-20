@@ -31,12 +31,17 @@ from vayujit_api.intelligence.review_schemas import (
     ReviewContextCreate,
     ReviewContextResponse,
     ReviewContextUpdate,
+    ReviewGapAnalysisDetail,
+    ReviewGapAnalysisRequest,
+    ReviewGapAnalysisResponse,
     ReviewIngestionBatchResponse,
     ReviewIngestionCandidateResponse,
     ReviewIngestionRequest,
     ReviewIngestionResult,
     ReviewIntegrityResponse,
+    ReviewOpportunitySignalResponse,
     ReviewPage,
+    ReviewProductGapResponse,
     ReviewRecordCreate,
     ReviewRecordResponse,
     ReviewSnapshotCreate,
@@ -475,3 +480,140 @@ def analysis_items(
             .order_by(ReviewAnalysisItem.canonical_label)
         )
     )
+
+
+def _gap_detail_response(
+    db: Session, owner: User, context_id: uuid.UUID, analysis_id: uuid.UUID
+) -> ReviewGapAnalysisDetail:
+    from vayujit_api.intelligence.review_gap_service import gap_analysis_detail
+
+    analysis, gaps, signals = gap_analysis_detail(db, owner, context_id, analysis_id)
+    return ReviewGapAnalysisDetail(
+        analysis=ReviewGapAnalysisResponse.model_validate(analysis),
+        product_gaps=[ReviewProductGapResponse.model_validate(item) for item in gaps],
+        opportunity_signals=[
+            ReviewOpportunitySignalResponse.model_validate(item) for item in signals
+        ],
+        summary={"gap_count": len(gaps), "signal_count": len(signals), "review_derived": True},
+    )
+
+
+@router.post(
+    "/contexts/{context_id}/gap-analyses", response_model=ReviewGapAnalysisDetail, status_code=201
+)
+def gap_analysis_create(
+    context_id: uuid.UUID, data: ReviewGapAnalysisRequest, db: DB, owner: Owner
+) -> ReviewGapAnalysisDetail:
+    from vayujit_api.intelligence.review_gap_service import create_gap_analysis
+
+    value = create_gap_analysis(
+        db, owner, _context_or_404(db, owner, context_id), data.review_analysis_id
+    )
+    return _gap_detail_response(db, owner, context_id, value.id)
+
+
+@router.get("/contexts/{context_id}/gap-analyses", response_model=list[ReviewGapAnalysisResponse])
+def gap_analysis_list(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> list[ReviewGapAnalysisResponse]:
+
+    _context_or_404(db, owner, context_id)
+    from vayujit_api.intelligence.review_models import ReviewProductGapAnalysis
+
+    return list(
+        db.scalars(
+            select(ReviewProductGapAnalysis)
+            .where(
+                ReviewProductGapAnalysis.owner_id == owner.id,
+                ReviewProductGapAnalysis.context_id == context_id,
+            )
+            .order_by(ReviewProductGapAnalysis.created_at.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+    )
+
+
+@router.get(
+    "/contexts/{context_id}/gap-analyses/current", response_model=ReviewGapAnalysisDetail | None
+)
+def gap_analysis_current(
+    context_id: uuid.UUID, db: DB, owner: Owner
+) -> ReviewGapAnalysisDetail | None:
+
+    from vayujit_api.intelligence.review_gap_service import current_gap_analysis
+
+    value = current_gap_analysis(db, owner, context_id)
+    return _gap_detail_response(db, owner, context_id, value.id) if value else None
+
+
+@router.get(
+    "/contexts/{context_id}/gap-analyses/{analysis_id}", response_model=ReviewGapAnalysisDetail
+)
+def gap_analysis_get(
+    context_id: uuid.UUID, analysis_id: uuid.UUID, db: DB, owner: Owner
+) -> ReviewGapAnalysisDetail:
+    return _gap_detail_response(db, owner, context_id, analysis_id)
+
+
+@router.get(
+    "/contexts/{context_id}/gap-analyses/{analysis_id}/product-gaps",
+    response_model=list[ReviewProductGapResponse],
+)
+def product_gaps_get(
+    context_id: uuid.UUID,
+    analysis_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(100, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> list[ReviewProductGapResponse]:
+    _context_or_404(db, owner, context_id)
+    from vayujit_api.intelligence.review_models import ReviewProductGap
+
+    return [
+        ReviewProductGapResponse.model_validate(item)
+        for item in db.scalars(
+            select(ReviewProductGap)
+            .where(
+                ReviewProductGap.owner_id == owner.id, ReviewProductGap.analysis_id == analysis_id
+            )
+            .order_by(ReviewProductGap.canonical_label)
+            .offset(offset)
+            .limit(limit)
+        )
+    ]
+
+
+@router.get(
+    "/contexts/{context_id}/gap-analyses/{analysis_id}/opportunity-signals",
+    response_model=list[ReviewOpportunitySignalResponse],
+)
+def opportunity_signals_get(
+    context_id: uuid.UUID,
+    analysis_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(100, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> list[ReviewOpportunitySignalResponse]:
+    _context_or_404(db, owner, context_id)
+    from vayujit_api.intelligence.review_models import ReviewOpportunitySignal
+
+    return [
+        ReviewOpportunitySignalResponse.model_validate(item)
+        for item in db.scalars(
+            select(ReviewOpportunitySignal)
+            .where(
+                ReviewOpportunitySignal.owner_id == owner.id,
+                ReviewOpportunitySignal.analysis_id == analysis_id,
+            )
+            .order_by(ReviewOpportunitySignal.signal_type)
+            .offset(offset)
+            .limit(limit)
+        )
+    ]
