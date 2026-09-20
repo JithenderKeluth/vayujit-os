@@ -12,6 +12,7 @@ from typing import cast
 
 from fastapi import HTTPException
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
@@ -916,7 +917,19 @@ def run_comparison(
         created_at=_now(),
     )
     db.add(comparison)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        existing = db.scalar(
+            select(CompetitorChangeComparison).where(
+                CompetitorChangeComparison.owner_id == owner.id,
+                CompetitorChangeComparison.idempotency_key == comparison.idempotency_key,
+            )
+        )
+        if existing is not None:
+            return existing
+        raise
     events: list[CompetitorChangeEvent] = []
     baseline_ids, current_ids = _product_ids(baseline), _product_ids(current)
     removed = baseline_ids - current_ids
