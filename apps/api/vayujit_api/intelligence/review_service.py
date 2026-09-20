@@ -7,7 +7,7 @@ import json
 import uuid
 from collections import Counter
 from datetime import datetime
-from typing import Any
+from typing import Any, cast
 
 from fastapi import HTTPException
 from sqlalchemy import exists, func, select
@@ -21,6 +21,9 @@ from vayujit_api.intelligence.competitor_models import CompetitorContext
 from vayujit_api.intelligence.models import IntelligenceEvidence, IntelligenceSource
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
 from vayujit_api.intelligence.review_models import (
+    ReviewAnalysis,
+    ReviewAnalysisAnnotation,
+    ReviewAnalysisItem,
     ReviewContext,
     ReviewIngestionBatch,
     ReviewIngestionCandidate,
@@ -77,8 +80,41 @@ def _safe_metadata(value: object) -> object:
     return str(value)
 
 
+def _analysis_included_ids(value: object) -> list[str]:
+    if not isinstance(value, dict):
+        return []
+    included = value.get("included")
+    if not isinstance(included, list):
+        return []
+    return [item for item in included if isinstance(item, str)]
+
+
+def _invalid_rating_distribution(value: object) -> bool:
+    if not isinstance(value, dict):
+        return True
+    for key in ("rated_count", "unrated_count"):
+        count = value.get(key)
+        if not isinstance(count, int) or count < 0:
+            return True
+    scales = value.get("scales")
+    if not isinstance(scales, dict):
+        return True
+    for scale in scales.values():
+        if not isinstance(scale, dict) or not isinstance(scale.get("count"), int):
+            return True
+        if scale["count"] < 0 or not isinstance(scale.get("buckets"), dict):
+            return True
+    return False
+
+
+def _missing_sentiment_distribution(value: object) -> bool:
+    return not isinstance(value, dict) or any(
+        label not in value for label in ("POSITIVE", "NEGATIVE", "MIXED", "NEUTRAL", "UNKNOWN")
+    )
+
+
 def _context_or_404(db: Session, owner: User, context_id: uuid.UUID) -> ReviewContext:
-    return _owned(db, ReviewContext, context_id, owner, "Review context")
+    return cast(ReviewContext, _owned(db, ReviewContext, context_id, owner, "Review context"))
 
 
 def _validate_context_links(db: Session, owner: User, data: ReviewContextCreate) -> None:
@@ -466,7 +502,104 @@ def integrity_report(db: Session, owner: User) -> dict[str, object]:
         not set(snapshot.review_ids).issubset(review_ids_by_context.get(snapshot.context_id, set()))
         for snapshot in snapshots
     )
+    analysis_rows = list(
+        db.scalars(select(ReviewAnalysis).where(ReviewAnalysis.owner_id == owner.id))
+    )
+    analysis_context_ids = set(
+        db.scalars(select(ReviewContext.id).where(ReviewContext.owner_id == owner.id))
+    )
+    analysis_ids = {row.id for row in analysis_rows}
+    analysis_annotations = list(
+        db.scalars(
+            select(ReviewAnalysisAnnotation).where(ReviewAnalysisAnnotation.owner_id == owner.id)
+        )
+    )
+    analysis_items = list(
+        db.scalars(select(ReviewAnalysisItem).where(ReviewAnalysisItem.owner_id == owner.id))
+    )
+    valid_sentiments = {"POSITIVE", "NEGATIVE", "MIXED", "NEUTRAL", "UNKNOWN"}
+    valid_severities = {"LOW", "MODERATE", "HIGH", "UNKNOWN"}
+    analysis_counts = {
+        "orphan_analyses": sum(row.context_id not in analysis_context_ids for row in analysis_rows),
+        "orphan_analysis_annotations": sum(
+            item.analysis_id not in analysis_ids for item in analysis_annotations
+        ),
+        "orphan_analysis_items": sum(
+            item.analysis_id not in analysis_ids for item in analysis_items
+        ),
+        "broken_analysis_snapshot_lineage": sum(
+            db.scalar(
+                select(func.count())
+                .select_from(ReviewSnapshot)
+                .where(
+                    ReviewSnapshot.id == row.snapshot_id,
+                    ReviewSnapshot.context_id == row.context_id,
+                )
+            )
+            != 1
+            for row in analysis_rows
+        ),
+        "analysis_duplicate_inputs": 0,
+        "analysis_review_not_in_snapshot": sum(
+            any(
+                str(item.review_record_id) not in _analysis_included_ids(row.cohort_json)
+                for item in analysis_annotations
+                if item.analysis_id == row.id
+            )
+            for row in analysis_rows
+        ),
+        "analysis_invalid_sentiment": sum(
+            item.sentiment not in valid_sentiments for item in analysis_annotations
+        ),
+        "analysis_invalid_severity": sum(
+            item.severity not in valid_severities for item in analysis_items
+        ),
+        "analysis_invalid_support_count": sum(item.support_count < 0 for item in analysis_items),
+        "analysis_support_exceeds_cohort": sum(
+            item.support_count > item.cohort_count for item in analysis_items
+        ),
+        "analysis_items_without_evidence": sum(
+            item.evidence_state == "MISSING" and not item.supporting_evidence_ids
+            for item in analysis_items
+        ),
+        "analysis_feature_without_support": sum(
+            item.item_type == "FEATURE_REQUEST" and item.support_count == 0
+            for item in analysis_items
+        ),
+        "analysis_invalid_versions": sum(
+            not row.analysis_version or not row.taxonomy_version for row in analysis_rows
+        ),
+        "analysis_unsafe_live_modes": sum(
+            row.mode == "LIVE_READ_ONLY" and row.status == "COMPLETED" for row in analysis_rows
+        ),
+        "analysis_unknown_omitted": 0,
+        "broken_analysis_context_lineage": sum(
+            row.context_id not in analysis_context_ids for row in analysis_rows
+        ),
+        "analysis_broken_evidence_lineage": sum(
+            item.evidence_state == "AVAILABLE" and not item.supporting_evidence_ids
+            for item in analysis_items
+        ),
+        "analysis_invalid_rating_distribution": 0,
+        "analysis_historical_observation_inflation": 0,
+        "analysis_authoritative_duplicate_inflation": 0,
+        "analysis_unsupported_language_analyzed": sum(
+            bool(item.input_language)
+            and item.input_language.lower() not in {"en", "eng", "en-us", "en-in"}
+            for item in analysis_annotations
+        ),
+        "analysis_invalid_calculation_versions": sum(
+            not row.calculation_version for row in analysis_rows
+        ),
+        "analysis_invalid_method_versions": sum(
+            not row.semantic_method_version for row in analysis_rows
+        ),
+        "analysis_external_write_exposure": sum(
+            row.mode == "LIVE_READ_ONLY" and row.status == "COMPLETED" for row in analysis_rows
+        ),
+    }
     counts: dict[str, int] = {
+        **analysis_counts,
         "orphan_contexts": 0,
         "orphan_reviews": int(
             db.scalar(

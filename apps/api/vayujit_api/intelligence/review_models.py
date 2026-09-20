@@ -370,3 +370,149 @@ class ReviewObservation(Base):
     )
     raw_snapshot: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+ANALYSIS_MODES = ("DISABLED", "LOCAL_FIXTURE", "LIVE_READ_ONLY")
+ANALYSIS_STATUSES = ("COMPLETED", "FAILED")
+SENTIMENT_CLASSES = ("POSITIVE", "NEGATIVE", "MIXED", "NEUTRAL", "UNKNOWN")
+ANALYSIS_ITEM_TYPES = (
+    "TOPIC",
+    "THEME",
+    "PAIN_POINT",
+    "PRAISED_ATTRIBUTE",
+    "FEATURE_REQUEST",
+    "QUALITY_ISSUE",
+)
+SEVERITY_LEVELS = ("LOW", "MODERATE", "HIGH", "UNKNOWN")
+
+
+class ReviewAnalysis(Base):
+    __tablename__ = "intelligence_review_analyses"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "context_id", "input_fingerprint", name="uq_review_analysis_input"
+        ),
+        Index("ix_review_analysis_context_created", "owner_id", "context_id", "created_at"),
+        CheckConstraint(
+            "mode IN ('DISABLED','LOCAL_FIXTURE','LIVE_READ_ONLY')", name="ck_review_analysis_mode"
+        ),
+        CheckConstraint("status IN ('COMPLETED','FAILED')", name="ck_review_analysis_status"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    context_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_contexts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    snapshot_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_snapshots.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    snapshot_version: Mapped[int] = mapped_column(Integer)
+    analysis_version: Mapped[str] = mapped_column(String(40), default="review-analysis-v1")
+    calculation_version: Mapped[str] = mapped_column(String(40), default="review-calculation-v1")
+    normalization_version: Mapped[str] = mapped_column(
+        String(40), default="review-normalization-v1"
+    )
+    taxonomy_version: Mapped[str] = mapped_column(String(40), default="review-taxonomy-v1")
+    semantic_method_version: Mapped[str] = mapped_column(String(60), default="local-rules-v1")
+    input_fingerprint: Mapped[str] = mapped_column(String(128), index=True)
+    mode: Mapped[str] = mapped_column(String(24), default="LOCAL_FIXTURE", index=True)
+    status: Mapped[str] = mapped_column(String(24), default="COMPLETED", index=True)
+    total_records: Mapped[int] = mapped_column(Integer, default=0)
+    included_records: Mapped[int] = mapped_column(Integer, default=0)
+    excluded_records: Mapped[int] = mapped_column(Integer, default=0)
+    cohort_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    rating_distribution: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    sentiment_distribution: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    source_distribution: Mapped[dict[str, int]] = mapped_column(JSONB, default=dict)
+    evidence_gaps: Mapped[list[dict[str, object]]] = mapped_column(JSONB, default=list)
+    limitations: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    error_message: Mapped[str | None] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ReviewAnalysisAnnotation(Base):
+    __tablename__ = "intelligence_review_analysis_annotations"
+    __table_args__ = (
+        UniqueConstraint("analysis_id", "review_record_id", name="uq_review_analysis_annotation"),
+        Index("ix_review_analysis_annotation_review", "owner_id", "review_record_id"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    analysis_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_analyses.id", ondelete="CASCADE"),
+        index=True,
+    )
+    context_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_contexts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    input_language: Mapped[str] = mapped_column(String(24), default="")
+    analysis_language: Mapped[str] = mapped_column(String(24), default="")
+    translation_lineage: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    review_record_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_records.id", ondelete="CASCADE"),
+        index=True,
+    )
+    sentiment: Mapped[str] = mapped_column(String(16), default="UNKNOWN")
+    aspect_sentiments: Mapped[dict[str, str]] = mapped_column(JSONB, default=dict)
+    topics: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    quality_state: Mapped[str] = mapped_column(String(16), default="PARTIAL")
+    classification_type: Mapped[str] = mapped_column(String(24), default="DERIVED_SEMANTIC")
+    method_version: Mapped[str] = mapped_column(String(60), default="local-rules-v1")
+    confidence: Mapped[str] = mapped_column(String(16), default="MEDIUM")
+    limitation: Mapped[str | None] = mapped_column(String(240))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
+
+
+class ReviewAnalysisItem(Base):
+    __tablename__ = "intelligence_review_analysis_items"
+    __table_args__ = (
+        UniqueConstraint(
+            "analysis_id", "item_type", "canonical_label", name="uq_review_analysis_item"
+        ),
+        Index("ix_review_analysis_item_analysis_type", "owner_id", "analysis_id", "item_type"),
+    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
+    )
+    analysis_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_analyses.id", ondelete="CASCADE"),
+        index=True,
+    )
+    context_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_review_contexts.id", ondelete="CASCADE"),
+        index=True,
+    )
+    item_type: Mapped[str] = mapped_column(String(32), index=True)
+    canonical_label: Mapped[str] = mapped_column(String(120))
+    raw_labels: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    sentiment: Mapped[str] = mapped_column(String(16), default="UNKNOWN")
+    sentiment_distribution: Mapped[dict[str, int]] = mapped_column(JSONB, default=dict)
+    severity: Mapped[str] = mapped_column(String(16), default="UNKNOWN")
+    support_count: Mapped[int] = mapped_column(Integer, default=0)
+    cohort_count: Mapped[int] = mapped_column(Integer, default=0)
+    coverage: Mapped[dict[str, int | float]] = mapped_column(JSONB, default=dict)
+    source_distribution: Mapped[dict[str, int]] = mapped_column(JSONB, default=dict)
+    supporting_review_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    supporting_evidence_ids: Mapped[list[str]] = mapped_column(JSONB, default=list)
+    freshness: Mapped[dict[str, int]] = mapped_column(JSONB, default=dict)
+    confidence: Mapped[str] = mapped_column(String(16), default="MEDIUM")
+    evidence_state: Mapped[str] = mapped_column(String(24), default="PARTIAL")
+    classification_type: Mapped[str] = mapped_column(String(24), default="DERIVED_SEMANTIC")
+    method_version: Mapped[str] = mapped_column(String(60), default="local-rules-v1")
+    limitation: Mapped[str | None] = mapped_column(String(500))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)

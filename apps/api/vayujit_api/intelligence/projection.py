@@ -45,6 +45,9 @@ from vayujit_api.intelligence.models import (
 )
 from vayujit_api.intelligence.portfolio_integration import operations as portfolio_operations
 from vayujit_api.intelligence.review_models import (
+    ReviewAnalysis,
+    ReviewAnalysisAnnotation,
+    ReviewAnalysisItem,
     ReviewContext,
     ReviewIngestionBatch,
     ReviewRecord,
@@ -60,6 +63,16 @@ from vayujit_api.intelligence.website_models import (
     WebsiteRefreshJob,
     WebsiteSourceProfile,
 )
+
+
+def _unknown_sentiment_count(value: object) -> int:
+    if not isinstance(value, dict):
+        return 0
+    unknown = value.get("UNKNOWN")
+    if not isinstance(unknown, dict):
+        return 0
+    count = unknown.get("count")
+    return count if isinstance(count, int) else 0
 
 
 def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
@@ -89,6 +102,18 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
     refresh_failed = sum(1 for job in refresh_jobs if job.status == "FAILED")
     refresh_queued = sum(1 for job in refresh_jobs if job.status == "QUEUED")
     refresh_running = sum(1 for job in refresh_jobs if job.status == "RUNNING")
+    analysis_rows = list(
+        db.scalars(select(ReviewAnalysis).where(ReviewAnalysis.owner_id == owner.id))
+    )
+    analysis_annotations = list(
+        db.scalars(
+            select(ReviewAnalysisAnnotation).where(ReviewAnalysisAnnotation.owner_id == owner.id)
+        )
+    )
+    analysis_items = list(
+        db.scalars(select(ReviewAnalysisItem).where(ReviewAnalysisItem.owner_id == owner.id))
+    )
+    latest_analysis = max(analysis_rows, key=lambda row: row.created_at, default=None)
     refresh_successes = [
         job.completed_at for job in refresh_jobs if job.status == "SUCCEEDED" and job.completed_at
     ]
@@ -337,6 +362,26 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
                 or 0
             ),
             "external_writes": "DISABLED",
+            "analyses": len(analysis_rows),
+            "current_analyses": sum(row.status == "COMPLETED" for row in analysis_rows),
+            "failed_analyses": sum(row.status == "FAILED" for row in analysis_rows),
+            "reviews_analyzed": sum(row.included_records for row in analysis_rows),
+            "reviews_excluded": sum(row.excluded_records for row in analysis_rows),
+            "unsupported_language_reviews": sum(
+                1
+                for row in analysis_rows
+                if any(
+                    isinstance(item, dict) and item.get("code") == "UNSUPPORTED_LANGUAGE"
+                    for item in (row.evidence_gaps if isinstance(row.evidence_gaps, list) else [])
+                )
+            ),
+            "unknown_sentiment": sum(
+                _unknown_sentiment_count(row.sentiment_distribution) for row in analysis_rows
+            ),
+            "research_gaps": sum(len(row.evidence_gaps) for row in analysis_rows),
+            "analysis_annotations": len(analysis_annotations),
+            "analysis_items": len(analysis_items),
+            "latest_analysis_id": str(latest_analysis.id) if latest_analysis else None,
         },
         "marketplace": marketplace_projection,
         "research_execution_enabled": settings.intelligence_research_execution_enabled,

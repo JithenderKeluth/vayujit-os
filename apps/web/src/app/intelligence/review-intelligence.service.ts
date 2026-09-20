@@ -36,6 +36,52 @@ export interface ReviewSnapshot {
   freshness_summary: Record<string, number>;
   input_fingerprint: string;
 }
+export interface ReviewAnalysisItem {
+  id: string;
+  item_type: string;
+  canonical_label: string;
+  sentiment: string;
+  severity: string;
+  support_count: number;
+  cohort_count: number;
+  coverage: Record<string, number>;
+  supporting_review_ids: string[];
+  supporting_evidence_ids: string[];
+  confidence: string;
+  evidence_state: string;
+  limitation: string | null;
+}
+export interface ReviewAnalysisAnnotation {
+  id: string;
+  review_record_id: string;
+  sentiment: string;
+  aspect_sentiments: Record<string, string>;
+  topics: string[];
+  confidence: string;
+}
+export interface ReviewAnalysis {
+  id: string;
+  snapshot_id: string;
+  snapshot_version: number;
+  mode: string;
+  status: string;
+  total_records: number;
+  included_records: number;
+  excluded_records: number;
+  cohort_json: Record<string, unknown>;
+  rating_distribution: Record<string, unknown>;
+  sentiment_distribution: Record<string, { count: number; proportion: number }>;
+  source_distribution: Record<string, number>;
+  evidence_gaps: Array<Record<string, unknown>>;
+  limitations: string[];
+  error_message: string | null;
+}
+export interface ReviewAnalysisDetail {
+  analysis: ReviewAnalysis;
+  items: ReviewAnalysisItem[];
+  annotations: ReviewAnalysisAnnotation[];
+  summary: Record<string, unknown>;
+}
 export interface ReviewStatistics {
   review_count: number;
   rated_review_count: number;
@@ -137,6 +183,33 @@ export class ReviewIntelligenceService {
     return firstValueFrom(
       this.http.get<Record<string, unknown>>(
         `${this.base}/contexts/${contextId}/ingestion-summary`,
+      ),
+    );
+  }
+  analyses(contextId: string): Promise<ReviewAnalysis[]> {
+    return firstValueFrom(
+      this.http.get<ReviewAnalysis[]>(`${this.base}/contexts/${contextId}/analyses`),
+    );
+  }
+  createAnalysis(
+    contextId: string,
+    payload: Record<string, unknown> = {},
+  ): Promise<ReviewAnalysisDetail> {
+    return firstValueFrom(
+      this.http.post<ReviewAnalysisDetail>(`${this.base}/contexts/${contextId}/analyses`, payload),
+    );
+  }
+  currentAnalysis(contextId: string): Promise<ReviewAnalysisDetail | null> {
+    return firstValueFrom(
+      this.http.get<ReviewAnalysisDetail | null>(
+        `${this.base}/contexts/${contextId}/analyses/current`,
+      ),
+    );
+  }
+  analysisDetail(contextId: string, analysisId: string): Promise<ReviewAnalysisDetail> {
+    return firstValueFrom(
+      this.http.get<ReviewAnalysisDetail>(
+        `${this.base}/contexts/${contextId}/analyses/${analysisId}`,
       ),
     );
   }
