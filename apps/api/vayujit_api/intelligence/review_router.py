@@ -14,6 +14,8 @@ from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
 from vayujit_api.intelligence.review_models import (
     ReviewContext,
+    ReviewIngestionBatch,
+    ReviewIngestionCandidate,
     ReviewRecord,
     ReviewSnapshot,
     ReviewSource,
@@ -22,6 +24,10 @@ from vayujit_api.intelligence.review_schemas import (
     ReviewContextCreate,
     ReviewContextResponse,
     ReviewContextUpdate,
+    ReviewIngestionBatchResponse,
+    ReviewIngestionCandidateResponse,
+    ReviewIngestionRequest,
+    ReviewIngestionResult,
     ReviewIntegrityResponse,
     ReviewPage,
     ReviewRecordCreate,
@@ -268,6 +274,108 @@ def context_statistics(context_id: uuid.UUID, db: DB, owner: Owner) -> dict[str,
 @router.get("/contexts/{context_id}/source-inventory")
 def source_inventory(context_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
     return statistics(db, owner, context_id)["source_counts"]  # type: ignore[return-value]
+
+
+@router.post(
+    "/contexts/{context_id}/ingestions",
+    response_model=ReviewIngestionResult,
+    status_code=201,
+)
+def ingestion_create(
+    context_id: uuid.UUID, data: ReviewIngestionRequest, db: DB, owner: Owner
+) -> ReviewIngestionResult:
+    from vayujit_api.intelligence.review_ingestion_service import _summary, execute_ingestion
+    from vayujit_api.intelligence.review_service import _context_or_404
+
+    batch, candidates, snapshot = execute_ingestion(
+        db, owner, _context_or_404(db, owner, context_id), data
+    )
+    return ReviewIngestionResult(
+        batch=ReviewIngestionBatchResponse.model_validate(batch),
+        candidates=[ReviewIngestionCandidateResponse.model_validate(item) for item in candidates],
+        snapshot=ReviewSnapshotResponse.model_validate(snapshot) if snapshot else None,
+        summary=_summary(db, owner, batch),
+    )
+
+
+@router.get(
+    "/contexts/{context_id}/ingestions",
+    response_model=list[ReviewIngestionBatchResponse],
+)
+def ingestion_list(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> list[ReviewIngestionBatch]:
+    from vayujit_api.intelligence.review_ingestion_service import batch_list
+
+    return batch_list(db, owner, context_id, limit, offset)
+
+
+@router.get(
+    "/contexts/{context_id}/ingestions/{batch_id}",
+    response_model=ReviewIngestionResult,
+)
+def ingestion_get(
+    context_id: uuid.UUID, batch_id: uuid.UUID, db: DB, owner: Owner
+) -> ReviewIngestionResult:
+    from vayujit_api.intelligence.review_ingestion_service import _summary, batch_detail
+
+    batch, candidates = batch_detail(db, owner, context_id, batch_id)
+    snapshot = db.scalar(
+        select(ReviewSnapshot)
+        .where(ReviewSnapshot.owner_id == owner.id, ReviewSnapshot.context_id == context_id)
+        .order_by(ReviewSnapshot.snapshot_version.desc())
+        .limit(1)
+    )
+    return ReviewIngestionResult(
+        batch=ReviewIngestionBatchResponse.model_validate(batch),
+        candidates=[ReviewIngestionCandidateResponse.model_validate(item) for item in candidates],
+        snapshot=ReviewSnapshotResponse.model_validate(snapshot) if snapshot else None,
+        summary=_summary(db, owner, batch),
+    )
+
+
+@router.get(
+    "/contexts/{context_id}/ingestions/{batch_id}/candidates",
+    response_model=list[ReviewIngestionCandidateResponse],
+)
+def ingestion_candidates(
+    context_id: uuid.UUID,
+    batch_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(500, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> list[ReviewIngestionCandidate]:
+    from vayujit_api.intelligence.review_ingestion_service import batch_detail
+
+    _, candidates = batch_detail(db, owner, context_id, batch_id)
+    return candidates[offset : offset + limit]
+
+
+@router.get(
+    "/contexts/{context_id}/ingestions/{batch_id}/rejections",
+    response_model=list[ReviewIngestionCandidateResponse],
+)
+def ingestion_rejections(
+    context_id: uuid.UUID, batch_id: uuid.UUID, db: DB, owner: Owner
+) -> list[ReviewIngestionCandidate]:
+    from vayujit_api.intelligence.review_ingestion_service import batch_detail
+
+    _, candidates = batch_detail(db, owner, context_id, batch_id)
+    return [item for item in candidates if not item.accepted and item.rejection_reason]
+
+
+@router.get("/contexts/{context_id}/ingestion-summary")
+def ingestion_summary(context_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
+    from vayujit_api.intelligence.review_ingestion_service import (
+        ingestion_summary as service_summary,
+    )
+
+    return service_summary(db, owner, context_id)
 
 
 @router.get("/system-doctor", response_model=ReviewIntegrityResponse)

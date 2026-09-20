@@ -215,3 +215,66 @@ class ReviewPage(BaseModel):
     total: int
     limit: int
     offset: int
+
+
+IngestionMode = Literal["DISABLED", "LOCAL_FIXTURE", "LIVE_READ_ONLY"]
+
+
+class ReviewIngestionRequest(BaseModel):
+    provider: str = Field(default="LOCAL_FIXTURE", min_length=1, max_length=120)
+    mode: IngestionMode = "LOCAL_FIXTURE"
+    source_id: uuid.UUID | None = None
+    source: ReviewSourceCreate | None = None
+    records: list[dict[str, object]] = Field(default_factory=list, max_length=500)
+    idempotency_key: str = Field(min_length=1, max_length=180)
+    input_fingerprint: str | None = Field(default=None, max_length=128)
+
+
+class ReviewIngestionBatchResponse(ReviewAPIModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    context_id: uuid.UUID
+    source_id: uuid.UUID | None
+    provider: str
+    mode: str
+    status: str
+    started_at: datetime | None
+    completed_at: datetime | None
+    input_count: int
+    accepted_count: int
+    rejected_count: int
+    duplicate_count: int
+    updated_observation_count: int
+    error_count: int
+    input_fingerprint: str
+    adapter_version: str
+    normalization_version: str
+    idempotency_key: str
+    error_message: str | None
+    created_at: datetime
+
+
+class ReviewIngestionCandidateResponse(ReviewAPIModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    batch_id: uuid.UUID
+    context_id: uuid.UUID
+    source_id: uuid.UUID | None
+    ordinal: int
+    provider_review_id: str | None
+    fingerprint: str | None
+    duplicate_classification: str
+    quality_state: str
+    accepted: bool
+    rejection_reason: str | None
+    raw_payload: dict[str, object]
+    normalized_payload: dict[str, object]
+    review_record_id: uuid.UUID | None
+    created_at: datetime
+
+
+class ReviewIngestionResult(BaseModel):
+    batch: ReviewIngestionBatchResponse
+    candidates: list[ReviewIngestionCandidateResponse]
+    snapshot: ReviewSnapshotResponse | None = None
+    summary: dict[str, object] = Field(default_factory=dict)

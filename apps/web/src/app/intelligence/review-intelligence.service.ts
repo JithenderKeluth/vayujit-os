@@ -49,6 +49,34 @@ export interface ReviewStatistics {
   review_date_min: string | null;
   review_date_max: string | null;
 }
+export interface ReviewIngestionBatch {
+  id: string;
+  provider: string;
+  mode: string;
+  status: string;
+  input_count: number;
+  accepted_count: number;
+  rejected_count: number;
+  duplicate_count: number;
+  updated_observation_count: number;
+  error_message: string | null;
+  created_at: string;
+}
+export interface ReviewIngestionCandidate {
+  id: string;
+  ordinal: number;
+  provider_review_id: string | null;
+  duplicate_classification: string;
+  quality_state: string;
+  accepted: boolean;
+  rejection_reason: string | null;
+}
+export interface ReviewIngestionResult {
+  batch: ReviewIngestionBatch;
+  candidates: ReviewIngestionCandidate[];
+  summary: Record<string, unknown>;
+}
+
 export interface ReviewPage {
   items: ReviewRecord[];
   total: number;
@@ -90,6 +118,26 @@ export class ReviewIntelligenceService {
   ): Promise<ReviewSnapshot> {
     return firstValueFrom(
       this.http.post<ReviewSnapshot>(`${this.base}/contexts/${contextId}/snapshots`, payload),
+    );
+  }
+  ingestions(contextId: string): Promise<ReviewIngestionBatch[]> {
+    return firstValueFrom(
+      this.http.get<ReviewIngestionBatch[]>(`${this.base}/contexts/${contextId}/ingestions`),
+    );
+  }
+  ingest(contextId: string, payload: Record<string, unknown>): Promise<ReviewIngestionResult> {
+    return firstValueFrom(
+      this.http.post<ReviewIngestionResult>(
+        `${this.base}/contexts/${contextId}/ingestions`,
+        payload,
+      ),
+    );
+  }
+  ingestionSummary(contextId: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${this.base}/contexts/${contextId}/ingestion-summary`,
+      ),
     );
   }
   doctor(): Promise<{ status: string; counts: Record<string, number> }> {
