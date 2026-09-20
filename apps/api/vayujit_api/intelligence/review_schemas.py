@@ -455,3 +455,79 @@ class ReviewGapAnalysisDetail(BaseModel):
     product_gaps: list[ReviewProductGapResponse]
     opportunity_signals: list[ReviewOpportunitySignalResponse]
     summary: dict[str, object] = Field(default_factory=dict)
+
+
+class ReviewChangeComparisonRequest(BaseModel):
+    baseline_analysis_id: uuid.UUID
+    current_analysis_id: uuid.UUID
+    baseline_gap_analysis_id: uuid.UUID | None = None
+    current_gap_analysis_id: uuid.UUID | None = None
+
+
+class ReviewChangeEventResponse(ReviewAPIModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    context_id: uuid.UUID
+    comparison_id: uuid.UUID
+    change_type: str
+    subject_type: str
+    subject_key: str
+    observed_or_derived: str
+    baseline_value: dict[str, object] | None
+    current_value: dict[str, object] | None
+    absolute_delta: object | None
+    relative_delta: object | None
+    baseline_support: int
+    current_support: int
+    baseline_cohort: int
+    current_cohort: int
+    baseline_evidence: dict[str, object]
+    current_evidence: dict[str, object]
+    source_distribution: dict[str, object]
+    freshness: dict[str, object]
+    confidence: str
+    materiality: str
+    materiality_version: str
+    status: str
+    alert_eligibility: str
+    alert_reason: str
+    research_gaps: list[str]
+    limitations: list[str]
+    explanation: str
+    supporting_review_ids: list[str]
+    supporting_evidence_ids: list[str]
+    event_fingerprint: str
+    rule_version: str
+    created_at: datetime
+
+
+class ReviewChangeComparisonResponse(ReviewAPIModel):
+    id: uuid.UUID
+    owner_id: uuid.UUID
+    context_id: uuid.UUID
+    baseline_snapshot_id: uuid.UUID
+    current_snapshot_id: uuid.UUID
+    baseline_analysis_id: uuid.UUID
+    current_analysis_id: uuid.UUID
+    baseline_gap_analysis_id: uuid.UUID | None
+    current_gap_analysis_id: uuid.UUID | None
+    comparison_version: int
+    calculation_version: str
+    materiality_version: str
+    input_fingerprint: str
+    status: str
+    summary: dict[str, object]
+    limitations: list[str]
+    created_at: datetime
+
+
+class ReviewChangeComparisonDetail(BaseModel):
+    comparison: ReviewChangeComparisonResponse
+    events: list[ReviewChangeEventResponse]
+
+
+class ReviewChangeListResponse(BaseModel):
+    items: list[ReviewChangeEventResponse]
+    total: int
+    limit: int
+    offset: int

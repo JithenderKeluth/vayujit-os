@@ -48,6 +48,8 @@ from vayujit_api.intelligence.review_models import (
     ReviewAnalysis,
     ReviewAnalysisAnnotation,
     ReviewAnalysisItem,
+    ReviewChangeComparison,
+    ReviewChangeEvent,
     ReviewContext,
     ReviewIngestionBatch,
     ReviewOpportunitySignal,
@@ -128,6 +130,14 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
         db.scalars(
             select(ReviewOpportunitySignal).where(ReviewOpportunitySignal.owner_id == owner.id)
         )
+    )
+    change_comparisons = list(
+        db.scalars(
+            select(ReviewChangeComparison).where(ReviewChangeComparison.owner_id == owner.id)
+        )
+    )
+    change_events = list(
+        db.scalars(select(ReviewChangeEvent).where(ReviewChangeEvent.owner_id == owner.id))
     )
     latest_analysis = max(analysis_rows, key=lambda row: row.created_at, default=None)
     refresh_successes = [
@@ -401,6 +411,26 @@ def get_operations_projection(db: Session, owner: User) -> dict[str, Any]:
             "gap_analyses": len(gap_analyses),
             "product_gaps": len(product_gaps),
             "opportunity_signals": len(opportunity_signals),
+            "change_comparisons": len(change_comparisons),
+            "change_events": len(change_events),
+            "moderate_high_changes": sum(
+                row.materiality in {"MODERATE", "HIGH"} for row in change_events
+            ),
+            "unresolved_changes": sum(row.status == "UNRESOLVED" for row in change_events),
+            "possibly_disappeared_signals": sum(
+                row.status == "POSSIBLY_DISAPPEARED" for row in change_events
+            ),
+            "alert_eligible_changes": sum(
+                row.alert_eligibility in {"REVIEW", "ALERT"} for row in change_events
+            ),
+            "source_mix_changes": sum(
+                row.change_type == "SOURCE_COVERAGE_CHANGE" for row in change_events
+            ),
+            "latest_change_comparison_id": (
+                str(max(change_comparisons, key=lambda row: row.created_at).id)
+                if change_comparisons
+                else None
+            ),
             "research_required_signals": sum(
                 item.status == "RESEARCH_REQUIRED" for item in opportunity_signals
             ),

@@ -1,9 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
+  ReviewAnalysis,
   ReviewAnalysisDetail,
   ReviewAnalysisItem,
+  ReviewChangeComparisonDetail,
   ReviewContext,
   ReviewGapAnalysisDetail,
   ReviewIngestionBatch,
@@ -16,7 +19,7 @@ import {
 @Component({
   selector: 'app-review-intelligence-workspace',
   standalone: true,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, JsonPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="workspace" aria-labelledby="reviews-title">
@@ -238,6 +241,72 @@ import {
           }
         </section>
         <section class="panel">
+          <h2>Review evidence changed</h2>
+          <p class="muted">
+            Compare two immutable review analyses to surface evidence changes only. This does not
+            infer market demand, sales, revenue, or commercial value.
+          </p>
+          <form (ngSubmit)="compareReviewEvidence()">
+            <label
+              >Baseline analysis
+              <select name="baselineAnalysisId" [(ngModel)]="baselineAnalysisId">
+                <option value="">Select baseline</option>
+                @for (item of availableAnalyses(); track item.id) {
+                  <option [value]="item.id">
+                    v{{ item.snapshot_version }} · {{ item.status }}
+                  </option>
+                }
+              </select>
+            </label>
+            <label
+              >Current analysis
+              <select name="currentAnalysisId" [(ngModel)]="currentAnalysisId">
+                <option value="">Select current</option>
+                @for (item of availableAnalyses(); track item.id) {
+                  <option [value]="item.id">
+                    v{{ item.snapshot_version }} · {{ item.status }}
+                  </option>
+                }
+              </select>
+            </label>
+            <button
+              type="submit"
+              [disabled]="loading() || !baselineAnalysisId || !currentAnalysisId"
+            >
+              Compare review evidence
+            </button>
+          </form>
+          @if (changeComparison(); as comparison) {
+            <p role="status">
+              {{ comparison.comparison.status }} · {{ comparison.events.length }} evidence changes ·
+              {{ comparison.comparison.created_at }}
+            </p>
+            @for (event of comparison.events; track event.id) {
+              <article class="list-item">
+                <strong>{{ event.change_type }} · {{ event.subject_key }}</strong>
+                <span
+                  >{{ event.baseline_support }}/{{ event.baseline_cohort }} →
+                  {{ event.current_support }}/{{ event.current_cohort }} · {{ event.materiality }} ·
+                  {{ event.status }}</span
+                >
+                <span
+                  >{{ event.confidence }} confidence · {{ event.freshness | json }} ·
+                  {{ event.alert_eligibility }}</span
+                >
+                <span
+                  >Limitations: {{ event.limitations.join(', ') || 'None recorded' }} · Research
+                  gaps: {{ event.research_gaps.join(', ') || 'None recorded' }}</span
+                >
+                <p>{{ event.explanation }}</p>
+              </article>
+            } @empty {
+              <p>No evidence changes were detected for this comparison.</p>
+            }
+          } @else {
+            <p>No review evidence comparison selected.</p>
+          }
+        </section>
+        <section class="panel">
           <h2>Snapshots</h2>
           <button type="button" (click)="createSnapshot()" [disabled]="loading()">
             Create immutable snapshot
@@ -360,6 +429,8 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
   readonly snapshots = signal<ReviewSnapshot[]>([]);
   readonly statistics = signal<ReviewStatistics | null>(null);
   readonly analysis = signal<ReviewAnalysisDetail | null>(null);
+  readonly availableAnalyses = signal<ReviewAnalysis[]>([]);
+  readonly changeComparison = signal<ReviewChangeComparisonDetail | null>(null);
   readonly gapAnalysis = signal<ReviewGapAnalysisDetail | null>(null);
   readonly doctor = signal<{ status: string; counts: Record<string, number> } | null>(null);
   readonly loading = signal(false);
@@ -376,6 +447,8 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
   provider = 'manual';
   ingestionProvider = 'LOCAL_FIXTURE';
   ingestionMode = 'LOCAL_FIXTURE';
+  baselineAnalysisId = '';
+  currentAnalysisId = '';
   ingestionRecords =
     '[{"id":"fixture-1","rating":"5","rating_scale":"5","title":"Useful","body":"Local fixture review"}]';
   ngOnInit(): void {
@@ -403,18 +476,27 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
   }
   async selectContext(context: ReviewContext): Promise<void> {
     this.selectedContext.set(context);
-    const [page, stats, snapshots, batches, gapAnalysis] = await Promise.all([
-      this.service.reviews(context.id),
-      this.service.statistics(context.id),
-      this.service.snapshots(context.id),
-      this.service.ingestions(context.id),
-      this.service.currentGapAnalysis(context.id),
-    ]);
+    const [page, stats, snapshots, batches, gapAnalysis, analyses, changeComparison] =
+      await Promise.all([
+        this.service.reviews(context.id),
+        this.service.statistics(context.id),
+        this.service.snapshots(context.id),
+        this.service.ingestions(context.id),
+        this.service.currentGapAnalysis(context.id),
+        this.service.analyses(context.id),
+        this.service.currentChangeComparison(context.id),
+      ]);
     this.reviews.set(page.items);
     this.statistics.set(stats);
     this.snapshots.set(snapshots);
     this.ingestionBatches.set(batches);
     this.gapAnalysis.set(gapAnalysis);
+    this.availableAnalyses.set(analyses);
+    this.changeComparison.set(changeComparison);
+    if (analyses.length >= 2 && !this.baselineAnalysisId && !this.currentAnalysisId) {
+      this.baselineAnalysisId = analyses[analyses.length - 2].id;
+      this.currentAnalysisId = analyses[analyses.length - 1].id;
+    }
   }
   async ingestReviews(): Promise<void> {
     const context = this.selectedContext();
@@ -462,6 +544,18 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
       const result = await this.service.createAnalysis(context.id, { mode: 'LOCAL_FIXTURE' });
       this.analysis.set(result);
     }, 'The deterministic review analysis could not be completed.');
+  }
+  async compareReviewEvidence(): Promise<void> {
+    const context = this.selectedContext();
+    if (!context || !this.baselineAnalysisId || !this.currentAnalysisId) return;
+    await this.run(async () => {
+      this.changeComparison.set(
+        await this.service.createChangeComparison(context.id, {
+          baseline_analysis_id: this.baselineAnalysisId,
+          current_analysis_id: this.currentAnalysisId,
+        }),
+      );
+    }, 'The review evidence comparison could not be completed.');
   }
   async deriveGapAnalysis(): Promise<void> {
     const context = this.selectedContext();

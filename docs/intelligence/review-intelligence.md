@@ -53,3 +53,25 @@ Migration: `20261115_0124_review_analysis` (down revision `20261114_0123`).
 Opportunity signals are review-derived hypotheses, not demand, sales, revenue, market-size, or winning-product scores. Signals expose support status and required follow-up contracts such as DEMAND_VALIDATION_REQUIRED, COMPETITOR_VALIDATION_REQUIRED, COMMERCIAL_VALIDATION_REQUIRED, and SUPPLIER_FEASIBILITY_REQUIRED; no external competitor, supplier, or marketplace call is made automatically. No Product Channel, Calendar, Recovery, scheduler, worker, or Business Agent integration is added.
 
 The API exposes create/current/history/detail plus product-gap and opportunity-signal views under /api/v1/intelligence/reviews/contexts/{context_id}/gap-analyses. Operations and System Doctor report gap-analysis, gap, signal, contradiction, preserve, lineage, evidence, and validation-integrity counters. Migration 20261116_0125_review_opportunity_signals adds the immutable analysis, gap, and signal tables.
+
+## 11E Review change intelligence
+
+Review change comparisons are immutable, deterministic comparisons between two
+owner-scoped historical analyses in the same Review Context. They describe
+changes in observed or derived review evidence only: support, proportions,
+sentiment, themes, pain points, praise, feature requests, source coverage,
+freshness, contradictions, product-gap hypotheses, and opportunity-signal
+states. They never infer demand, sales, revenue, market growth, or commercial
+attractiveness.
+
+The API provides comparison creation/history/current/detail, bounded event
+filters, material/unresolved/alert-eligible event views, and research-gap
+views. Replay is idempotent and events retain baseline/current lineage,
+denominators, sample-size limitations, freshness, confidence, materiality,
+and evidence references. The Angular workspace exposes this as “Review
+evidence changed”.
+
+Review changes do not emit Calendar events, Review-specific worker jobs,
+Recovery actions, external alerts, or Product Channel writes. Product Channel,
+Business Agent, Winning Product, and durable scheduling integrations remain
+owned by their later slices.
