@@ -10,7 +10,7 @@ from decimal import Decimal
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, select
+from sqlalchemy import create_engine, func, select
 from sqlalchemy.orm import Session, sessionmaker
 
 from vayujit_api.brands.models import Brand
@@ -22,6 +22,14 @@ from vayujit_api.commerce.models import (
 from vayujit_api.core.database import Base, get_session
 from vayujit_api.core.test_database import reset_test_schema
 from vayujit_api.identity.models import User
+from vayujit_api.intelligence.competitor_commercial_models import (
+    CompetitorCommercialAnalysis,
+    CompetitorComparableCohortEntry,
+)
+from vayujit_api.intelligence.competitor_models import CompetitorContext, CompetitorProduct
+from vayujit_api.intelligence.competitor_winning_product_models import (
+    CompetitorWinningProductProjection,
+)
 from vayujit_api.main import create_app
 from vayujit_api.products.models import Product
 
@@ -270,6 +278,7 @@ def test_demand_and_competition_are_deterministic_and_owner_scoped(
     assert competition.status_code == 201, competition.text
     competition_body = competition.json()
     assert competition_body["kind"] == "competition"
+    assert competition_body["input_snapshot"]["competition_source"] == "LEGACY_9B_EVIDENCE"
     assert (
         next(
             row
@@ -337,3 +346,124 @@ def test_demand_without_marketplace_evidence_is_explicitly_unavailable(
     assert activity["value"] is None
     assert activity["evidence_state"] == "unknown"
     assert "SALES_EVIDENCE_REQUIRED" in {gap["code"] for gap in body["research_gaps"]}
+
+
+def test_current_competitor_analysis_projects_into_9b_without_counting_ambiguous_or_rejected(
+    client: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    api, factory = client
+    _setup_owner(api)
+    owner_id, _, product_id = _product_context(factory)
+    opportunity_id, assessment_id = _create_opportunity_and_assessment(api, product_id)
+    stamp = datetime.now(UTC)
+    context_id = uuid.uuid4()
+    with factory() as db:
+        owner_uuid = uuid.UUID(owner_id)
+        opportunity_uuid = uuid.UUID(opportunity_id)
+        context = CompetitorContext(
+            id=context_id,
+            owner_id=owner_uuid,
+            subject_type="PRODUCT_OPPORTUNITY",
+            subject_reference=opportunity_uuid,
+            product_opportunity_id=opportunity_uuid,
+            marketplace="amazon",
+            market="IN",
+            category="Home",
+            status="ACTIVE",
+            created_by=owner_uuid,
+            idempotency_key="10e-context",
+            created_at=stamp,
+            updated_at=stamp,
+        )
+        db.add(context)
+        db.flush()
+        products = [
+            CompetitorProduct(
+                owner_id=owner_uuid,
+                context_id=context.id,
+                title=f"Competitor {index}",
+                marketplace="amazon",
+                external_identifier=f"10e-{index}",
+                identity_state=state,
+                evidence_state="AVAILABLE",
+                idempotency_key=f"10e-product-{index}",
+                first_observed=stamp,
+                last_observed=stamp,
+                created_at=stamp,
+                updated_at=stamp,
+            )
+            for index, state in enumerate(("CONFIRMED", "PROBABLE", "AMBIGUOUS", "REJECTED"), 1)
+        ]
+        db.add_all(products)
+        db.flush()
+        analysis = CompetitorCommercialAnalysis(
+            owner_id=owner_uuid,
+            context_id=context.id,
+            opportunity_id=opportunity_uuid,
+            analysis_version=1,
+            status="COMPLETED",
+            input_fingerprint="10e-analysis-fingerprint",
+            input_snapshot={"source": "fixture"},
+            cohort_summary={"included_product_ids": [str(products[0].id), str(products[1].id)]},
+            pricing_analysis={
+                "status": "MULTI_CURRENCY_NOT_COMPARABLE",
+                "currencies": {"INR": {"sample_count": 1}, "USD": {"sample_count": 1}},
+            },
+            concentration_analysis={"brand": {"hhi": 0.5}, "seller": {"hhi": 0.5}},
+            rating_analysis={"barrier": "UNKNOWN"},
+            review_analysis={"barrier": "UNKNOWN"},
+            differentiation_analysis=[{"type": "POTENTIAL_DIFFERENTIATOR"}],
+            evidence_coverage={"cohort_products": 4},
+            freshness_summary={"state": "CURRENT"},
+            competitive_gaps=[{"code": "FEATURE_EVIDENCE_REQUIRED"}],
+            research_gaps=[{"code": "PRICE_EVIDENCE_REQUIRED", "reason": "fixture"}],
+            idempotency_key="10e-analysis",
+            created_at=stamp,
+        )
+        db.add(analysis)
+        db.flush()
+        db.add_all(
+            [
+                CompetitorComparableCohortEntry(
+                    owner_id=owner_uuid,
+                    analysis_id=analysis.id,
+                    context_id=context.id,
+                    product_id=product.id,
+                    identity_state=product.identity_state,
+                    included=product.identity_state in {"CONFIRMED", "PROBABLE"},
+                    evidence_state="AVAILABLE",
+                    freshness_state="CURRENT",
+                    observation_ids=[],
+                    created_at=stamp,
+                )
+                for product in products
+            ]
+        )
+        db.commit()
+
+    response = api.post(
+        f"/api/v1/intelligence/product-opportunities/{opportunity_id}/assessments/{assessment_id}/competition",
+        json={},
+        headers=ORIGIN,
+    )
+    assert response.status_code == 201, response.text
+    body = response.json()
+    assert body["input_snapshot"]["competition_source"] == "DEDICATED_COMPETITOR_INTELLIGENCE"
+    density = next(row for row in body["dimensions"] if row["dimension"] == "COMPETITOR_DENSITY")
+    assert density["value"] == 2, body
+    pricing = next(row for row in body["dimensions"] if row["dimension"] == "PRICE_COMPETITION")
+    assert pricing["value"]["status"] == "MULTI_CURRENCY_NOT_COMPARABLE"
+    projection = api.get(
+        f"/api/v1/intelligence/product-opportunities/{opportunity_id}/assessments/{assessment_id}/competition-projection",
+        headers=ORIGIN,
+    )
+    assert projection.status_code == 200, projection.text
+    assert projection.json()["source_state"] == "DEDICATED_COMPETITOR_INTELLIGENCE"
+    with factory() as db:
+        assert db.scalar(select(func.count()).select_from(CompetitorWinningProductProjection)) == 1
+    doctor = api.get(
+        "/api/v1/intelligence/product-opportunities/intelligence-system-doctor",
+        headers=ORIGIN,
+    )
+    assert doctor.status_code == 200, doctor.text
+    assert doctor.json()["status"] == "PASS", doctor.text

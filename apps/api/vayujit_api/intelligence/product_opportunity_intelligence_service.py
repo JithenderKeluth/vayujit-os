@@ -7,7 +7,7 @@ from collections import Counter, defaultdict
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from statistics import median
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -17,6 +17,9 @@ from vayujit_api.commerce.models import (
     MarketplacePrice,
 )
 from vayujit_api.identity.models import User
+from vayujit_api.intelligence.competitor_winning_product_service import (
+    get_or_create_projection,
+)
 from vayujit_api.intelligence.product_opportunity_intelligence_models import (
     CALCULATION_VERSION,
     ProductOpportunityIntelligenceOutput,
@@ -460,6 +463,200 @@ def _competition(
     return dimensions, gaps
 
 
+def _competition_from_projection(
+    projection: Any, now: datetime
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    """Adapt validated 10E data to the frozen 9B dimension contract."""
+    payload = projection.projection if isinstance(projection.projection, dict) else {}
+    analysis_value = payload.get("analysis")
+    analysis: dict[str, Any] = (
+        cast(dict[str, Any], analysis_value) if isinstance(analysis_value, dict) else {}
+    )
+    cohort_value = payload.get("cohort")
+    cohort: dict[str, Any] = (
+        cast(dict[str, Any], cohort_value) if isinstance(cohort_value, dict) else {}
+    )
+    freshness_value = analysis.get("freshness")
+    freshness: dict[str, Any] = (
+        cast(dict[str, Any], freshness_value) if isinstance(freshness_value, dict) else {}
+    )
+    freshness_state = {
+        "state": str(projection.freshness_state).lower(),
+        "observed_at": [payload.get("generated_at")],
+    }
+    source = {
+        "type": "competitor_winning_product_projection",
+        "id": str(projection.id),
+        "source_state": projection.source_state,
+        "context_id": str(projection.context_id) if projection.context_id else None,
+        "analysis_id": (
+            str(projection.competitor_analysis_id) if projection.competitor_analysis_id else None
+        ),
+        "comparison_id": (
+            str(projection.change_comparison_id) if projection.change_comparison_id else None
+        ),
+        "contract_version": projection.contract_version,
+        "freshness": projection.freshness_state,
+        "contradictions": projection.contradiction_state,
+        "change_context": payload.get("change_context"),
+    }
+    authoritative = cohort.get("authoritative_count")
+    has_density = isinstance(authoritative, int) and authoritative > 0
+    gaps = projection.research_gaps if isinstance(projection.research_gaps, list) else []
+    state = (
+        "available"
+        if projection.source_state == "DEDICATED_COMPETITOR_INTELLIGENCE"
+        else "insufficient_evidence"
+    )
+    pricing = analysis.get("pricing")
+    pricing_value = pricing if isinstance(pricing, dict) and pricing else None
+    pricing_state = "available" if pricing_value is not None else "insufficient_evidence"
+    concentration_value = analysis.get("concentration")
+    concentration: dict[str, Any] = (
+        cast(dict[str, Any], concentration_value) if isinstance(concentration_value, dict) else {}
+    )
+    brand_value = concentration.get("brand")
+    brand: dict[str, Any] = (
+        cast(dict[str, Any], brand_value) if isinstance(brand_value, dict) else {}
+    )
+    seller_value = concentration.get("seller")
+    seller: dict[str, Any] = (
+        cast(dict[str, Any], seller_value) if isinstance(seller_value, dict) else {}
+    )
+    rating_value = analysis.get("rating")
+    rating: dict[str, Any] = (
+        cast(dict[str, Any], rating_value) if isinstance(rating_value, dict) else {}
+    )
+    review_value = analysis.get("review")
+    review: dict[str, Any] = (
+        cast(dict[str, Any], review_value) if isinstance(review_value, dict) else {}
+    )
+    differentiation = analysis.get("differentiation")
+    dimensions = [
+        _dimension(
+            "COMPETITOR_DENSITY",
+            value=authoritative if has_density else None,
+            classification="OBSERVED_FACT" if has_density else "UNKNOWN",
+            evidence_state=state,
+            explanation=(
+                "Confirmed and probable 10C cohort entries only; ambiguous and rejected "
+                "entries are excluded."
+            ),
+            supporting=[source],
+            missing=[] if has_density else ["confirmed or probable competitor cohort"],
+            freshness=freshness_state,
+        ),
+        _dimension(
+            "BRAND_CONCENTRATION",
+            value=brand.get("hhi"),
+            classification="DERIVED_SIGNAL" if brand.get("hhi") is not None else "UNKNOWN",
+            evidence_state=state,
+            explanation=(
+                "Authoritative 10C brand concentration; no recomputation is performed in " "9B."
+            ),
+            supporting=[{**source, "concentration": brand}],
+            missing=[] if brand.get("hhi") is not None else ["brand identities"],
+            freshness=freshness_state,
+        ),
+        _dimension(
+            "SELLER_CONCENTRATION",
+            value=seller.get("hhi"),
+            classification="DERIVED_SIGNAL" if seller.get("hhi") is not None else "UNKNOWN",
+            evidence_state=state,
+            explanation=(
+                "Authoritative 10C seller concentration kept independent from brand "
+                "concentration."
+            ),
+            supporting=[{**source, "concentration": seller}],
+            missing=[] if seller.get("hhi") is not None else ["seller identities"],
+            freshness=freshness_state,
+        ),
+        _dimension(
+            "PRICE_COMPETITION",
+            value=pricing_value,
+            classification="OBSERVED_FACT" if pricing_value is not None else "UNKNOWN",
+            evidence_state=pricing_state,
+            explanation=(
+                "Authoritative 10C price distribution; mixed currencies remain " "non-comparable."
+            ),
+            supporting=[{**source, "pricing": pricing_value}],
+            missing=[] if pricing_value is not None else ["price observations"],
+            freshness=freshness_state,
+        ),
+        _dimension(
+            "REVIEW_BARRIER",
+            value=review.get("barrier"),
+            classification="DERIVED_SIGNAL" if review.get("barrier") is not None else "UNKNOWN",
+            evidence_state=state if review else "insufficient_evidence",
+            explanation="Descriptive 10C review barrier; no demand or sales inference is made.",
+            supporting=[{**source, "review": review}],
+            missing=[] if review else ["review observations"],
+            freshness=freshness_state,
+        ),
+        _dimension(
+            "RATING_BARRIER",
+            value=rating.get("barrier"),
+            classification="DERIVED_SIGNAL" if rating.get("barrier") is not None else "UNKNOWN",
+            evidence_state=state if rating else "insufficient_evidence",
+            explanation="Descriptive 10C rating barrier only.",
+            supporting=[{**source, "rating": rating}],
+            missing=[] if rating else ["rating observations"],
+            freshness=freshness_state,
+        ),
+        _dimension(
+            "LISTING_MATURITY",
+            value=None,
+            classification="UNKNOWN",
+            evidence_state="insufficient_evidence",
+            explanation="Listing maturity is not a 10C authoritative dimension.",
+            supporting=[source],
+            missing=["listing age history"],
+            freshness=freshness_state,
+        ),
+        _dimension(
+            "DIFFERENTIATION_OPPORTUNITY",
+            value=None,
+            classification="UNKNOWN" if not differentiation else "OBSERVED_FACT",
+            evidence_state=state if differentiation else "insufficient_evidence",
+            explanation=(
+                "Evidence-backed 10C differentiators remain descriptive and are not "
+                "converted into demand opportunity."
+            ),
+            supporting=[{**source, "differentiation": differentiation}],
+            missing=[] if differentiation else ["product differentiation evidence"],
+            freshness=freshness_state,
+        ),
+        _dimension(
+            "EVIDENCE_COVERAGE",
+            value=analysis.get("evidence_coverage") if analysis else None,
+            classification="DERIVED_SIGNAL" if analysis else "UNKNOWN",
+            evidence_state=state,
+            explanation="Coverage preserves 10C evidence lineage.",
+            supporting=[source],
+            missing=[] if analysis else ["competition evidence"],
+            freshness=freshness_state,
+        ),
+        _dimension(
+            "EVIDENCE_FRESHNESS",
+            value=(
+                freshness.get("state", projection.freshness_state)
+                if isinstance(freshness, dict)
+                else projection.freshness_state
+            ),
+            classification="OBSERVED_FACT" if analysis else "UNKNOWN",
+            evidence_state=state,
+            explanation=(
+                "Freshness is copied from dedicated competitor evidence and never "
+                "silently marked current."
+            ),
+            supporting=[source],
+            missing=[] if analysis else ["observation timestamp"],
+            freshness=freshness_state,
+        ),
+    ]
+    return dimensions, gaps
+
+
 def calculate_intelligence(
     db: Session,
     owner: User,
@@ -487,7 +684,40 @@ def calculate_intelligence(
     if kind == "demand":
         dimensions, gaps = _demand(listings, summary, now)
     else:
-        dimensions, gaps = _competition(listings, prices, summary, now)
+        projection = get_or_create_projection(db, owner, opportunity, assessment)
+        if projection is not None:
+            dimensions, gaps = _competition_from_projection(projection, now)
+            summary = {
+                **summary,
+                "competition_source": projection.source_state,
+                "competition_projection_id": str(projection.id),
+                "competition_analysis_id": (
+                    str(projection.competitor_analysis_id)
+                    if projection.competitor_analysis_id
+                    else None
+                ),
+                "competition_change_comparison_id": (
+                    str(projection.change_comparison_id)
+                    if projection.change_comparison_id
+                    else None
+                ),
+                "competition_ten_c_calculation_version": projection.ten_c_calculation_version,
+                "competition_ten_d_calculation_version": projection.ten_d_calculation_version,
+            }
+            snapshot = {
+                **snapshot,
+                "competition_projection_id": str(projection.id),
+                "competition_projection_fingerprint": projection.input_fingerprint,
+                "competition_source": projection.source_state,
+                "integration_contract_version": projection.contract_version,
+                "ten_c_calculation_version": projection.ten_c_calculation_version,
+                "ten_d_calculation_version": projection.ten_d_calculation_version,
+            }
+        else:
+            dimensions, gaps = _competition(listings, prices, summary, now)
+            source = "LEGACY_9B_EVIDENCE" if listings else "INSUFFICIENT_EVIDENCE"
+            summary = {**summary, "competition_source": source}
+            snapshot = {**snapshot, "competition_source": source}
     output = ProductOpportunityIntelligenceOutput(
         owner_id=owner.id,
         opportunity_id=opportunity.id,

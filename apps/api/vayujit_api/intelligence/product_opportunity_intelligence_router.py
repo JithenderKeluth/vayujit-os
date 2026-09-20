@@ -14,6 +14,25 @@ from vayujit_api.audit.service import record_event
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.intelligence.competitor_change_models import (
+    CALCULATION_VERSION as TEN_D_CALCULATION_VERSION,
+)
+from vayujit_api.intelligence.competitor_change_models import (
+    CompetitorChangeComparison,
+)
+from vayujit_api.intelligence.competitor_commercial_models import (
+    CALCULATION_VERSION as TEN_C_CALCULATION_VERSION,
+)
+from vayujit_api.intelligence.competitor_commercial_models import (
+    CompetitorCommercialAnalysis,
+)
+from vayujit_api.intelligence.competitor_models import CompetitorContext
+from vayujit_api.intelligence.competitor_winning_product_models import (
+    CompetitorWinningProductProjection,
+)
+from vayujit_api.intelligence.competitor_winning_product_schemas import (
+    CompetitorWinningProductProjectionResponse,
+)
 from vayujit_api.intelligence.product_opportunity_intelligence_models import (
     ProductOpportunityIntelligenceOutput,
 )
@@ -152,6 +171,31 @@ def get_competition(
 
 
 @router.get(
+    "/{opportunity_id}/assessments/{assessment_id}/competition-projection",
+    response_model=CompetitorWinningProductProjectionResponse,
+)
+def get_competition_projection(
+    opportunity_id: uuid.UUID,
+    assessment_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+) -> CompetitorWinningProductProjection:
+    _assessment_or_404(db, owner, opportunity_id, assessment_id)
+    value = db.scalar(
+        select(CompetitorWinningProductProjection)
+        .where(
+            CompetitorWinningProductProjection.owner_id == owner.id,
+            CompetitorWinningProductProjection.opportunity_id == opportunity_id,
+            CompetitorWinningProductProjection.assessment_id == assessment_id,
+        )
+        .order_by(CompetitorWinningProductProjection.created_at.desc())
+    )
+    if value is None:
+        raise HTTPException(404, "Competition projection has not been calculated.")
+    return value
+
+
+@router.get(
     "/{opportunity_id}/assessments/{assessment_id}/intelligence",
     response_model=list[IntelligenceOutputResponse],
 )
@@ -203,6 +247,87 @@ def intelligence_system_doctor(db: DB, owner: Owner) -> dict[str, object]:
             )
         )
     )
+    projections = list(
+        db.scalars(
+            select(CompetitorWinningProductProjection).where(
+                CompetitorWinningProductProjection.owner_id == owner.id
+            )
+        )
+    )
+    context_ids = set(
+        db.scalars(select(CompetitorContext.id).where(CompetitorContext.owner_id == owner.id))
+    )
+    analysis_ids = set(
+        db.scalars(
+            select(CompetitorCommercialAnalysis.id).where(
+                CompetitorCommercialAnalysis.owner_id == owner.id
+            )
+        )
+    )
+    comparison_ids = set(
+        db.scalars(
+            select(CompetitorChangeComparison.id).where(
+                CompetitorChangeComparison.owner_id == owner.id
+            )
+        )
+    )
+    projections_by_id = {str(row.id): row for row in projections}
+    dedicated_outputs_without_lineage = 0
+    for output in outputs:
+        if not isinstance(output.input_snapshot, dict):
+            continue
+        if output.input_snapshot.get("competition_source") != "DEDICATED_COMPETITOR_INTELLIGENCE":
+            continue
+        projection_id = output.input_snapshot.get("competition_projection_id")
+        projection = projections_by_id.get(str(projection_id))
+        if (
+            projection is None
+            or projection.opportunity_id != output.opportunity_id
+            or projection.assessment_id != output.assessment_id
+            or projection.competitor_analysis_id not in analysis_ids
+        ):
+            dedicated_outputs_without_lineage += 1
+
+    def _projection_payload(row: CompetitorWinningProductProjection) -> dict[str, object]:
+        return row.projection if isinstance(row.projection, dict) else {}
+
+    def _analysis_payload(row: CompetitorWinningProductProjection) -> dict[str, object]:
+        value = _projection_payload(row).get("analysis")
+        return value if isinstance(value, dict) else {}
+
+    def _cohort_payload(row: CompetitorWinningProductProjection) -> dict[str, object]:
+        value = _projection_payload(row).get("cohort")
+        return value if isinstance(value, dict) else {}
+
+    mixed_currency_comparable = 0
+    ambiguous_or_rejected_counted = 0
+    stale_marked_current = 0
+    for row in projections:
+        cohort = _cohort_payload(row)
+        confirmed = cohort.get("confirmed_count")
+        probable = cohort.get("probable_count")
+        authoritative = cohort.get("authoritative_count")
+        if (
+            isinstance(confirmed, int)
+            and isinstance(probable, int)
+            and authoritative != confirmed + probable
+        ):
+            ambiguous_or_rejected_counted += 1
+        pricing = _analysis_payload(row).get("pricing")
+        currencies = pricing.get("currencies") if isinstance(pricing, dict) else None
+        if (
+            isinstance(currencies, dict)
+            and len(currencies) > 1
+            and isinstance(pricing, dict)
+            and pricing.get("status") != "MULTI_CURRENCY_NOT_COMPARABLE"
+        ):
+            mixed_currency_comparable += 1
+        freshness = row.evidence_summary.get("freshness") if row.evidence_summary else None
+        if row.freshness_state == "CURRENT" and freshness not in (None, "CURRENT"):
+            stale_marked_current += 1
+    duplicate_projection_keys = len(projections) - len(
+        {(row.opportunity_id, row.assessment_id, row.input_fingerprint) for row in projections}
+    )
     checks = {
         "orphan_outputs": sum(row.opportunity_id not in opportunity_ids for row in outputs),
         "broken_assessment_lineage": sum(
@@ -216,5 +341,44 @@ def intelligence_system_doctor(db: DB, owner: Owner) -> dict[str, object]:
         "impossible_numeric_states": sum(
             _has_impossible_numeric_state(row.dimensions) for row in outputs
         ),
+        "orphan_competitor_projections": sum(
+            row.opportunity_id not in opportunity_ids for row in projections
+        ),
+        "broken_projection_assessments": sum(
+            row.assessment_id not in assessment_ids for row in projections
+        ),
+        "broken_projection_contexts": sum(
+            row.context_id is not None and row.context_id not in context_ids for row in projections
+        ),
+        "duplicate_competitor_projections": duplicate_projection_keys,
+        "dedicated_projection_missing_analysis": sum(
+            row.source_state == "DEDICATED_COMPETITOR_INTELLIGENCE"
+            and row.competitor_analysis_id is None
+            for row in projections
+        ),
+        "broken_projection_analyses": sum(
+            row.competitor_analysis_id is not None
+            and row.competitor_analysis_id not in analysis_ids
+            for row in projections
+        ),
+        "broken_projection_comparisons": sum(
+            row.change_comparison_id is not None and row.change_comparison_id not in comparison_ids
+            for row in projections
+        ),
+        "incompatible_projection_versions": sum(
+            row.source_state == "DEDICATED_COMPETITOR_INTELLIGENCE"
+            and (
+                row.ten_c_calculation_version != TEN_C_CALCULATION_VERSION
+                or (
+                    row.ten_d_calculation_version is not None
+                    and row.ten_d_calculation_version != TEN_D_CALCULATION_VERSION
+                )
+            )
+            for row in projections
+        ),
+        "stale_projection_marked_current": stale_marked_current,
+        "ambiguous_or_rejected_competitors_counted": ambiguous_or_rejected_counted,
+        "mixed_currency_treated_comparable": mixed_currency_comparable,
+        "dedicated_output_missing_projection_lineage": dedicated_outputs_without_lineage,
     }
     return {"status": "PASS" if not any(checks.values()) else "FAIL", "checks": checks}
