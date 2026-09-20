@@ -28,6 +28,17 @@ from vayujit_api.core.database import get_session
 from vayujit_api.core.observability import maintenance_enabled
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.intelligence.business_agent_models import BusinessAgentStep
+from vayujit_api.intelligence.competitor_change_models import CompetitorChangeEvent
+from vayujit_api.intelligence.competitor_commercial_models import CompetitorCommercialAnalysis
+from vayujit_api.intelligence.competitor_discovery_models import (
+    CompetitorDiscoveryCandidate,
+    CompetitorDiscoveryRequest,
+)
+from vayujit_api.intelligence.competitor_models import CompetitorContext, CompetitorProduct
+from vayujit_api.intelligence.competitor_winning_product_models import (
+    CompetitorWinningProductProjection,
+)
 from vayujit_api.media.models import MediaAsset
 from vayujit_api.media.service import storage_root
 from vayujit_api.operations.backup import create_backup
@@ -368,6 +379,110 @@ def overview(db: DatabaseSession, user: CurrentUser) -> dict[str, object]:
     storage = storage_summary(db, user)
     providers = _provider_registry()
     alerts = alert_projection(db, user)
+    competitor_events = list(
+        db.scalars(select(CompetitorChangeEvent).where(CompetitorChangeEvent.owner_id == user.id))
+    )
+    competitor_intelligence = {
+        "active_contexts": int(
+            db.scalar(
+                select(func.count())
+                .select_from(CompetitorContext)
+                .where(
+                    CompetitorContext.owner_id == user.id,
+                    CompetitorContext.status != "ARCHIVED",
+                )
+            )
+            or 0
+        ),
+        "discovery_requests": int(
+            db.scalar(
+                select(func.count())
+                .select_from(CompetitorDiscoveryRequest)
+                .where(CompetitorDiscoveryRequest.owner_id == user.id)
+            )
+            or 0
+        ),
+        "confirmed_or_probable_competitors": int(
+            db.scalar(
+                select(func.count())
+                .select_from(CompetitorProduct)
+                .where(
+                    CompetitorProduct.owner_id == user.id,
+                    CompetitorProduct.identity_state.in_(("CONFIRMED", "PROBABLE")),
+                )
+            )
+            or 0
+        ),
+        "ambiguous_candidates": int(
+            db.scalar(
+                select(func.count())
+                .select_from(CompetitorDiscoveryCandidate)
+                .where(
+                    CompetitorDiscoveryCandidate.owner_id == user.id,
+                    CompetitorDiscoveryCandidate.identity_state == "AMBIGUOUS",
+                )
+            )
+            or 0
+        ),
+        "analyses": int(
+            db.scalar(
+                select(func.count())
+                .select_from(CompetitorCommercialAnalysis)
+                .where(CompetitorCommercialAnalysis.owner_id == user.id)
+            )
+            or 0
+        ),
+        "failed_or_review_operations": int(
+            db.scalar(
+                select(func.count())
+                .select_from(CompetitorCommercialAnalysis)
+                .where(
+                    CompetitorCommercialAnalysis.owner_id == user.id,
+                    CompetitorCommercialAnalysis.status != "COMPLETED",
+                )
+            )
+            or 0
+        ),
+        "stale_analyses": sum(
+            1
+            for item in db.scalars(
+                select(CompetitorCommercialAnalysis).where(
+                    CompetitorCommercialAnalysis.owner_id == user.id
+                )
+            )
+            if item.freshness_summary.get("state") == "STALE"
+        ),
+        "material_changes": sum(
+            item.materiality in {"MODERATE", "HIGH"} for item in competitor_events
+        ),
+        "unresolved_changes": sum(item.status == "UNRESOLVED" for item in competitor_events),
+        "alert_eligible_changes": sum(
+            item.alert_eligibility in {"REVIEW", "ALERT"} for item in competitor_events
+        ),
+        "projections": int(
+            db.scalar(
+                select(func.count())
+                .select_from(CompetitorWinningProductProjection)
+                .where(CompetitorWinningProductProjection.owner_id == user.id)
+            )
+            or 0
+        ),
+        "agent_runs_using_competitors": int(
+            db.scalar(
+                select(func.count(func.distinct(BusinessAgentStep.plan_id))).where(
+                    BusinessAgentStep.owner_id == user.id,
+                    BusinessAgentStep.capability_id.in_(
+                        (
+                            "COMPETITOR_DISCOVERY",
+                            "COMPETITOR_ANALYSIS",
+                            "COMPETITOR_CHANGE_ANALYSIS",
+                        )
+                    ),
+                )
+            )
+            or 0
+        ),
+    }
     return {
         "status": (
             "healthy"
@@ -414,6 +529,7 @@ def overview(db: DatabaseSession, user: CurrentUser) -> dict[str, object]:
             "python": platform.python_version(),
         },
         "alerts": alerts,
+        "competitor_intelligence": competitor_intelligence,
     }
 
 

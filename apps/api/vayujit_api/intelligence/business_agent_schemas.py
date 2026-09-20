@@ -66,6 +66,9 @@ class RunResponse(BaseModel):
     checkpoint: dict[str, object]
     approvals: list[dict[str, object]] = []
     steps: list[dict[str, object]] = []
+    artifacts: list[dict[str, object]] = []
+    findings: list[dict[str, object]] = []
+    tool_invocations: list[dict[str, object]] = []
     model_config = {"from_attributes": True}
 
 

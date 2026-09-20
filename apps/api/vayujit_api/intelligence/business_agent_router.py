@@ -14,10 +14,13 @@ from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
 from vayujit_api.intelligence.business_agent_models import (
     BusinessAgentApproval,
+    BusinessAgentArtifact,
+    BusinessAgentFinding,
     BusinessAgentGoal,
     BusinessAgentPlan,
     BusinessAgentRun,
     BusinessAgentStep,
+    BusinessAgentToolInvocation,
     agent_now,
 )
 from vayujit_api.intelligence.business_agent_registry import CAPABILITY_REGISTRY
@@ -92,6 +95,55 @@ def _run_payload(db: Session, run: BusinessAgentRun, owner: User) -> dict[str, o
                 )
             )
         ],
+        "artifacts": [
+            {
+                "id": item.id,
+                "artifact_type": item.artifact_type,
+                "payload": item.payload,
+                "provenance": item.provenance,
+                "created_at": item.created_at,
+            }
+            for item in db.scalars(
+                select(BusinessAgentArtifact).where(
+                    BusinessAgentArtifact.run_id == run.id,
+                    BusinessAgentArtifact.owner_id == owner.id,
+                )
+            )
+        ],
+        "findings": [
+            {
+                "id": item.id,
+                "finding_type": item.finding_type,
+                "value": item.value,
+                "evidence_ids": item.evidence_ids,
+                "confidence": item.confidence,
+                "created_at": item.created_at,
+            }
+            for item in db.scalars(
+                select(BusinessAgentFinding).where(
+                    BusinessAgentFinding.run_id == run.id,
+                    BusinessAgentFinding.owner_id == owner.id,
+                )
+            )
+        ],
+        "tool_invocations": [
+            {
+                "id": item.id,
+                "step_id": item.step_id,
+                "capability_id": item.capability_id,
+                "status": item.status,
+                "side_effect_class": item.side_effect_class,
+                "input_hash": item.input_hash,
+                "output_hash": item.output_hash,
+                "created_at": item.created_at,
+            }
+            for item in db.scalars(
+                select(BusinessAgentToolInvocation).where(
+                    BusinessAgentToolInvocation.run_id == run.id,
+                    BusinessAgentToolInvocation.owner_id == owner.id,
+                )
+            )
+        ],
     }
 
 
@@ -110,6 +162,22 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
             )
         )
     )
+    competitor_steps = {
+        "COMPETITOR_DISCOVERY",
+        "COMPETITOR_ANALYSIS",
+        "COMPETITOR_CHANGE_ANALYSIS",
+    }
+    competitor_run_ids = list(
+        db.scalars(
+            select(BusinessAgentToolInvocation.run_id)
+            .where(
+                BusinessAgentToolInvocation.owner_id == owner.id,
+                BusinessAgentToolInvocation.capability_id.in_(competitor_steps),
+            )
+            .distinct()
+        )
+    )
+    registered = {spec.id for spec in CAPABILITY_REGISTRY}
     return {
         "status": "PASS",
         "checks": {
@@ -118,6 +186,12 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
             "runs": run_count,
             "external_writes_enabled": False,
             "duplicate_idempotency": 0,
+            "competitor": {
+                "agent_runs": len(competitor_run_ids),
+                "capabilities_registered": competitor_steps <= registered,
+                "external_writes": False,
+                "recovery": "NO NEW RECOVERY ACTION REQUIRED",
+            },
         },
     }
 
