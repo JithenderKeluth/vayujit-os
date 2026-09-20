@@ -12,6 +12,7 @@ from typing import Any, cast
 
 from fastapi import HTTPException
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
@@ -853,7 +854,19 @@ def run_analysis(
         created_at=_now(),
     )
     db.add(analysis)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        existing = db.scalar(
+            select(CompetitorCommercialAnalysis).where(
+                CompetitorCommercialAnalysis.owner_id == owner.id,
+                CompetitorCommercialAnalysis.idempotency_key == analysis.idempotency_key,
+            )
+        )
+        if existing is not None:
+            return existing
+        raise
     for entry in entries:
         db.add(
             CompetitorComparableCohortEntry(
