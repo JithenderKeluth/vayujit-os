@@ -168,6 +168,9 @@ from vayujit_api.intelligence.competitor_models import (
     CompetitorProduct,
     CompetitorSnapshot,
 )
+from vayujit_api.intelligence.competitor_winning_product_models import (
+    CompetitorWinningProductProjection,
+)
 from vayujit_api.intelligence.marketplace_runtime import (
     MarketplaceExecution,
     MarketplaceLedger,
@@ -280,6 +283,7 @@ __all__ += [
     "CompetitorProduct",
     "CompetitorObservation",
     "CompetitorSnapshot",
+    "CompetitorWinningProductProjection",
     "CompetitorDiscoveryRequest",
     "CompetitorDiscoveryCandidate",
     "CompetitorDiscoverySnapshot",

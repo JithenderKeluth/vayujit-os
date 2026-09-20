@@ -144,3 +144,11 @@ The final three local gates pass on `feature/KAN-intelligence-winning-products` 
 - Explicit integrity matrix: all duplicate, orphan, lineage, range, weight, model/profile reference, decision-lineage, and current-projection counters are zero. System Doctor passes separately.
 
 Final decision: **WINNING PRODUCT INTELLIGENCE - LOCAL CERTIFIED**; **NOT PRODUCTION CERTIFIED**; **LIVE PROVIDERS NOT CERTIFIED**. Slice 9G was not implemented.
+
+## Slice 10E - Dedicated Competitor to Winning Product Integration
+
+10E persists an immutable, owner-scoped `competitor-winning-product-v1` projection between the current 10C/10D analysis and the existing 9B competition output. The projection records the 10C and 10D calculation versions, the 9B calculation version, an input fingerprint, source IDs, evidence coverage, freshness, contradictions, change context, and deduplicated research gaps. A completed or partially completed current 10C analysis is authoritative; otherwise a context produces explicit `INSUFFICIENT_EVIDENCE`, and no context preserves the existing `LEGACY_9B_EVIDENCE` path. Confirmed and probable cohort entries alone form competition density; ambiguous and rejected entries are excluded. Mixed currencies remain non-comparable and no FX conversion or demand inference is performed.
+
+The existing 9B output remains the only competition assessment consumed by 9E and the unchanged 9F scoring model. Historical assessments remain immutable; a new assessment/fingerprint creates the next projection and repeated calculation is idempotent. The authenticated projection endpoint is `/api/v1/intelligence/product-opportunities/{opportunity_id}/assessments/{assessment_id}/competition-projection`. Product Opportunity detail shows a compact source, cohort, pricing, concentration, review, freshness, evidence, gap, and link summary without duplicating the Competitor workspace. System Doctor checks projection ownership, assessment/context/analysis lineage, duplicate fingerprints, and dedicated-source completeness.
+
+Expected classification: **10E COMPETITOR -> WINNING PRODUCT INTEGRATION - IMPLEMENTED / LOCALLY TESTED**; **NOT LOCAL CERTIFIED**; **NOT PRODUCTION CERTIFIED**.

@@ -277,6 +277,36 @@ export interface IntelligenceOutput {
   created_at: string;
   notes: string;
 }
+
+export interface CompetitionProjection {
+  id: string;
+  source_state: string;
+  contract_version: string;
+  nine_b_calculation_version: string;
+  ten_c_calculation_version: string | null;
+  ten_d_calculation_version: string | null;
+  freshness_state: string;
+  contradiction_state: string;
+  research_gaps: Array<Record<string, unknown>>;
+  projection: {
+    cohort?: {
+      confirmed_count?: number;
+      probable_count?: number;
+      authoritative_count?: number | null;
+    };
+    analysis?: {
+      pricing?: Record<string, unknown>;
+      concentration?: {
+        brand?: Record<string, unknown>;
+        seller?: Record<string, unknown>;
+      };
+      review?: Record<string, unknown>;
+      differentiation?: unknown;
+      evidence_coverage?: Record<string, unknown>;
+      freshness?: Record<string, unknown>;
+    };
+  };
+}
 @Injectable({ providedIn: 'root' })
 export class ProductOpportunityService {
   private readonly http = inject(HttpClient);
@@ -368,6 +398,18 @@ export class ProductOpportunityService {
     return firstValueFrom(
       this.http.get<IntelligenceOutput>(
         `${this.base}/${opportunityId}/assessments/${assessmentId}/competition`,
+        this.options,
+      ),
+    );
+  }
+
+  getCompetitionProjection(
+    opportunityId: string,
+    assessmentId: string,
+  ): Promise<CompetitionProjection> {
+    return firstValueFrom(
+      this.http.get<CompetitionProjection>(
+        `${this.base}/${opportunityId}/assessments/${assessmentId}/competition-projection`,
         this.options,
       ),
     );

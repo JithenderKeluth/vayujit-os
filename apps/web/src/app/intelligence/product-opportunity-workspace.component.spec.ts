@@ -6,12 +6,14 @@ import { vi } from 'vitest';
 import { environment } from '../../environments/environment';
 import { ProductOpportunityWorkspaceComponent } from './product-opportunity-workspace.component';
 import {
+  CompetitionProjection,
   OpportunityDetail,
   ProductOpportunityService,
   SourcingFeasibilityOutput,
 } from './product-opportunity.service';
 
 const base = `${environment.apiUrl}/intelligence/product-opportunities/opportunity/assessments/assessment/sourcing-feasibility`;
+const competitionProjectionBase = `${environment.apiUrl}/intelligence/product-opportunities/opportunity/assessments/assessment/competition-projection`;
 
 function setup() {
   TestBed.configureTestingModule({
@@ -88,6 +90,39 @@ const output = {
 } as unknown as SourcingFeasibilityOutput;
 
 describe('Product opportunity sourcing feasibility', () => {
+  it('renders the compact authoritative competition projection with a workspace link', () => {
+    const { fixture, component, http } = setup();
+    component.detail.set(detail);
+    component.competitionProjection.set({
+      id: 'projection',
+      source_state: 'DEDICATED_COMPETITOR_INTELLIGENCE',
+      contract_version: 'competitor-winning-product-v1',
+      nine_b_calculation_version: 'product-opportunity-intelligence-v1',
+      ten_c_calculation_version: 'competitor-commercial-v1',
+      ten_d_calculation_version: null,
+      freshness_state: 'CURRENT',
+      contradiction_state: 'NONE',
+      research_gaps: [],
+      projection: {
+        cohort: { authoritative_count: 18 },
+        analysis: {
+          pricing: { sample_size: 14 },
+          concentration: { brand: { hhi: '0.25' } },
+          review: { barrier: 'UNKNOWN' },
+          evidence_coverage: { products: 18 },
+          differentiation: [{ type: 'POTENTIAL_DIFFERENTIATOR' }],
+        },
+      },
+    } satisfies CompetitionProjection);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Competition Intelligence');
+    expect(text).toContain('DEDICATED_COMPETITOR_INTELLIGENCE');
+    expect(text).toContain('18');
+    expect(text).toContain('Open Competitor Intelligence');
+    http.verify();
+  });
+
   it('renders unknowns, authoritative candidate fields and separate evidence without a winning verdict', () => {
     const { fixture, component, http } = setup();
     component.detail.set(detail);
@@ -153,6 +188,17 @@ describe('Product opportunity sourcing feasibility', () => {
     expect(request.request.withCredentials).toBe(true);
     request.flush([{ id: 'projection' }]);
     expect(await pending).toEqual([{ id: 'projection' }]);
+    http.verify();
+  });
+
+  it('loads the competition projection through the authenticated API', async () => {
+    const { service, http } = setup();
+    const pending = service.getCompetitionProjection('opportunity', 'assessment');
+    const request = http.expectOne(competitionProjectionBase);
+    expect(request.request.method).toBe('GET');
+    expect(request.request.withCredentials).toBe(true);
+    request.flush({ source_state: 'INSUFFICIENT_EVIDENCE', research_gaps: [] });
+    await expect(pending).resolves.toMatchObject({ source_state: 'INSUFFICIENT_EVIDENCE' });
     http.verify();
   });
 });

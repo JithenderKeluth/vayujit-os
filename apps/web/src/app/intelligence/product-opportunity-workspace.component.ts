@@ -5,6 +5,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import {
   CommercialOutput,
+  CompetitionProjection,
   IntelligenceOutput,
   OpportunityConstraintPayload,
   OpportunityDetail,
@@ -219,6 +220,50 @@ import {
               <p>No demand or competition output has been calculated for this assessment.</p>
             }
           </section>
+          @if (competitionProjection(); as projection) {
+            <section class="panel" aria-labelledby="competition-projection-title">
+              <div class="section-heading">
+                <h2 id="competition-projection-title">Competition Intelligence</h2>
+                <span>Authoritative evidence from the dedicated competitor pipeline</span>
+              </div>
+              <dl class="economics-summary">
+                <dt>Source</dt>
+                <dd>{{ projection.source_state }}</dd>
+                <dt>Competitors</dt>
+                <dd>
+                  {{ projection.projection.cohort?.authoritative_count ?? 'UNKNOWN' }}
+                  confirmed/probable
+                </dd>
+                <dt>Pricing evidence</dt>
+                <dd>
+                  {{ projection.projection.analysis?.pricing?.['sample_size'] ?? 'UNKNOWN' }}
+                  samples
+                </dd>
+                <dt>Brand concentration</dt>
+                <dd>
+                  {{ projection.projection.analysis?.concentration?.brand?.['hhi'] ?? 'UNKNOWN' }}
+                </dd>
+                <dt>Review barrier</dt>
+                <dd>
+                  {{ projection.projection.analysis?.review?.['barrier'] ?? 'UNKNOWN' }}
+                </dd>
+                <dt>Freshness</dt>
+                <dd>{{ projection.freshness_state }}</dd>
+                <dt>Evidence</dt>
+                <dd>{{ projection.projection.analysis?.evidence_coverage | json }}</dd>
+              </dl>
+              <p>
+                Differentiation remains descriptive evidence:
+                {{ projection.projection.analysis?.differentiation ? 'Available' : 'UNKNOWN' }}.
+              </p>
+              @if (projection.research_gaps.length) {
+                <p class="muted">
+                  Research gaps: {{ projection.research_gaps.length }} require review.
+                </p>
+              }
+              <a routerLink="/intelligence/competitors">Open Competitor Intelligence</a>
+            </section>
+          }
           <section class="panel" aria-labelledby="economics-title">
             <div class="section-heading">
               <h2 id="economics-title">Economics</h2>
@@ -650,6 +695,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   readonly opportunities = signal<ProductOpportunity[]>([]);
   readonly detail = signal<OpportunityDetail | null>(null);
   readonly intelligenceOutputs = signal<IntelligenceOutput[]>([]);
+  readonly competitionProjection = signal<CompetitionProjection | null>(null);
   readonly commercialOutput = signal<CommercialOutput | null>(null);
   readonly sourcingFeasibility = signal<SourcingFeasibilityOutput | null>(null);
   readonly riskEvidence = signal<RiskEvidenceSynthesisOutput | null>(null);
@@ -732,6 +778,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
       const detail = await this.service.get(id);
       this.detail.set(detail);
       this.intelligenceOutputs.set([]);
+      this.competitionProjection.set(null);
       this.commercialOutput.set(null);
       this.sourcingFeasibility.set(null);
       this.riskEvidence.set(null);
@@ -785,6 +832,15 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
           );
         } catch {
           /* Intelligence is optional until calculated. */
+        }
+        try {
+          this.competitionProjection.set(
+            await this.service.getCompetitionProjection(id, detail.current_assessment_id),
+          );
+        } catch (error: unknown) {
+          if (error && typeof error === 'object' && 'status' in error && error.status !== 404) {
+            this.error.set('Competition projection data is unavailable.');
+          }
         }
       }
     } catch {
@@ -962,6 +1018,9 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     try {
       this.upsertIntelligence(
         await this.service.calculateCompetition(item.id, item.current_assessment_id),
+      );
+      this.competitionProjection.set(
+        await this.service.getCompetitionProjection(item.id, item.current_assessment_id),
       );
     } catch {
       this.error.set('Competition intelligence could not be calculated.');
