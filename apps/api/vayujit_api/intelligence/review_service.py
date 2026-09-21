@@ -567,6 +567,8 @@ def integrity_report(db: Session, owner: User) -> dict[str, object]:
         "change_event_without_evidence": sum(
             not row.supporting_review_ids
             and not row.supporting_evidence_ids
+            and not row.baseline_evidence
+            and not row.current_evidence
             and row.change_type not in {"REVIEW_COUNT_CHANGE", "SOURCE_COVERAGE_CHANGE"}
             for row in change_events
         ),
