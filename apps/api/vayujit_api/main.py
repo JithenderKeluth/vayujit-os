@@ -95,6 +95,7 @@ from vayujit_api.intelligence.simulation_router import router as intelligence_si
 from vayujit_api.intelligence.sourcing_router import router as intelligence_sourcing_router
 from vayujit_api.intelligence.supplier_router import router as intelligence_supplier_router
 from vayujit_api.intelligence.tradeindia_router import router as intelligence_tradeindia_router
+from vayujit_api.intelligence.trend_router import router as intelligence_trend_router
 from vayujit_api.intelligence.website_router import router as intelligence_website_router
 from vayujit_api.media.router import router as media_router
 from vayujit_api.operations.control_center import router as operations_control_router
@@ -221,6 +222,7 @@ def create_app() -> FastAPI:
     application.include_router(intelligence_product_opportunity_router)
     application.include_router(intelligence_resilience_router)
     application.include_router(intelligence_review_router)
+    application.include_router(intelligence_trend_router)
     application.include_router(intelligence_simulation_router)
     application.include_router(intelligence_operations_router)
     application.include_router(intelligence_diagnostics_router)

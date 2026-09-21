@@ -8,6 +8,22 @@ import { MarketingPlanComponent } from './ads/marketing-plan.component';
 
 export const routes: Routes = [
   {
+    path: 'intelligence/trends',
+    loadComponent: () =>
+      import('./intelligence/trend-intelligence-workspace.component').then(
+        (m) => m.TrendIntelligenceWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'intelligence/trends/:contextId',
+    loadComponent: () =>
+      import('./intelligence/trend-intelligence-workspace.component').then(
+        (m) => m.TrendIntelligenceWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
     path: 'intelligence/business-agent',
     loadComponent: () =>
       import('./intelligence/business-agent-workspace.component').then(

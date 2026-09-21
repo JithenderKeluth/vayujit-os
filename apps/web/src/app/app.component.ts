@@ -23,6 +23,7 @@ export class AppComponent {
     ['Products', '/products'],
     ['Campaigns', '/campaigns'],
     ['Intelligence', '/intelligence'],
+    ['Trend Intelligence', '/intelligence/trends'],
     ['Competitors', '/intelligence/competitors'],
     ['Reviews', '/intelligence/reviews'],
     ['Business Agent', '/intelligence/business-agent'],
