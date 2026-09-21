@@ -1,4 +1,4 @@
-﻿import { HttpClient } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 
@@ -307,6 +307,32 @@ export interface CompetitionProjection {
     };
   };
 }
+export interface ReviewWinningProductProjection {
+  id: string;
+  opportunity_id: string;
+  assessment_id: string;
+  context_id: string | null;
+  snapshot_id: string | null;
+  analysis_id: string | null;
+  gap_analysis_id: string | null;
+  change_comparison_id: string | null;
+  contract_version: string;
+  calculation_version: string;
+  readiness: string;
+  source_state: string;
+  cohort: Record<string, unknown>;
+  rating_evidence: Record<string, unknown>;
+  feedback_evidence: Record<string, unknown>;
+  gap_evidence: Array<Record<string, unknown>>;
+  change_evidence: Record<string, unknown>;
+  research_gaps: Array<Record<string, unknown>>;
+  freshness: Record<string, unknown>;
+  contradictions: Array<Record<string, unknown>>;
+  evidence_lineage: Record<string, unknown>;
+  limitations: string[];
+  projection: Record<string, unknown>;
+  created_at: string;
+}
 @Injectable({ providedIn: 'root' })
 export class ProductOpportunityService {
   private readonly http = inject(HttpClient);
@@ -415,6 +441,30 @@ export class ProductOpportunityService {
     );
   }
 
+  getReviewProjection(
+    opportunityId: string,
+    assessmentId: string,
+  ): Promise<ReviewWinningProductProjection> {
+    return firstValueFrom(
+      this.http.get<ReviewWinningProductProjection>(
+        `${this.base}/${opportunityId}/assessments/${assessmentId}/review-projection`,
+        this.options,
+      ),
+    );
+  }
+
+  calculateReviewProjection(
+    opportunityId: string,
+    assessmentId: string,
+  ): Promise<ReviewWinningProductProjection> {
+    return firstValueFrom(
+      this.http.post<ReviewWinningProductProjection>(
+        `${this.base}/${opportunityId}/assessments/${assessmentId}/review-projection`,
+        {},
+        this.options,
+      ),
+    );
+  }
   calculateCommercial(
     opportunityId: string,
     assessmentId: string,

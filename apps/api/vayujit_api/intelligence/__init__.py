@@ -209,6 +209,7 @@ from vayujit_api.intelligence.resilience_models import (
     SupplierPortfolioResilienceScore,
     SupplierPortfolioRiskProjection,
 )
+from vayujit_api.intelligence.review_winning_product_models import ReviewWinningProductProjection
 from vayujit_api.intelligence.simulation_models import (
     PortfolioSimulation,
     PortfolioSimulationLifecycle,
@@ -284,6 +285,7 @@ __all__ += [
     "CompetitorObservation",
     "CompetitorSnapshot",
     "CompetitorWinningProductProjection",
+    "ReviewWinningProductProjection",
     "CompetitorDiscoveryRequest",
     "CompetitorDiscoveryCandidate",
     "CompetitorDiscoverySnapshot",
