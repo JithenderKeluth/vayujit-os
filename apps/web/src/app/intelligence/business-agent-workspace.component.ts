@@ -23,7 +23,11 @@ import {
           <h1 id="business-agent-title">Business Agent orchestration</h1>
           <p class="lede">Evidence-first plans with bounded, reviewable execution.</p>
         </div>
-        <a routerLink="/intelligence">Back to Intelligence</a>
+        <nav aria-label="Intelligence navigation">
+          <a routerLink="/intelligence">Back to Intelligence</a>
+          <a routerLink="/intelligence/reviews">Review workspace</a>
+          <a routerLink="/intelligence/product-opportunities">Product opportunities</a>
+        </nav>
       </header>
       <p class="notice">
         Local deterministic mode. No external writes, spend, messages, or provider credentials are
@@ -42,6 +46,10 @@ import {
           <label>
             <input type="checkbox" name="competitor" [(ngModel)]="includeCompetitorIntelligence" />
             Include competitor intelligence in the bounded run
+          </label>
+          <label>
+            <input type="checkbox" name="review" [(ngModel)]="includeReviewIntelligence" />
+            Include Review Intelligence (customer-feedback evidence only)
           </label>
           <button type="submit" [disabled]="loading() || !rawGoal.trim()">Create goal</button>
         </form>
@@ -72,6 +80,12 @@ import {
               </p>
               @if (run.result?.integrated_slices?.length) {
                 <small>Integrated slices: {{ integratedSlices(run) }}</small>
+              }
+              @if (run.result?.review_enabled) {
+                <small>
+                  Review Intelligence: {{ reviewCapabilityCount(run) }} capabilities ·
+                  {{ reviewGapCount(run) }} evidence gaps · internal writes only
+                </small>
               }
               @if (run.artifacts?.length) {
                 <small
@@ -108,6 +122,7 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   rawGoal = 'Find three winning products for Amazon India within INR 300000 capital.';
   idempotencyKey = `business-goal-${Date.now()}`;
   includeCompetitorIntelligence = false;
+  includeReviewIntelligence = false;
 
   integratedSlices(run: BusinessAgentRun): string {
     return run.result?.integrated_slices?.join(', ') || '';
@@ -119,6 +134,14 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
 
   findingCount(run: BusinessAgentRun): number {
     return run.findings?.length || 0;
+  }
+
+  reviewCapabilityCount(run: BusinessAgentRun): number {
+    return run.result?.review_capabilities?.length || 0;
+  }
+
+  reviewGapCount(run: BusinessAgentRun): number {
+    return run.result?.review_evidence_gaps?.length || 0;
   }
 
   ngOnInit(): void {
@@ -145,9 +168,16 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
       await this.service.createGoal({
         raw_goal: this.rawGoal,
         idempotency_key: this.idempotencyKey,
-        structured_goal: this.includeCompetitorIntelligence
-          ? { marketplace: 'AMAZON_IN', include_competitor_intelligence: true }
-          : undefined,
+        structured_goal:
+          this.includeCompetitorIntelligence || this.includeReviewIntelligence
+            ? {
+                marketplace: 'AMAZON_IN',
+                ...(this.includeCompetitorIntelligence
+                  ? { include_competitor_intelligence: true }
+                  : {}),
+                ...(this.includeReviewIntelligence ? { include_review_intelligence: true } : {}),
+              }
+            : undefined,
       });
       await this.refresh();
     } catch {

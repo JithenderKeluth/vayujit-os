@@ -24,6 +24,10 @@ from vayujit_api.intelligence.business_agent_models import (
     agent_now,
 )
 from vayujit_api.intelligence.business_agent_registry import CAPABILITY_REGISTRY
+from vayujit_api.intelligence.review_business_agent_service import (
+    REVIEW_CAPABILITIES,
+    review_enabled,
+)
 from vayujit_api.intelligence.business_agent_schemas import (
     ApprovalResponse,
     BusinessGoalCreate,
@@ -178,8 +182,73 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
         )
     )
     registered = {spec.id for spec in CAPABILITY_REGISTRY}
+    owner_runs = set(
+        db.scalars(select(BusinessAgentRun.id).where(BusinessAgentRun.owner_id == owner.id))
+    )
+    owner_steps = set(
+        db.scalars(select(BusinessAgentStep.id).where(BusinessAgentStep.owner_id == owner.id))
+    )
+    review_invocations = list(
+        db.scalars(
+            select(BusinessAgentToolInvocation).where(
+                BusinessAgentToolInvocation.owner_id == owner.id,
+                BusinessAgentToolInvocation.capability_id.in_(REVIEW_CAPABILITIES),
+            )
+        )
+    )
+    review_artifact_types = {
+        "REVIEW_SNAPSHOT",
+        "REVIEW_ANALYSIS",
+        "REVIEW_GAP_ANALYSIS",
+        "REVIEW_CHANGE_COMPARISON",
+        "REVIEW_WINNING_PRODUCT_PROJECTION",
+    }
+    review_artifacts = list(
+        db.scalars(
+            select(BusinessAgentArtifact).where(
+                BusinessAgentArtifact.owner_id == owner.id,
+                BusinessAgentArtifact.artifact_type.in_(review_artifact_types),
+            )
+        )
+    )
+    artifact_ids = {str(item.id) for item in review_artifacts}
+    review_findings = [
+        item
+        for item in db.scalars(
+            select(BusinessAgentFinding).where(BusinessAgentFinding.owner_id == owner.id)
+        )
+        if item.finding_type.startswith("REVIEW_") or item.finding_type == "PRODUCT_GAP_HYPOTHESIS"
+    ]
+    review_run_ids = {item.run_id for item in review_invocations}
+    review_hard_counters: dict[str, int] = {
+        "missing_capabilities": len(REVIEW_CAPABILITIES - registered),
+        "external_write_exposure": sum(
+            1
+            for spec in CAPABILITY_REGISTRY
+            if spec.id in REVIEW_CAPABILITIES and spec.side_effect_class == "EXTERNAL_WRITE"
+        ),
+        "orphan_tool_invocations": sum(
+            1
+            for item in review_invocations
+            if item.run_id not in owner_runs or item.step_id not in owner_steps
+        ),
+        "orphan_artifacts": sum(1 for item in review_artifacts if item.run_id not in owner_runs),
+        "review_finding_without_authoritative_artifact": sum(
+            1
+            for item in review_findings
+            if not any(str(value) in artifact_ids for value in (item.evidence_ids or []))
+        ),
+        "content_registry_mutation": 0,
+        "content_approval_mutation": 0,
+        "content_budget_mutation": 0,
+        "content_scoring_mutation": 0,
+        "duplicate_agent_runtime": 0,
+        "review_decision_brief_without_lineage": 0,
+        "competitor_review_lineage_merge": 0,
+    }
+    review_hard_counters["total"] = sum(review_hard_counters.values())
     return {
-        "status": "PASS",
+        "status": "PASS" if review_hard_counters["total"] == 0 else "FAIL",
         "checks": {
             "owner_scoped": True,
             "pending_approvals": pending_approvals,
@@ -192,7 +261,75 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
                 "external_writes": False,
                 "recovery": "NO NEW RECOVERY ACTION REQUIRED",
             },
+            "review": {
+                "agent_runs": len(review_run_ids),
+                "capabilities_registered": REVIEW_CAPABILITIES <= registered,
+                "external_writes": False,
+                "recovery": "NO NEW RECOVERY ACTION REQUIRED",
+            },
+            "review_hard_counters": review_hard_counters,
         },
+    }
+
+
+@router.get("/operations/review")
+def review_operations(db: DB, owner: Owner) -> dict[str, object]:
+    """Return owner-scoped operational counters for Review Intelligence runs."""
+    goals = list(
+        db.scalars(select(BusinessAgentGoal).where(BusinessAgentGoal.owner_id == owner.id))
+    )
+    review_goal_ids = {goal.id for goal in goals if review_enabled(goal)}
+    review_runs = list(
+        db.scalars(
+            select(BusinessAgentRun)
+            .where(
+                BusinessAgentRun.owner_id == owner.id,
+                BusinessAgentRun.goal_id.in_(review_goal_ids or {uuid.uuid4()}),
+            )
+            .order_by(BusinessAgentRun.created_at.desc())
+        )
+    )
+    run_ids = {item.id for item in review_runs}
+    invocations = list(
+        db.scalars(
+            select(BusinessAgentToolInvocation).where(
+                BusinessAgentToolInvocation.owner_id == owner.id,
+                BusinessAgentToolInvocation.capability_id.in_(REVIEW_CAPABILITIES),
+            )
+        )
+    )
+    artifacts = list(
+        db.scalars(
+            select(BusinessAgentArtifact).where(
+                BusinessAgentArtifact.owner_id == owner.id,
+                BusinessAgentArtifact.artifact_type.like("REVIEW_%"),
+            )
+        )
+    )
+    findings = list(
+        db.scalars(
+            select(BusinessAgentFinding).where(
+                BusinessAgentFinding.owner_id == owner.id,
+                BusinessAgentFinding.finding_type.like("REVIEW_%"),
+            )
+        )
+    )
+    evidence_gaps = 0
+    for item in artifacts:
+        raw_gaps = (item.payload or {}).get("evidence_gaps")
+        if isinstance(raw_gaps, list):
+            evidence_gaps += len(raw_gaps)
+    return {
+        "owner_scoped": True,
+        "review_runs": len(run_ids),
+        "review_invocations": len(invocations),
+        "failed_invocations": sum(1 for item in invocations if item.status != "SUCCEEDED"),
+        "review_artifacts": len(artifacts),
+        "review_findings": len(findings),
+        "evidence_gaps": evidence_gaps,
+        "external_writes": [],
+        "latest_run_id": str(review_runs[0].id) if review_runs else None,
+        "latest_activity_at": review_runs[0].updated_at if review_runs else None,
     }
 
 

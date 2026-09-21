@@ -31,7 +31,11 @@ import {
             Customer-feedback evidence with provenance, freshness, and immutable snapshots.
           </p>
         </div>
-        <a routerLink="/intelligence">Back to Intelligence</a>
+        <nav aria-label="Intelligence navigation">
+          <a routerLink="/intelligence">Back to Intelligence</a>
+          <a routerLink="/intelligence/business-agent">Business Agent</a>
+          <a routerLink="/intelligence/product-opportunities">Product opportunities</a>
+        </nav>
       </header>
       @if (error()) {
         <p class="error" role="alert">{{ error() }}</p>
