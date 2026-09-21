@@ -368,7 +368,41 @@ def execute_ingestion(
         created_at=now(),
     )
     db.add(batch)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        existing = db.scalar(
+            select(ReviewIngestionBatch).where(
+                ReviewIngestionBatch.owner_id == owner.id,
+                ReviewIngestionBatch.context_id == context.id,
+                ReviewIngestionBatch.idempotency_key == data.idempotency_key,
+            )
+        )
+        if existing is None:
+            raise
+        return (
+            existing,
+            list(
+                db.scalars(
+                    select(CandidateModel)
+                    .where(
+                        CandidateModel.owner_id == owner.id,
+                        CandidateModel.batch_id == existing.id,
+                    )
+                    .order_by(CandidateModel.ordinal)
+                )
+            ),
+            db.scalar(
+                select(ReviewSnapshot)
+                .where(
+                    ReviewSnapshot.owner_id == owner.id,
+                    ReviewSnapshot.context_id == context.id,
+                )
+                .order_by(ReviewSnapshot.snapshot_version.desc())
+                .limit(1)
+            ),
+        )
     record_event(
         db,
         actor_id=owner.id,

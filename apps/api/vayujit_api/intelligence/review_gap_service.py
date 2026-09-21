@@ -248,6 +248,9 @@ def create_gap_analysis(
         )
     )
     groups = _merge_items(items)
+    signal_keys = {
+        (_signal_type(group["gap_type"], group["status"]), group["label"]) for group in groups
+    }
     value = ReviewProductGapAnalysis(
         owner_id=owner.id,
         context_id=context.id,
@@ -261,7 +264,7 @@ def create_gap_analysis(
         input_fingerprint=fingerprint,
         status="COMPLETED",
         gap_count=len(groups),
-        signal_count=len(groups),
+        signal_count=len(signal_keys),
         limitations=[
             "signals are review-derived hypotheses and require validation outside "
             "Review Intelligence"
@@ -270,6 +273,7 @@ def create_gap_analysis(
     )
     db.add(value)
     db.flush()
+    emitted_signal_keys: set[tuple[str, str]] = set()
     for group in groups:
         gap = ReviewProductGap(
             owner_id=owner.id,
@@ -300,6 +304,10 @@ def create_gap_analysis(
         db.add(gap)
         db.flush()
         signal_type = _signal_type(group["gap_type"], group["status"])
+        signal_key = (signal_type, group["label"])
+        if signal_key in emitted_signal_keys:
+            continue
+        emitted_signal_keys.add(signal_key)
         item_types = ", ".join(sorted({item.item_type for item in group["items"]}))
         support_count = group["support"]
         cohort_count = group["cohort"]
@@ -347,7 +355,7 @@ def create_gap_analysis(
             "context_id": str(context.id),
             "review_analysis_id": str(analysis.id),
             "gap_count": len(groups),
-            "signal_count": len(groups),
+            "signal_count": len(signal_keys),
         },
         idempotency_key=f"review.gap_analysis_created:{value.id}",
     )

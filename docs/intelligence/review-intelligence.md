@@ -110,3 +110,18 @@ owner-scoped review hard counters, and
 GET /api/v1/intelligence/business-agent/operations/review reports run,
 invocation, artifact, finding, and evidence-gap counts. Product Channel and
 Calendar remain unchanged because this slice creates no downstream action.
+# 11H hard local certification status
+
+Branch: `feature/KAN-intelligence-review-certification`.
+
+The migration-authoritative certification database was created from the disposable PostgreSQL marker and upgraded to Alembic head `20261118_0127`; three upgrade/focused-downgrade/re-upgrade stability rounds passed. ORM/schema inspection found 53 Review, Business Agent, Product Opportunity, and Competitor tables present with no column-set differences.
+
+The frozen applicable inventory contains 38 integration nodes (11A-11G Review suites plus shared 9G/9F/10E invariants); the repository-wide certification inventory manifest is SHA-256 `d6a6ed03f0cc527a304ac00b9647530e69af3cf582f3b465173147944af7a3d2`. The migration-authoritative applicable run passed 38/38 with 0 failures and 0 skips. External writes were not exercised by these local deterministic suites and no live review provider was configured.
+
+Static/runtime evidence: web 45 files/167 tests passed; desktop 1 file/4 tests passed; Electron smoke passed; full build and Prettier passed; Ruff and Black passed; focused mypy for Review/Business Agent modules passed. Existing repository lint warnings and full-mypy diagnostics remain outside Review production code. System Doctor passed PostgreSQL, migration, local deterministic providers, scheduler/worker/campaign, Angular build, Electron, and backup checks; AI-provider and publishing-connector checks remain configuration-dependent.
+
+Dedicated 11H closure evidence is now present in `apps/api/tests/test_review_11h_closure.py`: two PostgreSQL-backed nodes cover the canonical 11A-11G chain, deterministic 120-review fixture with hostile content, lineage and zero-external-write assertions, concurrency/idempotency, replay, API safety, System Doctor zero counters, three-run deterministic signatures, bounded/stable query counts, and 10-vs-120 pagination query comparison. The frozen closure inventory contains 2 nodes with SHA-256 `575df5ae46d001692df8afc83fa385eca3bcfb9ce3f5da361ac644fdca41386b`. The complete closure module passed (2 passed, 6 framework deprecation warnings) against PostgreSQL.
+
+During closure, three smallest production corrections were required: deduplicate logical gap signals before persistence, keep aggregate change-event evidence recognized by integrity checks and align freshness cohorts to analyzed records, and handle concurrent ingestion idempotency races without leaking a database constraint error. Focused 11D/11E regressions remained green.
+
+Therefore 11H is **LOCAL CERTIFIED**. This branch is not production certified, and live review providers are not certified.

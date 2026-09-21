@@ -226,7 +226,7 @@ def _event_type(prefix: str, present_old: bool, present_new: bool) -> str:
         return f"{prefix}_APPEARED"
     if not present_new:
         return f"{prefix}_DISAPPEARED"
-    return f"{prefix}_SUPPORT_CHANGED"
+    return "QUALITY_SIGNAL_CHANGED" if prefix == "QUALITY_SIGNAL" else f"{prefix}_SUPPORT_CHANGED"
 
 
 def _limitations(
@@ -819,8 +819,8 @@ def create_comparison(
                 "freshness",
                 baseline_snapshot.freshness_summary,
                 current_snapshot.freshness_summary,
-                baseline_snapshot.review_count,
-                current_snapshot.review_count,
+                baseline.included_records,
+                current.included_records,
                 baseline.included_records,
                 current.included_records,
                 "OBSERVED_CHANGE",
