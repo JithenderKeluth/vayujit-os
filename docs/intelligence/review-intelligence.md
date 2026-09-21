@@ -86,3 +86,27 @@ Readiness is one of `AVAILABLE`, `PARTIAL`, `INSUFFICIENT_EVIDENCE`, `STALE`, `C
 The existing 9B demand/competition, 9E evidence/risk/confidence, and 9F winning-product scoring contracts remain authoritative and unchanged. 9F weights, bands, ranking, and score persistence are not copied or recalculated by 11F. Competitor 10E projections coexist independently and are never overwritten. Any future quantitative integration must be a separately reviewed contract; 11F intentionally exposes only review evidence and validation needs.
 
 Migration `20261118_0127_review_winning_product_integration` follows 0126 and is reversible. The Angular Product Opportunity workspace renders a compact evidence panel with explicit labels (`Review-derived`, `Customer-feedback evidence`, `Hypothesis`, and `Requires validation`) and preserves the same owner-scoped API boundary.
+## 11G Business Agent and operational integration
+
+Review Intelligence is available as a bounded, conditional extension of the existing
+Business Agent runtime. A goal may set include_review_intelligence: true in its
+structured goal. The planner then appends the registered local capabilities
+REVIEW_INGESTION, REVIEW_ANALYSIS, REVIEW_GAP_ANALYSIS,
+REVIEW_CHANGE_ANALYSIS, and REVIEW_WINNING_PRODUCT_PROJECTION after the
+existing opportunity workflow. Legacy goals keep their original plan.
+
+The adapter delegates to the authoritative 11A-11F services and stores only
+owner-scoped references and bounded metadata in the existing Business Agent
+artifact/finding tables. Review text remains untrusted customer-feedback data; it
+is never treated as instructions, provider output, or a tool command. Every
+review capability is INTERNAL_WRITE, local, deterministic, and has no external
+mutation. Missing context, sample, history, or assessment produces an explicit
+evidence gap rather than fabricated output.
+
+Runs expose a labelled review_intelligence decision-brief section with
+CUSTOMER-FEEDBACK EVIDENCE, REVIEW-DERIVED HYPOTHESIS, and
+REQUIRES VALIDATION semantics. The Business Agent System Doctor reports
+owner-scoped review hard counters, and
+GET /api/v1/intelligence/business-agent/operations/review reports run,
+invocation, artifact, finding, and evidence-gap counts. Product Channel and
+Calendar remain unchanged because this slice creates no downstream action.

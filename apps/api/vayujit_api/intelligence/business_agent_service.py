@@ -34,6 +34,12 @@ from vayujit_api.intelligence.competitor_agent_service import (
     execute_competitor_capability,
 )
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
+from vayujit_api.intelligence.review_business_agent_service import (
+    REVIEW_CAPABILITIES,
+    execute_review_capability,
+    review_artifact_type,
+    review_enabled,
+)
 from vayujit_api.intelligence.business_agent_schemas import BusinessGoalCreate, RunCreate
 
 
@@ -170,6 +176,7 @@ def _competitor_enabled(goal: BusinessAgentGoal) -> bool:
 
 def _steps(goal: BusinessAgentGoal) -> list[dict[str, object]]:
     enabled = _competitor_enabled(goal)
+    reviews = review_enabled(goal)
     steps: list[dict[str, object]] = [
         {"key": "opportunity", "capability": "product_opportunity.create", "deps": []},
         {"key": "demand", "capability": "demand.intelligence", "deps": ["opportunity"]},
@@ -210,8 +217,44 @@ def _steps(goal: BusinessAgentGoal) -> list[dict[str, object]]:
                 "deps": ["demand", "competition", "commercial", "feasibility"],
             },
             {"key": "rank", "capability": "winning_product.rank", "deps": ["score"]},
-            {"key": "brief", "capability": "decision_brief.generate", "deps": ["rank"]},
         ]
+    )
+    if reviews:
+        steps.extend(
+            [
+                {
+                    "key": "review_ingestion",
+                    "capability": "REVIEW_INGESTION",
+                    "deps": ["opportunity"],
+                },
+                {
+                    "key": "review_analysis",
+                    "capability": "REVIEW_ANALYSIS",
+                    "deps": ["review_ingestion"],
+                },
+                {
+                    "key": "review_gap_analysis",
+                    "capability": "REVIEW_GAP_ANALYSIS",
+                    "deps": ["review_analysis"],
+                },
+                {
+                    "key": "review_change_analysis",
+                    "capability": "REVIEW_CHANGE_ANALYSIS",
+                    "deps": ["review_gap_analysis"],
+                },
+                {
+                    "key": "review_winning_product_projection",
+                    "capability": "REVIEW_WINNING_PRODUCT_PROJECTION",
+                    "deps": ["review_change_analysis"],
+                },
+            ]
+        )
+    steps.append(
+        {
+            "key": "brief",
+            "capability": "decision_brief.generate",
+            "deps": ["rank"] + (["review_winning_product_projection"] if reviews else []),
+        }
     )
     return steps
 
@@ -328,6 +371,85 @@ def start_run(
     return run
 
 
+def _persist_review_artifact(
+    db: Session,
+    owner: User,
+    run: BusinessAgentRun,
+    capability: str,
+    output: dict[str, object],
+) -> tuple[uuid.UUID, uuid.UUID | None]:
+    """Store references and bounded finding metadata, never raw review text."""
+    artifact = BusinessAgentArtifact(
+        owner_id=owner.id,
+        run_id=run.id,
+        artifact_type=review_artifact_type(capability),
+        payload={
+            key: output[key]
+            for key in (
+                "capability",
+                "status",
+                "context_id",
+                "batch_id",
+                "snapshot_id",
+                "analysis_id",
+                "gap_analysis_id",
+                "comparison_id",
+                "projection_id",
+                "readiness",
+                "evidence_gaps",
+                "research_gaps",
+                "accepted_count",
+                "rejected_count",
+                "gap_count",
+                "signal_count",
+                "event_count",
+            )
+            if key in output
+        },
+        provenance={
+            "source": "review-intelligence",
+            "authoritative_services": ["11A", "11B", "11C", "11D", "11E", "11F"],
+            "external_mutation": False,
+        },
+        created_at=agent_now(),
+    )
+    db.add(artifact)
+    db.flush()
+    gaps = output.get("evidence_gaps") or output.get("research_gaps") or []
+    finding_type: str | None = None
+    if output.get("status") == "EVIDENCE_GAP" or gaps:
+        finding_type = "REVIEW_EVIDENCE_INSUFFICIENT"
+    elif capability == "REVIEW_GAP_ANALYSIS" and _bounded_int(output.get("gap_count"), 0):
+        finding_type = "PRODUCT_GAP_HYPOTHESIS"
+    elif capability == "REVIEW_CHANGE_ANALYSIS" and _bounded_int(output.get("event_count"), 0):
+        finding_type = "MEANINGFUL_REVIEW_CHANGE"
+    elif capability == "REVIEW_WINNING_PRODUCT_PROJECTION":
+        finding_type = "REVIEW_VALIDATION_REQUIRED"
+    if finding_type is None:
+        return artifact.id, None
+    finding = BusinessAgentFinding(
+        owner_id=owner.id,
+        run_id=run.id,
+        finding_type=finding_type,
+        value={
+            "status": output.get("status"),
+            "capability": capability,
+            "labels": [
+                "CUSTOMER-FEEDBACK EVIDENCE",
+                "REVIEW-DERIVED HYPOTHESIS",
+                "REQUIRES VALIDATION",
+            ],
+            "evidence_gap_count": len(gaps) if isinstance(gaps, list) else 0,
+        },
+        evidence_ids=[str(artifact.id)],
+        confidence=0.0 if output.get("status") == "EVIDENCE_GAP" else 0.5,
+        created_at=agent_now(),
+    )
+    db.add(finding)
+    db.flush()
+    return artifact.id, finding.id
+
+
 def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgentRun:
     locked_run = db.scalar(
         select(BusinessAgentRun)
@@ -397,7 +519,37 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
         db.add(attempt)
         db.flush()
         try:
-            if _competitor_enabled(goal_record) and (
+            if step.capability_id in REVIEW_CAPABILITIES:
+                output = execute_review_capability(
+                    db,
+                    owner,
+                    goal_record,
+                    opportunity,
+                    step.capability_id,
+                )
+                output["mode"] = "LOCAL_DETERMINISTIC"
+                output["opportunity_id"] = str(opportunity.id)
+                output["external_mutation"] = False
+                artifact_id, finding_id = _persist_review_artifact(
+                    db, owner, run, step.capability_id, output
+                )
+                output["artifact_id"] = str(artifact_id)
+                if finding_id is not None:
+                    output["finding_id"] = str(finding_id)
+                _audit(
+                    db,
+                    owner,
+                    "review.capability_invoked",
+                    run.id,
+                    f"{run.id}:{step.id}:{step.attempt_count}",
+                    {
+                        "capability": step.capability_id,
+                        "opportunity_id": str(opportunity.id),
+                        "artifact_id": str(artifact_id),
+                        "external_mutation": False,
+                    },
+                )
+            elif _competitor_enabled(goal_record) and (
                 step.capability_id
                 in {
                     "COMPETITOR_DISCOVERY",
@@ -433,13 +585,22 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                     "external_mutation": False,
                 }
         except Exception:
-            safe_message = "Competitor intelligence execution could not be completed safely."
+            failure_code = (
+                "REVIEW_EXECUTION_FAILED"
+                if step.capability_id in REVIEW_CAPABILITIES
+                else "COMPETITOR_EXECUTION_FAILED"
+            )
+            safe_message = (
+                "Review Intelligence execution could not be completed safely."
+                if step.capability_id in REVIEW_CAPABILITIES
+                else "Competitor intelligence execution could not be completed safely."
+            )
             step.status = "FAILED"
-            step.result = {"code": "COMPETITOR_EXECUTION_FAILED", "message": safe_message}
+            step.result = {"code": failure_code, "message": safe_message}
             step.updated_at = agent_now()
             attempt.status = "FAILED"
-            attempt.output = {"code": "COMPETITOR_EXECUTION_FAILED", "message": safe_message}
-            attempt.error_code = "COMPETITOR_EXECUTION_FAILED"
+            attempt.output = {"code": failure_code, "message": safe_message}
+            attempt.error_code = failure_code
             attempt.completed_at = agent_now()
             db.add(
                 BusinessAgentCheckpoint(
@@ -451,13 +612,13 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 )
             )
             run.status = "PAUSED"
-            run.failure = {"code": "COMPETITOR_EXECUTION_FAILED", "message": safe_message}
+            run.failure = {"code": failure_code, "message": safe_message}
             _audit(
                 db,
                 owner,
                 "run.paused",
                 run.id,
-                f"{run.id}:competitor-failure:{step.step_key}",
+                f"{run.id}:capability-failure:{step.step_key}",
                 run.failure,
             )
             db.commit()
@@ -521,12 +682,33 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
         integrated_slices = ["9A", "9B", "9C", "9D", "9E", "9F"]
         if competitor_enabled:
             integrated_slices.extend(["10A", "10B", "10C", "10D", "10E", "10F"])
+        review_enabled_run = review_enabled(goal_record)
+        if review_enabled_run:
+            integrated_slices.extend(["11A", "11B", "11C", "11D", "11E", "11F"])
+        review_steps = [step for step in steps if step.capability_id in REVIEW_CAPABILITIES]
+        review_outputs = [step.result for step in review_steps]
+        review_artifacts = [
+            output.get("artifact_id") for output in review_outputs if output.get("artifact_id")
+        ]
+        review_findings = [
+            output.get("finding_id") for output in review_outputs if output.get("finding_id")
+        ]
+        review_gaps: list[dict[str, object]] = []
+        for output in review_outputs:
+            raw_gaps = output.get("evidence_gaps") or output.get("research_gaps") or []
+            if isinstance(raw_gaps, list):
+                review_gaps.extend(gap for gap in raw_gaps if isinstance(gap, dict))
         run.result = {
             "opportunity_id": str(opportunity.id),
             "decision": "REVIEW_REQUIRED",
             "evidence_gap_loops": _bounded_int(usage.get("gap_loops"), 0),
             "external_writes": [],
             "integrated_slices": integrated_slices,
+            "review_enabled": review_enabled_run,
+            "review_capabilities": [step.capability_id for step in review_steps],
+            "review_artifacts": review_artifacts,
+            "review_findings": review_findings,
+            "review_evidence_gaps": review_gaps,
         }
         brief_payload: dict[str, object] = {
             "summary": "Evidence-first opportunity brief ready for human decision.",
@@ -538,6 +720,16 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             brief_payload["competitor_intelligence"] = competitor_decision_brief(
                 db, owner, opportunity
             )
+        if review_enabled_run:
+            brief_payload["review_intelligence"] = {
+                "label": "CUSTOMER-FEEDBACK EVIDENCE / REVIEW-DERIVED HYPOTHESIS",
+                "capabilities": [step.capability_id for step in review_steps],
+                "artifacts": review_artifacts,
+                "findings": review_findings,
+                "evidence_gaps": review_gaps,
+                "requires_validation": True,
+                "external_writes": [],
+            }
         db.add(
             BusinessAgentArtifact(
                 owner_id=owner.id,

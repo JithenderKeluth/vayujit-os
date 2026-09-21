@@ -26,7 +26,13 @@ export interface BusinessAgentPlan {
 export interface BusinessAgentRun {
   id: string;
   status: string;
-  result?: { decision?: string; integrated_slices?: string[] } & Record<string, unknown>;
+  result?: {
+    decision?: string;
+    integrated_slices?: string[];
+    review_enabled?: boolean;
+    review_capabilities?: string[];
+    review_evidence_gaps?: Array<Record<string, unknown>>;
+  } & Record<string, unknown>;
   artifacts?: Array<{ artifact_type: string; payload: Record<string, unknown> }>;
   findings?: Array<{ finding_type: string; value: Record<string, unknown> }>;
   tool_invocations?: Array<{ capability_id: string; status: string; side_effect_class: string }>;
