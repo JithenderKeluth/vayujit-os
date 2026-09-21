@@ -75,3 +75,14 @@ Review changes do not emit Calendar events, Review-specific worker jobs,
 Recovery actions, external alerts, or Product Channel writes. Product Channel,
 Business Agent, Winning Product, and durable scheduling integrations remain
 owned by their later slices.
+## 11F winning product integration
+
+11F is a thin, immutable adapter from the mature 11A–11E review evidence into the existing Product Opportunity detail surface. `ReviewWinningProductProjection` is owner-, opportunity-, and assessment-scoped, records explicit contract/calculation versions, and is replay-safe through a deterministic input fingerprint and a database uniqueness boundary. Replaying the same authoritative lineage returns the existing projection and does not emit another creation event.
+
+Input selection is conservative: an exact opportunity-linked `ReviewContext` is preferred; a product-only context is accepted only when it is unambiguous. The adapter consumes only completed 11C analysis, its review snapshot, completed 11D gap analysis, and completed/partial 11E comparison evidence. Ratings, themes, pain points, praised attributes, feature requests, quality signals, product-gap hypotheses, change events, freshness, contradictions, limitations, research gaps, and source lineage remain explicitly review-derived. Review count is descriptive cohort evidence only and is never converted into demand, sales, revenue, market size, conversion, commercial viability, or a winning-product score.
+
+Readiness is one of `AVAILABLE`, `PARTIAL`, `INSUFFICIENT_EVIDENCE`, `STALE`, `CONTRADICTORY`, or `RESEARCH_REQUIRED`. Missing or ambiguous lineage fails safely; stale contexts and contradictions remain visible rather than being hidden. The API adds the owner-scoped `review-projection` read/create endpoints and a projection System Doctor report. Creation is the only audit side effect; the projection has no external write, connector, Product Channel, Calendar, worker, scheduler, Recovery, or Business Agent behavior.
+
+The existing 9B demand/competition, 9E evidence/risk/confidence, and 9F winning-product scoring contracts remain authoritative and unchanged. 9F weights, bands, ranking, and score persistence are not copied or recalculated by 11F. Competitor 10E projections coexist independently and are never overwritten. Any future quantitative integration must be a separately reviewed contract; 11F intentionally exposes only review evidence and validation needs.
+
+Migration `20261118_0127_review_winning_product_integration` follows 0126 and is reversible. The Angular Product Opportunity workspace renders a compact evidence panel with explicit labels (`Review-derived`, `Customer-feedback evidence`, `Hypothesis`, and `Requires validation`) and preserves the same owner-scoped API boundary.

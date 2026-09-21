@@ -1,4 +1,4 @@
-﻿"""Owner-scoped demand and competition intelligence APIs."""
+"""Owner-scoped demand and competition intelligence APIs."""
 
 from __future__ import annotations
 
@@ -46,6 +46,17 @@ from vayujit_api.intelligence.product_opportunity_intelligence_service import (
 from vayujit_api.intelligence.product_opportunity_models import (
     ProductOpportunity,
     ProductOpportunityAssessment,
+)
+from vayujit_api.intelligence.review_winning_product_models import ReviewWinningProductProjection
+from vayujit_api.intelligence.review_winning_product_schemas import (
+    ReviewWinningProductProjectionResponse,
+)
+from vayujit_api.intelligence.review_winning_product_service import (
+    current_projection,
+    get_or_create_projection,
+)
+from vayujit_api.intelligence.review_winning_product_service import (
+    integrity_report as review_projection_integrity_report,
 )
 
 router = APIRouter(
@@ -196,6 +207,42 @@ def get_competition_projection(
 
 
 @router.get(
+    "/{opportunity_id}/assessments/{assessment_id}/review-projection",
+    response_model=ReviewWinningProductProjectionResponse,
+)
+def get_review_projection(
+    opportunity_id: uuid.UUID, assessment_id: uuid.UUID, db: DB, owner: Owner
+) -> ReviewWinningProductProjection:
+    _assessment_or_404(db, owner, opportunity_id, assessment_id)
+    value = current_projection(db, owner, opportunity_id, assessment_id)
+    if value is None:
+        raise HTTPException(404, "Review projection has not been calculated.")
+    return value
+
+
+@router.post(
+    "/{opportunity_id}/assessments/{assessment_id}/review-projection",
+    response_model=ReviewWinningProductProjectionResponse,
+    status_code=201,
+)
+def create_review_projection(
+    opportunity_id: uuid.UUID, assessment_id: uuid.UUID, db: DB, owner: Owner
+) -> ReviewWinningProductProjection:
+    assessment = _assessment_or_404(db, owner, opportunity_id, assessment_id)
+    opportunity = db.scalar(
+        select(ProductOpportunity).where(
+            ProductOpportunity.id == opportunity_id, ProductOpportunity.owner_id == owner.id
+        )
+    )
+    if opportunity is None:
+        raise HTTPException(404, "Product opportunity not found.")
+    value = get_or_create_projection(db, owner, opportunity, assessment)
+    db.commit()
+    db.refresh(value)
+    return value
+
+
+@router.get(
     "/{opportunity_id}/assessments/{assessment_id}/intelligence",
     response_model=list[IntelligenceOutputResponse],
 )
@@ -226,6 +273,11 @@ def _has_impossible_numeric_state(dimensions: object) -> bool:
         if isinstance(value, float) and not math.isfinite(value):
             return True
     return False
+
+
+@router.get("/review-projection-system-doctor")
+def review_projection_system_doctor(db: DB, owner: Owner) -> dict[str, object]:
+    return review_projection_integrity_report(db, owner)
 
 
 @router.get("/intelligence-system-doctor")

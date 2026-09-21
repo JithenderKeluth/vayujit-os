@@ -16,6 +16,7 @@ import {
   ProductOpportunityComparison,
   SourcingFeasibilityOutput,
   RiskEvidenceSynthesisOutput,
+  ReviewWinningProductProjection,
   SourcingCandidate,
 } from './product-opportunity.service';
 
@@ -456,6 +457,49 @@ import {
                 <p>No sourcing feasibility projection has been calculated for this assessment.</p>
               }
             </section>
+            <section class="panel" aria-labelledby="review-projection-title">
+              <div class="section-heading">
+                <h2 id="review-projection-title">Review Intelligence</h2>
+                <span>Customer-feedback evidence only</span>
+              </div>
+              <button
+                type="button"
+                (click)="calculateReviewProjection(item)"
+                [disabled]="loading()"
+              >
+                Refresh review-derived evidence
+              </button>
+              @if (reviewProjection(); as review) {
+                <dl class="economics-summary">
+                  <dt>Evidence readiness</dt>
+                  <dd>{{ review.readiness }}</dd>
+                  <dt>Review cohort</dt>
+                  <dd>{{ review.cohort['review_count'] ?? 0 }} reviews</dd>
+                  <dt>Rated reviews</dt>
+                  <dd>{{ review.cohort['rated_review_count'] ?? 0 }}</dd>
+                  <dt>Sources</dt>
+                  <dd>{{ review.cohort['source_inventory'] | json }}</dd>
+                </dl>
+                <p class="muted">
+                  Review-derived · Customer-feedback evidence · Hypothesis · Requires validation
+                </p>
+                <p>
+                  Sentiment distribution:
+                  {{ review.feedback_evidence['sentiment_distribution'] | json }}
+                </p>
+                <p>Top pain points: {{ review.feedback_evidence['pain_points'] | json }}</p>
+                <p>Top praise: {{ review.feedback_evidence['praised_attributes'] | json }}</p>
+                <p>Feature requests: {{ review.feedback_evidence['feature_requests'] | json }}</p>
+                <p>Product gaps: {{ review.gap_evidence | json }}</p>
+                <p>Recent review changes: {{ review.change_evidence['events'] | json }}</p>
+                @if (review.research_gaps.length) {
+                  <p class="muted">Requires validation: {{ review.research_gaps | json }}</p>
+                }
+                <p class="muted">Lineage: {{ review.evidence_lineage | json }}</p>
+              } @else {
+                <p>No review projection has been calculated for this assessment.</p>
+              }
+            </section>
             <section class="panel" aria-labelledby="score-title">
               <div class="section-heading">
                 <h2 id="score-title">Score / decision</h2>
@@ -700,6 +744,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   readonly sourcingFeasibility = signal<SourcingFeasibilityOutput | null>(null);
   readonly riskEvidence = signal<RiskEvidenceSynthesisOutput | null>(null);
   readonly score = signal<ProductOpportunityScore | null>(null);
+  readonly reviewProjection = signal<ReviewWinningProductProjection | null>(null);
   readonly scoreHistory = signal<ProductOpportunityScoreHistory[]>([]);
   readonly comparison = signal<ProductOpportunityComparison | null>(null);
   readonly decisionMessage = signal('');
@@ -783,10 +828,22 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
       this.sourcingFeasibility.set(null);
       this.riskEvidence.set(null);
       this.score.set(null);
+      this.reviewProjection.set(null);
       this.scoreHistory.set([]);
       this.comparison.set(null);
       this.decisionMessage.set('');
       this.handoffMessage.set('');
+      if (detail.current_assessment_id) {
+        try {
+          this.reviewProjection.set(
+            await this.service.getReviewProjection(id, detail.current_assessment_id),
+          );
+        } catch (error: unknown) {
+          if (!(error && typeof error === 'object' && 'status' in error && error.status === 404)) {
+            this.error.set('Review Intelligence projection is unavailable.');
+          }
+        }
+      }
       if (detail.current_assessment_id) {
         try {
           this.riskEvidence.set(
@@ -892,6 +949,20 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
       this.comparison.set(await this.service.rankScores(assessmentIds));
     } catch {
       this.error.set('Opportunity comparison is unavailable for these assessments.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+  async calculateReviewProjection(item: OpportunityDetail): Promise<void> {
+    if (!item.current_assessment_id) return;
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      this.reviewProjection.set(
+        await this.service.calculateReviewProjection(item.id, item.current_assessment_id),
+      );
+    } catch {
+      this.error.set('Review Intelligence projection could not be calculated.');
     } finally {
       this.loading.set(false);
     }
