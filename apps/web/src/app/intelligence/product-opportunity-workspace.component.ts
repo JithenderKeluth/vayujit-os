@@ -17,6 +17,7 @@ import {
   SourcingFeasibilityOutput,
   RiskEvidenceSynthesisOutput,
   ReviewWinningProductProjection,
+  TrendWinningProductProjection,
   SourcingCandidate,
 } from './product-opportunity.service';
 
@@ -77,7 +78,7 @@ import {
         @for (item of opportunities(); track item.id) {
           <button class="list-item" type="button" (click)="select(item.id)">
             <strong>{{ item.name }}</strong>
-            <span>{{ item.lifecycle_status }} ï¿½ {{ item.evidence_state }}</span>
+            <span>{{ item.lifecycle_status }} Ã¯Â¿Â½ {{ item.evidence_state }}</span>
           </button>
         } @empty {
           <p>No product opportunities yet.</p>
@@ -96,13 +97,13 @@ import {
           Compare top five scored opportunities
         </button>
         @if (comparison(); as result) {
-          <p role="status">{{ result.comparability }} — {{ result.reason }}</p>
+          <p role="status">{{ result.comparability }} â€” {{ result.reason }}</p>
           @if (result.ranking?.length) {
             <ol>
               @for (entry of result.ranking; track entry.assessment_id) {
                 <li>
-                  Rank {{ entry.rank }} · {{ entry.score ?? 'Unavailable' }} ·
-                  {{ entry.classification }} · confidence {{ entry.confidence }} · readiness
+                  Rank {{ entry.rank }} Â· {{ entry.score ?? 'Unavailable' }} Â·
+                  {{ entry.classification }} Â· confidence {{ entry.confidence }} Â· readiness
                   {{ entry.readiness }}
                 </li>
               }
@@ -142,8 +143,8 @@ import {
           <h2 id="constraints-title">Constraint history</h2>
           @for (constraint of item.constraints; track constraint.id) {
             <p>
-              Version {{ constraint.version }} ï¿½
-              {{ constraint.currency || 'Currency unknown' }} ï¿½ landed cost
+              Version {{ constraint.version }} Ã¯Â¿Â½
+              {{ constraint.currency || 'Currency unknown' }} Ã¯Â¿Â½ landed cost
               {{ constraint.maximum_landed_cost || 'unknown' }}
             </p>
           } @empty {
@@ -169,7 +170,7 @@ import {
           <h2 id="assessment-title">Assessment history</h2>
           @for (assessment of item.assessments; track assessment.id) {
             <p>
-              Version {{ assessment.version }} ï¿½ {{ assessment.status }} ï¿½
+              Version {{ assessment.version }} Ã¯Â¿Â½ {{ assessment.status }} Ã¯Â¿Â½
               {{ assessment.evidence_state }}
             </p>
           } @empty {
@@ -195,7 +196,7 @@ import {
               <article class="intelligence-output">
                 <h3>{{ output.kind }} intelligence</h3>
                 <p class="muted">
-                  Calculation {{ output.calculation_version }} ï¿½
+                  Calculation {{ output.calculation_version }} Ã¯Â¿Â½
                   {{ output.created_at | date: 'medium' }}
                 </p>
                 <div class="dimension-grid">
@@ -204,7 +205,7 @@ import {
                       <strong>{{ dimension.dimension }}</strong>
                       <span>{{ dimension.value ?? 'Unavailable' }}</span>
                       <small
-                        >{{ dimension.classification }} ï¿½ {{ dimension.evidence_state }}</small
+                        >{{ dimension.classification }} Ã¯Â¿Â½ {{ dimension.evidence_state }}</small
                       >
                       <p>{{ dimension.explanation }}</p>
                       @if (dimension.missing_evidence.length) {
@@ -221,6 +222,43 @@ import {
               <p>No demand or competition output has been calculated for this assessment.</p>
             }
           </section>
+          @if (trendProjection(); as trend) {
+            <section class="panel" aria-labelledby="trend-projection-title">
+              <div class="section-heading">
+                <h2 id="trend-projection-title">Trend evidence</h2>
+                <span>Descriptive Trend evidence; not a demand or success score</span>
+              </div>
+              <button type="button" (click)="calculateTrendProjection(item)" [disabled]="loading()">
+                Refresh Trend evidence
+              </button>
+              <dl class="economics-summary">
+                <dt>Readiness</dt>
+                <dd>{{ trend.readiness }}</dd>
+                <dt>Evidence confidence</dt>
+                <dd>{{ trend.evidence_confidence['state'] || 'UNKNOWN' }}</dd>
+                <dt>Freshness</dt>
+                <dd>{{ trend.freshness['state'] || 'UNKNOWN' }}</dd>
+                <dt>Observed signals</dt>
+                <dd>{{ trend.signal_summaries.length }}</dd>
+                <dt>Historical momentum</dt>
+                <dd>{{ trend.momentum_summaries.length }}</dd>
+                <dt>Research gaps</dt>
+                <dd>{{ trend.research_gaps.length }}</dd>
+              </dl>
+              @if (
+                trend.readiness === 'RESEARCH_REQUIRED' ||
+                trend.readiness === 'INSUFFICIENT_EVIDENCE'
+              ) {
+                <p class="muted">
+                  Research required: no commercial conclusion is inferred from missing Trend
+                  evidence.
+                </p>
+              }
+              @if (trend.contradictions.length) {
+                <p class="muted">Contradictions remain in the authoritative Trend validation.</p>
+              }
+            </section>
+          }
           @if (competitionProjection(); as projection) {
             <section class="panel" aria-labelledby="competition-projection-title">
               <div class="section-heading">
@@ -302,7 +340,7 @@ import {
                   <div class="dimension">
                     <strong>{{ dimension.dimension }}</strong
                     ><span>{{ dimension.value ?? 'UNKNOWN' }}</span
-                    ><small>{{ dimension.classification }} · {{ dimension.evidence_state }}</small>
+                    ><small>{{ dimension.classification }} Â· {{ dimension.evidence_state }}</small>
                     <p>{{ dimension.explanation }}</p>
                   </div>
                 }
@@ -379,7 +417,7 @@ import {
                       <div class="candidate-row" role="row">
                         <strong>{{ candidate['supplier']?.['name'] }}</strong>
                         <span
-                          >Source: {{ candidate.source | json }} ·
+                          >Source: {{ candidate.source | json }} Â·
                           {{ candidate.country ?? 'UNKNOWN' }} /
                           {{ candidate.region ?? 'UNKNOWN' }}</span
                         >
@@ -387,11 +425,11 @@ import {
                         <span>Shortlist: {{ candidate.shortlist | json }}</span>
                         <span>Due diligence: {{ candidate.due_diligence | json }}</span>
                         <span
-                          >Availability: {{ candidate.availability ?? 'UNKNOWN' }} · Alternate
+                          >Availability: {{ candidate.availability ?? 'UNKNOWN' }} Â· Alternate
                           readiness: {{ candidate.alternate_readiness ?? 'UNKNOWN' }}</span
                         >
                         <span
-                          >Risk: {{ candidate.risk_warnings | json }} · Freshness:
+                          >Risk: {{ candidate.risk_warnings | json }} Â· Freshness:
                           {{ candidate.freshness ?? 'UNKNOWN' }}</span
                         >
                         @if (candidate.canonical_supplier_id && item.product_id) {
@@ -405,14 +443,14 @@ import {
                         }
                         <span>{{ candidate['matched_product']?.['title'] }}</span>
                         <span
-                          >{{ candidate['verification'] }} · {{ candidate['match_state'] }}</span
+                          >{{ candidate['verification'] }} Â· {{ candidate['match_state'] }}</span
                         >
                         <span
                           >{{ candidate['currency'] ?? '' }}
                           {{ candidate['price'] ?? 'UNKNOWN' }}</span
                         >
                         <span
-                          >MOQ {{ candidate['moq'] ?? 'UNKNOWN' }} ·
+                          >MOQ {{ candidate['moq'] ?? 'UNKNOWN' }} Â·
                           {{ candidate['lead_time_days'] ?? 'UNKNOWN' }} days</span
                         >
                       </div>
@@ -422,7 +460,7 @@ import {
                   <p>No supplier evidence is available for this assessment.</p>
                 }
                 <p>
-                  Projection {{ sourcing.calculation_version }} ·
+                  Projection {{ sourcing.calculation_version }} Â·
                   {{ sourcing.created_at | date: 'medium' }}. No supplier selection or procurement
                   is performed.
                 </p>
@@ -443,7 +481,7 @@ import {
                       <strong>{{ dimension['dimension'] }}</strong>
                       <pre>{{ dimension['value'] | json }}</pre>
                       <small
-                        >{{ dimension['classification'] }} ·
+                        >{{ dimension['classification'] }} Â·
                         {{ dimension['evidence_state'] }}</small
                       >
                       <p>{{ dimension['explanation'] }}</p>
@@ -481,7 +519,7 @@ import {
                   <dd>{{ review.cohort['source_inventory'] | json }}</dd>
                 </dl>
                 <p class="muted">
-                  Review-derived · Customer-feedback evidence · Hypothesis · Requires validation
+                  Review-derived Â· Customer-feedback evidence Â· Hypothesis Â· Requires validation
                 </p>
                 <p>
                   Sentiment distribution:
@@ -532,11 +570,12 @@ import {
                       <strong>{{ dimension['dimension'] }}</strong>
                       <span>{{ dimension['normalized_score'] ?? 'Unavailable' }}</span>
                       <small
-                        >Raw input {{ dimension['raw_input'] ?? 'Unavailable' }} · Contribution
+                        >Raw input {{ dimension['raw_input'] ?? 'Unavailable' }} Â· Contribution
                         {{ dimension['weighted_contribution'] ?? 'Unavailable' }}</small
                       >
                       <small
-                        >Weight {{ dimension['weight'] }} · {{ dimension['evidence_state'] }}</small
+                        >Weight {{ dimension['weight'] }} Â·
+                        {{ dimension['evidence_state'] }}</small
                       >
                       <p>{{ dimension['explanation'] }}</p>
                     </div>
@@ -582,8 +621,8 @@ import {
                   <ul>
                     @for (entry of scoreHistory(); track entry.id) {
                       <li>
-                        {{ entry.created_at | date: 'medium' }} ·
-                        {{ entry.overall_score ?? 'Unavailable' }} · {{ entry.classification }} ·
+                        {{ entry.created_at | date: 'medium' }} Â·
+                        {{ entry.overall_score ?? 'Unavailable' }} Â· {{ entry.classification }} Â·
                         {{ entry.eligibility }}
                       </li>
                     }
@@ -740,6 +779,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   readonly detail = signal<OpportunityDetail | null>(null);
   readonly intelligenceOutputs = signal<IntelligenceOutput[]>([]);
   readonly competitionProjection = signal<CompetitionProjection | null>(null);
+  readonly trendProjection = signal<TrendWinningProductProjection | null>(null);
   readonly commercialOutput = signal<CommercialOutput | null>(null);
   readonly sourcingFeasibility = signal<SourcingFeasibilityOutput | null>(null);
   readonly riskEvidence = signal<RiskEvidenceSynthesisOutput | null>(null);
@@ -824,6 +864,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
       this.detail.set(detail);
       this.intelligenceOutputs.set([]);
       this.competitionProjection.set(null);
+      this.trendProjection.set(null);
       this.commercialOutput.set(null);
       this.sourcingFeasibility.set(null);
       this.riskEvidence.set(null);
@@ -880,6 +921,17 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
           this.scoreHistory.set(await this.service.getScoreHistory(id));
         } catch {
           this.error.set('Winning Product score history is unavailable.');
+        }
+      }
+      if (detail.current_assessment_id) {
+        try {
+          this.trendProjection.set(
+            await this.service.getTrendProjection(id, detail.current_assessment_id),
+          );
+        } catch (error: unknown) {
+          if (!(error && typeof error === 'object' && 'status' in error && error.status === 404)) {
+            this.error.set('Trend evidence is unavailable.');
+          }
         }
       }
       if (detail.current_assessment_id) {
@@ -953,6 +1005,21 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
       this.loading.set(false);
     }
   }
+  async calculateTrendProjection(item: OpportunityDetail): Promise<void> {
+    if (!item.current_assessment_id) return;
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      this.trendProjection.set(
+        await this.service.calculateTrendProjection(item.id, item.current_assessment_id),
+      );
+    } catch {
+      this.error.set('Trend evidence projection could not be calculated.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
   async calculateReviewProjection(item: OpportunityDetail): Promise<void> {
     if (!item.current_assessment_id) return;
     this.loading.set(true);
