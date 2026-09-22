@@ -117,6 +117,49 @@ export interface TrendChangeResult {
   comparison: TrendChangeComparison;
   events: TrendChangeEvent[];
 }
+export interface TrendValidation {
+  id: string;
+  context_id: string;
+  analysis_id: string;
+  snapshot_id: string;
+  comparison_id?: string | null;
+  validation_version: number;
+  status: string;
+  confidence: string;
+  downstream_readiness: string;
+  evidence_coverage: Record<string, unknown>;
+  source_coverage: Record<string, unknown>;
+  time_coverage: Record<string, unknown>;
+  freshness_summary: Record<string, unknown>;
+  agreement_summary: Record<string, unknown>;
+  contradiction_summary: Record<string, unknown>;
+  materiality_summary: Record<string, unknown>;
+  alert_summary: Record<string, unknown>;
+  limitations: string[];
+  research_gaps: string[];
+  created_at: string;
+}
+export interface TrendValidationHypothesis {
+  id: string;
+  hypothesis_type: string;
+  agreement: string;
+  confidence: string;
+  readiness: string;
+  signal_semantics: string;
+  limitations: string[];
+}
+export interface TrendValidationContradiction {
+  id: string;
+  contradiction_type: string;
+  severity: string;
+  reason: string;
+}
+export interface TrendValidationGap {
+  id: string;
+  gap_type: string;
+  priority: string;
+  recommendation: string;
+}
 export interface TrendIngestion {
   id: string;
   mode: string;
@@ -182,5 +225,42 @@ export class TrendIntelligenceService {
   }
   createChange(contextId: string, value: Record<string, unknown>): Observable<TrendChangeResult> {
     return this.http.post<TrendChangeResult>(`${this.base}/contexts/${contextId}/changes`, value);
+  }
+  validations(contextId: string): Observable<TrendPage<TrendValidation>> {
+    return this.http.get<TrendPage<TrendValidation>>(
+      this.base + '/contexts/' + contextId + '/validations',
+    );
+  }
+  currentValidation(contextId: string): Observable<TrendValidation | null> {
+    return this.http.get<TrendValidation | null>(
+      this.base + '/contexts/' + contextId + '/validations/current',
+    );
+  }
+  createValidation(contextId: string, value: Record<string, unknown>): Observable<TrendValidation> {
+    return this.http.post<TrendValidation>(
+      this.base + '/contexts/' + contextId + '/validations',
+      value,
+    );
+  }
+  validationHypotheses(
+    contextId: string,
+    validationId: string,
+  ): Observable<TrendValidationHypothesis[]> {
+    return this.http.get<TrendValidationHypothesis[]>(
+      this.base + '/contexts/' + contextId + '/validations/' + validationId + '/hypotheses',
+    );
+  }
+  validationContradictions(
+    contextId: string,
+    validationId: string,
+  ): Observable<TrendValidationContradiction[]> {
+    return this.http.get<TrendValidationContradiction[]>(
+      this.base + '/contexts/' + contextId + '/validations/' + validationId + '/contradictions',
+    );
+  }
+  validationGaps(contextId: string, validationId: string): Observable<TrendValidationGap[]> {
+    return this.http.get<TrendValidationGap[]>(
+      this.base + '/contexts/' + contextId + '/validations/' + validationId + '/gaps',
+    );
   }
 }
