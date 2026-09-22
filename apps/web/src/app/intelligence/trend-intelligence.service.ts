@@ -79,6 +79,44 @@ export interface TrendAnalysisSeries {
   limitations: string[];
   observation_ids: string[];
 }
+export interface TrendChangeComparison {
+  id: string;
+  context_id: string;
+  baseline_analysis_id: string;
+  current_analysis_id: string;
+  baseline_snapshot_id: string;
+  current_snapshot_id: string;
+  comparison_version: number;
+  status: string;
+  summary: Record<string, unknown>;
+  limitations: string[];
+  created_at: string;
+}
+export interface TrendChangeEvent {
+  id: string;
+  comparison_id: string;
+  signal_definition_id?: string | null;
+  source_id?: string | null;
+  event_type: string;
+  change_semantics: string;
+  old_value: unknown;
+  new_value: unknown;
+  absolute_delta?: string | number | null;
+  relative_delta?: string | number | null;
+  relative_reason?: string | null;
+  momentum: string;
+  materiality: string;
+  status: string;
+  alert_eligibility: string;
+  alert_reason: string;
+  freshness_state: string;
+  limitations: string[];
+  created_at: string;
+}
+export interface TrendChangeResult {
+  comparison: TrendChangeComparison;
+  events: TrendChangeEvent[];
+}
 export interface TrendIngestion {
   id: string;
   mode: string;
@@ -131,5 +169,18 @@ export class TrendIntelligenceService {
     return this.http.get<TrendPage<TrendAnalysisSeries>>(
       `${this.base}/contexts/${contextId}/analyses/${analysisId}/series`,
     );
+  }
+  changes(contextId: string): Observable<TrendPage<TrendChangeComparison>> {
+    return this.http.get<TrendPage<TrendChangeComparison>>(
+      `${this.base}/contexts/${contextId}/changes`,
+    );
+  }
+  changeEvents(contextId: string, comparisonId: string): Observable<TrendPage<TrendChangeEvent>> {
+    return this.http.get<TrendPage<TrendChangeEvent>>(
+      `${this.base}/contexts/${contextId}/changes/${comparisonId}/events`,
+    );
+  }
+  createChange(contextId: string, value: Record<string, unknown>): Observable<TrendChangeResult> {
+    return this.http.post<TrendChangeResult>(`${this.base}/contexts/${contextId}/changes`, value);
   }
 }
