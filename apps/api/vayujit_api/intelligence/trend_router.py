@@ -94,6 +94,37 @@ from vayujit_api.intelligence.trend_service import (
     operations,
     update_context,
 )
+from vayujit_api.intelligence.trend_validation_models import (
+    TrendValidation,
+    TrendValidationContradiction,
+    TrendValidationGap,
+    TrendValidationHypothesis,
+)
+from vayujit_api.intelligence.trend_validation_schemas import (
+    TrendValidationContradictionResponse,
+    TrendValidationCreate,
+    TrendValidationGapResponse,
+    TrendValidationHypothesisResponse,
+    TrendValidationPage,
+    TrendValidationResponse,
+)
+from vayujit_api.intelligence.trend_validation_service import (
+    create_validation,
+    current_validation,
+    list_contradictions,
+    list_hypotheses,
+    list_validations,
+    validation_or_404,
+)
+from vayujit_api.intelligence.trend_validation_service import (
+    doctor as validation_doctor,
+)
+from vayujit_api.intelligence.trend_validation_service import (
+    list_gaps as validation_gaps,
+)
+from vayujit_api.intelligence.trend_validation_service import (
+    list_sources as validation_sources,
+)
 
 router = APIRouter(prefix="/api/v1/intelligence/trends", tags=["trend-intelligence"])
 DB = Annotated[Session, Depends(get_session)]
@@ -234,6 +265,7 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
     checks = cast(dict[str, int], result["checks"])
     checks.update(analysis_doctor(db, owner))
     checks.update(change_doctor(db, owner))
+    checks.update(validation_doctor(db, owner))
     result["status"] = "PASS" if not any(checks.values()) else "FAIL"
     return result
 
@@ -578,3 +610,88 @@ def change_history(
         },
     )
     return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+
+@router.post(
+    "/contexts/{context_id}/validations",
+    response_model=TrendValidationResponse,
+    status_code=201,
+)
+def validation_create(
+    context_id: uuid.UUID, data: TrendValidationCreate, db: DB, owner: Owner
+) -> TrendValidation:
+    return create_validation(db, owner, context_or_404(db, owner, context_id), data)
+
+
+@router.get("/contexts/{context_id}/validations", response_model=TrendValidationPage)
+def validation_list(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> dict[str, object]:
+    context_or_404(db, owner, context_id)
+    items, total = list_validations(db, owner, context_id, limit, offset)
+    return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+
+@router.get(
+    "/contexts/{context_id}/validations/current",
+    response_model=TrendValidationResponse | None,
+)
+def validation_current(context_id: uuid.UUID, db: DB, owner: Owner) -> TrendValidation | None:
+    context_or_404(db, owner, context_id)
+    return current_validation(db, owner, context_id)
+
+
+@router.get(
+    "/contexts/{context_id}/validations/{validation_id}",
+    response_model=TrendValidationResponse,
+)
+def validation_get(
+    context_id: uuid.UUID, validation_id: uuid.UUID, db: DB, owner: Owner
+) -> TrendValidation:
+    context_or_404(db, owner, context_id)
+    return validation_or_404(db, owner, context_id, validation_id)
+
+
+@router.get(
+    "/contexts/{context_id}/validations/{validation_id}/hypotheses",
+    response_model=list[TrendValidationHypothesisResponse],
+)
+def validation_hypothesis_list(
+    context_id: uuid.UUID, validation_id: uuid.UUID, db: DB, owner: Owner
+) -> list[TrendValidationHypothesis]:
+    validation = validation_or_404(db, owner, context_id, validation_id)
+    return list_hypotheses(db, owner, validation.id)
+
+
+@router.get(
+    "/contexts/{context_id}/validations/{validation_id}/contradictions",
+    response_model=list[TrendValidationContradictionResponse],
+)
+def validation_contradiction_list(
+    context_id: uuid.UUID, validation_id: uuid.UUID, db: DB, owner: Owner
+) -> list[TrendValidationContradiction]:
+    validation = validation_or_404(db, owner, context_id, validation_id)
+    return list_contradictions(db, owner, validation.id)
+
+
+@router.get(
+    "/contexts/{context_id}/validations/{validation_id}/gaps",
+    response_model=list[TrendValidationGapResponse],
+)
+def validation_gap_list(
+    context_id: uuid.UUID, validation_id: uuid.UUID, db: DB, owner: Owner
+) -> list[TrendValidationGap]:
+    validation = validation_or_404(db, owner, context_id, validation_id)
+    return validation_gaps(db, owner, validation.id)
+
+
+@router.get("/contexts/{context_id}/validations/{validation_id}/sources")
+def validation_source_list(
+    context_id: uuid.UUID, validation_id: uuid.UUID, db: DB, owner: Owner
+) -> list[dict[str, object]]:
+    validation = validation_or_404(db, owner, context_id, validation_id)
+    return validation_sources(db, owner, validation)

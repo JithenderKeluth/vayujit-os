@@ -12,6 +12,7 @@ import {
   TrendIntelligenceService,
   TrendObservation,
   TrendSnapshot,
+  TrendValidation,
 } from './trend-intelligence.service';
 
 @Component({
@@ -167,6 +168,34 @@ import {
         </section>
       }
       @if (selected()) {
+        <section aria-labelledby="validation-heading">
+          <h2 id="validation-heading">Evidence validation and confidence</h2>
+          <p>
+            Cross-source validation is descriptive only and never produces commercial or forecast
+            conclusions.
+          </p>
+          <button type="button" (click)="validateLatest()" [disabled]="!analysis()">
+            Validate latest analysis
+          </button>
+          @if (validation()) {
+            <p>
+              Status: {{ validation()?.status }} · confidence: {{ validation()?.confidence }} ·
+              readiness: {{ validation()?.downstream_readiness }}
+            </p>
+            <p>
+              Independent sources:
+              {{ validation()?.source_coverage?.['independent_source_count'] ?? 0 }} · agreement:
+              {{ validation()?.agreement_summary?.['state'] ?? 'UNKNOWN' }} · freshness:
+              {{ validation()?.freshness_summary?.['state'] ?? 'UNKNOWN' }}
+            </p>
+            @if (validation()?.research_gaps?.length) {
+              <p>Research gaps: {{ validation()?.research_gaps?.join(', ') }}</p>
+            }
+            @if (validation()?.limitations?.length) {
+              <p>Validation limitations: {{ validation()?.limitations?.join(', ') }}</p>
+            }
+          }
+        </section>
         <section aria-labelledby="changes-heading">
           <h2 id="changes-heading">Change and momentum history</h2>
           <p>
@@ -236,6 +265,7 @@ export class TrendIntelligenceWorkspaceComponent {
   readonly analysesList = signal<TrendAnalysis[]>([]);
   readonly changes = signal<TrendChangeComparison[]>([]);
   readonly changeEvents = signal<TrendChangeEvent[]>([]);
+  readonly validation = signal<TrendValidation | null>(null);
   readonly error = signal('');
   name = '';
   subjectType = 'CUSTOM';
@@ -282,6 +312,10 @@ export class TrendIntelligenceWorkspaceComponent {
     this.service.snapshots(value.id).subscribe({
       next: (items) => this.snapshots.set(items),
       error: () => this.error.set('Snapshots are unavailable.'),
+    });
+    this.service.currentValidation(value.id).subscribe({
+      next: (current) => this.validation.set(current),
+      error: () => this.validation.set(null),
     });
     this.service.analyses(value.id).subscribe({
       next: (page) => {
@@ -360,6 +394,15 @@ export class TrendIntelligenceWorkspaceComponent {
         error: () => this.error.set('An immutable snapshot is required before analysis.'),
       });
     }
+  }
+  validateLatest(): void {
+    const context = this.selected();
+    const analysis = this.analysis();
+    if (!context || !analysis) return;
+    this.service.createValidation(context.id, { analysis_id: analysis.id }).subscribe({
+      next: (value) => this.validation.set(value),
+      error: () => this.error.set('The trend evidence validation could not be created.'),
+    });
   }
   ingestFixture(): void {
     const context = this.selected();

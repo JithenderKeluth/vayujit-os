@@ -473,6 +473,7 @@ def doctor(db: Session, owner: User) -> dict[str, object]:
 def operations(db: Session, owner: User) -> dict[str, object]:
     from vayujit_api.intelligence.trend_analysis_service import analysis_operations
     from vayujit_api.intelligence.trend_change_service import change_operations
+    from vayujit_api.intelligence.trend_validation_service import validation_operations
 
     return {
         "contexts": db.scalar(
@@ -504,4 +505,5 @@ def operations(db: Session, owner: User) -> dict[str, object]:
         ),
         **analysis_operations(db, owner),
         **change_operations(db, owner),
+        **validation_operations(db, owner),
     }
