@@ -1,7 +1,8 @@
 .op-page {
   display: grid;
   gap: 1.25rem;
-  max-width: 1200px;
+  width: min(100%, var(--vj-content-width));
+  margin: 0 auto;
 }
 .op-header,
 .op-actions,
@@ -19,10 +20,48 @@
   gap: 1rem;
 }
 .op-card {
-  background: #fff;
-  border: 1px solid #d3dde2;
-  border-radius: 0.75rem;
-  padding: 1rem;
+  background: var(--vj-color-surface);
+  border: 1px solid var(--vj-color-border);
+  border-radius: var(--vj-radius-md);
+  padding: var(--vj-space-5);
+  box-shadow: var(--vj-shadow-sm);
+}
+.dashboard-page > .op-grid:first-of-type .op-card {
+  min-height: 8rem;
+}
+.dashboard-page > .op-grid:first-of-type .op-card h2 {
+  margin: 0;
+  color: var(--vj-color-ink-soft);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--vj-space-4);
+  align-items: flex-start;
+}
+.attention-item {
+  display: grid;
+  gap: var(--vj-space-2);
+  padding: var(--vj-space-4);
+  border: 1px solid var(--vj-color-border);
+  border-radius: var(--vj-radius-md);
+  background: var(--vj-color-surface-muted);
+}
+.attention-item .op-stat {
+  margin: 0;
+}
+.dashboard-filter {
+  display: grid;
+  gap: var(--vj-space-2);
+  min-width: 12rem;
+  color: var(--vj-color-ink-soft);
+  font-weight: 650;
+}
+.dashboard-filter select {
+  min-height: 2.5rem;
+  padding: 0.5rem 0.7rem;
 }
 .op-stat {
   font-size: 1.8rem;
@@ -30,7 +69,7 @@
   margin: 0.25rem 0;
 }
 .op-muted {
-  color: #58666d;
+  color: var(--vj-color-muted);
 }
 .op-error {
   background: #fff1f1;
@@ -83,7 +122,7 @@ button {
   padding: 0.65rem 0.9rem;
   border: 0;
   border-radius: 0.4rem;
-  background: #14566f;
+  background: var(--vj-color-brand-strong);
   color: #fff;
   text-decoration: none;
   font: inherit;
@@ -91,7 +130,7 @@ button {
 }
 .op-button.secondary,
 button.secondary {
-  background: #58666d;
+  background: var(--vj-color-ink-soft);
 }
 .op-button.danger,
 button.danger {
@@ -124,7 +163,7 @@ button:disabled {
   text-decoration: none;
 }
 .op-tabs a.active {
-  background: #14566f;
+  background: var(--vj-color-brand-strong);
   color: #fff;
 }
 button:focus,

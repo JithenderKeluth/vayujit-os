@@ -58,7 +58,9 @@ import {
 
       <nav class="tabs" aria-label="Supplier Intelligence sections">
         @for (tab of tabs; track tab) {
-          <a [href]="'#' + tab.toLowerCase().replace(' ', '-')">{{ tab }}</a>
+          <a [href]="'#' + tab.toLowerCase().replaceAll(' ', '-')" (click)="activateTab($event, tab)">
+            {{ tab }}
+          </a>
         }
       </nav>
 
@@ -347,6 +349,12 @@ export class CrossMarketplaceSupplierComponent {
 
   constructor() {
     void this.load();
+  }
+
+  activateTab(event: Event, tab: string): void {
+    event.preventDefault();
+    const targetId = tab.toLowerCase().replaceAll(' ', '-');
+    document.getElementById(targetId)?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
   }
 
   async load(): Promise<void> {

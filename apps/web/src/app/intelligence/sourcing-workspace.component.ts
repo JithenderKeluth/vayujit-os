@@ -46,18 +46,18 @@ import { IntelligenceService } from './intelligence.service';
         </article>
       </section>
       <nav class="tabs" aria-label="Sourcing sections">
-        <a href="#requirements">Requirements</a>
-        <a href="#rfqs">RFQs</a>
-        <a href="#quotes">Quotes</a>
-        <a href="#samples">Samples &amp; inspection</a>
-        <a href="#comparison">Comparison</a>
-        <a href="#negotiation">Negotiation</a>
-        <a href="#economics">Landed cost &amp; economics</a>
-        <a href="#sensitivity">Sensitivity</a>
-        <a href="#capital">Capital &amp; cash</a>
-        <a href="#critic">Critic</a>
-        <a href="#concentration">Concentration</a>
-        <a href="#decisions">Decisions</a>
+        <a href="#requirements" (click)="activateSection($event, 'requirements')">Requirements</a>
+        <a href="#rfqs" (click)="activateSection($event, 'rfqs')">RFQs</a>
+        <a href="#quotes" (click)="activateSection($event, 'quotes')">Quotes</a>
+        <a href="#samples" (click)="activateSection($event, 'samples')">Samples &amp; inspection</a>
+        <a href="#comparison" (click)="activateSection($event, 'comparison')">Comparison</a>
+        <a href="#negotiation" (click)="activateSection($event, 'negotiation')">Negotiation</a>
+        <a href="#economics" (click)="activateSection($event, 'economics')">Landed cost &amp; economics</a>
+        <a href="#sensitivity" (click)="activateSection($event, 'sensitivity')">Sensitivity</a>
+        <a href="#capital" (click)="activateSection($event, 'capital')">Capital &amp; cash</a>
+        <a href="#critic" (click)="activateSection($event, 'critic')">Critic</a>
+        <a href="#concentration" (click)="activateSection($event, 'concentration')">Concentration</a>
+        <a href="#decisions" (click)="activateSection($event, 'decisions')">Decisions</a>
       </nav>
       <section id="requirements" class="panel">
         <h2>Sourcing requirement</h2>
@@ -440,6 +440,10 @@ export class SourcingWorkspaceComponent {
   readonly decision = { requirement_id: '', quote_id: '', decision: 'hold', confirmed: false };
   constructor() {
     void this.load();
+  }
+  activateSection(event: Event, sectionId: string): void {
+    event.preventDefault();
+    document.getElementById(sectionId)?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
   }
   private async load(): Promise<void> {
     try {

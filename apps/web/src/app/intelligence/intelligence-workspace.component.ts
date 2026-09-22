@@ -81,17 +81,17 @@ import {
       </section>
 
       <nav class="workspace-tabs" aria-label="Intelligence sections">
-        <a href="#overview" (click)="setSection('overview')">Overview</a>
-        <a href="#missions-workspace" (click)="setSection('missions')">Missions</a>
-        <a href="#candidates-workspace" (click)="setSection('candidates')">Candidates</a>
-        <a href="#opportunities-workspace" (click)="setSection('opportunities')">Opportunities</a>
-        <a href="#rules-workspace" (click)="setSection('rules')">Rules</a>
-        <a href="#profiles-workspace" (click)="setSection('profiles')">Profiles</a>
-        <a href="#comparison-workspace" (click)="setSection('comparison')">Comparison</a>
-        <a href="#reports-workspace" (click)="setSection('reports')">Reports</a>
-        <a href="#history-workspace" (click)="setSection('history')">History</a>
-        <a href="#evidence-workspace" (click)="setSection('evidence')">Sources &amp; evidence</a>
-        <a href="#suppliers-workspace">Suppliers</a>
+        <a href="#overview" (click)="activateSection($event, 'overview', 'overview')">Overview</a>
+        <a href="#missions-workspace" (click)="activateSection($event, 'missions', 'missions-workspace')">Missions</a>
+        <a href="#candidates-workspace" (click)="activateSection($event, 'candidates', 'candidates-workspace')">Candidates</a>
+        <a href="#opportunities-workspace" (click)="activateSection($event, 'opportunities', 'opportunities-workspace')">Opportunities</a>
+        <a href="#rules-workspace" (click)="activateSection($event, 'rules', 'rules-workspace')">Rules</a>
+        <a href="#profiles-workspace" (click)="activateSection($event, 'profiles', 'profiles-workspace')">Profiles</a>
+        <a href="#comparison-workspace" (click)="activateSection($event, 'comparison', 'comparison-workspace')">Comparison</a>
+        <a href="#reports-workspace" (click)="activateSection($event, 'reports', 'reports-workspace')">Reports</a>
+        <a href="#history-workspace" (click)="activateSection($event, 'history', 'history-workspace')">History</a>
+        <a href="#evidence-workspace" (click)="activateSection($event, 'evidence', 'evidence-workspace')">Sources &amp; evidence</a>
+        <a href="#suppliers-workspace" (click)="activateSection($event, 'suppliers', 'suppliers-workspace')">Suppliers</a>
       </nav>
 
       <section
@@ -1158,6 +1158,11 @@ export class IntelligenceWorkspaceComponent {
     }
     if (section === 'evidence' && !this.evidence().length) void this.loadEvidence();
     if (section === 'suppliers' && !this.suppliers().length) void this.loadSuppliers();
+  }
+  activateSection(event: Event, section: string, targetId: string): void {
+    event.preventDefault();
+    this.setSection(section);
+    document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   async createDemoProject(): Promise<void> {
     if (this.submitting() || !this.confirmAction('Create a local deterministic research project?'))

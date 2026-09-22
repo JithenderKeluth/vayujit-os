@@ -35,7 +35,7 @@ type Section = { id: string; label: string };
           <a
             [href]="'#' + section.id"
             [attr.aria-current]="activeSection() === section.id ? 'page' : null"
-            (click)="activeSection.set(section.id)"
+            (click)="activateSection($event, section.id)"
             >{{ section.label }}</a
           >
         }
@@ -1000,6 +1000,12 @@ export class ExternalResearchWorkspaceComponent {
 
   constructor() {
     void this.load();
+  }
+
+  activateSection(event: Event, sectionId: string): void {
+    event.preventDefault();
+    this.activeSection.set(sectionId);
+    document.getElementById(sectionId)?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
   }
 
   async load(): Promise<void> {

@@ -877,7 +877,6 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard],
   },
-  { path: '**', redirectTo: 'dashboard' },
   {
     path: 'intelligence/cross-marketplace',
     loadComponent: () =>
@@ -886,4 +885,5 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard],
   },
+  { path: '**', redirectTo: 'dashboard' },
 ];

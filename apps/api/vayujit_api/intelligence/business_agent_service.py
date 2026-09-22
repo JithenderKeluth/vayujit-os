@@ -40,6 +40,10 @@ from vayujit_api.intelligence.review_business_agent_service import (
     review_artifact_type,
     review_enabled,
 )
+from vayujit_api.intelligence.trend_business_agent_service import (
+    TREND_CAPABILITIES,
+    execute_trend_capability,
+)
 from vayujit_api.intelligence.business_agent_schemas import BusinessGoalCreate, RunCreate
 
 
@@ -126,6 +130,8 @@ def create_goal(db: Session, owner: User, data: BusinessGoalCreate) -> BusinessA
     if existing:
         return existing
     structured, assumptions, unresolved = _goal_projection(data.raw_goal, data.structured_goal)
+    if data.include_trend_intelligence:
+        structured["include_trend_intelligence"] = True
     value = BusinessAgentGoal(
         owner_id=owner.id,
         raw_goal=data.raw_goal.strip(),
@@ -165,6 +171,15 @@ def create_goal(db: Session, owner: User, data: BusinessGoalCreate) -> BusinessA
     return value
 
 
+def _trend_enabled(goal: BusinessAgentGoal) -> bool:
+    structured = goal.structured_goal or {}
+    return bool(
+        structured.get("include_trend_intelligence")
+        or structured.get("trend_intelligence")
+        or "trend intelligence" in goal.raw_goal.casefold()
+    )
+
+
 def _competitor_enabled(goal: BusinessAgentGoal) -> bool:
     structured = goal.structured_goal or {}
     return bool(
@@ -177,10 +192,46 @@ def _competitor_enabled(goal: BusinessAgentGoal) -> bool:
 def _steps(goal: BusinessAgentGoal) -> list[dict[str, object]]:
     enabled = _competitor_enabled(goal)
     reviews = review_enabled(goal)
+    trend = _trend_enabled(goal)
     steps: list[dict[str, object]] = [
         {"key": "opportunity", "capability": "product_opportunity.create", "deps": []},
         {"key": "demand", "capability": "demand.intelligence", "deps": ["opportunity"]},
     ]
+    if trend:
+        steps.extend(
+            [
+                {
+                    "key": "trend_context",
+                    "capability": "TREND_CONTEXT_RESOLUTION",
+                    "deps": ["opportunity"],
+                },
+                {
+                    "key": "trend_ingestion",
+                    "capability": "TREND_INGESTION",
+                    "deps": ["trend_context"],
+                },
+                {
+                    "key": "trend_analysis",
+                    "capability": "TREND_ANALYSIS",
+                    "deps": ["trend_ingestion"],
+                },
+                {
+                    "key": "trend_change",
+                    "capability": "TREND_CHANGE_ANALYSIS",
+                    "deps": ["trend_analysis"],
+                },
+                {
+                    "key": "trend_validation",
+                    "capability": "TREND_VALIDATION",
+                    "deps": ["trend_change"],
+                },
+                {
+                    "key": "trend_projection",
+                    "capability": "TREND_WINNING_PRODUCT_PROJECTION",
+                    "deps": ["trend_validation"],
+                },
+            ]
+        )
     if enabled:
         steps.extend(
             [
@@ -249,11 +300,16 @@ def _steps(goal: BusinessAgentGoal) -> list[dict[str, object]]:
                 },
             ]
         )
+    brief_deps = ["rank"]
+    if reviews:
+        brief_deps.append("review_winning_product_projection")
+    if trend:
+        brief_deps.append("trend_projection")
     steps.append(
         {
             "key": "brief",
             "capability": "decision_brief.generate",
-            "deps": ["rank"] + (["review_winning_product_projection"] if reviews else []),
+            "deps": brief_deps,
         }
     )
     return steps
@@ -450,6 +506,171 @@ def _persist_review_artifact(
     return artifact.id, finding.id
 
 
+def _persist_trend_artifact(
+    db: Session,
+    owner: User,
+    run: BusinessAgentRun,
+    capability: str,
+    output: dict[str, object],
+) -> tuple[uuid.UUID, uuid.UUID | None]:
+    """Persist bounded Trend references in the existing 9G artifact/finding tables."""
+    artifact_type = {
+        "TREND_ANALYSIS": "TREND_ANALYSIS_SUMMARY",
+        "TREND_CHANGE_ANALYSIS": "TREND_CHANGE_SUMMARY",
+        "TREND_VALIDATION": "TREND_VALIDATION_SUMMARY",
+        "TREND_WINNING_PRODUCT_PROJECTION": "TREND_EVIDENCE_BRIEF",
+    }.get(capability, "TREND_EVIDENCE_BRIEF")
+    payload_keys = (
+        "capability",
+        "status",
+        "gap_code",
+        "context_id",
+        "snapshot_id",
+        "analysis_id",
+        "baseline_analysis_id",
+        "comparison_id",
+        "validation_id",
+        "projection_id",
+        "readiness",
+        "confidence",
+        "freshness",
+        "agreement",
+        "contradictions",
+        "research_gaps",
+        "evidence_gaps",
+        "event_count",
+        "observation_count",
+        "reason",
+    )
+    payload = {key: output[key] for key in payload_keys if key in output}
+    existing = next(
+        (
+            item
+            for item in db.scalars(
+                select(BusinessAgentArtifact).where(
+                    BusinessAgentArtifact.owner_id == owner.id,
+                    BusinessAgentArtifact.run_id == run.id,
+                    BusinessAgentArtifact.artifact_type == artifact_type,
+                )
+            )
+            if item.payload.get("capability") == capability
+            and item.payload.get("context_id") == payload.get("context_id")
+        ),
+        None,
+    )
+    artifact = existing
+    if artifact is None:
+        artifact = BusinessAgentArtifact(
+            owner_id=owner.id,
+            run_id=run.id,
+            artifact_type=artifact_type,
+            payload=payload,
+            provenance={
+                "source": "trend-intelligence",
+                "authoritative_services": ["12A", "12B", "12C", "12D", "12E", "12F"],
+                "external_mutation": False,
+            },
+            created_at=agent_now(),
+        )
+        db.add(artifact)
+        db.flush()
+    gaps = output.get("evidence_gaps") or output.get("research_gaps") or []
+    finding_id: uuid.UUID | None = None
+    if output.get("status") == "EVIDENCE_GAP" or gaps:
+        finding_type = "TREND_RESEARCH_GAP"
+    elif capability == "TREND_CHANGE_ANALYSIS" and _bounded_int(output.get("event_count"), 0):
+        finding_type = "TREND_MATERIAL_CHANGE"
+    elif capability == "TREND_VALIDATION":
+        finding_type = "TREND_VALIDATED_HYPOTHESIS"
+    else:
+        finding_type = "TREND_OBSERVED_SIGNAL"
+    if output.get("status") in {"EVIDENCE_GAP", "SUCCEEDED"}:
+        finding = next(
+            (
+                item
+                for item in db.scalars(
+                    select(BusinessAgentFinding).where(
+                        BusinessAgentFinding.owner_id == owner.id,
+                        BusinessAgentFinding.run_id == run.id,
+                        BusinessAgentFinding.finding_type == finding_type,
+                    )
+                )
+                if str(artifact.id) in (item.evidence_ids or [])
+            ),
+            None,
+        )
+        if finding is None:
+            finding = BusinessAgentFinding(
+                owner_id=owner.id,
+                run_id=run.id,
+                finding_type=finding_type,
+                value={
+                    "status": output.get("status"),
+                    "capability": capability,
+                    "labels": [
+                        "OBSERVED SIGNAL EVIDENCE",
+                        "DERIVED DETERMINISTIC TREND INTELLIGENCE",
+                        "REQUIRES HUMAN REVIEW",
+                    ],
+                    "gap_code": output.get("gap_code"),
+                    "readiness": output.get("readiness"),
+                    "research_gaps": gaps if isinstance(gaps, list) else [],
+                },
+                evidence_ids=[str(artifact.id)],
+                confidence=0.0,
+                created_at=agent_now(),
+            )
+            db.add(finding)
+            db.flush()
+        finding_id = finding.id
+    return artifact.id, finding_id
+
+
+def _emit_trend_channel_event(
+    db: Session,
+    owner: User,
+    run: BusinessAgentRun,
+    output: dict[str, object],
+) -> None:
+    context_id = output.get("context_id")
+    if not isinstance(context_id, str):
+        return
+    action: str | None = None
+    capability = output.get("capability")
+    if capability == "TREND_VALIDATION":
+        action = (
+            "product_channel.trend_validation_ready"
+            if output.get("readiness") == "READY_FOR_DOWNSTREAM"
+            else "product_channel.trend_research_required"
+        )
+    elif capability == "TREND_CHANGE_ANALYSIS":
+        materialities = output.get("materialities")
+        if isinstance(materialities, list) and any(
+            str(value).upper() in {"MODERATE", "HIGH"} for value in materialities
+        ):
+            action = "product_channel.trend_material_change"
+    if action is not None:
+        record_event(
+            db,
+            actor_id=owner.id,
+            action=action,
+            entity_type="trend_context",
+            entity_id=uuid.UUID(context_id),
+            metadata={
+                "owner_id": str(owner.id),
+                "context_id": context_id,
+                "source_subsystem": "trend-intelligence",
+                "run_id": str(run.id),
+                "analysis_id": output.get("analysis_id"),
+                "comparison_id": output.get("comparison_id"),
+                "validation_id": output.get("validation_id"),
+                "lineage": "authoritative-trend-services",
+                "external_writes": [],
+            },
+            idempotency_key=f"business-agent:{run.id}:{action}:{context_id}",
+        )
+
+
 def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgentRun:
     locked_run = db.scalar(
         select(BusinessAgentRun)
@@ -519,7 +740,35 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
         db.add(attempt)
         db.flush()
         try:
-            if step.capability_id in REVIEW_CAPABILITIES:
+            if step.capability_id in TREND_CAPABILITIES:
+                output = execute_trend_capability(
+                    db,
+                    owner,
+                    opportunity,
+                    step.capability_id,
+                )
+                output["opportunity_id"] = str(opportunity.id)
+                artifact_id, finding_id = _persist_trend_artifact(
+                    db, owner, run, step.capability_id, output
+                )
+                output["artifact_id"] = str(artifact_id)
+                if finding_id is not None:
+                    output["finding_id"] = str(finding_id)
+                _emit_trend_channel_event(db, owner, run, output)
+                _audit(
+                    db,
+                    owner,
+                    "trend.capability_invoked",
+                    run.id,
+                    f"{run.id}:{step.id}:{step.attempt_count}",
+                    {
+                        "capability": step.capability_id,
+                        "opportunity_id": str(opportunity.id),
+                        "context_id": output.get("context_id"),
+                        "external_mutation": False,
+                    },
+                )
+            elif step.capability_id in REVIEW_CAPABILITIES:
                 output = execute_review_capability(
                     db,
                     owner,
@@ -586,14 +835,22 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 }
         except Exception:
             failure_code = (
-                "REVIEW_EXECUTION_FAILED"
-                if step.capability_id in REVIEW_CAPABILITIES
-                else "COMPETITOR_EXECUTION_FAILED"
+                "TREND_EXECUTION_FAILED"
+                if step.capability_id in TREND_CAPABILITIES
+                else (
+                    "REVIEW_EXECUTION_FAILED"
+                    if step.capability_id in REVIEW_CAPABILITIES
+                    else "COMPETITOR_EXECUTION_FAILED"
+                )
             )
             safe_message = (
-                "Review Intelligence execution could not be completed safely."
-                if step.capability_id in REVIEW_CAPABILITIES
-                else "Competitor intelligence execution could not be completed safely."
+                "Trend Intelligence execution could not be completed safely."
+                if step.capability_id in TREND_CAPABILITIES
+                else (
+                    "Review Intelligence execution could not be completed safely."
+                    if step.capability_id in REVIEW_CAPABILITIES
+                    else "Competitor intelligence execution could not be completed safely."
+                )
             )
             step.status = "FAILED"
             step.result = {"code": failure_code, "message": safe_message}
@@ -685,7 +942,23 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
         review_enabled_run = review_enabled(goal_record)
         if review_enabled_run:
             integrated_slices.extend(["11A", "11B", "11C", "11D", "11E", "11F"])
+        trend_enabled_run = _trend_enabled(goal_record)
+        if trend_enabled_run:
+            integrated_slices.extend(["12A", "12B", "12C", "12D", "12E", "12F"])
         review_steps = [step for step in steps if step.capability_id in REVIEW_CAPABILITIES]
+        trend_steps = [step for step in steps if step.capability_id in TREND_CAPABILITIES]
+        trend_outputs = [step.result for step in trend_steps]
+        trend_artifacts = [
+            output.get("artifact_id") for output in trend_outputs if output.get("artifact_id")
+        ]
+        trend_findings = [
+            output.get("finding_id") for output in trend_outputs if output.get("finding_id")
+        ]
+        trend_gaps: list[dict[str, object]] = []
+        for output in trend_outputs:
+            raw_gaps = output.get("evidence_gaps") or output.get("research_gaps") or []
+            if isinstance(raw_gaps, list):
+                trend_gaps.extend(gap for gap in raw_gaps if isinstance(gap, dict))
         review_outputs = [step.result for step in review_steps]
         review_artifacts = [
             output.get("artifact_id") for output in review_outputs if output.get("artifact_id")
@@ -709,6 +982,12 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             "review_artifacts": review_artifacts,
             "review_findings": review_findings,
             "review_evidence_gaps": review_gaps,
+            "trend_enabled": trend_enabled_run,
+            "trend_capabilities": [step.capability_id for step in trend_steps],
+            "trend_artifacts": trend_artifacts,
+            "trend_findings": trend_findings,
+            "trend_evidence_gaps": trend_gaps,
+            "external_writes": [],
         }
         brief_payload: dict[str, object] = {
             "summary": "Evidence-first opportunity brief ready for human decision.",
@@ -729,6 +1008,62 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 "evidence_gaps": review_gaps,
                 "requires_validation": True,
                 "external_writes": [],
+            }
+        if trend_enabled_run:
+            latest_trend = next(
+                (
+                    output
+                    for output in reversed(trend_outputs)
+                    if output.get("status") in {"SUCCEEDED", "EVIDENCE_GAP", "NOT_APPLICABLE"}
+                ),
+                {},
+            )
+            brief_payload["trend_intelligence"] = {
+                "label": "OBSERVED SIGNAL EVIDENCE / DETERMINISTIC TREND INTELLIGENCE",
+                "context_id": latest_trend.get("context_id"),
+                "analysis_id": next(
+                    (
+                        output.get("analysis_id")
+                        for output in trend_outputs
+                        if output.get("analysis_id")
+                    ),
+                    None,
+                ),
+                "comparison_id": next(
+                    (
+                        output.get("comparison_id")
+                        for output in trend_outputs
+                        if output.get("comparison_id")
+                    ),
+                    None,
+                ),
+                "validation_id": next(
+                    (
+                        output.get("validation_id")
+                        for output in trend_outputs
+                        if output.get("validation_id")
+                    ),
+                    None,
+                ),
+                "projection_id": next(
+                    (
+                        output.get("projection_id")
+                        for output in trend_outputs
+                        if output.get("projection_id")
+                    ),
+                    None,
+                ),
+                "readiness": latest_trend.get("readiness", "INSUFFICIENT_EVIDENCE"),
+                "confidence": latest_trend.get("confidence", "UNKNOWN"),
+                "freshness": latest_trend.get("freshness", "UNKNOWN"),
+                "agreement": latest_trend.get("agreement", "UNKNOWN"),
+                "research_gaps": trend_gaps,
+                "capabilities": [step.capability_id for step in trend_steps],
+                "artifacts": trend_artifacts,
+                "findings": trend_findings,
+                "requires_validation": True,
+                "external_writes": [],
+                "semantic_boundary": "Trend evidence is not a forecast, sales, revenue, or product-success claim.",
             }
         db.add(
             BusinessAgentArtifact(

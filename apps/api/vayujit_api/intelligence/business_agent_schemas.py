@@ -13,6 +13,7 @@ class BusinessGoalCreate(BaseModel):
     structured_goal: dict[str, object] | None = None
     provenance: dict[str, object] = Field(default_factory=dict)
     idempotency_key: str = Field(min_length=2, max_length=180)
+    include_trend_intelligence: bool = False
 
 
 class RunCreate(BaseModel):

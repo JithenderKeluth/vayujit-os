@@ -8,14 +8,15 @@ import { OperationsService } from './operations.service';
 @Component({
   selector: 'app-dashboard',
   imports: [FormsModule, RouterLink],
-  template: `<section class="op-page">
+  template: `<section class="op-page dashboard-page" aria-labelledby="dashboard-title">
     <header class="op-header">
       <div>
-        <h1>Operational Dashboard</h1>
+        <p class="eyebrow">Today at a glance</p>
+        <h1 id="dashboard-title">Operational Dashboard</h1>
         <p class="op-muted">Accurate owner-scoped work requiring attention and recent activity.</p>
       </div>
-      <label
-        >Brand
+      <label class="dashboard-filter"
+        >View by brand
         <select [(ngModel)]="brandId" (ngModelChange)="load()">
           <option value="">All Brands</option>
           @for (item of brandOptions(); track item.id) {
@@ -40,26 +41,32 @@ import { OperationsService } from './operations.service';
         }
       </div>
       <article class="op-card">
-        <h2>Attention required</h2>
-        <div class="op-grid">
+        <div class="section-heading">
           <div>
+            <p class="eyebrow">Next best actions</p>
+            <h2>Attention required</h2>
+          </div>
+        </div>
+        <div class="op-grid">
+          <div class="attention-item">
             <strong>Pending approvals</strong>
             <p class="op-stat">{{ value.metrics.pending_approvals }}</p>
-            <a routerLink="/approvals">Review</a>
+            <a class="op-button" routerLink="/approvals">Review approvals</a>
           </div>
-          <div>
+          <div class="attention-item">
             <strong>Failed executions</strong>
             <p class="op-stat">{{ value.metrics.failed_executions }}</p>
-            <a routerLink="/execution-history">Inspect</a>
+            <a class="op-button" routerLink="/execution-history">Inspect history</a>
           </div>
-          <div>
+          <div class="attention-item">
             <strong>Retryable failures</strong>
             <p class="op-stat">{{ value.metrics.retryable_failures }}</p>
-            <a routerLink="/workflows">Resolve</a>
+            <a class="op-button" routerLink="/workflows">Resolve workflow</a>
           </div>
         </div>
       </article>
       <article class="op-card">
+        <p class="eyebrow">Execution health</p>
         <h2>Workflow status distribution</h2>
         @for (item of chart(value); track item.label) {
           <div class="op-bar">
@@ -72,6 +79,7 @@ import { OperationsService } from './operations.service';
         }
       </article>
       <article class="op-card">
+        <p class="eyebrow">Audit trail</p>
         <h2>Recent activity</h2>
         @if (!value.activity.length) {
           <p class="op-muted">No recent activity.</p>
@@ -87,6 +95,7 @@ import { OperationsService } from './operations.service';
         }
       </article>
       <article class="op-card">
+        <p class="eyebrow">Common tasks</p>
         <h2>Quick actions</h2>
         <div class="op-actions">
           <a class="op-button" routerLink="/products/new">Create Product</a
