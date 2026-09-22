@@ -29,6 +29,23 @@ from vayujit_api.intelligence.trend_analysis_service import (
     list_gaps,
     list_series,
 )
+from vayujit_api.intelligence.trend_change_models import TrendChangeComparison
+from vayujit_api.intelligence.trend_change_schemas import (
+    TrendChangeComparisonCreate,
+    TrendChangeComparisonPage,
+    TrendChangeComparisonResponse,
+    TrendChangeComparisonResult,
+    TrendChangeEventPage,
+)
+from vayujit_api.intelligence.trend_change_service import (
+    comparison_or_404,
+    create_comparison,
+    list_comparisons,
+    list_events,
+)
+from vayujit_api.intelligence.trend_change_service import (
+    doctor as change_doctor,
+)
 from vayujit_api.intelligence.trend_ingestion_models import TrendIngestionBatch
 from vayujit_api.intelligence.trend_ingestion_schemas import (
     TrendIngestionBatchResponse,
@@ -216,6 +233,7 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
     result = cast(dict[str, Any], doctor(db, owner))
     checks = cast(dict[str, int], result["checks"])
     checks.update(analysis_doctor(db, owner))
+    checks.update(change_doctor(db, owner))
     result["status"] = "PASS" if not any(checks.values()) else "FAIL"
     return result
 
@@ -437,3 +455,126 @@ def analysis_system_doctor(
         raise HTTPException(status_code=404, detail="Trend analysis not found.")
     checks = analysis_doctor(db, owner)
     return {"status": "PASS" if not any(checks.values()) else "FAIL", "checks": checks}
+
+
+@router.post(
+    "/contexts/{context_id}/changes", response_model=TrendChangeComparisonResult, status_code=201
+)
+def change_create(
+    context_id: uuid.UUID, data: TrendChangeComparisonCreate, db: DB, owner: Owner
+) -> dict[str, object]:
+    comparison, events = create_comparison(db, owner, context_or_404(db, owner, context_id), data)
+    return {"comparison": comparison, "events": events}
+
+
+@router.get("/contexts/{context_id}/changes", response_model=TrendChangeComparisonPage)
+def change_list(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> dict[str, object]:
+    context_or_404(db, owner, context_id)
+    items, total = list_comparisons(db, owner, context_id, limit, offset)
+    return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+
+@router.get("/contexts/{context_id}/changes/current", response_model=TrendChangeComparisonPage)
+def change_current(context_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
+    context_or_404(db, owner, context_id)
+    items, total = list_comparisons(db, owner, context_id, 1, 0)
+    return {"items": items, "total": total, "limit": 1, "offset": 0}
+
+
+@router.get(
+    "/contexts/{context_id}/changes/{comparison_id}", response_model=TrendChangeComparisonResponse
+)
+def change_detail(
+    context_id: uuid.UUID, comparison_id: uuid.UUID, db: DB, owner: Owner
+) -> TrendChangeComparison:
+    return comparison_or_404(db, owner, context_id, comparison_id)
+
+
+@router.get(
+    "/contexts/{context_id}/changes/{comparison_id}/events", response_model=TrendChangeEventPage
+)
+def change_events(
+    context_id: uuid.UUID,
+    comparison_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    event_type: str | None = None,
+    signal: str | None = None,
+    source: uuid.UUID | None = None,
+    momentum: str | None = None,
+    materiality: str | None = None,
+    status: str | None = None,
+    alert_eligibility: str | None = None,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> dict[str, object]:
+    comparison_or_404(db, owner, context_id, comparison_id)
+    items, total = list_events(
+        db,
+        owner,
+        context_id,
+        comparison_id,
+        limit,
+        offset,
+        {
+            "event_type": event_type,
+            "momentum": momentum,
+            "materiality": materiality,
+            "status": status,
+            "alert_eligibility": alert_eligibility,
+            "source_id": str(source) if source else None,
+        },
+    )
+    if signal:
+        items = [
+            item
+            for item in items
+            if item.signal_definition_id and str(item.signal_definition_id) == signal
+        ]
+    return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+
+@router.get("/contexts/{context_id}/changes/{comparison_id}/gaps")
+def change_gaps(
+    context_id: uuid.UUID, comparison_id: uuid.UUID, db: DB, owner: Owner
+) -> list[dict[str, object]]:
+    comparison_or_404(db, owner, context_id, comparison_id)
+    return []
+
+
+@router.get("/contexts/{context_id}/change-history", response_model=TrendChangeEventPage)
+def change_history(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    event_type: str | None = None,
+    momentum: str | None = None,
+    materiality: str | None = None,
+    status: str | None = None,
+    alert_eligibility: str | None = None,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> dict[str, object]:
+    context_or_404(db, owner, context_id)
+    items, total = list_events(
+        db,
+        owner,
+        context_id,
+        None,
+        limit,
+        offset,
+        {
+            "event_type": event_type,
+            "momentum": momentum,
+            "materiality": materiality,
+            "status": status,
+            "alert_eligibility": alert_eligibility,
+        },
+    )
+    return {"items": items, "total": total, "limit": limit, "offset": offset}

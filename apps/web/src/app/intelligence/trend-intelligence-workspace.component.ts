@@ -5,6 +5,8 @@ import { RouterLink } from '@angular/router';
 import {
   TrendAnalysis,
   TrendAnalysisSeries,
+  TrendChangeComparison,
+  TrendChangeEvent,
   TrendContext,
   TrendIngestion,
   TrendIntelligenceService,
@@ -164,6 +166,61 @@ import {
           }
         </section>
       }
+      @if (selected()) {
+        <section aria-labelledby="changes-heading">
+          <h2 id="changes-heading">Change and momentum history</h2>
+          <p>
+            Deterministic comparisons between immutable analyses. Momentum is descriptive and does
+            not forecast demand, sales, revenue, market size, or product success.
+          </p>
+          <button type="button" (click)="compareLatest()" [disabled]="analysesList().length < 2">
+            Compare latest analyses
+          </button>
+          @if (changes().length) {
+            <p>
+              Latest comparison: {{ changes()[0].status }} - baseline
+              {{ changes()[0].baseline_snapshot_id }} - current
+              {{ changes()[0].current_snapshot_id }}
+            </p>
+          }
+          @if (changeEvents().length) {
+            <table>
+              <thead>
+                <tr>
+                  <th>Event</th>
+                  <th>Signal / source</th>
+                  <th>Old -> new</th>
+                  <th>Delta</th>
+                  <th>Momentum</th>
+                  <th>Materiality</th>
+                  <th>Status / alert</th>
+                  <th>Freshness</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (event of changeEvents(); track event.id) {
+                  <tr>
+                    <td>{{ event.event_type }}</td>
+                    <td>{{ event.signal_definition_id }} / {{ event.source_id }}</td>
+                    <td>{{ event.old_value ?? '-' }} -> {{ event.new_value ?? '-' }}</td>
+                    <td>
+                      {{ event.absolute_delta ?? '-' }} /
+                      {{ event.relative_delta ?? event.relative_reason ?? '-' }}
+                    </td>
+                    <td>{{ event.momentum }}</td>
+                    <td>{{ event.materiality }}</td>
+                    <td>{{ event.status }} / {{ event.alert_eligibility }}</td>
+                    <td>{{ event.freshness_state }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+          @if (!changeEvents().length) {
+            <p>No change comparison has been recorded yet.</p>
+          }
+        </section>
+      }
     </main>
   `,
 })
@@ -176,6 +233,9 @@ export class TrendIntelligenceWorkspaceComponent {
   readonly ingestions = signal<TrendIngestion[]>([]);
   readonly analysis = signal<TrendAnalysis | null>(null);
   readonly series = signal<TrendAnalysisSeries[]>([]);
+  readonly analysesList = signal<TrendAnalysis[]>([]);
+  readonly changes = signal<TrendChangeComparison[]>([]);
+  readonly changeEvents = signal<TrendChangeEvent[]>([]);
   readonly error = signal('');
   name = '';
   subjectType = 'CUSTOM';
@@ -225,6 +285,8 @@ export class TrendIntelligenceWorkspaceComponent {
     });
     this.service.analyses(value.id).subscribe({
       next: (page) => {
+        this.analysesList.set(page.items);
+        this.loadChanges(value.id);
         const latest = page.items[0] ?? null;
         this.analysis.set(latest);
         if (latest) {
@@ -238,6 +300,40 @@ export class TrendIntelligenceWorkspaceComponent {
       },
       error: () => this.error.set('Trend analyses are unavailable.'),
     });
+  }
+  loadChanges(contextId: string): void {
+    this.service.changes(contextId).subscribe({
+      next: (page) => {
+        this.changes.set(page.items);
+        const latest = page.items[0];
+        if (latest) {
+          this.service.changeEvents(contextId, latest.id).subscribe({
+            next: (events) => this.changeEvents.set(events.items),
+            error: () => this.error.set('Change events are unavailable.'),
+          });
+        } else {
+          this.changeEvents.set([]);
+        }
+      },
+      error: () => this.error.set('Change history is unavailable.'),
+    });
+  }
+  compareLatest(): void {
+    const context = this.selected();
+    const items = this.analysesList();
+    if (!context || items.length < 2) return;
+    this.service
+      .createChange(context.id, {
+        baseline_analysis_id: items[1].id,
+        current_analysis_id: items[0].id,
+      })
+      .subscribe({
+        next: (result) => {
+          this.changes.set([result.comparison, ...this.changes()]);
+          this.changeEvents.set(result.events);
+        },
+        error: () => this.error.set('The trend change comparison could not be created.'),
+      });
   }
   analyzeSnapshot(): void {
     const context = this.selected();
