@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import {
   TrendContext,
+  TrendIngestion,
   TrendIntelligenceService,
   TrendObservation,
   TrendSnapshot,
@@ -52,6 +53,30 @@ import {
         </section>
       }
       @if (selected()) {
+        <section aria-labelledby="ingestion-heading">
+          <h2 id="ingestion-heading">Local fixture ingestion</h2>
+          <p>
+            Provider input is normalized into evidence observations; live mode fails closed until
+            configured.
+          </p>
+          <form (ngSubmit)="ingestFixture()">
+            <label>Source ID <input name="sourceId" [(ngModel)]="sourceId" required /></label
+            ><label
+              >Signal <input name="fixtureSignal" [(ngModel)]="fixtureSignal" required /></label
+            ><label>Value <input name="fixtureValue" [(ngModel)]="fixtureValue" required /></label
+            ><button type="submit">Ingest local fixture</button>
+          </form>
+          @if (ingestions().length) {
+            <ul>
+              @for (batch of ingestions(); track batch.id) {
+                <li>
+                  {{ batch.status }} - accepted {{ batch.accepted_count }}, rejected
+                  {{ batch.rejected_count }}, duplicates {{ batch.duplicate_count }}
+                </li>
+              }
+            </ul>
+          }
+        </section>
         <section aria-labelledby="observation-heading">
           <h2 id="observation-heading">Evidence observations</h2>
           <p>Observations: {{ observations().length }} - Snapshots: {{ snapshots().length }}</p>
@@ -91,10 +116,14 @@ export class TrendIntelligenceWorkspaceComponent {
   readonly selected = signal<TrendContext | null>(null);
   readonly observations = signal<TrendObservation[]>([]);
   readonly snapshots = signal<TrendSnapshot[]>([]);
+  readonly ingestions = signal<TrendIngestion[]>([]);
   readonly error = signal('');
   name = '';
   subjectType = 'CUSTOM';
   subjectKey = '';
+  sourceId = '';
+  fixtureSignal = 'CUSTOM_INDEX';
+  fixtureValue = '1';
   constructor() {
     this.load();
   }
@@ -123,6 +152,10 @@ export class TrendIntelligenceWorkspaceComponent {
   }
   select(value: TrendContext): void {
     this.selected.set(value);
+    this.service.ingestions(value.id).subscribe({
+      next: (items) => this.ingestions.set(items),
+      error: () => this.error.set('Ingestion history is unavailable.'),
+    });
     this.service.observations(value.id).subscribe({
       next: (page) => this.observations.set(page.items),
       error: () => this.error.set('Observations are unavailable.'),
@@ -131,5 +164,27 @@ export class TrendIntelligenceWorkspaceComponent {
       next: (items) => this.snapshots.set(items),
       error: () => this.error.set('Snapshots are unavailable.'),
     });
+  }
+  ingestFixture(): void {
+    const context = this.selected();
+    if (!context) return;
+    this.service
+      .ingest(context.id, {
+        source_id: this.sourceId,
+        mode: 'LOCAL_FIXTURE',
+        provider: 'LOCAL_FIXTURE',
+        candidates: [
+          {
+            signal_key: this.fixtureSignal,
+            measurement_type: 'INDEX',
+            value_numeric: this.fixtureValue,
+            observed_at: new Date().toISOString(),
+          },
+        ],
+      })
+      .subscribe({
+        next: (batch) => this.ingestions.update((items) => [batch, ...items]),
+        error: () => this.error.set('The local fixture could not be ingested.'),
+      });
   }
 }

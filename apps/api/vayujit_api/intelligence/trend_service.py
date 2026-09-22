@@ -141,6 +141,7 @@ def create_context(db: Session, owner: User, data: TrendContextCreate) -> TrendC
         **data.model_dump(exclude={"idempotency_key", "input_fingerprint"}),
     )
     db.add(value)
+    db.flush()
     record_event(
         db,
         actor_id=owner.id,
@@ -304,6 +305,7 @@ def create_observation(
         measurement_type=measurement,
         freshness_state=freshness,
         quality_state=data.quality_state or "COMPLETE",
+        created_at=_now(),
         raw_metadata=metadata,
         canonical_metadata=canonical,
         **data.model_dump(
@@ -319,10 +321,12 @@ def create_observation(
                 "canonical_metadata",
                 "idempotency_key",
                 "captured_at",
+                "observed_at",
             }
         ),
     )
     db.add(row)
+    db.flush()
     record_event(
         db,
         actor_id=owner.id,
@@ -390,6 +394,7 @@ def create_snapshot(
         created_at=_now(),
     )
     db.add(row)
+    db.flush()
     record_event(
         db,
         actor_id=owner.id,
