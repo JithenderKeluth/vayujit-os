@@ -58,7 +58,7 @@ interface WebsiteFilters {
       </section>
       <nav class="tabs" aria-label="Website Intelligence sections">
         @for (item of navigation; track item.id) {
-          <a [href]="'#' + item.id">{{ item.label }}</a>
+          <a [href]="'#' + item.id" (click)="activateSection($event, item.id)">{{ item.label }}</a>
         }
       </nav>
       @if (loading()) {
@@ -1317,6 +1317,10 @@ export class WebsiteIntelligenceComponent {
   ];
   constructor() {
     void this.load();
+  }
+  activateSection(event: Event, sectionId: string): void {
+    event.preventDefault();
+    document.getElementById(sectionId)?.scrollIntoView?.({ behavior: 'smooth', block: 'start' });
   }
   async load(): Promise<void> {
     this.loading.set(true);

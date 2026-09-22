@@ -51,6 +51,10 @@ import {
             <input type="checkbox" name="review" [(ngModel)]="includeReviewIntelligence" />
             Include Review Intelligence (customer-feedback evidence only)
           </label>
+          <label>
+            <input type="checkbox" name="trend" [(ngModel)]="includeTrendIntelligence" />
+            Include Trend Intelligence (observed signals and historical momentum)
+          </label>
           <button type="submit" [disabled]="loading() || !rawGoal.trim()">Create goal</button>
         </form>
       </section>
@@ -85,6 +89,12 @@ import {
                 <small>
                   Review Intelligence: {{ reviewCapabilityCount(run) }} capabilities ·
                   {{ reviewGapCount(run) }} evidence gaps · internal writes only
+                </small>
+              }
+              @if (run.result?.trend_enabled) {
+                <small>
+                  Trend Intelligence: {{ trendCapabilityCount(run) }} steps;
+                  {{ trendGapCount(run) }} evidence gaps; no forecasts or external writes
                 </small>
               }
               @if (run.artifacts?.length) {
@@ -123,6 +133,7 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   idempotencyKey = `business-goal-${Date.now()}`;
   includeCompetitorIntelligence = false;
   includeReviewIntelligence = false;
+  includeTrendIntelligence = false;
 
   integratedSlices(run: BusinessAgentRun): string {
     return run.result?.integrated_slices?.join(', ') || '';
@@ -142,6 +153,14 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
 
   reviewGapCount(run: BusinessAgentRun): number {
     return run.result?.review_evidence_gaps?.length || 0;
+  }
+
+  trendCapabilityCount(run: BusinessAgentRun): number {
+    return run.result?.trend_capabilities?.length || 0;
+  }
+
+  trendGapCount(run: BusinessAgentRun): number {
+    return run.result?.trend_evidence_gaps?.length || 0;
   }
 
   ngOnInit(): void {
@@ -169,13 +188,16 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
         raw_goal: this.rawGoal,
         idempotency_key: this.idempotencyKey,
         structured_goal:
-          this.includeCompetitorIntelligence || this.includeReviewIntelligence
+          this.includeCompetitorIntelligence ||
+          this.includeReviewIntelligence ||
+          this.includeTrendIntelligence
             ? {
                 marketplace: 'AMAZON_IN',
                 ...(this.includeCompetitorIntelligence
                   ? { include_competitor_intelligence: true }
                   : {}),
                 ...(this.includeReviewIntelligence ? { include_review_intelligence: true } : {}),
+                ...(this.includeTrendIntelligence ? { include_trend_intelligence: true } : {}),
               }
             : undefined,
       });

@@ -32,6 +32,10 @@ export interface BusinessAgentRun {
     review_enabled?: boolean;
     review_capabilities?: string[];
     review_evidence_gaps?: Array<Record<string, unknown>>;
+    trend_enabled?: boolean;
+    trend_capabilities?: string[];
+    trend_evidence_gaps?: Array<Record<string, unknown>>;
+    trend_intelligence?: Record<string, unknown>;
   } & Record<string, unknown>;
   artifacts?: Array<{ artifact_type: string; payload: Record<string, unknown> }>;
   findings?: Array<{ finding_type: string; value: Record<string, unknown> }>;

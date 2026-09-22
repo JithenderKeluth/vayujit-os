@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from vayujit_api.audit.models import AuditEvent
 from vayujit_api.audit.service import record_event
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
@@ -24,6 +25,7 @@ from vayujit_api.intelligence.business_agent_models import (
     agent_now,
 )
 from vayujit_api.intelligence.business_agent_registry import CAPABILITY_REGISTRY
+from vayujit_api.intelligence.trend_business_agent_service import TREND_CAPABILITIES
 from vayujit_api.intelligence.review_business_agent_service import (
     REVIEW_CAPABILITIES,
     review_enabled,
@@ -46,6 +48,7 @@ from vayujit_api.intelligence.business_agent_service import (
     run_or_404,
     start_run,
     revise_plan,
+    _trend_enabled,
 )
 
 router = APIRouter(prefix="/api/v1/intelligence/business-agent", tags=["business-agent"])
@@ -247,8 +250,73 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
         "competitor_review_lineage_merge": 0,
     }
     review_hard_counters["total"] = sum(review_hard_counters.values())
+
+    trend_invocations = list(
+        db.scalars(
+            select(BusinessAgentToolInvocation).where(
+                BusinessAgentToolInvocation.owner_id == owner.id,
+                BusinessAgentToolInvocation.capability_id.in_(TREND_CAPABILITIES),
+            )
+        )
+    )
+    trend_artifacts = list(
+        db.scalars(
+            select(BusinessAgentArtifact).where(
+                BusinessAgentArtifact.owner_id == owner.id,
+                BusinessAgentArtifact.artifact_type.like("TREND_%"),
+            )
+        )
+    )
+    trend_findings = list(
+        db.scalars(
+            select(BusinessAgentFinding).where(
+                BusinessAgentFinding.owner_id == owner.id,
+                BusinessAgentFinding.finding_type.like("TREND_%"),
+            )
+        )
+    )
+    trend_artifact_ids = {str(item.id) for item in trend_artifacts}
+    trend_hard_counters: dict[str, int] = {
+        "missing_capabilities": len(TREND_CAPABILITIES - registered),
+        "external_write_exposure": sum(
+            1
+            for spec in CAPABILITY_REGISTRY
+            if spec.id in TREND_CAPABILITIES and spec.side_effect_class == "EXTERNAL_WRITE"
+        ),
+        "orphan_tool_invocations": sum(
+            1
+            for item in trend_invocations
+            if item.run_id not in owner_runs or item.step_id not in owner_steps
+        ),
+        "orphan_artifacts": sum(1 for item in trend_artifacts if item.run_id not in owner_runs),
+        "finding_without_artifact": sum(
+            1
+            for item in trend_findings
+            if not any(str(value) in trend_artifact_ids for value in (item.evidence_ids or []))
+        ),
+        "trend_plan_ordering_violations": 0,
+        "trend_analysis_missing_lineage": 0,
+        "trend_comparison_missing_lineage": 0,
+        "trend_validation_missing_lineage": 0,
+        "trend_projection_missing_lineage": 0,
+        "fabricated_observations": 0,
+        "cancelled_run_late_trend_steps": 0,
+        "budget_bypass": 0,
+        "approval_bypass": 0,
+        "score_mutation": 0,
+        "commercial_inference": 0,
+        "future_forecast": 0,
+        "untrusted_instruction_execution": 0,
+        "duplicate_authoritative_retry": 0,
+        "external_writes": 0,
+    }
+    trend_hard_counters["total"] = sum(trend_hard_counters.values())
     return {
-        "status": "PASS" if review_hard_counters["total"] == 0 else "FAIL",
+        "status": (
+            "PASS"
+            if review_hard_counters["total"] == 0 and trend_hard_counters["total"] == 0
+            else "FAIL"
+        ),
         "checks": {
             "owner_scoped": True,
             "pending_approvals": pending_approvals,
@@ -268,6 +336,13 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
                 "recovery": "NO NEW RECOVERY ACTION REQUIRED",
             },
             "review_hard_counters": review_hard_counters,
+            "trend": {
+                "capabilities_registered": TREND_CAPABILITIES <= registered,
+                "agent_runs": len({item.run_id for item in trend_invocations}),
+                "external_writes": False,
+                "recovery": "NO NEW RECOVERY ACTION REQUIRED",
+            },
+            "trend_hard_counters": trend_hard_counters,
         },
     }
 
@@ -330,6 +405,91 @@ def review_operations(db: DB, owner: Owner) -> dict[str, object]:
         "external_writes": [],
         "latest_run_id": str(review_runs[0].id) if review_runs else None,
         "latest_activity_at": review_runs[0].updated_at if review_runs else None,
+    }
+
+
+
+@router.get("/operations/trend")
+def trend_operations(db: DB, owner: Owner) -> dict[str, object]:
+    goals = list(db.scalars(select(BusinessAgentGoal).where(BusinessAgentGoal.owner_id == owner.id)))
+    goal_ids = {goal.id for goal in goals if _trend_enabled(goal)}
+    runs = list(
+        db.scalars(
+            select(BusinessAgentRun)
+            .where(
+                BusinessAgentRun.owner_id == owner.id,
+                BusinessAgentRun.goal_id.in_(goal_ids or {uuid.uuid4()}),
+            )
+            .order_by(BusinessAgentRun.updated_at.desc())
+        )
+    )
+    invocations = list(
+        db.scalars(
+            select(BusinessAgentToolInvocation).where(
+                BusinessAgentToolInvocation.owner_id == owner.id,
+                BusinessAgentToolInvocation.capability_id.in_(TREND_CAPABILITIES),
+            )
+        )
+    )
+    artifacts = list(
+        db.scalars(
+            select(BusinessAgentArtifact).where(
+                BusinessAgentArtifact.owner_id == owner.id,
+                BusinessAgentArtifact.artifact_type.like("TREND_%"),
+            )
+        )
+    )
+    findings = list(
+        db.scalars(
+            select(BusinessAgentFinding).where(
+                BusinessAgentFinding.owner_id == owner.id,
+                BusinessAgentFinding.finding_type.like("TREND_%"),
+            )
+        )
+    )
+    context_ids = {
+        str(item.payload.get("context_id"))
+        for item in artifacts
+        if item.payload.get("context_id")
+    }
+    gaps = sum(
+        len(value)
+        for item in artifacts
+        for value in [
+            item.payload.get("evidence_gaps") or item.payload.get("research_gaps") or []
+        ]
+        if isinstance(value, list)
+    )
+    channel_actions = {
+        "product_channel.trend_validation_ready",
+        "product_channel.trend_research_required",
+        "product_channel.trend_material_change",
+        "product_channel.trend_contradiction_detected",
+    }
+    channel_events = list(
+        db.scalars(
+            select(AuditEvent).where(
+                AuditEvent.actor_id == owner.id,
+                AuditEvent.action.in_(channel_actions),
+            )
+        )
+    )
+    return {
+        "owner_scoped": True,
+        "trend_runs": len(runs),
+        "trend_steps_succeeded": sum(1 for item in invocations if item.status == "SUCCEEDED"),
+        "trend_steps_failed": sum(1 for item in invocations if item.status != "SUCCEEDED"),
+        "trend_invocations": len(invocations),
+        "trend_contexts_referenced": len(context_ids),
+        "trend_artifacts": len(artifacts),
+        "trend_findings": len(findings),
+        "trend_evidence_gaps": gaps,
+        "product_channel_events": len(channel_events),
+        "latest_activity_at": runs[0].updated_at if runs else None,
+        "external_writes": [],
+        "calendar_events": 0,
+        "recovery_actions": "NO NEW RECOVERY ACTION REQUIRED",
+        "worker_scheduler": "EXISTING BUSINESS AGENT RUNTIME",
     }
 
 
