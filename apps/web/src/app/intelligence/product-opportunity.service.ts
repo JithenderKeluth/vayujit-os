@@ -74,6 +74,35 @@ export interface OpportunityDetail extends ProductOpportunity {
   assessments: OpportunityAssessment[];
 }
 
+export interface TrendWinningProductProjection {
+  id: string;
+  owner_id: string;
+  opportunity_id: string;
+  assessment_id: string;
+  context_id: string | null;
+  snapshot_id: string | null;
+  analysis_id: string | null;
+  comparison_id: string | null;
+  validation_id: string | null;
+  projection_version: number;
+  contract_version: string;
+  calculation_version: string;
+  input_fingerprint: string;
+  readiness: string;
+  source_state: string;
+  validated_hypotheses: Array<Record<string, unknown>>;
+  signal_summaries: Array<Record<string, unknown>>;
+  momentum_summaries: Array<Record<string, unknown>>;
+  evidence_confidence: Record<string, unknown>;
+  freshness: Record<string, unknown>;
+  contradictions: Array<Record<string, unknown>>;
+  research_gaps: Array<Record<string, unknown>>;
+  evidence_lineage: Record<string, unknown>;
+  limitations: string[];
+  projection: Record<string, unknown>;
+  created_at: string;
+}
+
 export interface OpportunityCreatePayload {
   name: string;
   description?: string;
@@ -374,6 +403,31 @@ export class ProductOpportunityService {
       this.http.post<OpportunityConstraint>(
         `${this.base}/${id}/constraints`,
         payload,
+        this.options,
+      ),
+    );
+  }
+
+  getTrendProjection(
+    opportunityId: string,
+    assessmentId: string,
+  ): Promise<TrendWinningProductProjection> {
+    return firstValueFrom(
+      this.http.get<TrendWinningProductProjection>(
+        this.base + '/' + opportunityId + '/assessments/' + assessmentId + '/trend-projection',
+        this.options,
+      ),
+    );
+  }
+
+  calculateTrendProjection(
+    opportunityId: string,
+    assessmentId: string,
+  ): Promise<TrendWinningProductProjection> {
+    return firstValueFrom(
+      this.http.post<TrendWinningProductProjection>(
+        this.base + '/' + opportunityId + '/assessments/' + assessmentId + '/trend-projection',
+        {},
         this.options,
       ),
     );

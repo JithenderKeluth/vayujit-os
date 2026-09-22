@@ -58,6 +58,26 @@ from vayujit_api.intelligence.review_winning_product_service import (
 from vayujit_api.intelligence.review_winning_product_service import (
     integrity_report as review_projection_integrity_report,
 )
+from vayujit_api.intelligence.trend_winning_product_models import TrendWinningProductProjection
+from vayujit_api.intelligence.trend_winning_product_schemas import (
+    TrendWinningProductProjectionPage,
+    TrendWinningProductProjectionResponse,
+)
+from vayujit_api.intelligence.trend_winning_product_service import (
+    current_projection as current_trend_projection,
+)
+from vayujit_api.intelligence.trend_winning_product_service import (
+    doctor as trend_projection_doctor,
+)
+from vayujit_api.intelligence.trend_winning_product_service import (
+    get_or_create_projection as get_or_create_trend_projection,
+)
+from vayujit_api.intelligence.trend_winning_product_service import (
+    list_projections as list_trend_projections,
+)
+from vayujit_api.intelligence.trend_winning_product_service import (
+    projection_operations as trend_projection_operations,
+)
 
 router = APIRouter(
     prefix="/api/v1/intelligence/product-opportunities", tags=["product-opportunity-intelligence"]
@@ -275,6 +295,16 @@ def _has_impossible_numeric_state(dimensions: object) -> bool:
     return False
 
 
+@router.get("/trend-projection-system-doctor")
+def trend_projection_system_doctor(db: DB, owner: Owner) -> dict[str, object]:
+    return trend_projection_doctor(db, owner)
+
+
+@router.get("/trend-projection-operations")
+def trend_projection_operations_route(db: DB, owner: Owner) -> dict[str, object]:
+    return trend_projection_operations(db, owner)
+
+
 @router.get("/review-projection-system-doctor")
 def review_projection_system_doctor(db: DB, owner: Owner) -> dict[str, object]:
     return review_projection_integrity_report(db, owner)
@@ -434,3 +464,85 @@ def intelligence_system_doctor(db: DB, owner: Owner) -> dict[str, object]:
         "dedicated_output_missing_projection_lineage": dedicated_outputs_without_lineage,
     }
     return {"status": "PASS" if not any(checks.values()) else "FAIL", "checks": checks}
+
+
+@router.post(
+    "/{opportunity_id}/assessments/{assessment_id}/trend-projection",
+    response_model=TrendWinningProductProjectionResponse,
+    status_code=201,
+)
+def create_trend_projection(
+    opportunity_id: uuid.UUID, assessment_id: uuid.UUID, db: DB, owner: Owner
+) -> TrendWinningProductProjection:
+    assessment = _assessment_or_404(db, owner, opportunity_id, assessment_id)
+    opportunity = db.scalar(
+        select(ProductOpportunity).where(
+            ProductOpportunity.id == opportunity_id, ProductOpportunity.owner_id == owner.id
+        )
+    )
+    if opportunity is None:
+        raise HTTPException(404, "Product opportunity not found.")
+    value = get_or_create_trend_projection(db, owner, opportunity, assessment)
+    db.commit()
+    db.refresh(value)
+    return value
+
+
+@router.get(
+    "/{opportunity_id}/assessments/{assessment_id}/trend-projection",
+    response_model=TrendWinningProductProjectionResponse,
+)
+def get_trend_projection(
+    opportunity_id: uuid.UUID, assessment_id: uuid.UUID, db: DB, owner: Owner
+) -> TrendWinningProductProjection:
+    _assessment_or_404(db, owner, opportunity_id, assessment_id)
+    value = current_trend_projection(db, owner, opportunity_id, assessment_id)
+    if value is None:
+        raise HTTPException(404, "Trend projection has not been calculated.")
+    return value
+
+
+@router.get(
+    "/{opportunity_id}/assessments/{assessment_id}/trend-projections",
+    response_model=TrendWinningProductProjectionPage,
+)
+def get_trend_projections(
+    opportunity_id: uuid.UUID,
+    assessment_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = 50,
+    offset: int = 0,
+) -> dict[str, object]:
+    _assessment_or_404(db, owner, opportunity_id, assessment_id)
+    safe_limit = min(max(limit, 1), 100)
+    safe_offset = max(offset, 0)
+    rows, total = list_trend_projections(
+        db, owner, opportunity_id, assessment_id, safe_limit, safe_offset
+    )
+    return {"items": rows, "total": total, "limit": safe_limit, "offset": safe_offset}
+
+
+@router.get(
+    "/{opportunity_id}/assessments/{assessment_id}/trend-projection/{projection_id}",
+    response_model=TrendWinningProductProjectionResponse,
+)
+def get_trend_projection_by_id(
+    opportunity_id: uuid.UUID,
+    assessment_id: uuid.UUID,
+    projection_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+) -> TrendWinningProductProjection:
+    _assessment_or_404(db, owner, opportunity_id, assessment_id)
+    value = db.scalar(
+        select(TrendWinningProductProjection).where(
+            TrendWinningProductProjection.id == projection_id,
+            TrendWinningProductProjection.owner_id == owner.id,
+            TrendWinningProductProjection.opportunity_id == opportunity_id,
+            TrendWinningProductProjection.assessment_id == assessment_id,
+        )
+    )
+    if value is None:
+        raise HTTPException(404, "Trend projection not found.")
+    return value

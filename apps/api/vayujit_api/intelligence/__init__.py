@@ -245,6 +245,7 @@ from vayujit_api.intelligence.sourcing_models import (
     SupplierQuoteLine,
     SupplierQuoteVersion,
 )
+from vayujit_api.intelligence.trend_winning_product_models import TrendWinningProductProjection
 from vayujit_api.intelligence.website_models import (
     ManufacturerCandidate,
     SupplierWebsiteCandidate,
@@ -289,4 +290,5 @@ __all__ += [
     "CompetitorDiscoveryRequest",
     "CompetitorDiscoveryCandidate",
     "CompetitorDiscoverySnapshot",
+    "TrendWinningProductProjection",
 ]
