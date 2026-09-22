@@ -44,6 +44,41 @@ export interface TrendPage<T> {
   offset: number;
 }
 
+export interface TrendAnalysis {
+  id: string;
+  context_id: string;
+  snapshot_id: string;
+  analysis_version: number;
+  readiness: string;
+  included_observation_count: number;
+  excluded_observation_count: number;
+  time_coverage: Record<string, unknown>;
+  summary: Record<string, unknown>;
+  limitations: string[];
+  freshness_state: string;
+}
+export interface TrendAnalysisSeries {
+  id: string;
+  source_id: string;
+  signal_definition_id: string;
+  measurement_type: string;
+  unit?: string | null;
+  granularity: string;
+  readiness: string;
+  direction: string;
+  persistence: string;
+  variability_state: string;
+  freshness_state: string;
+  sample_size: number;
+  time_start?: string | null;
+  time_end?: string | null;
+  missing_period_count: number;
+  statistics: Record<string, unknown>;
+  change: Record<string, unknown>;
+  movement: Record<string, unknown>;
+  limitations: string[];
+  observation_ids: string[];
+}
 export interface TrendIngestion {
   id: string;
   mode: string;
@@ -79,5 +114,22 @@ export class TrendIntelligenceService {
   }
   ingest(contextId: string, value: Record<string, unknown>): Observable<TrendIngestion> {
     return this.http.post<TrendIngestion>(`${this.base}/contexts/${contextId}/ingestions`, value);
+  }
+  createSnapshot(
+    contextId: string,
+    value: Record<string, unknown> = {},
+  ): Observable<TrendSnapshot> {
+    return this.http.post<TrendSnapshot>(`${this.base}/contexts/${contextId}/snapshots`, value);
+  }
+  createAnalysis(contextId: string, value: Record<string, unknown>): Observable<TrendAnalysis> {
+    return this.http.post<TrendAnalysis>(`${this.base}/contexts/${contextId}/analyses`, value);
+  }
+  analyses(contextId: string): Observable<TrendPage<TrendAnalysis>> {
+    return this.http.get<TrendPage<TrendAnalysis>>(`${this.base}/contexts/${contextId}/analyses`);
+  }
+  series(contextId: string, analysisId: string): Observable<TrendPage<TrendAnalysisSeries>> {
+    return this.http.get<TrendPage<TrendAnalysisSeries>>(
+      `${this.base}/contexts/${contextId}/analyses/${analysisId}/series`,
+    );
   }
 }

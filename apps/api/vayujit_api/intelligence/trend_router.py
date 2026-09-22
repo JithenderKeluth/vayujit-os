@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import uuid
-from typing import Annotated
+from typing import Annotated, Any, cast
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
@@ -12,6 +12,23 @@ from sqlalchemy.orm import Session
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.intelligence.trend_analysis_models import TrendAnalysis, TrendAnalysisGap
+from vayujit_api.intelligence.trend_analysis_schemas import (
+    TrendAnalysisCreate,
+    TrendAnalysisGapResponse,
+    TrendAnalysisPage,
+    TrendAnalysisResponse,
+    TrendAnalysisSeriesPage,
+)
+from vayujit_api.intelligence.trend_analysis_service import (
+    analysis_doctor,
+    analysis_or_404,
+    create_analysis,
+    current_analysis,
+    list_analyses,
+    list_gaps,
+    list_series,
+)
 from vayujit_api.intelligence.trend_ingestion_models import TrendIngestionBatch
 from vayujit_api.intelligence.trend_ingestion_schemas import (
     TrendIngestionBatchResponse,
@@ -196,7 +213,11 @@ def context_coverage(context_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, o
 
 @router.get("/system-doctor", response_model=TrendDoctorResponse)
 def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
-    return doctor(db, owner)
+    result = cast(dict[str, Any], doctor(db, owner))
+    checks = cast(dict[str, int], result["checks"])
+    checks.update(analysis_doctor(db, owner))
+    result["status"] = "PASS" if not any(checks.values()) else "FAIL"
+    return result
 
 
 @router.get("/operations", response_model=TrendOperationsResponse)
@@ -299,3 +320,120 @@ def ingestion_summary(
         "rejection_distribution": batch.summary_json.get("rejection_distribution", {}),
         "gaps": batch.summary_json.get("gaps", []),
     }
+
+
+@router.post(
+    "/contexts/{context_id}/analyses",
+    response_model=TrendAnalysisResponse,
+    status_code=201,
+)
+def analysis_create(
+    context_id: uuid.UUID, data: TrendAnalysisCreate, db: DB, owner: Owner
+) -> TrendAnalysis:
+    return create_analysis(db, owner, context_or_404(db, owner, context_id), data)
+
+
+@router.get("/contexts/{context_id}/analyses", response_model=TrendAnalysisPage)
+def analysis_list(
+    context_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
+) -> dict[str, object]:
+    context_or_404(db, owner, context_id)
+    items, total = list_analyses(db, owner, context_id, limit, offset)
+    return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+
+@router.get("/contexts/{context_id}/analyses/current", response_model=TrendAnalysisResponse | None)
+def analysis_current(context_id: uuid.UUID, db: DB, owner: Owner) -> TrendAnalysis | None:
+    context_or_404(db, owner, context_id)
+    return current_analysis(db, owner, context_id)
+
+
+@router.get("/contexts/{context_id}/analyses/{analysis_id}", response_model=TrendAnalysisResponse)
+def analysis_get(
+    context_id: uuid.UUID, analysis_id: uuid.UUID, db: DB, owner: Owner
+) -> TrendAnalysis:
+    context_or_404(db, owner, context_id)
+    analysis = analysis_or_404(db, owner, analysis_id)
+    if analysis.context_id != context_id:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=404, detail="Trend analysis not found.")
+    return analysis
+
+
+@router.get(
+    "/contexts/{context_id}/analyses/{analysis_id}/series", response_model=TrendAnalysisSeriesPage
+)
+def analysis_series_list(
+    context_id: uuid.UUID,
+    analysis_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    signal: str | None = Query(default=None, max_length=80),
+    source_id: uuid.UUID | None = None,
+    geography: str | None = Query(default=None, max_length=24),
+    granularity: str | None = Query(default=None, max_length=24),
+    direction: str | None = Query(default=None, max_length=32),
+    readiness: str | None = Query(default=None, max_length=32),
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> dict[str, object]:
+    context_or_404(db, owner, context_id)
+    analysis = analysis_or_404(db, owner, analysis_id)
+    if analysis.context_id != context_id:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=404, detail="Trend analysis not found.")
+    items, total = list_series(
+        db,
+        owner,
+        analysis,
+        limit,
+        offset,
+        signal,
+        source_id,
+        geography,
+        granularity,
+        direction,
+        readiness,
+    )
+    return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+
+@router.get(
+    "/contexts/{context_id}/analyses/{analysis_id}/gaps",
+    response_model=list[TrendAnalysisGapResponse],
+)
+def analysis_gap_list(
+    context_id: uuid.UUID,
+    analysis_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0),
+) -> list[TrendAnalysisGap]:
+    context_or_404(db, owner, context_id)
+    analysis = analysis_or_404(db, owner, analysis_id)
+    if analysis.context_id != context_id:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=404, detail="Trend analysis not found.")
+    return list_gaps(db, owner, analysis, limit, offset)
+
+
+@router.get("/contexts/{context_id}/analyses/{analysis_id}/doctor")
+def analysis_system_doctor(
+    context_id: uuid.UUID, analysis_id: uuid.UUID, db: DB, owner: Owner
+) -> dict[str, object]:
+    context_or_404(db, owner, context_id)
+    analysis = analysis_or_404(db, owner, analysis_id)
+    if analysis.context_id != context_id:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=404, detail="Trend analysis not found.")
+    checks = analysis_doctor(db, owner)
+    return {"status": "PASS" if not any(checks.values()) else "FAIL", "checks": checks}
