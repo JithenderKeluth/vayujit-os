@@ -44,6 +44,15 @@ export interface TrendPage<T> {
   offset: number;
 }
 
+export interface TrendIngestion {
+  id: string;
+  mode: string;
+  status: string;
+  accepted_count: number;
+  rejected_count: number;
+  duplicate_count: number;
+  created_at: string;
+}
 @Injectable({ providedIn: 'root' })
 export class TrendIntelligenceService {
   private readonly http = inject(HttpClient);
@@ -64,5 +73,11 @@ export class TrendIntelligenceService {
   }
   coverage(contextId: string): Observable<Record<string, unknown>> {
     return this.http.get<Record<string, unknown>>(`${this.base}/contexts/${contextId}/coverage`);
+  }
+  ingestions(contextId: string): Observable<TrendIngestion[]> {
+    return this.http.get<TrendIngestion[]>(`${this.base}/contexts/${contextId}/ingestions`);
+  }
+  ingest(contextId: string, value: Record<string, unknown>): Observable<TrendIngestion> {
+    return this.http.post<TrendIngestion>(`${this.base}/contexts/${contextId}/ingestions`, value);
   }
 }

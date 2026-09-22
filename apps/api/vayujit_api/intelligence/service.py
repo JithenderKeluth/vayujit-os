@@ -266,6 +266,7 @@ def create_source(db: Session, user: User, data: SourceCreate) -> IntelligenceSo
     db.add(source)
     db.flush()
     _event(db, user, "source_created", "intelligence_source", source.id, {"access_method": method})
+    db.commit()
     return source
 
 
