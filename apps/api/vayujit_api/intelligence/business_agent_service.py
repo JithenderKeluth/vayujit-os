@@ -506,7 +506,6 @@ def _persist_review_artifact(
     return artifact.id, finding.id
 
 
-
 def _persist_trend_artifact(
     db: Session,
     owner: User,
@@ -838,16 +837,20 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             failure_code = (
                 "TREND_EXECUTION_FAILED"
                 if step.capability_id in TREND_CAPABILITIES
-                else "REVIEW_EXECUTION_FAILED"
-                if step.capability_id in REVIEW_CAPABILITIES
-                else "COMPETITOR_EXECUTION_FAILED"
+                else (
+                    "REVIEW_EXECUTION_FAILED"
+                    if step.capability_id in REVIEW_CAPABILITIES
+                    else "COMPETITOR_EXECUTION_FAILED"
+                )
             )
             safe_message = (
                 "Trend Intelligence execution could not be completed safely."
                 if step.capability_id in TREND_CAPABILITIES
-                else "Review Intelligence execution could not be completed safely."
-                if step.capability_id in REVIEW_CAPABILITIES
-                else "Competitor intelligence execution could not be completed safely."
+                else (
+                    "Review Intelligence execution could not be completed safely."
+                    if step.capability_id in REVIEW_CAPABILITIES
+                    else "Competitor intelligence execution could not be completed safely."
+                )
             )
             step.status = "FAILED"
             step.result = {"code": failure_code, "message": safe_message}
@@ -1019,19 +1022,35 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 "label": "OBSERVED SIGNAL EVIDENCE / DETERMINISTIC TREND INTELLIGENCE",
                 "context_id": latest_trend.get("context_id"),
                 "analysis_id": next(
-                    (output.get("analysis_id") for output in trend_outputs if output.get("analysis_id")),
+                    (
+                        output.get("analysis_id")
+                        for output in trend_outputs
+                        if output.get("analysis_id")
+                    ),
                     None,
                 ),
                 "comparison_id": next(
-                    (output.get("comparison_id") for output in trend_outputs if output.get("comparison_id")),
+                    (
+                        output.get("comparison_id")
+                        for output in trend_outputs
+                        if output.get("comparison_id")
+                    ),
                     None,
                 ),
                 "validation_id": next(
-                    (output.get("validation_id") for output in trend_outputs if output.get("validation_id")),
+                    (
+                        output.get("validation_id")
+                        for output in trend_outputs
+                        if output.get("validation_id")
+                    ),
                     None,
                 ),
                 "projection_id": next(
-                    (output.get("projection_id") for output in trend_outputs if output.get("projection_id")),
+                    (
+                        output.get("projection_id")
+                        for output in trend_outputs
+                        if output.get("projection_id")
+                    ),
                     None,
                 ),
                 "readiness": latest_trend.get("readiness", "INSUFFICIENT_EVIDENCE"),

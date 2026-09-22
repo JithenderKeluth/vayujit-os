@@ -103,11 +103,12 @@ def test_trend_opt_in_plan_run_and_operations_are_bounded(client: TestClient) ->
     assert result["result"]["trend_capabilities"] == trend_ids
     assert result["result"]["trend_evidence_gaps"]
     assert result["result"]["external_writes"] == []
-    assert result["result"]["brief_payload"]["trend_intelligence"]["semantic_boundary"]
-
-    operations = client.get(
-        "/api/v1/intelligence/business-agent/operations/trend", headers=ORIGIN
+    brief_artifact = next(
+        item for item in result["artifacts"] if item["artifact_type"] == "BUSINESS_DECISION_BRIEF"
     )
+    assert brief_artifact["payload"]["trend_intelligence"]["semantic_boundary"]
+
+    operations = client.get("/api/v1/intelligence/business-agent/operations/trend", headers=ORIGIN)
     assert operations.status_code == 200, operations.text
     operations_body = operations.json()
     assert operations_body["trend_runs"] == 1
@@ -115,12 +116,8 @@ def test_trend_opt_in_plan_run_and_operations_are_bounded(client: TestClient) ->
     assert operations_body["calendar_events"] == 0
     assert operations_body["worker_scheduler"] == "EXISTING BUSINESS AGENT RUNTIME"
 
-    doctor = client.get(
-        "/api/v1/intelligence/business-agent/system-doctor", headers=ORIGIN
-    )
+    doctor = client.get("/api/v1/intelligence/business-agent/system-doctor", headers=ORIGIN)
     assert doctor.status_code == 200, doctor.text
     doctor_body = doctor.json()
     assert doctor_body["status"] == "PASS"
     assert doctor_body["checks"]["trend_hard_counters"]["total"] == 0
-
-

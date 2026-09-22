@@ -3,17 +3,34 @@
     <aside>
       <a class="brand" routerLink="/dashboard">VAYUJIT OS</a>
       <nav aria-label="Primary navigation">
-        @for (item of navigation; track item[1]) {
-          <a [routerLink]="item[1]" routerLinkActive="active">{{ item[0] }}</a>
+        @for (group of navigationGroups; track group.label) {
+          <div class="nav-group">
+            <span class="nav-group-label">{{ group.label }}</span>
+            @for (item of group.items; track item[1]) {
+              <a
+                [routerLink]="item[1]"
+                routerLinkActive="active"
+                ariaCurrentWhenActive="page"
+                >{{ item[0] }}</a
+              >
+            }
+          </div>
         }
       </nav>
-      <div>
-        <strong>{{ auth.user()?.fullName }}</strong
-        ><small>Owner</small>
+      <div class="account-panel">
+        <div class="account-avatar" aria-hidden="true">
+          {{ auth.user()?.fullName?.charAt(0)?.toUpperCase() || 'O' }}
+        </div>
+        <div class="account-details">
+          <strong>{{ auth.user()?.fullName }}</strong>
+          <span>{{ auth.user()?.email }}</span>
+          <small>Workspace owner</small>
+        </div>
       </div>
-      <button type="button" (click)="logout()">Log out</button>
+      <button class="logout-button" type="button" (click)="logout()">Log out</button>
     </aside>
     <main>
+      <a class="skip-link" href="#main-content">Skip to main content</a>
       @if (maintenance()) {
         <div class="maintenance-banner" role="alert">
           Maintenance mode is enabled. State-changing business operations are temporarily blocked.
@@ -22,8 +39,18 @@
       <details class="mobile-menu">
         <summary>Application menu</summary>
         <nav aria-label="Mobile primary navigation">
-          @for (item of navigation; track item[1]) {
-            <a [routerLink]="item[1]" routerLinkActive="active">{{ item[0] }}</a>
+          @for (group of navigationGroups; track group.label) {
+            <div class="nav-group">
+              <span class="nav-group-label">{{ group.label }}</span>
+              @for (item of group.items; track item[1]) {
+                <a
+                  [routerLink]="item[1]"
+                  routerLinkActive="active"
+                  ariaCurrentWhenActive="page"
+                  >{{ item[0] }}</a
+                >
+              }
+            </div>
           }
         </nav>
       </details>
@@ -31,7 +58,7 @@
         <span>Active brand</span>
         <strong>{{ brands.activeBrand()?.name || 'No active brand' }}</strong>
       </header>
-      <router-outlet />
+      <div id="main-content" tabindex="-1"><router-outlet /></div>
     </main>
   </div>
 } @else {

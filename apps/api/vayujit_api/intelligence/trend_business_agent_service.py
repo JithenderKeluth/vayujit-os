@@ -245,9 +245,9 @@ def execute_trend_capability(
             "mode": "LOCAL_DETERMINISTIC",
         }
 
-    analysis = _latest_analysis(db, owner, context)
+    latest_analysis: TrendAnalysis | None = _latest_analysis(db, owner, context)
     if capability_id == "TREND_CHANGE_ANALYSIS":
-        if analysis is None:
+        if latest_analysis is None:
             return {
                 "capability": capability_id,
                 "status": "NOT_APPLICABLE",
@@ -273,7 +273,7 @@ def execute_trend_capability(
                 "status": "NOT_APPLICABLE",
                 "reason": "NO_HISTORY",
                 "context_id": str(context.id),
-                "analysis_id": str(analysis.id),
+                "analysis_id": str(latest_analysis.id),
                 "external_mutation": False,
                 "mode": "LOCAL_DETERMINISTIC",
             }
@@ -311,22 +311,22 @@ def execute_trend_capability(
             "mode": "LOCAL_DETERMINISTIC",
         }
 
-    if analysis is None:
+    if latest_analysis is None:
         return {
             "capability": capability_id,
             **_gap("TREND_ANALYSIS_MISSING", context_id=context.id, opportunity_id=opportunity.id),
         }
 
     if capability_id == "TREND_VALIDATION":
-        comparison = _latest_comparison(db, owner, context, analysis)
-        validation = _latest_validation(db, owner, context, analysis)
+        comparison = _latest_comparison(db, owner, context, latest_analysis)
+        validation = _latest_validation(db, owner, context, latest_analysis)
         if validation is None:
             validation = create_validation(
                 db,
                 owner,
                 context,
                 TrendValidationCreate(
-                    analysis_id=analysis.id,
+                    analysis_id=latest_analysis.id,
                     comparison_id=comparison.id if comparison else None,
                 ),
             )
@@ -334,7 +334,7 @@ def execute_trend_capability(
             "capability": capability_id,
             "status": "SUCCEEDED",
             "context_id": str(context.id),
-            "analysis_id": str(analysis.id),
+            "analysis_id": str(latest_analysis.id),
             "comparison_id": str(comparison.id) if comparison else None,
             "validation_id": str(validation.id),
             "confidence": validation.confidence,
@@ -370,12 +370,12 @@ def execute_trend_capability(
             ),
         }
     projection = get_or_create_projection(db, owner, opportunity, assessments[0])
-    validation = _latest_validation(db, owner, context, analysis)
+    validation = _latest_validation(db, owner, context, latest_analysis)
     return {
         "capability": capability_id,
         "status": "SUCCEEDED",
         "context_id": str(context.id),
-        "analysis_id": str(analysis.id),
+        "analysis_id": str(latest_analysis.id),
         "validation_id": str(validation.id) if validation else None,
         "projection_id": str(projection.id),
         "readiness": projection.readiness,

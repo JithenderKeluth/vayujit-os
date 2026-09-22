@@ -408,10 +408,11 @@ def review_operations(db: DB, owner: Owner) -> dict[str, object]:
     }
 
 
-
 @router.get("/operations/trend")
 def trend_operations(db: DB, owner: Owner) -> dict[str, object]:
-    goals = list(db.scalars(select(BusinessAgentGoal).where(BusinessAgentGoal.owner_id == owner.id)))
+    goals = list(
+        db.scalars(select(BusinessAgentGoal).where(BusinessAgentGoal.owner_id == owner.id))
+    )
     goal_ids = {goal.id for goal in goals if _trend_enabled(goal)}
     runs = list(
         db.scalars(
@@ -448,16 +449,12 @@ def trend_operations(db: DB, owner: Owner) -> dict[str, object]:
         )
     )
     context_ids = {
-        str(item.payload.get("context_id"))
-        for item in artifacts
-        if item.payload.get("context_id")
+        str(item.payload.get("context_id")) for item in artifacts if item.payload.get("context_id")
     }
     gaps = sum(
         len(value)
         for item in artifacts
-        for value in [
-            item.payload.get("evidence_gaps") or item.payload.get("research_gaps") or []
-        ]
+        for value in [item.payload.get("evidence_gaps") or item.payload.get("research_gaps") or []]
         if isinstance(value, list)
     )
     channel_actions = {
