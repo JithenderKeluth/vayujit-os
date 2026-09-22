@@ -471,6 +471,8 @@ def doctor(db: Session, owner: User) -> dict[str, object]:
 
 
 def operations(db: Session, owner: User) -> dict[str, object]:
+    from vayujit_api.intelligence.trend_analysis_service import analysis_operations
+
     return {
         "contexts": db.scalar(
             select(func.count()).select_from(TrendContext).where(TrendContext.owner_id == owner.id)
@@ -499,4 +501,5 @@ def operations(db: Session, owner: User) -> dict[str, object]:
                 TrendObservation.owner_id == owner.id
             )
         ),
+        **analysis_operations(db, owner),
     }

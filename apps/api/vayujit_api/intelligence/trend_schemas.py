@@ -243,3 +243,11 @@ class TrendOperationsResponse(BaseModel):
     snapshots: int
     sources: int
     last_observation_at: datetime | None
+    analysis_count: int = 0
+    current_analyses: int = 0
+    insufficient_evidence_analyses: int = 0
+    not_comparable_analyses: int = 0
+    stale_analyses: int = 0
+    series_count: int = 0
+    evidence_gap_count: int = 0
+    latest_analysis_activity: datetime | None = None
