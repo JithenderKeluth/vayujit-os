@@ -2,32 +2,76 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import type { ProductDetails } from '@vayujit/shared';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
+import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 import { ProductService } from './product.service';
 
 @Component({
   selector: 'app-product-details',
-  imports: [DatePipe, RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    CommerceJourneyNavComponent,
+    DatePipe,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    PageHeaderComponent,
+    RouterLink,
+    StatusBadgeComponent,
+  ],
   template: `
-    <section class="page narrow">
+    <main class="page narrow">
       @if (loading()) {
-        <p class="state">Loading product…</p>
+        <app-loading-state message="Loading product context..." />
       } @else if (error()) {
-        <p class="state error" role="alert">{{ error() }}</p>
+        <app-error-state
+          title="Product context is unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="load()"
+        />
       } @else if (product()) {
-        <header class="page-header">
-          <div>
-            <p class="eyebrow">{{ product()!.brand_name }} · {{ product()!.product_type }}</p>
-            <h1>{{ product()!.name }}</h1>
-            <p>{{ product()!.short_description || 'No short description.' }}</p>
-          </div>
-          <div class="actions">
+        <app-breadcrumbs [items]="breadcrumbs" />
+        <app-page-header
+          eyebrow="Product context"
+          [title]="product()!.name"
+          [description]="
+            product()!.short_description ||
+            'Prepare this product for governed commerce and creation workflows.'
+          "
+        >
+          <div page-header-actions>
             <a class="button" routerLink="/products">Back</a>
             <a class="button primary" [routerLink]="['/products', product()!.id, 'edit']">Edit</a>
           </div>
-        </header>
+        </app-page-header>
+        <app-commerce-journey-nav current="product" />
+        <section class="card journey-context" aria-labelledby="commerce-context-title">
+          <h2 id="commerce-context-title">Commerce and creation context</h2>
+          <p>
+            Start with this Product, then inspect channel listings, create content and media, review
+            approval, and use the existing governed Publishing flow.
+          </p>
+          <div class="actions">
+            <a class="button" [routerLink]="['/products', product()!.id, 'channels']"
+              >View Product Channels</a
+            >
+            <a class="button" [routerLink]="['/products', product()!.id, 'media']"
+              >View Product Media</a
+            >
+            <a class="button" routerLink="/marketplaces/listings">Marketplace Listings</a>
+          </div>
+        </section>
         <article class="card details">
           <div class="card-title">
-            <span class="badge">{{ product()!.status }}</span>
+            <app-status-badge
+              [status]="product()!.status"
+              [label]="product()!.status"
+              tone="info"
+            />
             @if (product()!.is_featured) {
               <span class="badge featured">Featured</span>
             }
@@ -145,7 +189,7 @@ import { ProductService } from './product.service';
           }
         </section>
       }
-    </section>
+    </main>
   `,
   styleUrl: './products.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -157,6 +201,10 @@ export class ProductDetailsComponent {
   readonly product = signal<ProductDetails | null>(null);
   readonly loading = signal(true);
   readonly error = signal('');
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Products', url: '/products' },
+    { label: 'Product context' },
+  ];
 
   constructor() {
     void this.load();
@@ -166,7 +214,7 @@ export class ProductDetailsComponent {
     return amount && currency ? `${currency} ${amount}` : '—';
   }
 
-  private async load(): Promise<void> {
+  async load(): Promise<void> {
     this.loading.set(true);
     this.error.set('');
     try {

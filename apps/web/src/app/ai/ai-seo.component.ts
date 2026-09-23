@@ -2,6 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
+import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 
 import type {
   AIKeywordSuggestion,
@@ -15,9 +19,18 @@ import { AIService } from './ai.service';
 @Component({
   selector: 'app-ai-seo',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    CommerceJourneyNavComponent,
+    CommonModule,
+    ErrorStateComponent,
+    FormsModule,
+    LoadingStateComponent,
+    RouterLink,
+  ],
   template: `
     <main class="ai-shell">
+      <app-breadcrumbs [items]="breadcrumbs" />
       <header class="ai-header">
         <div>
           <a routerLink="/ai/studio">AI Studio</a>
@@ -26,6 +39,11 @@ import { AIService } from './ai.service';
         </div>
         <a routerLink="/ai/studio/bulk">Bulk generation</a>
       </header>
+      <app-commerce-journey-nav current="seo" />
+      <p class="ai-muted">
+        SEO evidence describes keyword and content coverage only; it does not predict demand or
+        guarantee ranking outcomes.
+      </p>
       <nav class="seo-tabs" aria-label="SEO workspace">
         <button type="button" [class.active]="tab() === 'overview'" (click)="tab.set('overview')">
           Overview</button
@@ -46,7 +64,10 @@ import { AIService } from './ai.service';
         </button>
       </nav>
       @if (error()) {
-        <p class="error" role="alert">{{ error() }}</p>
+        <app-error-state title="SEO analysis is unavailable" [message]="error()" />
+      }
+      @if (loading()) {
+        <app-loading-state message="Loading saved SEO analysis..." />
       }
       @if (tab() === 'overview' || tab() === 'website' || tab() === 'marketplace') {
         <section class="card controls">
@@ -275,6 +296,10 @@ export class AISeoComponent {
   readonly history = signal<AISEOAnalysisResponse[]>([]);
   readonly suggestions = signal<AIKeywordSuggestion[]>([]);
   productId = '';
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Products', url: '/products' },
+    { label: 'SEO' },
+  ];
   artifactId = '';
   locale = 'en-IN';
   channel = 'canonical';

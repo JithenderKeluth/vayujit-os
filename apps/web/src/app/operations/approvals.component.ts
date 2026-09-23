@@ -4,16 +4,36 @@ import { RouterLink } from '@angular/router';
 import type { ApprovalQueueItem, BrandSummary, ProductSummary } from '@vayujit/shared';
 import { BrandService } from '../brands/brand.service';
 import { ProductService } from '../products/product.service';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 import { OperationsService } from './operations.service';
 
 @Component({
   selector: 'app-approvals',
-  imports: [FormsModule, RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    CommerceJourneyNavComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    FormsModule,
+    LoadingStateComponent,
+    RouterLink,
+    StatusBadgeComponent,
+  ],
   template: `<section class="op-page">
+    <app-breadcrumbs [items]="breadcrumbs" />
     <header>
       <h1>Approvals</h1>
       <p class="op-muted">Review generated content before it becomes eligible for Publishing.</p>
     </header>
+    <app-commerce-journey-nav current="approval" />
     <nav class="op-tabs" aria-label="Approval status">
       @for (tab of tabs; track tab.value) {
         <a
@@ -45,16 +65,21 @@ import { OperationsService } from './operations.service';
       ><button>Apply</button>
     </form>
     @if (loading()) {
-      <p role="status">Loading approval queue…</p>
+      <app-loading-state message="Loading approval queue..." />
     }
     @if (error()) {
-      <p class="op-error" role="alert">{{ error() }}</p>
+      <app-error-state
+        title="Approval queue is unavailable"
+        [message]="error()"
+        retryLabel="Retry"
+        (retry)="init()"
+      />
     }
     @if (!loading() && !items().length) {
-      <div class="op-empty">
-        <h2>Nothing in this queue</h2>
-        <p>Generate Product content or choose another status.</p>
-      </div>
+      <app-empty-state
+        title="Nothing in this approval queue"
+        message="Generated content appears here when it requires human review."
+      />
     }
     @if (items().length) {
       <table class="op-table">
@@ -85,7 +110,7 @@ import { OperationsService } from './operations.service';
                 }}
               </td>
               <td data-label="Status">
-                <span class="op-status">{{ item.status }}</span>
+                <app-status-badge [status]="item.status" [label]="item.status" tone="warning" />
               </td>
               <td data-label="Generated">{{ item.generated_at }}</td>
               <td data-label="Action">
@@ -125,6 +150,10 @@ export class ApprovalsComponent implements OnInit {
   brandId = '';
   productId = '';
   search = '';
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Products', url: '/products' },
+    { label: 'Review / approval' },
+  ];
   readonly tabs = [
     { label: 'Pending', value: 'pending_review' },
     { label: 'Approved', value: 'approved' },
