@@ -96,12 +96,12 @@ import { AIService } from './ai.service';
         ></textarea>
       </label>
       <button class="ai-button" [disabled]="busy() || !productId()" (click)="generate()">
-        {{ busy() ? 'Generating�' : 'Generate deterministic draft' }}
+        {{ busy() ? 'Generating...' : 'Generate deterministic draft' }}
       </button>
       @if (generation()) {
         <p class="ai-success">
           {{ generation()!.completed_outputs }} / {{ generation()!.total_outputs }} outputs
-          completed. Context {{ generation()!.context_fingerprint.slice(0, 12) }}�
+          completed. Context {{ generation()!.context_fingerprint.slice(0, 12) }}&middot;
         </p>
       }
     </article>
@@ -116,8 +116,9 @@ import { AIService } from './ai.service';
       }
       @for (artifact of artifacts(); track artifact.id) {
         <p>
-          <strong>{{ artifact.product_name }}</strong> � {{ artifact.channel }} �
-          {{ artifact.content_type }} � v{{ artifact.version_number }} � {{ artifact.status }}
+          <strong>{{ artifact.product_name }}</strong> &middot; {{ artifact.channel }} &middot;
+          {{ artifact.content_type }} &middot; v{{ artifact.version_number }} &middot;
+          {{ artifact.status }}
           <app-status-badge [status]="artifact.status" [label]="artifact.status" tone="info" />
           <span> · Source: {{ artifact.source || 'Not reported' }}</span>
           <a [routerLink]="['/ai/artifacts', artifact.id]">Review</a>
@@ -145,8 +146,9 @@ import { AIService } from './ai.service';
         Versioned tone, terminology, preferred and prohibited phrase rules are applied to generation
         context.
       </p>
-      <a routerLink="/ai/brand-voices">Manage Brand Voices</a> �
-      <a routerLink="/ai/presets">Manage Presets</a> � <a routerLink="/ai/usage">View Usage</a> �
+      <a routerLink="/ai/brand-voices">Manage Brand Voices</a> &middot;
+      <a routerLink="/ai/presets">Manage Presets</a> &middot;
+      <a routerLink="/ai/usage">View Usage</a> &middot;
       <a routerLink="/settings/ai/providers">Provider settings</a>
     </article>
     <article class="ai-card" id="diagnostics">

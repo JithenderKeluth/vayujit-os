@@ -23,19 +23,33 @@ export class AppComponent {
   readonly navigationGroups = [
     {
       label: 'Home',
-      items: [['Dashboard', '/dashboard']] as const,
+      items: [
+        ['Dashboard', '/dashboard'],
+        ['Business Agent', '/intelligence/business-agent'],
+      ] as const,
     },
     {
       label: 'Discover',
       items: [
-        ['Intelligence', '/intelligence'],
+        ['Research', '/intelligence'],
+        ['Product Opportunities', '/intelligence/product-opportunities'],
         ['Trend Intelligence', '/intelligence/trends'],
         ['Competitors', '/intelligence/competitors'],
-        ['Reviews', '/intelligence/reviews'],
-        ['Business Agent', '/intelligence/business-agent'],
+        ['Customer Reviews', '/intelligence/reviews'],
         ['External Research', '/intelligence/external'],
         ['Website Intelligence', '/intelligence/websites'],
         ['Autonomous Research', '/intelligence/autonomous'],
+      ] as const,
+    },
+    {
+      label: 'Source',
+      items: [
+        ['Suppliers', '/intelligence/sourcing'],
+        ['Shortlists', '/intelligence/supplier-shortlisting'],
+        ['Supplier Verification', '/intelligence/due-diligence'],
+        ['Sourcing Scenarios', '/intelligence/sourcing-scenarios'],
+        ['Portfolio & Resilience', '/intelligence/supplier-portfolios'],
+        ['Cross-marketplace Suppliers', '/intelligence/cross-marketplace'],
         ['IndiaMART Discovery', '/intelligence/indiamart'],
         ['Alibaba Discovery', '/intelligence/alibaba'],
         ['TradeIndia Discovery', '/intelligence/tradeindia'],
@@ -43,19 +57,12 @@ export class AppComponent {
       ] as const,
     },
     {
-      label: 'Source',
-      items: [
-        ['Sourcing', '/intelligence/sourcing'],
-        ['Supplier Shortlisting', '/intelligence/supplier-shortlisting'],
-        ['Cross-marketplace Suppliers', '/intelligence/cross-marketplace'],
-      ] as const,
-    },
-    {
       label: 'Create',
       items: [
-        ['AI Studio', '/ai/studio'],
-        ['AI Video', '/ai/video'],
-        ['AI Images', '/ai/images'],
+        ['Content', '/ai/studio'],
+        ['SEO', '/ai/studio/seo'],
+        ['Images', '/ai/images'],
+        ['Videos', '/ai/video'],
         ['Brand Voices', '/ai/brand-voices'],
         ['Presets', '/ai/presets'],
         ['Media', '/media'],
@@ -65,8 +72,8 @@ export class AppComponent {
       label: 'Grow',
       items: [
         ['Campaigns', '/campaigns'],
-        ['Ads', '/ads'],
         ['Social', '/social'],
+        ['Advertising', '/ads'],
       ] as const,
     },
     {
@@ -74,6 +81,9 @@ export class AppComponent {
       items: [
         ['Brands', '/brands'],
         ['Products', '/products'],
+        ['Listings', '/marketplaces/listings'],
+        ['Inventory', '/marketplaces/inventory'],
+        ['Orders', '/marketplaces/orders'],
         ['Marketplace', '/marketplaces'],
         ['Marketplace Video', '/marketplaces/video'],
         ['Publishing', '/publishing'],
@@ -88,12 +98,18 @@ export class AppComponent {
         ['Workflows', '/workflows'],
         ['Approvals', '/approvals'],
         ['Execution History', '/execution-history'],
+        ['Recovery', '/operations/recovery'],
+        ['System Doctor', '/operations/health'],
         ['Operations', '/operations'],
       ] as const,
     },
     {
       label: 'System',
-      items: [['Settings', '/settings']] as const,
+      items: [
+        ['Integrations', '/settings/publishing/connectors'],
+        ['AI Providers', '/settings/ai/providers'],
+        ['Settings', '/settings'],
+      ] as const,
     },
   ] as const;
   readonly maintenance = signal(false);

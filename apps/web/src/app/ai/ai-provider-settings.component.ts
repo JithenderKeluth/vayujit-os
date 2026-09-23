@@ -17,7 +17,7 @@ import { AIService } from './ai.service';
         <h1>OpenAI-compatible provider</h1>
         <p>Credentials remain encrypted on the API server and are never returned here.</p>
       </div>
-      <a routerLink="/settings/ai">Back to settings</a>
+      <a routerLink="/settings/ai/providers">Back to settings</a>
     </header>
     @if (loading()) {
       <p role="status">Loading provider configuration…</p>

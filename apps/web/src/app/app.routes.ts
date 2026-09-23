@@ -542,6 +542,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'ai/images/bulk',
+    loadComponent: () => import('./ai/ai-image-bulk.component').then((m) => m.AIImageBulkComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'ai/images',
     loadComponent: () =>
       import('./ai/ai-image-studio.component').then((m) => m.AIImageStudioComponent),
