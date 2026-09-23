@@ -2,6 +2,15 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { EvidenceCardComponent } from '../shared/evidence-card.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 import {
   ReviewAnalysis,
   ReviewAnalysisDetail,
@@ -19,9 +28,31 @@ import {
 @Component({
   selector: 'app-review-intelligence-workspace',
   standalone: true,
-  imports: [FormsModule, RouterLink, JsonPipe],
+  imports: [
+    FormsModule,
+    RouterLink,
+    JsonPipe,
+    BreadcrumbsComponent,
+    EvidenceCardComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    StatusBadgeComponent,
+  ],
+  styleUrl: './intelligence-workspace.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <app-breadcrumbs [items]="breadcrumbs" />
+    <p class="eyebrow">Customer Reviews</p>
+    @if (loading()) {
+      <app-loading-state message="Loading existing customer review intelligence..." />
+    }
+    @if (!contexts().length && !loading() && !error()) {
+      <app-empty-state
+        title="No customer research yet"
+        message="Create a review context to begin examining customer feedback evidence."
+      />
+    }
     <main class="workspace" aria-labelledby="reviews-title">
       <header class="page-header">
         <div>
@@ -38,6 +69,12 @@ import {
         </nav>
       </header>
       @if (error()) {
+        <app-error-state
+          title="Review data is unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="refresh()"
+        />
         <p class="error" role="alert">{{ error() }}</p>
       }
       @if (loading()) {
@@ -179,6 +216,22 @@ import {
             Analyze current snapshot
           </button>
           @if (analysis(); as result) {
+            <app-evidence-card
+              title="Customer feedback evidence"
+              classification="OBSERVED"
+              summary="Reviews, themes, sentiment, and requests describe customer feedback; they do not prove sales, demand, or product success."
+              source="Review Intelligence"
+            />
+            <h3>What customers are saying</h3>
+            <p class="muted">
+              Observed praise, pain points, and requests are shown with their supporting counts and
+              confidence. Derived hypotheses remain labelled.
+            </p>
+            <app-status-badge
+              [status]="result.analysis.status"
+              [label]="result.analysis.status"
+              tone="info"
+            />
             <p role="status">
               {{ result.analysis.status }} · {{ result.analysis.included_records }} included ·
               {{ result.analysis.excluded_records }} excluded
@@ -194,6 +247,18 @@ import {
                   {{ item.confidence }} confidence</span
                 >
               </div>
+            }
+            <h3>Feature requests</h3>
+            @for (item of analysisItems(result, 'FEATURE_REQUEST'); track item.id) {
+              <div class="list-item">
+                <strong>Requested: {{ item.canonical_label }}</strong>
+                <span
+                  >{{ item.support_count }} supporting reviews · {{ item.confidence }} confidence ·
+                  {{ item.evidence_state }}</span
+                >
+              </div>
+            } @empty {
+              <p class="muted">No feature requests were recorded in this analysis.</p>
             }
             @for (item of analysisItems(result, 'PRAISED_ATTRIBUTE'); track item.id) {
               <div class="list-item">
@@ -602,4 +667,8 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
       this.loading.set(false);
     }
   }
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Intelligence', url: '/intelligence' },
+    { label: 'Customer Reviews' },
+  ];
 }

@@ -2,6 +2,15 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { EvidenceCardComponent } from '../shared/evidence-card.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import type { BreadcrumbItem, StatusTone } from '../shared/ux-foundation.types';
 
 import {
   CompetitorChangeEvent,
@@ -16,9 +25,30 @@ import {
 @Component({
   selector: 'app-competitor-intelligence-workspace',
   standalone: true,
-  imports: [DatePipe, FormsModule, RouterLink],
+  imports: [
+    DatePipe,
+    FormsModule,
+    RouterLink,
+    BreadcrumbsComponent,
+    EvidenceCardComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    StatusBadgeComponent,
+  ],
+  styleUrl: './intelligence-workspace.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <app-breadcrumbs [items]="breadcrumbs" />
+    @if (loading()) {
+      <app-loading-state message="Loading observed competitor intelligence..." />
+    }
+    @if (!contexts().length && !loading() && !error()) {
+      <app-empty-state
+        title="No competitor research yet"
+        message="Create a research context to review observed competitors and changes."
+      />
+    }
     <main class="workspace" aria-labelledby="competitor-title">
       <header class="page-header">
         <div>
@@ -32,6 +62,12 @@ import {
       </header>
 
       @if (error()) {
+        <app-error-state
+          title="Competitor data is unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="refresh()"
+        />
         <p class="error" role="alert">{{ error() }}</p>
       }
       @if (loading()) {
@@ -97,6 +133,12 @@ import {
       </section>
 
       @if (selectedContext(); as context) {
+        <app-evidence-card
+          title="Observed competitor facts"
+          classification="OBSERVED"
+          summary="Competitor identity, availability, pricing, ratings, and review attributes remain source-backed observations."
+          source="Competitor Intelligence"
+        />
         <section class="panel" aria-labelledby="discovery-title">
           <h2 id="discovery-title">Discovery and identity review</h2>
           <p class="muted">
@@ -150,6 +192,12 @@ import {
             Run commercial analysis
           </button>
           @if (commercialAnalysis(); as analysis) {
+            <app-evidence-card
+              title="Derived competitor analysis"
+              classification="DERIVED"
+              summary="Pricing, assortment, positioning, and concentration are derived from observed competitor evidence; they are not a market-attractiveness verdict."
+              source="Competitor Intelligence"
+            />
             <article class="list-item" aria-label="Commercial analysis summary">
               <strong
                 >{{ analysis.status }} ·
@@ -182,6 +230,10 @@ import {
               @for (change of changes(); track change.id) {
                 <article class="list-item">
                   <strong>{{ change.change_type }} · {{ change.materiality }}</strong>
+                  <small
+                    >Observed value: {{ change.old_value ?? 'Not available' }} →
+                    {{ change.new_value ?? 'Not available' }}</small
+                  >
                   <span
                     >{{ change.status }} · {{ change.alert_eligibility }} ·
                     {{ change.evidence_state }}</span
@@ -230,6 +282,11 @@ import {
       }
 
       @if (doctor(); as value) {
+        <app-status-badge
+          [status]="value.status"
+          [label]="value.status"
+          [tone]="statusTone(value.status)"
+        />
         <section class="panel" aria-labelledby="doctor-title">
           <h2 id="doctor-title">Foundation integrity</h2>
           <p role="status">{{ value.status }} · owner-scoped lineage checks</p>
@@ -405,5 +462,16 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Intelligence', url: '/intelligence' },
+    { label: 'Competitors' },
+  ];
+  statusTone(status: string): StatusTone {
+    const value = status.toUpperCase();
+    if (['PASS', 'CONFIRMED', 'AVAILABLE', 'ACTIVE'].includes(value)) return 'success';
+    if (['PARTIAL', 'STALE', 'AMBIGUOUS', 'PENDING'].includes(value)) return 'warning';
+    if (['REJECTED', 'ERROR', 'UNAVAILABLE'].includes(value)) return 'danger';
+    return 'info';
   }
 }
