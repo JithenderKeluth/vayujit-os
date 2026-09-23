@@ -7,12 +7,30 @@ import type {
 } from '@vayujit/shared';
 import { AIService } from '../ai/ai.service';
 import { BrandService } from '../brands/brand.service';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 import { PublishingService } from './publishing.service';
 
 @Component({
   selector: 'app-publishing-dashboard',
-  imports: [RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    CommerceJourneyNavComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    RouterLink,
+    StatusBadgeComponent,
+  ],
   template: ` <section class="pub-page" aria-labelledby="publishing-title">
+    <app-breadcrumbs [items]="breadcrumbs" />
     <header class="pub-header">
       <div>
         <h1 id="publishing-title">Mock Publishing</h1>
@@ -28,18 +46,20 @@ import { PublishingService } from './publishing.service';
         >
       </div>
     </header>
+    <app-commerce-journey-nav current="publishing" />
     @if (loading()) {
-      <p role="status">Loading publishing summary…</p>
+      <app-loading-state message="Loading governed publishing state..." />
     }
     @if (error()) {
-      <p class="pub-error" role="alert">{{ error() }}</p>
+      <app-error-state title="Publishing state is unavailable" [message]="error()" />
     }
     @if (!loading() && !activeBrand()) {
-      <div class="pub-empty">
-        <h2>No active Brand</h2>
-        <p>Activate a Brand before preparing a Brand-focused publication.</p>
+      <app-empty-state
+        title="No active Brand"
+        message="Activate a Brand before preparing a Brand-focused publication."
+      >
         <a routerLink="/brands">Manage Brands</a>
-      </div>
+      </app-empty-state>
     }
     <div class="pub-grid">
       <article class="pub-card">
@@ -78,10 +98,13 @@ import { PublishingService } from './publishing.service';
           <a [routerLink]="['/publishing/executions', item.id]"
             >{{ item.content_snapshot['product_name'] }} · {{ item.id.slice(0, 8) }}</a
           >
-          <span class="pub-status" [class]="item.status">{{ item.status }}</span>
+          <app-status-badge [status]="item.status" [label]="item.status" tone="info" />
         </p>
       } @empty {
-        <p class="pub-muted">No publishing executions yet.</p>
+        <app-empty-state
+          title="No publishing executions yet"
+          message="Approved content appears here after an existing governed publication run."
+        />
       }
     </article>
   </section>`,
@@ -100,6 +123,10 @@ export class PublishingDashboardComponent implements OnInit {
   readonly failed = signal(0);
   readonly retryable = signal(0);
   readonly unpublished = signal(0);
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Products', url: '/products' },
+    { label: 'Publishing' },
+  ];
   readonly activeBrand = this.brands.activeBrand;
   ngOnInit(): void {
     void this.load();

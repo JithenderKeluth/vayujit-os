@@ -3,6 +3,10 @@ import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
+import { ErrorStateComponent } from '../shared/state-components';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 import {
   MarketplaceInventory,
   MarketplaceListing,
@@ -36,9 +40,10 @@ interface VideoChannel {
 
 @Component({
   selector: 'app-product-channel-view',
-  imports: [RouterLink],
+  imports: [BreadcrumbsComponent, CommerceJourneyNavComponent, ErrorStateComponent, RouterLink],
   template: `
     <section class="marketplace-page">
+      <app-breadcrumbs [items]="breadcrumbs" />
       <header>
         <h1>Product channel view</h1>
         <p>
@@ -46,8 +51,9 @@ interface VideoChannel {
           marketplace channel.
         </p>
       </header>
+      <app-commerce-journey-nav current="listings" />
       @if (error()) {
-        <p class="marketplace-error" role="alert">{{ error() }}</p>
+        <app-error-state title="Product Channel is unavailable" [message]="error()" />
       }
       <div class="marketplace-table">
         <table>
@@ -153,6 +159,10 @@ export class ProductChannelViewComponent {
   readonly channels = signal<ChannelRow[]>([]);
   readonly videoChannels = signal<VideoChannel[]>([]);
   readonly error = signal('');
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Products', url: '/products' },
+    { label: 'Product Channels' },
+  ];
   private readonly registry: Record<string, string> = {
     amazon: '/marketplaces/amazon',
     flipkart: '/marketplaces/flipkart',

@@ -3,6 +3,11 @@ import { HttpClient } from '@angular/common/http';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
+import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 
 type ImageGeneration = {
   generation_id: string;
@@ -12,8 +17,16 @@ type ImageGeneration = {
 
 @Component({
   selector: 'app-ai-image-studio',
-  imports: [RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    CommerceJourneyNavComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    RouterLink,
+    StatusBadgeComponent,
+  ],
   template: ` <section class="ai-page">
+    <app-breadcrumbs [items]="breadcrumbs" />
     <header class="ai-header">
       <div>
         <h1>AI Image Studio</h1>
@@ -23,8 +36,12 @@ type ImageGeneration = {
       ><a class="ai-button" routerLink="/ai/studio">Content Studio</a
       ><a class="ai-button" routerLink="/media">Media library</a>
     </header>
+    <app-commerce-journey-nav current="images" />
     @if (error()) {
-      <p class="ai-error">{{ error() }}</p>
+      <app-error-state title="Image generation is unavailable" [message]="error()" />
+    }
+    @if (busy()) {
+      <app-loading-state message="Image request queued; waiting for the worker result..." />
     }
     <ol class="generation-steps" aria-label="Image generation steps">
       <li>1. Product</li>
@@ -84,6 +101,11 @@ type ImageGeneration = {
     @if (generation()) {
       <article class="ai-card">
         <h2>Generation {{ generation()!.status }}</h2>
+        <app-status-badge
+          [status]="generation()!.status"
+          [label]="generation()!.status"
+          tone="info"
+        />
         <p>
           {{ generation()!.outputs.length }} output(s) queued. Worker execution creates a separate
           Media asset.
@@ -115,6 +137,10 @@ export class AIImageStudioComponent {
   readonly busy = signal(false);
   readonly error = signal('');
   readonly generation = signal<ImageGeneration | null>(null);
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Products', url: '/products' },
+    { label: 'Images' },
+  ];
 
   async generate(): Promise<void> {
     this.busy.set(true);

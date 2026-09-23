@@ -6,14 +6,27 @@ import { RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
+import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 
 type RecordValue = Record<string, unknown>;
 
 @Component({
   selector: 'app-ai-video',
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    CommerceJourneyNavComponent,
+    CommonModule,
+    ErrorStateComponent,
+    FormsModule,
+    LoadingStateComponent,
+    RouterLink,
+  ],
   template: `
     <main class="video-page">
+      <app-breadcrumbs [items]="breadcrumbs" />
       <header class="hero">
         <div>
           <p class="eyebrow">AI Studio / Video</p>
@@ -26,6 +39,15 @@ type RecordValue = Record<string, unknown>;
           <strong>Local Workflow Simulation</strong><span>Deterministic ï¿½ network-free</span>
         </div>
       </header>
+      <app-commerce-journey-nav current="video" />
+      @if (loading()) {
+        <app-loading-state message="Loading saved video projects..." />
+      }
+      @if (queueing()) {
+        <app-loading-state
+          message="Video request queued; waiting for the authoritative result..."
+        />
+      }
 
       <nav class="tabs" aria-label="Video Studio views">
         @for (view of views; track view.id) {
@@ -58,7 +80,12 @@ type RecordValue = Record<string, unknown>;
           ><a class="button" [routerLink]="[]" fragment="diagnostics">View Diagnostics</a>
         </div>
         @if (error()) {
-          <p class="alert" role="alert">{{ error() }}</p>
+          <app-error-state
+            title="Video workspace is unavailable"
+            [message]="error()"
+            retryLabel="Retry"
+            (retry)="load()"
+          />
         }
       </section>
 
@@ -928,6 +955,7 @@ export class AIVideoComponent {
   search = '';
   readonly step = signal(1);
   readonly queueing = signal(false);
+  readonly loading = signal(true);
   readonly message = signal('');
   readonly error = signal('');
   readonly videos = signal<RecordValue[]>([]);
@@ -944,18 +972,27 @@ export class AIVideoComponent {
   readonly recovery = signal<RecordValue | null>(null);
   readonly comparison = signal<RecordValue | null>(null);
   readonly scriptDraft = signal<RecordValue | null>(null);
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Products', url: '/products' },
+    { label: 'Video' },
+  ];
   constructor() {
     void this.load();
   }
   async load(): Promise<void> {
-    await Promise.all([
-      this.loadVideos(),
-      this.loadScripts(),
-      this.loadStyles(),
-      this.loadStoryboards(),
-      this.loadPresets(),
-      this.loadDiagnostics(),
-    ]);
+    this.loading.set(true);
+    try {
+      await Promise.all([
+        this.loadVideos(),
+        this.loadScripts(),
+        this.loadStyles(),
+        this.loadStoryboards(),
+        this.loadPresets(),
+        this.loadDiagnostics(),
+      ]);
+    } finally {
+      this.loading.set(false);
+    }
   }
   async loadVideos(): Promise<void> {
     try {

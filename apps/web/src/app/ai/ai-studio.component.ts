@@ -1,5 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 import type {
   AIStudioArtifact,
   AIStudioChannel,
@@ -10,8 +19,17 @@ import { AIService } from './ai.service';
 
 @Component({
   selector: 'app-ai-studio',
-  imports: [RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    CommerceJourneyNavComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    RouterLink,
+    StatusBadgeComponent,
+  ],
   template: ` <section class="ai-page">
+    <app-breadcrumbs [items]="breadcrumbs" />
     <header class="ai-header">
       <div>
         <h1>AI Product Content + SEO Studio</h1>
@@ -21,8 +39,17 @@ import { AIService } from './ai.service';
       ><a class="ai-button" routerLink="/ai/studio/bulk">Bulk generation</a>
       <a class="ai-button" routerLink="/ai">AI overview</a>
     </header>
+    <app-commerce-journey-nav current="content" />
     @if (error()) {
-      <p class="ai-error">{{ error() }}</p>
+      <app-error-state
+        title="Content workspace is unavailable"
+        [message]="error()"
+        retryLabel="Retry artifacts"
+        (retry)="loadArtifacts()"
+      />
+    }
+    @if (busy()) {
+      <app-loading-state message="Generation requested; waiting for the authoritative result..." />
     }
     <nav class="ai-tabs">
       <a routerLink="/ai/studio" fragment="generate">Generate</a
@@ -82,12 +109,17 @@ import { AIService } from './ai.service';
       <h2>Latest artifacts</h2>
       <button class="ai-button" (click)="loadArtifacts()">Refresh artifacts</button>
       @if (!artifacts().length) {
-        <p class="ai-muted">No Studio artifacts yet.</p>
+        <app-empty-state
+          title="No generated content yet"
+          message="Enter a Product ID and use the existing generation workflow to create a reviewable result."
+        />
       }
       @for (artifact of artifacts(); track artifact.id) {
         <p>
           <strong>{{ artifact.product_name }}</strong> � {{ artifact.channel }} �
           {{ artifact.content_type }} � v{{ artifact.version_number }} � {{ artifact.status }}
+          <app-status-badge [status]="artifact.status" [label]="artifact.status" tone="info" />
+          <span> · Source: {{ artifact.source || 'Not reported' }}</span>
           <a [routerLink]="['/ai/artifacts', artifact.id]">Review</a>
         </p>
       }
@@ -146,6 +178,10 @@ export class AIStudioComponent {
   ];
   readonly selectedChannels = signal<AIStudioChannel[]>(['amazon', 'flipkart', 'meesho']);
   readonly selectedTypes = signal<AIStudioContentType[]>(['marketplace_listing']);
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Products', url: '/products' },
+    { label: 'Content Studio' },
+  ];
   setChannels(event: Event): void {
     const target = event.target;
     if (target instanceof HTMLSelectElement) {

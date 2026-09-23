@@ -4,6 +4,10 @@ import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
+import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 
 type MarketplaceVideoUsage = {
   marketplace: string;
@@ -34,9 +38,17 @@ type ProductMediaItem = {
 
 @Component({
   selector: 'app-product-media',
-  imports: [DatePipe, RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    CommerceJourneyNavComponent,
+    DatePipe,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    RouterLink,
+  ],
   template: `
     <section class="media-page" aria-labelledby="product-media-title">
+      <app-breadcrumbs [items]="breadcrumbs" />
       <header class="media-header">
         <div>
           <p class="eyebrow">Product Media</p>
@@ -45,11 +57,12 @@ type ProductMediaItem = {
         </div>
         <a routerLink="../" class="button">Back to product</a>
       </header>
+      <app-commerce-journey-nav current="images" />
       @if (error()) {
-        <p class="state error" role="alert">{{ error() }}</p>
+        <app-error-state title="Product media is unavailable" [message]="error()" />
       }
       @if (loading()) {
-        <p class="state" role="status">Loading media…</p>
+        <app-loading-state message="Loading saved Product media..." />
       }
       <section class="media-group" aria-labelledby="marketplace-video-usage-heading">
         <h2 id="marketplace-video-usage-heading">
@@ -232,6 +245,10 @@ export class ProductMediaComponent {
   private readonly productId = this.route.snapshot.paramMap.get('id')!;
   readonly loading = signal(true);
   readonly error = signal('');
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Products', url: '/products' },
+    { label: 'Product media' },
+  ];
   readonly items = signal<ProductMediaItem[]>([]);
   readonly videoUsage = signal<MarketplaceVideoUsage[]>([]);
   constructor() {
