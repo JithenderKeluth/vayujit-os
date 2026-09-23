@@ -2,6 +2,9 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { EvidenceCardComponent } from '../shared/evidence-card.component';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
 import {
   TrendAnalysis,
   TrendAnalysisSeries,
@@ -18,13 +21,25 @@ import {
 @Component({
   selector: 'app-trend-intelligence-workspace',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    EvidenceCardComponent,
+    PageHeaderComponent,
+    StatusBadgeComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="workspace" aria-labelledby="trend-title">
-      <p><a routerLink="/intelligence">Back to Intelligence</a></p>
-      <h1 id="trend-title">Trend Intelligence</h1>
-      <p>Evidence-first observations with immutable, owner-scoped snapshots.</p>
+      <app-page-header
+        eyebrow="Intelligence / Evidence"
+        title="Trend Intelligence"
+        headingId="trend-title"
+        description="Evidence-first observations with immutable, owner-scoped snapshots."
+      >
+        <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
+      </app-page-header>
       <form (ngSubmit)="create()">
         <label>Context name <input name="name" [(ngModel)]="name" required /></label>
         <label
@@ -85,6 +100,12 @@ import {
         <section aria-labelledby="observation-heading">
           <h2 id="observation-heading">Evidence observations</h2>
           <p>Observations: {{ observations().length }} - Snapshots: {{ snapshots().length }}</p>
+          <app-evidence-card
+            title="Accepted trend observations"
+            classification="OBSERVED"
+            summary="Normalized observations remain immutable evidence; analysis does not infer demand or forecast outcomes."
+            source="Trend Intelligence"
+          />
           @if (observations().length) {
             <table>
               <thead>
@@ -179,8 +200,14 @@ import {
           </button>
           @if (validation()) {
             <p>
-              Status: {{ validation()?.status }} · confidence: {{ validation()?.confidence }} ·
-              readiness: {{ validation()?.downstream_readiness }}
+              Status:
+              <app-status-badge
+                [status]="validation()?.status || 'UNKNOWN'"
+                [label]="validation()?.status || 'UNKNOWN'"
+                tone="info"
+              />
+              · confidence: {{ validation()?.confidence }} · readiness:
+              {{ validation()?.downstream_readiness }}
             </p>
             <p>
               Independent sources:

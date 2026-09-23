@@ -4,10 +4,12 @@ import { AuthService } from './auth/auth.service';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { BrandService } from './brands/brand.service';
 import { OperationsService } from './operations/operations.service';
+import { BreadcrumbService } from './shared/breadcrumb.service';
+import { BreadcrumbsComponent } from './shared/breadcrumbs.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, BreadcrumbsComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -17,6 +19,7 @@ export class AppComponent {
   readonly brands = inject(BrandService);
   private readonly router = inject(Router);
   private readonly operations = inject(OperationsService);
+  readonly breadcrumbs = inject(BreadcrumbService);
   readonly navigationGroups = [
     {
       label: 'Home',
