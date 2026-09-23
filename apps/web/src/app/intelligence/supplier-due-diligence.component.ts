@@ -1,7 +1,19 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { EvidenceCardComponent } from '../shared/evidence-card.component';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
 
 type Gap = {
   id: string;
@@ -24,29 +36,74 @@ type Context = {
 @Component({
   selector: 'app-supplier-due-diligence',
   standalone: true,
-  imports: [CommonModule],
+  imports: [
+    BreadcrumbsComponent,
+    CommonModule,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    EvidenceCardComponent,
+    LoadingStateComponent,
+    PageHeaderComponent,
+    RouterLink,
+    StatusBadgeComponent,
+    SupplierJourneyNavComponent,
+  ],
   template: `
     <main aria-labelledby="due-diligence-title">
-      <h1 id="due-diligence-title">Supplier Due Diligence</h1>
-      <p>Evidence-first research gaps and human-controlled readiness.</p>
+      <app-breadcrumbs [items]="breadcrumbs" />
+      <app-page-header
+        headingId="due-diligence-title"
+        eyebrow="Intelligence / Supplier Verification"
+        title="Supplier Verification"
+        description="Evidence-first research gaps and human-controlled readiness."
+      >
+        <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
+      </app-page-header>
+      <app-supplier-journey-nav current="verify" />
       @if (error) {
-        <p role="alert">
-          Due diligence data is unavailable. Check the authenticated API connection.
-        </p>
+        <app-error-state
+          title="Supplier verification is unavailable"
+          message="Due diligence data is unavailable. Check the authenticated API connection."
+          retryLabel="Retry"
+          (retry)="ngOnInit()"
+        />
+      }
+      @if (loading) {
+        <app-loading-state message="Loading supplier verification..." />
       }
       <section aria-labelledby="summary-title">
-        <h2 id="summary-title">Contexts</h2>
+        <h2 id="summary-title">What has been verified?</h2>
+        <p>
+          Review verified evidence, unresolved gaps, contradictions, and freshness before sourcing.
+        </p>
         @if (!loading && !contexts.length) {
-          <p>No due-diligence contexts yet.</p>
+          <app-empty-state
+            title="Verification not started"
+            message="No supplier verification contexts exist yet. Start from a shortlisted supplier."
+          />
         }
         @for (context of contexts; track context.id) {
           <article>
             <h3>{{ context.supplier_id }}</h3>
+            <app-status-badge
+              status="VERIFICATION_STATE"
+              [label]="semanticStatus(context.status)"
+              tone="info"
+            />
             <p>
               Status: {{ semanticStatus(context.status) }} · Readiness:
               {{ semanticStatus(context.readiness) }}
             </p>
             <p>Open gaps: {{ context.summary?.open_gaps || 0 }}</p>
+            <app-evidence-card
+              title="Verification evidence"
+              classification="DERIVED"
+              [summary]="
+                (context.summary?.open_gaps || 0) +
+                ' authoritative verification gap(s) remain for this supplier.'
+              "
+              source="Supplier due-diligence projection"
+            />
             <table>
               <thead>
                 <tr>
@@ -156,8 +213,12 @@ type Context = {
     `,
   ],
 })
-export class SupplierDueDiligenceComponent {
+export class SupplierDueDiligenceComponent implements OnInit {
   private readonly http = inject(HttpClient);
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Intelligence', url: '/intelligence' },
+    { label: 'Supplier verification' },
+  ];
   contexts: Context[] = [];
   loading = true;
   error = false;
@@ -179,7 +240,11 @@ export class SupplierDueDiligenceComponent {
     return labels[status] || status.replaceAll('_', ' ');
   }
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
+    void this.loadContexts();
+  }
+
+  private async loadContexts(): Promise<void> {
     try {
       this.contexts = await firstValueFrom(
         this.http.get<Context[]>('/api/v1/intelligence/supplier-due-diligence/contexts'),
@@ -238,7 +303,7 @@ export class SupplierDueDiligenceComponent {
           reason: reason || '',
         }),
       );
-      await this.ngOnInit();
+      this.ngOnInit();
     } catch {
       this.error = true;
     }

@@ -2,6 +2,15 @@ import { DatePipe, JsonPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
 
 import {
   JsonMap,
@@ -70,10 +79,22 @@ const ACTIONS = [
 
 @Component({
   selector: 'app-supplier-portfolio-workspace',
-  imports: [DatePipe, FormsModule, JsonPipe, RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    DatePipe,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    FormsModule,
+    JsonPipe,
+    LoadingStateComponent,
+    RouterLink,
+    StatusBadgeComponent,
+    SupplierJourneyNavComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="portfolio-page" aria-labelledby="portfolio-title">
+      <app-breadcrumbs [items]="breadcrumbs" />
       <header class="page-header">
         <div>
           <p class="eyebrow">Supplier Portfolio &amp; Resilience Intelligence</p>
@@ -88,12 +109,13 @@ const ACTIONS = [
           <a routerLink="/operations" class="secondary-button">Operations</a>
         </nav>
       </header>
+      <app-supplier-journey-nav current="resilience" />
 
       @if (error()) {
-        <p class="error" role="alert">{{ error() }}</p>
+        <app-error-state title="Portfolio resilience is unavailable" [message]="error()" />
       }
       @if (loading()) {
-        <p class="loading" aria-live="polite">Loading supplier portfolios...</p>
+        <app-loading-state message="Loading supplier portfolio evidence..." />
       } @else if (!portfolioId()) {
         <section class="panel" aria-labelledby="portfolio-list-title">
           <div class="panel-heading">
@@ -104,10 +126,10 @@ const ACTIONS = [
             <button type="button" (click)="loadList()" [disabled]="loading()">Refresh</button>
           </div>
           @if (!portfolios().length) {
-            <div class="empty-state">
-              <h3>No supplier portfolios yet</h3>
-              <p>Create a portfolio through the API, then return here for analysis and review.</p>
-            </div>
+            <app-empty-state
+              title="No supplier portfolios yet"
+              message="Create or load a supplier portfolio before reviewing concentration and resilience."
+            />
           } @else {
             <div class="table-wrap">
               <table>
@@ -153,7 +175,7 @@ const ACTIONS = [
         </section>
       } @else {
         @if (detailLoading()) {
-          <p class="loading" aria-live="polite">Loading portfolio analysis...</p>
+          <app-loading-state message="Loading portfolio analysis..." />
         }
         @if (portfolio()) {
           <section class="portfolio-heading panel">
@@ -163,7 +185,11 @@ const ACTIONS = [
               <p>{{ portfolio()?.description || 'No portfolio description provided.' }}</p>
             </div>
             <div class="heading-status">
-              <span class="status-badge">{{ portfolio()?.status }}</span>
+              <app-status-badge
+                status="PORTFOLIO_STATE"
+                [label]="portfolio()?.status || 'UNKNOWN'"
+                tone="info"
+              />
               @if (assessment()?.status === 'not_assessed') {
                 <span class="warning-badge">Assessment required</span>
               }
@@ -989,6 +1015,10 @@ const ACTIONS = [
 export class SupplierPortfolioWorkspaceComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly service = inject(SupplierPortfolioService);
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Intelligence', url: '/intelligence' },
+    { label: 'Supplier resilience' },
+  ];
 
   readonly portfolios = signal<SupplierPortfolio[]>([]);
   readonly portfolio = signal<SupplierPortfolio | null>(null);

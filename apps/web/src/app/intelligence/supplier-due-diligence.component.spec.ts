@@ -31,7 +31,7 @@ function create() {
   });
   const fixture = TestBed.createComponent(SupplierDueDiligenceComponent);
   const component = fixture.componentInstance;
-  component.ngOnInit = () => Promise.resolve();
+  component.ngOnInit = () => undefined;
   component.contexts = [
     {
       id: 'context-1',

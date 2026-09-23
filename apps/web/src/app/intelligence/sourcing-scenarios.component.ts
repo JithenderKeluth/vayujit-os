@@ -4,6 +4,15 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { EvidenceCardComponent } from '../shared/evidence-card.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
 import type {
   SourcingComparison,
   SourcingContextSummary,
@@ -30,10 +39,21 @@ interface AllocationInput {
 @Component({
   selector: 'app-sourcing-scenarios',
   standalone: true,
-  imports: [FormsModule, JsonPipe, RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    EvidenceCardComponent,
+    FormsModule,
+    JsonPipe,
+    LoadingStateComponent,
+    RouterLink,
+    SupplierJourneyNavComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main>
+      <app-breadcrumbs [items]="breadcrumbs" />
       <header>
         <h1>Sourcing Scenarios</h1>
         <p>
@@ -43,11 +63,17 @@ interface AllocationInput {
         <a routerLink="/intelligence/supplier-shortlisting">Supplier Shortlisting</a>
         <a routerLink="/intelligence/due-diligence">Due Diligence</a>
       </header>
+      <app-supplier-journey-nav current="scenarios" />
       @if (error()) {
-        <p role="alert">{{ error() }}</p>
+        <app-error-state
+          title="Sourcing scenarios are unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="initialize()"
+        />
       }
       @if (busy()) {
-        <p role="status">Working...</p>
+        <app-loading-state message="Loading sourcing evidence..." />
       }
       <section aria-labelledby="new-context">
         <h2 id="new-context">Start from a shortlist</h2>
@@ -104,7 +130,10 @@ interface AllocationInput {
             {{ c.settings.target_quantity }} units ? {{ c.status }}
           </button>
         } @empty {
-          <p>No analysis contexts yet.</p>
+          <app-empty-state
+            title="No sourcing scenarios"
+            message="Create a sourcing analysis context from an authoritative shortlist to compare trade-offs."
+          />
         }
       </section>
       @if (contextId()) {
@@ -258,6 +287,16 @@ interface AllocationInput {
         </section>
         <section aria-labelledby="comparison">
           <h2 id="comparison">Comparison</h2>
+          <p>
+            Compare scenarios as trade-offs. No frontend winner or best-scenario decision is
+            created.
+          </p>
+          <app-evidence-card
+            title="Scenario comparison"
+            classification="DERIVED"
+            summary="Scenario costs, lead times, risks, labels, and freshness are returned by the authoritative sourcing service."
+            source="Sourcing scenario comparison projection"
+          />
           <button type="button" (click)="recommend()" [disabled]="busy()">
             Recommend for human review
           </button>
@@ -434,6 +473,10 @@ interface AllocationInput {
 export class SourcingScenariosComponent implements OnInit {
   private readonly http = inject(HttpClient);
   readonly base = '/api/v1/intelligence/sourcing-scenarios';
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Intelligence', url: '/intelligence' },
+    { label: 'Sourcing scenarios' },
+  ];
   readonly busy = signal(false);
   readonly error = signal('');
   readonly contexts = signal<SourcingContextSummary[]>([]);

@@ -2,7 +2,17 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { EvidenceCardComponent } from '../shared/evidence-card.component';
 import { PageHeaderComponent } from '../shared/page-header.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
 
 import {
   CrossMarketplaceService,
@@ -13,10 +23,23 @@ import {
 @Component({
   selector: 'app-cross-marketplace-supplier',
   standalone: true,
-  imports: [FormsModule, JsonPipe, RouterLink, PageHeaderComponent],
+  imports: [
+    BreadcrumbsComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    EvidenceCardComponent,
+    FormsModule,
+    JsonPipe,
+    LoadingStateComponent,
+    PageHeaderComponent,
+    RouterLink,
+    StatusBadgeComponent,
+    SupplierJourneyNavComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="workspace" aria-labelledby="supplier-intelligence-title">
+      <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         class="page-header"
         eyebrow="Intelligence / Supplier Intelligence"
@@ -25,16 +48,22 @@ import {
       >
         <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
       </app-page-header>
+      <app-supplier-journey-nav current="discover" />
 
       <p class="boundary" role="note">
         Read-only consolidation. Supplier contact, RFQ dispatch, purchasing and payments are
         disabled. Claims remain source-attributed and require human review.
       </p>
       @if (error()) {
-        <p class="error" role="alert">{{ error() }}</p>
+        <app-error-state
+          title="Supplier discovery is unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="load()"
+        />
       }
       @if (loading()) {
-        <p role="status" aria-live="polite">Loading Supplier Intelligence...</p>
+        <app-loading-state message="Loading supplier discovery..." />
       }
 
       <section class="metrics" aria-label="Supplier operations">
@@ -70,10 +99,21 @@ import {
 
       <section id="overview" class="panel" aria-labelledby="overview-title">
         <h2 id="overview-title">Overview</h2>
+        <p class="journey-summary">
+          Find possible suppliers first, then compare evidence and continue to shortlist or verify.
+          This read-only projection does not select a supplier.
+        </p>
         <button type="button" (click)="reconcile()" [disabled]="loading()">
           Reconcile accepted evidence
         </button>
         <p>Provider coverage: {{ operations()?.provider_coverage?.join(', ') || 'None yet' }}</p>
+        <p>
+          <app-status-badge
+            status="PROVIDER_MODE"
+            [label]="'Provider mode: ' + providerMode()"
+            tone="info"
+          />
+        </p>
         <p>
           External live readiness is separately configured; no provider is contacted by this view.
         </p>
@@ -85,7 +125,10 @@ import {
           <button type="button" (click)="load()">Refresh</button>
         </div>
         @if (!suppliers().length && !loading()) {
-          <p class="empty">No canonical Suppliers yet.</p>
+          <app-empty-state
+            title="No suppliers found"
+            message="Run an approved discovery workflow or reconcile accepted evidence before comparing suppliers."
+          />
         }
         <div class="table-wrap">
           <table>
@@ -106,9 +149,9 @@ import {
               @for (supplier of suppliers(); track supplier.id) {
                 <tr>
                   <th scope="row">{{ supplier.display_name }}</th>
-                  <td>{{ supplier.source_diversity?.independent_source_count ?? 0 }}</td>
+                  <td>{{ supplier.source_diversity.independent_source_count }}</td>
                   <td>{{ supplier.confidence_score }}</td>
-                  <td>{{ supplier.risk?.level || 'UNKNOWN' }}</td>
+                  <td>{{ supplier.risk.level || 'UNKNOWN' }}</td>
                   <td>{{ supplier.freshness_status }}</td>
                   <td><button type="button" (click)="select(supplier)">Inspect</button></td>
                 </tr>
@@ -126,40 +169,71 @@ import {
             {{ selected()?.identity?.rationale }}
           </p>
           <p><strong>Aliases:</strong> {{ selected()?.aliases?.join(', ') || 'None recorded' }}</p>
+          <app-evidence-card
+            title="Observed supplier facts"
+            classification="OBSERVED"
+            [summary]="supplierEvidenceSummary()"
+            source="Authoritative supplier projection"
+            [details]="supplierEvidenceDetails()"
+          />
           <div class="grid">
             <article>
               <h3>Sources</h3>
-              <pre>{{ selected()?.freshness?.sources | json }}</pre>
+              <details>
+                <summary>View source metadata</summary>
+                <pre>{{ selected()?.freshness?.sources | json }}</pre>
+              </details>
             </article>
             <article>
               <h3>Commercial Intelligence</h3>
-              <pre>{{ selected()?.commercial | json }}</pre>
+              <p>
+                Observed commercial fields are shown as returned; no comparison winner is inferred.
+              </p>
+              <details>
+                <summary>View commercial fields</summary>
+                <pre>{{ selected()?.commercial | json }}</pre>
+              </details>
             </article>
             <article>
               <h3>Verification / certifications</h3>
-              <pre>{{
-                {
-                  verification: selected()?.verification,
-                  certifications: selected()?.certifications,
-                } | json
-              }}</pre>
+              <details>
+                <summary>View verification fields</summary>
+                <pre>{{
+                  {
+                    verification: selected()?.verification,
+                    certifications: selected()?.certifications,
+                  } | json
+                }}</pre>
+              </details>
             </article>
             <article>
               <h3>Capabilities / facilities</h3>
-              <pre>{{
-                { capabilities: selected()?.capabilities, facilities: selected()?.facilities }
-                  | json
-              }}</pre>
+              <details>
+                <summary>View capability fields</summary>
+                <pre>{{
+                  { capabilities: selected()?.capabilities, facilities: selected()?.facilities }
+                    | json
+                }}</pre>
+              </details>
             </article>
             <article>
               <h3>Risk / contradictions</h3>
-              <pre>{{
-                { risk: selected()?.risk, contradictions: selected()?.contradictions } | json
-              }}</pre>
+              <p>
+                Risk and contradictions remain authoritative review signals, not a purchase verdict.
+              </p>
+              <details>
+                <summary>View risk and contradiction fields</summary>
+                <pre>{{
+                  { risk: selected()?.risk, contradictions: selected()?.contradictions } | json
+                }}</pre>
+              </details>
             </article>
             <article>
               <h3>Confidence explanation</h3>
-              <pre>{{ selected()?.confidence | json }}</pre>
+              <details>
+                <summary>View confidence fields</summary>
+                <pre>{{ selected()?.confidence | json }}</pre>
+              </details>
             </article>
           </div>
           <div class="actions">
@@ -172,11 +246,18 @@ import {
 
       <section id="comparison" class="panel" aria-labelledby="comparison-title">
         <h2 id="comparison-title">Comparison</h2>
+        <p>
+          Compare authoritative supplier fields. The result is a trade-off view, not a best-supplier
+          or winner decision.
+        </p>
         <p>Select canonical Supplier IDs separated by commas (2–5).</p>
         <input aria-label="Supplier IDs to compare" [(ngModel)]="comparisonIds" />
         <button type="button" (click)="compare()">Compare Suppliers</button>
         @if (comparison()) {
-          <pre>{{ comparison() | json }}</pre>
+          <details open>
+            <summary>View comparison evidence</summary>
+            <pre>{{ comparison() | json }}</pre>
+          </details>
         }
       </section>
 
@@ -187,7 +268,10 @@ import {
           secrets are excluded.
         </p>
         @if (reportValue()) {
-          <pre>{{ reportValue() | json }}</pre>
+          <details open>
+            <summary>View server report</summary>
+            <pre>{{ reportValue() | json }}</pre>
+          </details>
         }
       </section>
     </main>
@@ -350,6 +434,10 @@ export class CrossMarketplaceSupplierComponent {
   readonly loading = signal(false);
   readonly error = signal('');
   comparisonIds = '';
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Intelligence', url: '/intelligence' },
+    { label: 'Supplier discovery' },
+  ];
 
   constructor() {
     void this.load();
@@ -390,6 +478,28 @@ export class CrossMarketplaceSupplierComponent {
   }
   select(row: CanonicalSupplier): void {
     this.selected.set(row);
+  }
+  providerMode(): string {
+    const mode = this.operations()?.['provider_mode'] ?? this.selected()?.['provider_mode'];
+    return typeof mode === 'string' && mode.trim() ? mode : 'Not reported';
+  }
+  supplierEvidenceSummary(): string {
+    const row = this.selected();
+    if (!row) return 'No supplier selected.';
+    return (
+      row.display_name +
+      ' is an observed supplier projection from ' +
+      (row.source_diversity?.independent_source_count ?? 0) +
+      ' independent source(s).'
+    );
+  }
+  supplierEvidenceDetails() {
+    const row = this.selected();
+    return [
+      { label: 'Confidence', value: row?.confidence_score },
+      { label: 'Freshness', value: row?.freshness_status },
+      { label: 'Identity state', value: row?.identity_state },
+    ];
   }
   async compare(): Promise<void> {
     try {
