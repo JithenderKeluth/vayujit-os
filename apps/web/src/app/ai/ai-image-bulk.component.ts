@@ -34,7 +34,7 @@ type BulkStatus = {
         <div>
           <h1>Bulk image generation</h1>
           <p class="ai-muted">
-            AI Studio ? Images ? Bulk. Queue bounded, reviewable variants without running a provider
+            AI Studio / Images / Bulk. Queue bounded, reviewable variants without running a provider
             request in the browser.
           </p>
         </div>
@@ -108,7 +108,7 @@ type BulkStatus = {
         </div>
         <div class="bulk-actions">
           <button class="ai-button" [disabled]="busy()" (click)="preview()">
-            {{ busy() ? 'Working�' : 'Review plan' }}
+            {{ busy() ? 'Working...' : 'Review plan' }}
           </button>
           <button class="ai-button" [disabled]="busy() || !previewData()" (click)="queue()">
             Queue bulk generation
@@ -119,8 +119,8 @@ type BulkStatus = {
         <article class="ai-card" aria-live="polite">
           <h2>10. Review plan</h2>
           <p>
-            {{ plan.total_outputs }} outputs � {{ plan.estimated_provider_calls }} provider calls �
-            cost {{ plan.estimated_cost }}
+            {{ plan.total_outputs }} outputs &middot; {{ plan.estimated_provider_calls }} provider
+            calls &middot; cost {{ plan.estimated_cost }}
           </p>
           @if (plan.blockers.length) {
             <p class="ai-error">{{ plan.blockers.join(' ') }}</p>
@@ -136,7 +136,9 @@ type BulkStatus = {
           <progress [value]="current.progress_percentage" max="100">
             {{ current.progress_percentage }}%
           </progress>
-          <p>{{ current.progress_percentage }}% complete � {{ current.total_outputs }} outputs</p>
+          <p>
+            {{ current.progress_percentage }}% complete &middot; {{ current.total_outputs }} outputs
+          </p>
           <table class="bulk-table">
             <caption>
               Output review queue
@@ -163,7 +165,7 @@ type BulkStatus = {
                     } @else if (item.retry_eligible) {
                       <button (click)="retry(item.id)">Retry</button>
                     } @else {
-                      <span>�</span>
+                      <span>&mdash;</span>
                     }
                   </td>
                 </tr>
