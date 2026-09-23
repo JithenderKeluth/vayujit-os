@@ -7,12 +7,9 @@
           <div class="nav-group">
             <span class="nav-group-label">{{ group.label }}</span>
             @for (item of group.items; track item[1]) {
-              <a
-                [routerLink]="item[1]"
-                routerLinkActive="active"
-                ariaCurrentWhenActive="page"
-                >{{ item[0] }}</a
-              >
+              <a [routerLink]="item[1]" routerLinkActive="active" ariaCurrentWhenActive="page">{{
+                item[0]
+              }}</a>
             }
           </div>
         }
@@ -43,12 +40,9 @@
             <div class="nav-group">
               <span class="nav-group-label">{{ group.label }}</span>
               @for (item of group.items; track item[1]) {
-                <a
-                  [routerLink]="item[1]"
-                  routerLinkActive="active"
-                  ariaCurrentWhenActive="page"
-                  >{{ item[0] }}</a
-                >
+                <a [routerLink]="item[1]" routerLinkActive="active" ariaCurrentWhenActive="page">{{
+                  item[0]
+                }}</a>
               }
             </div>
           }
@@ -58,6 +52,7 @@
         <span>Active brand</span>
         <strong>{{ brands.activeBrand()?.name || 'No active brand' }}</strong>
       </header>
+      <app-breadcrumbs [items]="breadcrumbs.items()" />
       <div id="main-content" tabindex="-1"><router-outlet /></div>
     </main>
   </div>

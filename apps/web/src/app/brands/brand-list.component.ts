@@ -4,19 +4,37 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import type { BrandSummary, PaginatedBrandResponse } from '@vayujit/shared';
 import { BrandService } from './brand.service';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
 
 @Component({
   selector: 'app-brand-list',
-  imports: [DatePipe, ReactiveFormsModule, RouterLink],
+  imports: [
+    DatePipe,
+    ReactiveFormsModule,
+    RouterLink,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    PageHeaderComponent,
+    StatusBadgeComponent,
+  ],
   template: `
     <section class="page">
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">Brand Management</p>
-          <h1>Brands</h1>
-        </div>
-        <a class="button primary" routerLink="/brands/new">Create brand</a>
-      </header>
+      <app-page-header
+        class="page-header"
+        eyebrow="Brand Management"
+        title="Brands"
+        description="Owner-scoped brands and their active publishing context."
+      >
+        <a page-header-actions class="button primary" routerLink="/brands/new">Create brand</a>
+      </app-page-header>
+
       <form class="filters" (submit)="apply($event)">
         <label>Search<input [formControl]="search" placeholder="Search by name" /></label>
         <label
@@ -33,14 +51,14 @@ import { BrandService } from './brand.service';
         <button class="button" type="submit">Apply</button>
       </form>
       @if (loading()) {
-        <p class="state">Loading brands…</p>
+        <app-loading-state message="Loading brands…" />
       } @else if (error()) {
-        <p class="state error" role="alert">{{ error() }}</p>
+        <app-error-state [message]="error()" retryLabel="Try again" (retry)="load()" />
       } @else if (!result()?.items?.length) {
-        <div class="state">
-          <h2>No brands found</h2>
-          <p>Create your first brand or change the filters.</p>
-        </div>
+        <app-empty-state
+          title="No brands found"
+          message="Create your first brand or change the filters."
+        />
       } @else {
         <div class="brand-grid">
           @for (brand of result()!.items; track brand.id) {
@@ -55,7 +73,11 @@ import { BrandService } from './brand.service';
                 @if (brand.is_active_context) {
                   <span class="badge active-brand">Active context</span>
                 }
-                <span class="badge">{{ brand.status }}</span>
+                <app-status-badge
+                  [status]="brand.status"
+                  [label]="brand.status"
+                  [tone]="brand.status === 'active' ? 'success' : 'neutral'"
+                />
               </div>
               @if (brand.website_url) {
                 <a [href]="brand.website_url" target="_blank" rel="noopener">{{

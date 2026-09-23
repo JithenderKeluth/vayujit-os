@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { PageHeaderComponent } from '../shared/page-header.component';
 
 import {
   CrossMarketplaceService,
@@ -12,18 +13,18 @@ import {
 @Component({
   selector: 'app-cross-marketplace-supplier',
   standalone: true,
-  imports: [FormsModule, JsonPipe, RouterLink],
+  imports: [FormsModule, JsonPipe, RouterLink, PageHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="workspace" aria-labelledby="supplier-intelligence-title">
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">Intelligence / Supplier Intelligence</p>
-          <h1 id="supplier-intelligence-title">Cross-marketplace Supplier Intelligence</h1>
-          <p class="lede">One canonical, evidence-first view across independent sources.</p>
-        </div>
-        <a routerLink="/intelligence">Back to Intelligence</a>
-      </header>
+      <app-page-header
+        class="page-header"
+        eyebrow="Intelligence / Supplier Intelligence"
+        title="Cross-marketplace Supplier Intelligence"
+        description="One canonical, evidence-first view across independent sources."
+      >
+        <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
+      </app-page-header>
 
       <p class="boundary" role="note">
         Read-only consolidation. Supplier contact, RFQ dispatch, purchasing and payments are
@@ -58,7 +59,10 @@ import {
 
       <nav class="tabs" aria-label="Supplier Intelligence sections">
         @for (tab of tabs; track tab) {
-          <a [href]="'#' + tab.toLowerCase().replaceAll(' ', '-')" (click)="activateTab($event, tab)">
+          <a
+            [href]="'#' + tab.toLowerCase().replaceAll(' ', '-')"
+            (click)="activateTab($event, tab)"
+          >
             {{ tab }}
           </a>
         }

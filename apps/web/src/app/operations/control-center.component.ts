@@ -2,6 +2,9 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { OperationsService } from './operations.service';
+import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
 
 type OperationsOverview = {
   status: string;
@@ -27,28 +30,33 @@ type OperationsOverview = {
 
 @Component({
   selector: 'app-operations-control-center',
-  imports: [RouterLink],
+  imports: [
+    RouterLink,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    PageHeaderComponent,
+    StatusBadgeComponent,
+  ],
   template: `
     <section class="op-page control-center" aria-labelledby="operations-title">
-      <header class="control-header">
-        <div>
-          <p class="eyebrow">Platform administration and release operations</p>
-          <h1 id="operations-title">Operations Control Center</h1>
-          <p>
-            Server-authoritative health, durable work, Recovery, provider safety, and release
-            readiness.
-          </p>
-        </div>
+      <app-page-header
+        class="control-header"
+        eyebrow="Platform administration and release operations"
+        title="Operations Control Center"
+        headingId="operations-title"
+        description="Server-authoritative health, durable work, Recovery, provider safety, and release readiness."
+      >
         @if (overview(); as value) {
-          <div class="environment-banner" [attr.data-status]="value.status">
+          <div page-header-actions class="environment-banner" [attr.data-status]="value.status">
             <strong>{{ value.environment }}</strong>
             <span
               >Shopify {{ value.provider_modes['shopify'] }} · Default
               {{ value.provider_modes['default'] }}</span
             >
+            <app-status-badge [status]="value.status" [label]="value.status" tone="info" />
           </div>
         }
-      </header>
+      </app-page-header>
 
       <nav class="control-nav" aria-label="Operations sections">
         <a routerLink="/operations">Overview</a>
@@ -64,10 +72,10 @@ type OperationsOverview = {
       </nav>
 
       @if (loading()) {
-        <p class="op-muted" role="status">Loading operational overview…</p>
+        <app-loading-state message="Loading operational overview…" />
       }
       @if (error()) {
-        <p class="op-error" role="alert">{{ error() }}</p>
+        <app-error-state [message]="error()" retryLabel="Try again" (retry)="load()" />
       }
       @if (overview(); as value) {
         <div class="alert-strip">
