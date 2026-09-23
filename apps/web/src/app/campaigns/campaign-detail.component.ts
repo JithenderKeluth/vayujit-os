@@ -11,14 +11,23 @@ import type {
   CampaignRecoveryProjection,
 } from '@vayujit/shared';
 import { CampaignService } from './campaign.service';
+import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.component';
 import { CatchUpDialogComponent } from './catch-up-dialog.component';
 import { RescheduleDialogComponent } from './reschedule-dialog.component';
 
 @Component({
   selector: 'app-campaign-detail',
-  imports: [DatePipe, FormsModule, RouterLink, RescheduleDialogComponent, CatchUpDialogComponent],
+  imports: [
+    DatePipe,
+    FormsModule,
+    RouterLink,
+    RescheduleDialogComponent,
+    CatchUpDialogComponent,
+    GrowthJourneyNavComponent,
+  ],
   template: `
     <section class="page">
+      <app-growth-journey-nav current="campaigns" />
       @if (campaign(); as value) {
         <header class="page-header">
           <div>

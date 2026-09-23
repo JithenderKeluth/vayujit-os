@@ -11,13 +11,15 @@ import {
   SocialRecoveryItem,
   SocialService,
 } from './social.service';
+import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.component';
 
 type Platform = 'youtube' | 'instagram' | 'facebook';
 @Component({
   selector: 'app-social-workspace',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, GrowthJourneyNavComponent],
   template: `
     <section class="social-page" aria-labelledby="social-title">
+      <app-growth-journey-nav current="social" />
       <header class="social-header">
         <div>
           <p class="eyebrow">Multi-channel publishing</p>

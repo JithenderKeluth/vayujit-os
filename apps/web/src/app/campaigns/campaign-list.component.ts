@@ -2,13 +2,15 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { Campaign } from '@vayujit/shared';
+import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.component';
 import { CampaignService } from './campaign.service';
 
 @Component({
   selector: 'app-campaign-list',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, GrowthJourneyNavComponent],
   template: `
     <section class="page">
+      <app-growth-journey-nav current="campaigns" />
       <header class="page-header">
         <div>
           <p class="eyebrow">Orchestration</p>

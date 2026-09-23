@@ -11,6 +11,7 @@ import {
 } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, filter, Subscription } from 'rxjs';
+import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.component';
 
 type Json = any;
 type Account = Json & {
@@ -39,10 +40,11 @@ type Capability = Json & {
 @Component({
   selector: 'app-ads-workspace',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive, GrowthJourneyNavComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="ads-shell" aria-labelledby="ads-title">
+      <app-growth-journey-nav current="advertising" />
       <header class="ads-header">
         <div>
           <p class="eyebrow">Ads and Marketing Automation</p>
