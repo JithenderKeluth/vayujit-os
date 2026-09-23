@@ -1,7 +1,18 @@
-import { DatePipe, JsonPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+
+import { EvidenceCardComponent } from '../shared/evidence-card.component';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import type { BreadcrumbItem, EvidenceDetail, StatusTone } from '../shared/ux-foundation.types';
 
 import {
   CommercialOutput,
@@ -24,752 +35,969 @@ import {
 @Component({
   selector: 'app-product-opportunity-workspace',
   standalone: true,
-  imports: [DatePipe, JsonPipe, FormsModule, RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    DatePipe,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    EvidenceCardComponent,
+    FormsModule,
+    LoadingStateComponent,
+    PageHeaderComponent,
+    RouterLink,
+    StatusBadgeComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <app-breadcrumbs [items]="detail() ? detailBreadcrumbs(detail()!) : listBreadcrumbs" />
     <main class="workspace" aria-labelledby="opportunities-title">
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">Intelligence / Winning products</p>
-          <h1 id="opportunities-title">Product opportunities</h1>
-          <p class="lede">
-            Owner-scoped concepts with versioned constraints and human-reviewed assessments.
-          </p>
-        </div>
-        <a routerLink="/intelligence">Back to Intelligence</a>
-      </header>
+      <app-page-header
+        [title]="detail() ? detail()!.name : 'Product opportunities'"
+        eyebrow="Intelligence / Winning Product"
+        [description]="
+          detail()
+            ? 'Evidence-backed product research context for a human decision.'
+            : 'Scan the opportunities you are researching and open one to review its evidence.'
+        "
+        headingId="opportunities-title"
+      >
+        <ng-container page-header-actions>
+          @if (detail()) {
+            <button type="button" class="secondary" (click)="backToList()">
+              All opportunities
+            </button>
+          }
+          <a class="secondary action-link" routerLink="/intelligence">Intelligence</a>
+        </ng-container>
+      </app-page-header>
 
       @if (error()) {
-        <p class="error" role="alert">{{ error() }}</p>
+        <app-error-state
+          title="Product opportunity data is unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="retryLoad()"
+        />
       }
       @if (loading()) {
-        <p role="status" aria-live="polite">Loading opportunities...</p>
+        <app-loading-state
+          message="Loading product opportunity dataÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦"
+        />
       }
 
-      <section class="panel" aria-labelledby="create-title">
-        <h2 id="create-title">Create opportunity</h2>
-        <form (ngSubmit)="create()">
-          <label
-            >Name <input name="name" [(ngModel)]="name" required minlength="2" maxlength="200"
-          /></label>
-          <label
-            >Product concept
-            <textarea name="concept" [(ngModel)]="concept" maxlength="10000"></textarea>
-          </label>
-          <label>Category <input name="category" [(ngModel)]="category" maxlength="120" /></label>
-          <label
-            >Marketplace <input name="marketplace" [(ngModel)]="marketplace" maxlength="120"
-          /></label>
-          <label>Region <input name="region" [(ngModel)]="region" maxlength="120" /></label>
-          <label
-            >Origin
-            <select name="origin" [(ngModel)]="origin">
-              @for (value of origins; track value) {
-                <option [value]="value">{{ value }}</option>
-              }
-            </select>
-          </label>
-          <button type="submit" [disabled]="loading() || !name.trim()">Create opportunity</button>
-        </form>
-      </section>
-
-      <section class="panel" aria-labelledby="list-title">
-        <h2 id="list-title">Your opportunities</h2>
-        @for (item of opportunities(); track item.id) {
-          <button class="list-item" type="button" (click)="select(item.id)">
-            <strong>{{ item.name }}</strong>
-            <span>{{ item.lifecycle_status }} Ã¯Â¿Â½ {{ item.evidence_state }}</span>
-          </button>
-        } @empty {
-          <p>No product opportunities yet.</p>
-        }
-      </section>
-      <section class="panel" aria-labelledby="comparison-title">
-        <div class="section-heading">
-          <h2 id="comparison-title">Compare scored opportunities</h2>
-          <span>Bounded, same-model decision support</span>
-        </div>
-        <button
-          type="button"
-          (click)="compareOpportunities()"
-          [disabled]="loading() || !canCompare()"
-        >
-          Compare top five scored opportunities
-        </button>
-        @if (comparison(); as result) {
-          <p role="status">{{ result.comparability }} â€” {{ result.reason }}</p>
-          @if (result.ranking?.length) {
-            <ol>
-              @for (entry of result.ranking; track entry.assessment_id) {
-                <li>
-                  Rank {{ entry.rank }} Â· {{ entry.score ?? 'Unavailable' }} Â·
-                  {{ entry.classification }} Â· confidence {{ entry.confidence }} Â· readiness
-                  {{ entry.readiness }}
-                </li>
-              }
-            </ol>
-          } @else {
-            <p>These assessments are not comparable and receive no ordinary rank.</p>
-          }
-        }
-      </section>
-      @if (detail(); as item) {
-        <section class="panel" aria-labelledby="detail-title">
-          <div class="section-heading">
-            <h2 id="detail-title">{{ item.name }}</h2>
-            <span>{{ item.lifecycle_status }}</span>
+      @if (!detail()) {
+        <section class="intro-grid" aria-label="Product opportunity overview">
+          <div class="intro-copy">
+            <p class="eyebrow">Context hub</p>
+            <h2>What are you researching?</h2>
+            <p>
+              Product Opportunities collect the current assessment, evidence strength, risks and
+              open research questions. Deep analysis remains in its dedicated workspace.
+            </p>
+            <a class="primary action-link" routerLink="/intelligence/business-agent">
+              Ask VAYUJIT
+            </a>
           </div>
-          <p>{{ item.description || item.product_concept || 'No description recorded.' }}</p>
-          <dl>
-            <dt>Origin</dt>
-            <dd>{{ item.origin }}</dd>
-            <dt>Marketplace</dt>
-            <dd>{{ item.target_marketplace || 'Unknown' }}</dd>
-            <dt>Evidence</dt>
-            <dd>{{ item.evidence_state }}</dd>
-            <dt>Updated</dt>
-            <dd>{{ item.updated_at | date: 'medium' }}</dd>
-          </dl>
-          <button
-            type="button"
-            (click)="archive(item.id)"
-            [disabled]="loading() || item.lifecycle_status === 'archived'"
-          >
-            Archive
-          </button>
-        </section>
-
-        <section class="panel" aria-labelledby="constraints-title">
-          <h2 id="constraints-title">Constraint history</h2>
-          @for (constraint of item.constraints; track constraint.id) {
+          <div class="principle-callout">
+            <strong>Human decision support</strong>
             <p>
-              Version {{ constraint.version }} Ã¯Â¿Â½
-              {{ constraint.currency || 'Currency unknown' }} Ã¯Â¿Â½ landed cost
-              {{ constraint.maximum_landed_cost || 'unknown' }}
+              A score is not a verdict. Confidence, risk, readiness and eligibility remain separate
+              authoritative states.
             </p>
-          } @empty {
-            <p>No constraint versions yet.</p>
-          }
-          <form (ngSubmit)="addConstraint(item.id)">
-            <label
-              >Currency
-              <input name="constraintCurrency" [(ngModel)]="constraint.currency" maxlength="3"
-            /></label>
-            <label
-              >Maximum landed cost
-              <input
-                name="landedCost"
-                [(ngModel)]="constraint.maximum_landed_cost"
-                inputmode="decimal"
-            /></label>
-            <button type="submit" [disabled]="loading()">Add constraint version</button>
-          </form>
+          </div>
         </section>
 
-        <section class="panel" aria-labelledby="assessment-title">
-          <h2 id="assessment-title">Assessment history</h2>
-          @for (assessment of item.assessments; track assessment.id) {
-            <p>
-              Version {{ assessment.version }} Ã¯Â¿Â½ {{ assessment.status }} Ã¯Â¿Â½
-              {{ assessment.evidence_state }}
+        <section class="panel create-panel" id="create-opportunity" aria-labelledby="create-title">
+          <details>
+            <summary id="create-title">Start a product opportunity</summary>
+            <p class="muted">
+              Create the existing Product Opportunity record; assessment remains a separate governed
+              step.
             </p>
-          } @empty {
-            <p>No assessments yet. Assessments remain append-only.</p>
-          }
-        </section>
-
-        @if (item.current_assessment_id) {
-          <section class="panel" aria-labelledby="intelligence-title">
-            <div class="section-heading">
-              <h2 id="intelligence-title">Demand &amp; competition intelligence</h2>
-              <span>Assessment-bound, deterministic evidence</span>
-            </div>
-            <div class="intelligence-actions">
-              <button type="button" (click)="calculateDemand(item)" [disabled]="loading()">
-                Calculate demand
-              </button>
-              <button type="button" (click)="calculateCompetition(item)" [disabled]="loading()">
-                Calculate competition
-              </button>
-            </div>
-            @for (output of intelligenceOutputs(); track output.id) {
-              <article class="intelligence-output">
-                <h3>{{ output.kind }} intelligence</h3>
-                <p class="muted">
-                  Calculation {{ output.calculation_version }} Ã¯Â¿Â½
-                  {{ output.created_at | date: 'medium' }}
-                </p>
-                <div class="dimension-grid">
-                  @for (dimension of output.dimensions; track dimension.dimension) {
-                    <div class="dimension">
-                      <strong>{{ dimension.dimension }}</strong>
-                      <span>{{ dimension.value ?? 'Unavailable' }}</span>
-                      <small
-                        >{{ dimension.classification }} Ã¯Â¿Â½ {{ dimension.evidence_state }}</small
-                      >
-                      <p>{{ dimension.explanation }}</p>
-                      @if (dimension.missing_evidence.length) {
-                        <small>Missing: {{ dimension.missing_evidence.join(', ') }}</small>
-                      }
-                    </div>
+            <form (ngSubmit)="create()" class="create-form">
+              <label
+                >Name <input name="name" [(ngModel)]="name" required minlength="2" maxlength="200"
+              /></label>
+              <label class="wide"
+                >Product concept
+                <textarea name="concept" [(ngModel)]="concept" maxlength="10000"></textarea>
+              </label>
+              <label
+                >Category <input name="category" [(ngModel)]="category" maxlength="120"
+              /></label>
+              <label
+                >Marketplace <input name="marketplace" [(ngModel)]="marketplace" maxlength="120"
+              /></label>
+              <label>Region <input name="region" [(ngModel)]="region" maxlength="120" /></label>
+              <label
+                >Research origin
+                <select name="origin" [(ngModel)]="origin">
+                  @for (value of origins; track value) {
+                    <option [value]="value">{{ value }}</option>
                   }
-                </div>
-                @if (output.research_gaps.length) {
-                  <p class="muted">Research gaps remain; no recommendation is inferred.</p>
-                }
-              </article>
-            } @empty {
-              <p>No demand or competition output has been calculated for this assessment.</p>
+                </select>
+              </label>
+              <button class="primary" type="submit" [disabled]="loading() || !name.trim()">
+                Create opportunity
+              </button>
+            </form>
+          </details>
+        </section>
+
+        <section class="panel" aria-labelledby="list-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Owner-scoped research</p>
+              <h2 id="list-title">Your opportunities</h2>
+            </div>
+            <span class="muted">{{ opportunities().length }} record(s)</span>
+          </div>
+          @if (opportunities().length === 0 && !loading()) {
+            <app-empty-state
+              title="No product opportunities yet"
+              message="Start a research journey with Business Agent or create a supported Product Opportunity record."
+              actionLabel="Start Product Research"
+              (action)="focusCreate()"
+            />
+          } @else {
+            <div class="opportunity-list">
+              @for (item of opportunities(); track item.id) {
+                <article class="opportunity-card">
+                  <div class="opportunity-card-heading">
+                    <div>
+                      <p class="eyebrow">{{ item.category || 'Product opportunity' }}</p>
+                      <h3>{{ item.name }}</h3>
+                    </div>
+                    <app-status-badge
+                      [status]="item.lifecycle_status"
+                      [label]="statusLabel(item.lifecycle_status)"
+                      [tone]="statusTone(item.lifecycle_status)"
+                    />
+                  </div>
+                  <p class="card-description">
+                    {{
+                      item.description || item.product_concept || 'No concept description recorded.'
+                    }}
+                  </p>
+                  <dl class="compact-facts">
+                    <div>
+                      <dt>Marketplace</dt>
+                      <dd>{{ item.target_marketplace || 'Unknown' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Region</dt>
+                      <dd>{{ item.target_region || 'Unknown' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Evidence state</dt>
+                      <dd>{{ item.evidence_state || 'UNKNOWN' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Assessment</dt>
+                      <dd>{{ item.current_assessment_id ? 'Available' : 'Not started' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Updated</dt>
+                      <dd>{{ item.updated_at | date: 'mediumDate' }}</dd>
+                    </div>
+                  </dl>
+                  <div class="card-actions">
+                    <button type="button" class="primary" (click)="select(item.id)">
+                      Open opportunity
+                    </button>
+                    @if (item.current_assessment_id) {
+                      <span class="muted">Assessment-bound evidence can be inspected next.</span>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </section>
+
+        @if (canCompare()) {
+          <section class="panel" aria-labelledby="comparison-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Existing scoring endpoint</p>
+                <h2 id="comparison-title">Compare assessed opportunities</h2>
+              </div>
+              <span class="muted">Same-model comparison only</span>
+            </div>
+            <button
+              class="secondary"
+              type="button"
+              (click)="compareOpportunities()"
+              [disabled]="loading()"
+            >
+              Compare up to five assessments
+            </button>
+            @if (comparison(); as result) {
+              <p class="callout" role="status">
+                {{ result.comparability }} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â {{ result.reason }}
+              </p>
+              @if (result.ranking?.length) {
+                <ol class="ranking-list">
+                  @for (entry of result.ranking; track entry.assessment_id) {
+                    <li>
+                      <strong>Rank {{ entry.rank }}</strong> ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
+                      {{ entry.score ?? 'Unavailable' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
+                      {{ entry.classification }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· confidence
+                      {{ entry.confidence }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· readiness {{ entry.readiness }}
+                    </li>
+                  }
+                </ol>
+              } @else {
+                <p class="muted">
+                  These assessments are not comparable and receive no ordinary rank.
+                </p>
+              }
             }
           </section>
-          @if (trendProjection(); as trend) {
-            <section class="panel" aria-labelledby="trend-projection-title">
-              <div class="section-heading">
-                <h2 id="trend-projection-title">Trend evidence</h2>
-                <span>Descriptive Trend evidence; not a demand or success score</span>
-              </div>
-              <button type="button" (click)="calculateTrendProjection(item)" [disabled]="loading()">
-                Refresh Trend evidence
-              </button>
-              <dl class="economics-summary">
-                <dt>Readiness</dt>
-                <dd>{{ trend.readiness }}</dd>
-                <dt>Evidence confidence</dt>
-                <dd>{{ trend.evidence_confidence['state'] || 'UNKNOWN' }}</dd>
-                <dt>Freshness</dt>
-                <dd>{{ trend.freshness['state'] || 'UNKNOWN' }}</dd>
-                <dt>Observed signals</dt>
-                <dd>{{ trend.signal_summaries.length }}</dd>
-                <dt>Historical momentum</dt>
-                <dd>{{ trend.momentum_summaries.length }}</dd>
-                <dt>Research gaps</dt>
-                <dd>{{ trend.research_gaps.length }}</dd>
-              </dl>
-              @if (
-                trend.readiness === 'RESEARCH_REQUIRED' ||
-                trend.readiness === 'INSUFFICIENT_EVIDENCE'
-              ) {
-                <p class="muted">
-                  Research required: no commercial conclusion is inferred from missing Trend
-                  evidence.
-                </p>
-              }
-              @if (trend.contradictions.length) {
-                <p class="muted">Contradictions remain in the authoritative Trend validation.</p>
-              }
-            </section>
-          }
-          @if (competitionProjection(); as projection) {
-            <section class="panel" aria-labelledby="competition-projection-title">
-              <div class="section-heading">
-                <h2 id="competition-projection-title">Competition Intelligence</h2>
-                <span>Authoritative evidence from the dedicated competitor pipeline</span>
-              </div>
-              <dl class="economics-summary">
-                <dt>Source</dt>
-                <dd>{{ projection.source_state }}</dd>
-                <dt>Competitors</dt>
-                <dd>
-                  {{ projection.projection.cohort?.authoritative_count ?? 'UNKNOWN' }}
-                  confirmed/probable
-                </dd>
-                <dt>Pricing evidence</dt>
-                <dd>
-                  {{ projection.projection.analysis?.pricing?.['sample_size'] ?? 'UNKNOWN' }}
-                  samples
-                </dd>
-                <dt>Brand concentration</dt>
-                <dd>
-                  {{ projection.projection.analysis?.concentration?.brand?.['hhi'] ?? 'UNKNOWN' }}
-                </dd>
-                <dt>Review barrier</dt>
-                <dd>
-                  {{ projection.projection.analysis?.review?.['barrier'] ?? 'UNKNOWN' }}
-                </dd>
-                <dt>Freshness</dt>
-                <dd>{{ projection.freshness_state }}</dd>
-                <dt>Evidence</dt>
-                <dd>{{ projection.projection.analysis?.evidence_coverage | json }}</dd>
-              </dl>
+        }
+      } @else {
+        @if (detail(); as item) {
+          <section class="context-header panel" aria-labelledby="context-title">
+            <div class="context-copy">
+              <p class="eyebrow">Current product research context</p>
+              <h2 id="context-title">{{ item.name }}</h2>
               <p>
-                Differentiation remains descriptive evidence:
-                {{ projection.projection.analysis?.differentiation ? 'Available' : 'UNKNOWN' }}.
+                {{ item.description || item.product_concept || 'No concept description recorded.' }}
               </p>
-              @if (projection.research_gaps.length) {
-                <p class="muted">
-                  Research gaps: {{ projection.research_gaps.length }} require review.
-                </p>
-              }
-              <a routerLink="/intelligence/competitors">Open Competitor Intelligence</a>
-            </section>
-          }
-          <section class="panel" aria-labelledby="economics-title">
-            <div class="section-heading">
-              <h2 id="economics-title">Economics</h2>
-              <span>Assessment-bound commercial viability</span>
             </div>
-            <button type="button" (click)="calculateCommercial(item)" [disabled]="loading()">
-              Calculate economics
-            </button>
-            @if (commercialOutput(); as commercial) {
-              <dl class="economics-summary">
-                <dt>Market price evidence</dt>
-                <dd>{{ commercial.evidence_summary['prices'] ? 'Available' : 'Unknown' }}</dd>
-                <dt>Selling price assumption</dt>
-                <dd>
-                  {{ commercial.economics['selling_price'] ?? 'UNKNOWN' }}
-                  {{ commercial.economics['currency'] ?? '' }}
-                </dd>
-                <dt>Landed cost</dt>
-                <dd>{{ commercial.economics['landed_cost_per_unit'] ?? 'UNKNOWN' }}</dd>
-                <dt>Contribution / unit</dt>
-                <dd>{{ commercial.economics['contribution_per_unit'] ?? 'UNKNOWN' }}</dd>
-                <dt>Contribution margin</dt>
-                <dd>{{ commercial.economics['contribution_margin_percent'] ?? 'UNKNOWN' }}%</dd>
-                <dt>MOQ / capital</dt>
-                <dd>
-                  {{ commercial.economics['moq'] ?? 'UNKNOWN' }} /
-                  {{ commercial.economics['known_total_initial_capital'] ?? 'UNKNOWN' }}
-                </dd>
-                <dt>Break-even units</dt>
-                <dd>{{ commercial.economics['break_even_units'] ?? 'UNKNOWN' }}</dd>
-              </dl>
-              <h3>Commercial dimensions</h3>
-              <div class="dimension-grid">
-                @for (dimension of commercial.dimensions; track dimension.dimension) {
-                  <div class="dimension">
-                    <strong>{{ dimension.dimension }}</strong
-                    ><span>{{ dimension.value ?? 'UNKNOWN' }}</span
-                    ><small>{{ dimension.classification }} Â· {{ dimension.evidence_state }}</small>
-                    <p>{{ dimension.explanation }}</p>
-                  </div>
-                }
+            <div class="context-actions">
+              <a class="primary action-link" routerLink="/intelligence/business-agent"
+                >Continue research with VAYUJIT</a
+              >
+              <button
+                class="secondary"
+                type="button"
+                (click)="archive(item.id)"
+                [disabled]="loading() || item.lifecycle_status === 'archived'"
+              >
+                Archive opportunity
+              </button>
+            </div>
+            <dl class="context-facts compact-facts">
+              <div>
+                <dt>Marketplace</dt>
+                <dd>{{ item.target_marketplace || 'Unknown' }}</dd>
               </div>
-              <p class="muted">
-                Sensitivity includes bounded BASELINE / SCENARIO / DELTA results. Missing evidence:
-                {{ commercial.research_gaps.length }} gap(s).
+              <div>
+                <dt>Category</dt>
+                <dd>{{ item.category || 'Unknown' }}</dd>
+              </div>
+              <div>
+                <dt>Region</dt>
+                <dd>{{ item.target_region || 'Unknown' }}</dd>
+              </div>
+              <div>
+                <dt>Origin</dt>
+                <dd>{{ item.origin }}</dd>
+              </div>
+              <div>
+                <dt>Research state</dt>
+                <dd>{{ item.research_state || 'UNKNOWN' }}</dd>
+              </div>
+              <div>
+                <dt>Evidence state</dt>
+                <dd>{{ item.evidence_state || 'UNKNOWN' }}</dd>
+              </div>
+              <div>
+                <dt>Updated</dt>
+                <dd>{{ item.updated_at | date: 'medium' }}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="panel" aria-labelledby="assessment-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Authoritative assessment</p>
+                <h2 id="assessment-title">Assessment summary</h2>
+              </div>
+              <span class="muted">No frontend scoring or verdicts</span>
+            </div>
+            @if (score(); as result) {
+              <div class="assessment-grid">
+                <article class="assessment-card score-card">
+                  <p>Opportunity score</p>
+                  <strong>{{ result.overall_score ?? 'Unavailable' }}<small>/100</small></strong
+                  ><span>{{ result.classification }}</span>
+                </article>
+                <article class="assessment-card confidence-card">
+                  <p>Evidence confidence</p>
+                  <app-status-badge
+                    [status]="result.confidence"
+                    [label]="result.confidence"
+                    [tone]="statusTone(result.confidence)"
+                  /><span>Strength of available supporting evidence</span>
+                </article>
+                <article class="assessment-card risk-card">
+                  <p>Risk</p>
+                  <app-status-badge
+                    [status]="result.risk_level"
+                    [label]="result.risk_level"
+                    [tone]="statusTone(result.risk_level)"
+                  /><span>Authoritative risk state</span>
+                </article>
+                <article class="assessment-card readiness-card">
+                  <p>Research readiness</p>
+                  <app-status-badge
+                    [status]="result.assessment_readiness"
+                    [label]="result.assessment_readiness"
+                    [tone]="statusTone(result.assessment_readiness)"
+                  /><span>Assessment completeness state</span>
+                </article>
+                <article class="assessment-card eligibility-card">
+                  <p>Eligibility</p>
+                  <app-status-badge
+                    [status]="result.eligibility"
+                    [label]="result.eligibility"
+                    [tone]="statusTone(result.eligibility)"
+                  /><span>Governed eligibility state</span>
+                </article>
+              </div>
+              <p class="semantic-note">
+                A high score does not imply high confidence, low risk, or a launch decision.
               </p>
-            } @else {
-              <p>No commercial viability output has been calculated for this assessment.</p>
-            }
-            <section class="panel" aria-labelledby="risk-evidence-title">
-              <div class="section-heading">
-                <h2 id="risk-evidence-title">Risk &amp; evidence synthesis</h2>
-                <span>Confidence and readiness are not business outcomes</span>
-              </div>
-              <button type="button" (click)="calculateRiskEvidence(item)" [disabled]="loading()">
-                Synthesize risk &amp; evidence
-              </button>
-              @if (riskEvidence(); as synthesis) {
-                <dl class="economics-summary">
-                  <dt>Assessment readiness</dt>
-                  <dd>{{ synthesis.summary['assessment_readiness'] }}</dd>
-                  <dt>Confidence</dt>
-                  <dd>{{ synthesis.summary['confidence'] }}</dd>
-                  <dt>Material risks</dt>
-                  <dd>{{ synthesis.summary['risk_count'] }}</dd>
-                </dl>
-                <h3>Domain readiness</h3>
-                <pre>{{ synthesis.domain_readiness | json }}</pre>
-                <h3>Material risks</h3>
-                <pre>{{ synthesis.risks | json }}</pre>
-                <h3>Evidence coverage and gaps</h3>
-                <pre>{{ synthesis.evidence_summary | json }}</pre>
-                <p class="muted">Changes: {{ synthesis.changes | json }}</p>
-              } @else {
-                <p>No risk/evidence synthesis has been calculated for this assessment.</p>
-              }
-            </section>
-            <section class="panel" aria-labelledby="sourcing-feasibility-title">
-              <div class="section-heading">
-                <h2 id="sourcing-feasibility-title">Supplier &amp; sourcing feasibility</h2>
-                <span>Evidence-backed assessment projection</span>
-              </div>
-              <button type="button" (click)="calculateSourcing(item)" [disabled]="loading()">
-                Assess sourcing feasibility
-              </button>
-              @if (sourcingFeasibility(); as sourcing) {
-                <dl class="economics-summary">
-                  <dt>Feasibility state</dt>
-                  <dd>{{ sourcing.summary['feasibility_state'] }}</dd>
-                  <dt>Suppliers discovered / matched</dt>
-                  <dd>
-                    {{ sourcing.summary['supplier_availability']?.discovered ?? 0 }} /
-                    {{ sourcing.summary['supplier_availability']?.matched ?? 0 }}
-                  </dd>
-                  <dt>Eligible / due diligence complete</dt>
-                  <dd>
-                    {{ sourcing.summary['supplier_availability']?.eligible ?? 0 }} /
-                    {{ sourcing.summary['supplier_availability']?.dd_complete ?? 0 }}
-                  </dd>
-                  <dt>Scenario availability</dt>
-                  <dd>{{ sourcing.summary['scenario_availability'] }}</dd>
-                  <dt>Evidence confidence</dt>
-                  <dd>{{ sourcing.summary['confidence'] }}</dd>
-                </dl>
-                <h3>Supplier candidates</h3>
-                @if (sourcing.candidates.length) {
-                  <div class="candidate-table" role="table" aria-label="Supplier candidates">
-                    @for (
-                      candidate of sourcing.candidates;
-                      track candidate['matched_product']?.['id']
-                    ) {
-                      <div class="candidate-row" role="row">
-                        <strong>{{ candidate['supplier']?.['name'] }}</strong>
-                        <span
-                          >Source: {{ candidate.source | json }} Â·
-                          {{ candidate.country ?? 'UNKNOWN' }} /
-                          {{ candidate.region ?? 'UNKNOWN' }}</span
+              <section class="subsection" aria-labelledby="score-components-title">
+                <div class="section-heading">
+                  <h3 id="score-components-title">How this score was formed</h3>
+                  <span class="muted">Returned components only</span>
+                </div>
+                @if (result.dimensions.length) {
+                  <div class="dimension-grid">
+                    @for (dimension of result.dimensions; track dimension['dimension']) {
+                      <article class="dimension">
+                        <strong>{{ dimension['dimension'] }}</strong
+                        ><span>{{ dimension['normalized_score'] ?? 'Unavailable' }}</span
+                        ><small
+                          >Raw input
+                          {{ dimension['raw_input'] ?? 'Unavailable' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
+                          Contribution
+                          {{ dimension['weighted_contribution'] ?? 'Unavailable' }}</small
                         >
-                        <span>Match explanation: {{ candidate.match_explanation | json }}</span>
-                        <span>Shortlist: {{ candidate.shortlist | json }}</span>
-                        <span>Due diligence: {{ candidate.due_diligence | json }}</span>
-                        <span
-                          >Availability: {{ candidate.availability ?? 'UNKNOWN' }} Â· Alternate
-                          readiness: {{ candidate.alternate_readiness ?? 'UNKNOWN' }}</span
-                        >
-                        <span
-                          >Risk: {{ candidate.risk_warnings | json }} Â· Freshness:
-                          {{ candidate.freshness ?? 'UNKNOWN' }}</span
-                        >
-                        @if (candidate.canonical_supplier_id && item.product_id) {
-                          <button
-                            type="button"
-                            (click)="handoffSourcing(item, candidate)"
-                            [disabled]="loading()"
-                          >
-                            Create internal DD context (no external work)
-                          </button>
-                        }
-                        <span>{{ candidate['matched_product']?.['title'] }}</span>
-                        <span
-                          >{{ candidate['verification'] }} Â· {{ candidate['match_state'] }}</span
-                        >
-                        <span
-                          >{{ candidate['currency'] ?? '' }}
-                          {{ candidate['price'] ?? 'UNKNOWN' }}</span
-                        >
-                        <span
-                          >MOQ {{ candidate['moq'] ?? 'UNKNOWN' }} Â·
-                          {{ candidate['lead_time_days'] ?? 'UNKNOWN' }} days</span
-                        >
-                      </div>
+                        <p>{{ dimension['explanation'] || 'No explanation returned.' }}</p>
+                      </article>
                     }
                   </div>
                 } @else {
-                  <p>No supplier evidence is available for this assessment.</p>
+                  <p class="muted">No score components were returned.</p>
                 }
-                <p>
-                  Projection {{ sourcing.calculation_version }} Â·
-                  {{ sourcing.created_at | date: 'medium' }}. No supplier selection or procurement
-                  is performed.
-                </p>
-                <h3>Scenarios, alternatives and resilience</h3>
-                <p>
-                  These remain separate descriptive dimensions below; UNKNOWN means supporting
-                  evidence is unavailable.
-                </p>
-                <h3>Concentration and dependencies</h3>
-                <pre>{{ sourcing.upstream_lineage['portfolio'] | json }}</pre>
-                <h3>Evidence, contradictions and observed changes</h3>
-                <pre>{{ sourcing.evidence_summary | json }}</pre>
-                <p role="status">{{ handoffMessage() }}</p>
-                <h3>Feasibility dimensions</h3>
-                <div class="dimension-grid">
-                  @for (dimension of sourcing.dimensions; track dimension['dimension']) {
-                    <div class="dimension">
-                      <strong>{{ dimension['dimension'] }}</strong>
-                      <pre>{{ dimension['value'] | json }}</pre>
-                      <small
-                        >{{ dimension['classification'] }} Â·
-                        {{ dimension['evidence_state'] }}</small
-                      >
-                      <p>{{ dimension['explanation'] }}</p>
+                <dl class="driver-list">
+                  @if (result.positive_drivers.length) {
+                    <div>
+                      <dt>Positive drivers</dt>
+                      <dd>{{ result.positive_drivers.join('; ') }}</dd>
                     </div>
                   }
-                </div>
-                @if (sourcing.research_gaps.length) {
-                  <p class="muted">Research gaps: {{ sourcing.research_gaps.join(', ') }}</p>
-                }
-              } @else {
-                <p>No sourcing feasibility projection has been calculated for this assessment.</p>
-              }
-            </section>
-            <section class="panel" aria-labelledby="review-projection-title">
-              <div class="section-heading">
-                <h2 id="review-projection-title">Review Intelligence</h2>
-                <span>Customer-feedback evidence only</span>
-              </div>
-              <button
-                type="button"
-                (click)="calculateReviewProjection(item)"
-                [disabled]="loading()"
+                  @if (result.negative_drivers.length) {
+                    <div>
+                      <dt>Negative drivers</dt>
+                      <dd>{{ result.negative_drivers.join('; ') }}</dd>
+                    </div>
+                  }
+                  @if (result.improvement_areas.length) {
+                    <div>
+                      <dt>Evidence improvements</dt>
+                      <dd>{{ result.improvement_areas.join('; ') }}</dd>
+                    </div>
+                  }
+                </dl>
+              </section>
+            } @else {
+              <app-empty-state
+                title="Assessment summary not loaded"
+                message="Load the existing Winning Product assessment when you are ready. Missing intelligence is not treated as a negative score."
               >
-                Refresh review-derived evidence
-              </button>
-              @if (reviewProjection(); as review) {
-                <dl class="economics-summary">
-                  <dt>Evidence readiness</dt>
-                  <dd>{{ review.readiness }}</dd>
-                  <dt>Review cohort</dt>
-                  <dd>{{ review.cohort['review_count'] ?? 0 }} reviews</dd>
-                  <dt>Rated reviews</dt>
-                  <dd>{{ review.cohort['rated_review_count'] ?? 0 }}</dd>
-                  <dt>Sources</dt>
-                  <dd>{{ review.cohort['source_inventory'] | json }}</dd>
-                </dl>
-                <p class="muted">
-                  Review-derived Â· Customer-feedback evidence Â· Hypothesis Â· Requires validation
-                </p>
-                <p>
-                  Sentiment distribution:
-                  {{ review.feedback_evidence['sentiment_distribution'] | json }}
-                </p>
-                <p>Top pain points: {{ review.feedback_evidence['pain_points'] | json }}</p>
-                <p>Top praise: {{ review.feedback_evidence['praised_attributes'] | json }}</p>
-                <p>Feature requests: {{ review.feedback_evidence['feature_requests'] | json }}</p>
-                <p>Product gaps: {{ review.gap_evidence | json }}</p>
-                <p>Recent review changes: {{ review.change_evidence['events'] | json }}</p>
-                @if (review.research_gaps.length) {
-                  <p class="muted">Requires validation: {{ review.research_gaps | json }}</p>
-                }
-                <p class="muted">Lineage: {{ review.evidence_lineage | json }}</p>
-              } @else {
-                <p>No review projection has been calculated for this assessment.</p>
-              }
-            </section>
-            <section class="panel" aria-labelledby="score-title">
-              <div class="section-heading">
-                <h2 id="score-title">Score / decision</h2>
-                <span>Decision support only; no autonomous product selection</span>
+                <button
+                  type="button"
+                  class="secondary"
+                  (click)="loadScore(item)"
+                  [disabled]="loading()"
+                >
+                  Load authoritative assessment
+                </button>
+              </app-empty-state>
+            }
+          </section>
+
+          @if (!item.current_assessment_id) {
+            <app-empty-state
+              title="Assessment has not started"
+              message="Add a supported constraint version and assessment before reviewing score or intelligence."
+              actionLabel="Continue research with VAYUJIT"
+              (action)="openBusinessAgent()"
+            />
+          }
+
+          <section class="panel" aria-labelledby="overview-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Context</p>
+                <h2 id="overview-title">What we know</h2>
               </div>
-              <button type="button" (click)="calculateScore(item)" [disabled]="loading()">
-                Calculate Winning Product score
-              </button>
-              @if (score(); as result) {
-                <dl class="economics-summary">
-                  <dt>Attractiveness score</dt>
-                  <dd>{{ result.overall_score ?? 'Unavailable' }} / 100</dd>
-                  <dt>Eligibility</dt>
-                  <dd>{{ result.eligibility }}</dd>
-                  <dt>Classification</dt>
-                  <dd>{{ result.classification }}</dd>
-                  <dt>Decision-support label</dt>
-                  <dd>{{ result.decision_label }}</dd>
-                  <dt>Confidence</dt>
-                  <dd>{{ result.confidence }}</dd>
-                  <dt>Risk</dt>
-                  <dd>{{ result.risk_level }}</dd>
-                  <dt>Assessment readiness</dt>
-                  <dd>{{ result.assessment_readiness }}</dd>
-                </dl>
-                <h3>Why this score?</h3>
-                <div class="dimension-grid">
-                  @for (dimension of result.dimensions; track dimension['dimension']) {
-                    <div class="dimension">
-                      <strong>{{ dimension['dimension'] }}</strong>
-                      <span>{{ dimension['normalized_score'] ?? 'Unavailable' }}</span>
-                      <small
-                        >Raw input {{ dimension['raw_input'] ?? 'Unavailable' }} Â· Contribution
-                        {{ dimension['weighted_contribution'] ?? 'Unavailable' }}</small
-                      >
-                      <small
-                        >Weight {{ dimension['weight'] }} Â·
-                        {{ dimension['evidence_state'] }}</small
-                      >
-                      <p>{{ dimension['explanation'] }}</p>
+              <span class="muted">Only persisted opportunity data</span>
+            </div>
+            <div class="overview-grid">
+              <div>
+                <h3>Research objective</h3>
+                <p>{{ item.research_objective || 'No research objective recorded.' }}</p>
+              </div>
+              <div>
+                <h3>Customer / business context</h3>
+                <p>
+                  {{ item.customer_segment || 'Customer segment not recorded.' }}
+                  ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
+                  {{ item.business_model || 'Business model not recorded.' }}
+                </p>
+              </div>
+              <div>
+                <h3>Brand strategy</h3>
+                <p>{{ item.brand_strategy || 'No brand strategy recorded.' }}</p>
+              </div>
+              <div>
+                <h3>Tags</h3>
+                <p>{{ (item.tags || []).length ? item.tags.join(', ') : 'No tags recorded.' }}</p>
+              </div>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="areas-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Evidence areas</p>
+                <h2 id="areas-title">Research areas</h2>
+              </div>
+              <span class="muted">Deep analysis remains in dedicated workspaces</span>
+            </div>
+            <div class="research-grid">
+              <article class="research-card trend-area">
+                <div class="research-heading">
+                  <h3>Trend</h3>
+                  <a routerLink="/intelligence/trends">Open Trend Intelligence</a>
+                </div>
+                @if (trendProjection(); as trend) {
+                  <dl class="compact-facts">
+                    <div>
+                      <dt>Projection state</dt>
+                      <dd>{{ trend.source_state }}</dd>
                     </div>
+                    <div>
+                      <dt>Readiness</dt>
+                      <dd>{{ trend.readiness }}</dd>
+                    </div>
+                    <div>
+                      <dt>Confidence</dt>
+                      <dd>{{ displayValue(trend.evidence_confidence['state']) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Freshness</dt>
+                      <dd>{{ displayValue(trend.freshness['state']) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Signals / momentum</dt>
+                      <dd>
+                        {{ trend.signal_summaries.length }} / {{ trend.momentum_summaries.length }}
+                      </dd>
+                    </div>
+                  </dl>
+                  <p class="semantic-note">
+                    Observed signal change is not direct evidence of sales, revenue, or future
+                    demand.
+                  </p>
+                } @else {
+                  <p class="muted">Trend projection not loaded or not researched.</p>
+                  <button
+                    class="secondary"
+                    type="button"
+                    (click)="loadTrend(item)"
+                    [disabled]="loading()"
+                  >
+                    Load Trend evidence
+                  </button>
+                }
+              </article>
+              <article class="research-card">
+                <div class="research-heading">
+                  <h3>Competition Intelligence</h3>
+                  <a routerLink="/intelligence/competitors">Open Competitor Intelligence</a>
+                </div>
+                @if (competitionProjection(); as projection) {
+                  <dl class="compact-facts">
+                    <div>
+                      <dt>Source state</dt>
+                      <dd>{{ projection.source_state }}</dd>
+                    </div>
+                    <div>
+                      <dt>Authoritative cohort</dt>
+                      <dd>{{ projection.projection.cohort?.authoritative_count ?? 'UNKNOWN' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Freshness</dt>
+                      <dd>{{ projection.freshness_state }}</dd>
+                    </div>
+                    <div>
+                      <dt>Contradictions</dt>
+                      <dd>{{ projection.contradiction_state }}</dd>
+                    </div>
+                    <div>
+                      <dt>Research gaps</dt>
+                      <dd>{{ projection.research_gaps.length }}</dd>
+                    </div>
+                  </dl>
+                } @else {
+                  <p class="muted">Competitor projection not loaded or not researched.</p>
+                  <button
+                    class="secondary"
+                    type="button"
+                    (click)="loadCompetition(item)"
+                    [disabled]="loading()"
+                  >
+                    Load competition evidence
+                  </button>
+                }
+              </article>
+              <article class="research-card">
+                <div class="research-heading">
+                  <h3>Customers / reviews</h3>
+                  <a routerLink="/intelligence/reviews">Open Customer Reviews</a>
+                </div>
+                @if (reviewProjection(); as review) {
+                  <dl class="compact-facts">
+                    <div>
+                      <dt>Readiness</dt>
+                      <dd>{{ review.readiness }}</dd>
+                    </div>
+                    <div>
+                      <dt>Reviews</dt>
+                      <dd>{{ displayValue(review.cohort['review_count']) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Rated reviews</dt>
+                      <dd>{{ displayValue(review.cohort['rated_review_count']) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Source state</dt>
+                      <dd>{{ review.source_state }}</dd>
+                    </div>
+                    <div>
+                      <dt>Freshness</dt>
+                      <dd>{{ displayValue(review.freshness['state']) }}</dd>
+                    </div>
+                  </dl>
+                  <p class="muted">
+                    Reviews are customer-feedback evidence, not sales or conversion evidence.
+                  </p>
+                } @else {
+                  <p class="muted">Customer-feedback projection not loaded or not researched.</p>
+                  <button
+                    class="secondary"
+                    type="button"
+                    (click)="loadReview(item)"
+                    [disabled]="loading()"
+                  >
+                    Load customer evidence
+                  </button>
+                }
+              </article>
+              <article class="research-card">
+                <div class="research-heading">
+                  <h3>Suppliers / sourcing</h3>
+                  <a routerLink="/intelligence/sourcing">View Suppliers</a>
+                </div>
+                @if (sourcingFeasibility(); as sourcing) {
+                  <dl class="compact-facts">
+                    <div>
+                      <dt>Feasibility</dt>
+                      <dd>{{ sourcing.summary['feasibility_state'] }}</dd>
+                    </div>
+                    <div>
+                      <dt>Discovered / matched</dt>
+                      <dd>
+                        {{ sourcing.summary['supplier_availability']?.discovered ?? 'UNKNOWN' }} /
+                        {{ sourcing.summary['supplier_availability']?.matched ?? 'UNKNOWN' }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Eligible / DD complete</dt>
+                      <dd>
+                        {{ sourcing.summary['supplier_availability']?.eligible ?? 'UNKNOWN' }} /
+                        {{ sourcing.summary['supplier_availability']?.dd_complete ?? 'UNKNOWN' }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Confidence</dt>
+                      <dd>{{ sourcing.summary['confidence'] }}</dd>
+                    </div>
+                    <div>
+                      <dt>Gaps</dt>
+                      <dd>{{ sourcing.research_gaps.length }}</dd>
+                    </div>
+                  </dl>
+                  <div class="card-actions">
+                    <a class="secondary action-link" routerLink="/intelligence/due-diligence"
+                      >Review Due Diligence</a
+                    ><a class="secondary action-link" routerLink="/intelligence/sourcing-scenarios"
+                      >Compare Sourcing Scenarios</a
+                    >
+                  </div>
+                  @if (sourcing.candidates.length) {
+                    <h4>Candidate evidence</h4>
+                    <ul class="candidate-list">
+                      @for (
+                        candidate of sourcing.candidates;
+                        track candidate.matched_product?.id || candidate.supplier?.id
+                      ) {
+                        <li>
+                          <strong>{{ candidate.supplier?.name || 'UNKNOWN supplier' }}</strong>
+                          <span
+                            >{{ candidate.country || 'UNKNOWN' }} ·
+                            {{ displayValue(candidate.due_diligence) }} ·
+                            {{ candidate.freshness || 'UNKNOWN' }} ·
+                            {{ candidate.match_state || 'UNKNOWN' }}</span
+                          >
+                        </li>
+                      }
+                    </ul>
                   }
-                </div>
-                <p class="muted">
-                  Positive drivers: {{ result.positive_drivers.join('; ') || 'None recorded.' }}
-                </p>
-                <p class="muted">
-                  Negative drivers: {{ result.negative_drivers.join('; ') || 'None recorded.' }}
-                </p>
-                <p class="muted">
-                  Evidence improvements:
-                  {{ result.improvement_areas.join('; ') || 'None recorded.' }}
-                </p>
-                <p class="muted">Sensitivity: {{ result.sensitivity | json }}</p>
-                <div class="intelligence-actions">
+                  <p class="muted">
+                    Concentration and dependencies:
+                    {{ displayValue(sourcing.upstream_lineage['portfolio']) }}
+                  </p>
+                  <p class="muted">
+                    Evidence, contradictions: {{ displayValue(sourcing.evidence_summary) }}
+                  </p>
+                } @else {
+                  <p class="muted">Supplier evidence not loaded or not researched.</p>
                   <button
+                    class="secondary"
                     type="button"
-                    (click)="recordDecision(item, 'shortlist')"
-                    [disabled]="loading() || result.eligibility === 'BLOCKED'"
-                  >
-                    Shortlist for human review
-                  </button>
-                  <button
-                    type="button"
-                    (click)="recordDecision(item, 'research_more')"
+                    (click)="loadSourcing(item)"
                     [disabled]="loading()"
                   >
-                    Request more research
+                    Load supplier evidence
                   </button>
+                }
+              </article>
+              <article class="research-card">
+                <div class="research-heading">
+                  <h3>Economics</h3>
+                  <span class="muted">Assessment-bound</span>
+                </div>
+                @if (commercialOutput(); as commercial) {
+                  <dl class="compact-facts">
+                    <div>
+                      <dt>Price evidence</dt>
+                      <dd>{{ commercial.evidence_summary['prices'] ? 'Available' : 'Unknown' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Selling price</dt>
+                      <dd>
+                        {{ displayValue(commercial.economics['selling_price']) }}
+                        {{ displayValue(commercial.economics['currency']) }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Landed cost</dt>
+                      <dd>{{ displayValue(commercial.economics['landed_cost_per_unit']) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Contribution margin</dt>
+                      <dd>
+                        {{ displayValue(commercial.economics['contribution_margin_percent']) }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Gaps</dt>
+                      <dd>{{ commercial.research_gaps.length }}</dd>
+                    </div>
+                  </dl>
+                  <p class="muted">
+                    No frontend profitability or landed-cost calculations are performed.
+                  </p>
+                } @else {
+                  <p class="muted">Commercial evidence is not loaded or not available.</p>
                   <button
+                    class="secondary"
                     type="button"
-                    (click)="recordDecision(item, 'watch')"
+                    (click)="loadCommercial(item)"
                     [disabled]="loading()"
                   >
-                    Watch
+                    Load economics
                   </button>
+                }
+              </article>
+              <article class="research-card">
+                <div class="research-heading">
+                  <h3>Risk / completeness</h3>
+                  <span class="muted">Separate from score</span>
                 </div>
-                <p role="status">{{ decisionMessage() }}</p>
-                <h3>Score history</h3>
-                @if (scoreHistory().length) {
+                @if (riskEvidence(); as synthesis) {
+                  <dl class="compact-facts">
+                    <div>
+                      <dt>Readiness</dt>
+                      <dd>{{ displayValue(synthesis.summary['assessment_readiness']) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Confidence</dt>
+                      <dd>{{ displayValue(synthesis.summary['confidence']) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Material risks</dt>
+                      <dd>{{ displayValue(synthesis.summary['risk_count']) }}</dd>
+                    </div>
+                    <div>
+                      <dt>Research gaps</dt>
+                      <dd>{{ synthesis.research_gaps.length }}</dd>
+                    </div>
+                  </dl>
+                } @else {
+                  <p class="muted">Risk and evidence synthesis is not loaded.</p>
+                  <button
+                    class="secondary"
+                    type="button"
+                    (click)="loadRiskEvidence(item)"
+                    [disabled]="loading()"
+                  >
+                    Load risk evidence
+                  </button>
+                }
+              </article>
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="evidence-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Inspect support</p>
+                <h2 id="evidence-title">Evidence</h2>
+              </div>
+              <span class="muted">Observed, derived and technical states remain authoritative</span>
+            </div>
+            @if (evidenceCards().length) {
+              <div class="evidence-grid">
+                @for (card of evidenceCards(); track card.title) {
+                  <app-evidence-card
+                    [title]="card.title"
+                    [classification]="card.classification"
+                    [summary]="card.summary"
+                    [source]="card.source"
+                    [observedAt]="card.observedAt"
+                    [details]="card.details"
+                  />
+                }
+              </div>
+            } @else {
+              <p class="muted">No projection evidence has been loaded for this opportunity yet.</p>
+            }
+          </section>
+
+          @if (researchGaps().length || contradictions().length) {
+            <section class="panel" aria-labelledby="unknowns-title">
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Human review</p>
+                  <h2 id="unknowns-title">What we still do not know</h2>
+                </div>
+                <span class="muted">Returned gaps and contradictions only</span>
+              </div>
+              @if (researchGaps().length) {
+                <div class="callout warning">
+                  <h3>Research gaps</h3>
                   <ul>
-                    @for (entry of scoreHistory(); track entry.id) {
-                      <li>
-                        {{ entry.created_at | date: 'medium' }} Â·
-                        {{ entry.overall_score ?? 'Unavailable' }} Â· {{ entry.classification }} Â·
-                        {{ entry.eligibility }}
-                      </li>
+                    @for (gap of researchGaps(); track gap) {
+                      <li>{{ gap }}</li>
                     }
                   </ul>
-                } @else {
-                  <p>No immutable score history is available yet.</p>
-                }
-              } @else {
-                <p>
-                  No score has been calculated for this assessment. Missing evidence remains
-                  unavailable.
-                </p>
+                </div>
+              }
+              @if (contradictions().length) {
+                <div class="callout danger">
+                  <h3>Conflicting evidence</h3>
+                  <ul>
+                    @for (item of contradictions(); track item) {
+                      <li>{{ item }}</li>
+                    }
+                  </ul>
+                  <button class="secondary" type="button" (click)="focusEvidence()">
+                    Review evidence
+                  </button>
+                </div>
               }
             </section>
+          }
+
+          <section class="panel" aria-labelledby="actions-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Supported workflows</p>
+                <h2 id="actions-title">Continue research</h2>
+              </div>
+              <span class="muted">No autonomous launch or procurement actions</span>
+            </div>
+            <div class="action-grid">
+              @if (item.current_assessment_id) {
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="calculateTrendProjection(item)"
+                  [disabled]="loading()"
+                >
+                  Refresh Trend projection
+                </button>
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="calculateCompetition(item)"
+                  [disabled]="loading()"
+                >
+                  Refresh Competition projection
+                </button>
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="calculateReviewProjection(item)"
+                  [disabled]="loading()"
+                >
+                  Refresh Customer projection
+                </button>
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="calculateScore(item)"
+                  [disabled]="loading()"
+                >
+                  Calculate Winning Product assessment
+                </button>
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="calculateDemand(item)"
+                  [disabled]="loading()"
+                >
+                  Calculate demand intelligence
+                </button>
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="calculateCommercial(item)"
+                  [disabled]="loading()"
+                >
+                  Calculate economics
+                </button>
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="calculateRiskEvidence(item)"
+                  [disabled]="loading()"
+                >
+                  Synthesize risk evidence
+                </button>
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="calculateSourcing(item)"
+                  [disabled]="loading()"
+                >
+                  Assess sourcing feasibility
+                </button>
+              } @else {
+                <p class="muted">
+                  Create a constraint and assessment before running assessment-bound workflows.
+                </p>
+              }
+              <a class="primary action-link" routerLink="/intelligence/business-agent"
+                >Ask VAYUJIT</a
+              >
+            </div>
+          </section>
+
+          <section class="panel" aria-labelledby="history-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Versioned assessment</p>
+                <h2 id="history-title">History</h2>
+              </div>
+              <span class="muted">No new history model or request fan-out</span>
+            </div>
+            @if (scoreHistory().length) {
+              <ul class="history-list">
+                @for (entry of scoreHistory(); track entry.id) {
+                  <li>
+                    <span>{{ entry.created_at | date: 'medium' }}</span
+                    ><strong>{{ entry.overall_score ?? 'Unavailable' }}</strong
+                    ><span>{{ entry.classification }}</span
+                    ><span>{{ entry.eligibility }}</span>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="muted">No immutable score history is loaded for this opportunity.</p>
+            }
+            @if (item.current_assessment_id) {
+              <button
+                class="secondary"
+                type="button"
+                (click)="loadHistory(item)"
+                [disabled]="loading()"
+              >
+                Load score history
+              </button>
+            }
+          </section>
+
+          <section class="panel" aria-labelledby="decision-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Human decision</p>
+                <h2 id="decision-title">Record a governed next action</h2>
+              </div>
+              <span class="muted">The UI does not create a product verdict</span>
+            </div>
+            @if (score(); as result) {
+              <p class="muted">
+                Available actions are persisted through the existing decision endpoint.
+              </p>
+              <div class="action-grid">
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="recordDecision(item, 'research_more')"
+                  [disabled]="loading()"
+                >
+                  Request more research</button
+                ><button
+                  class="secondary"
+                  type="button"
+                  (click)="recordDecision(item, 'watch')"
+                  [disabled]="loading()"
+                >
+                  Watch</button
+                ><button
+                  class="primary"
+                  type="button"
+                  (click)="recordDecision(item, 'shortlist')"
+                  [disabled]="loading() || result.eligibility === 'BLOCKED'"
+                >
+                  Shortlist for human review
+                </button>
+              </div>
+            } @else {
+              <p class="muted">
+                Load the authoritative assessment before recording a score-bound decision.
+              </p>
+            }
+            @if (decisionMessage()) {
+              <p class="callout" role="status">{{ decisionMessage() }}</p>
+            }
           </section>
         }
       }
     </main>
   `,
-  styles: [
-    `
-      :host {
-        display: block;
-      }
-      .workspace {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 2rem;
-      }
-      .page-header,
-      .section-heading {
-        display: flex;
-        justify-content: space-between;
-        gap: 1rem;
-        align-items: flex-start;
-      }
-      .panel {
-        margin: 1.25rem 0;
-        padding: 1.25rem;
-        border: 1px solid #cbd9df;
-        border-radius: 12px;
-        background: #fff;
-      }
-      .panel form {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        align-items: end;
-      }
-      .panel label {
-        display: flex;
-        flex-direction: column;
-        gap: 0.35rem;
-        min-width: 180px;
-      }
-      .panel input,
-      .panel textarea,
-      .panel select {
-        padding: 0.6rem;
-        border: 1px solid #9bb4bf;
-        border-radius: 6px;
-      }
-      .panel textarea {
-        min-height: 5rem;
-      }
-      .panel button {
-        padding: 0.65rem 1rem;
-        border: 0;
-        border-radius: 6px;
-        background: #155e75;
-        color: #fff;
-        cursor: pointer;
-      }
-      .panel button:disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-      }
-      .list-item {
-        display: flex !important;
-        justify-content: space-between;
-        width: 100%;
-        margin: 0.5rem 0;
-        text-align: left;
-      }
-      .error {
-        padding: 1rem;
-        background: #fff0f0;
-        color: #9b1c1c;
-      }
-      .eyebrow {
-        color: #155e75;
-      }
-      .lede,
-      .muted {
-        color: #476b7c;
-      }
-      dl {
-        display: grid;
-        grid-template-columns: max-content 1fr;
-        gap: 0.4rem 1rem;
-      }
-      dt {
-        font-weight: 600;
-      }
-      .intelligence-actions {
-        display: flex;
-        gap: 0.75rem;
-        margin-bottom: 1rem;
-      }
-      .intelligence-output {
-        margin-top: 1rem;
-        padding-top: 1rem;
-        border-top: 1px solid #d8e3e7;
-      }
-      .dimension-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 0.75rem;
-      }
-      .dimension {
-        display: grid;
-        gap: 0.25rem;
-        padding: 0.75rem;
-        border: 1px solid #d8e3e7;
-        border-radius: 8px;
-      }
-      .dimension p {
-        margin: 0;
-      }
-      .candidate-table {
-        display: grid;
-        gap: 0.5rem;
-      }
-      pre {
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-      }
-      .candidate-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 0.5rem;
-        padding: 0.65rem;
-        border: 1px solid #d8e3e7;
-        border-radius: 6px;
-      }
-    `,
-  ],
+  styleUrl: './product-opportunity-workspace.css',
 })
 export class ProductOpportunityWorkspaceComponent implements OnInit {
   private readonly service = inject(ProductOpportunityService);
@@ -791,6 +1019,11 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   readonly handoffMessage = signal('');
   readonly loading = signal(false);
   readonly error = signal('');
+  readonly listBreadcrumbs: BreadcrumbItem[] = [
+    { label: 'Dashboard', url: '/dashboard' },
+    { label: 'Intelligence', url: '/intelligence' },
+    { label: 'Product opportunities' },
+  ];
   readonly origins = [
     'manual',
     'marketplace_discovery',
@@ -860,98 +1093,8 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      const detail = await this.service.get(id);
-      this.detail.set(detail);
-      this.intelligenceOutputs.set([]);
-      this.competitionProjection.set(null);
-      this.trendProjection.set(null);
-      this.commercialOutput.set(null);
-      this.sourcingFeasibility.set(null);
-      this.riskEvidence.set(null);
-      this.score.set(null);
-      this.reviewProjection.set(null);
-      this.scoreHistory.set([]);
-      this.comparison.set(null);
-      this.decisionMessage.set('');
-      this.handoffMessage.set('');
-      if (detail.current_assessment_id) {
-        try {
-          this.reviewProjection.set(
-            await this.service.getReviewProjection(id, detail.current_assessment_id),
-          );
-        } catch (error: unknown) {
-          if (!(error && typeof error === 'object' && 'status' in error && error.status === 404)) {
-            this.error.set('Review Intelligence projection is unavailable.');
-          }
-        }
-      }
-      if (detail.current_assessment_id) {
-        try {
-          this.riskEvidence.set(
-            await this.service.getRiskEvidenceSynthesis(id, detail.current_assessment_id),
-          );
-        } catch (error: unknown) {
-          if (error && typeof error === 'object' && 'status' in error && error.status !== 404) {
-            this.error.set('Risk and evidence data is unavailable.');
-          }
-        }
-      }
-      if (detail.current_assessment_id) {
-        try {
-          this.sourcingFeasibility.set(
-            await this.service.getSourcingFeasibility(id, detail.current_assessment_id),
-          );
-        } catch (error: unknown) {
-          if (!(error && typeof error === 'object' && 'status' in error && error.status === 404)) {
-            this.error.set('Sourcing feasibility data is unavailable.');
-          }
-        }
-      }
-      if (detail.current_assessment_id) {
-        try {
-          this.score.set(await this.service.getScore(id, detail.current_assessment_id));
-        } catch (error: unknown) {
-          if (!(error && typeof error === 'object' && 'status' in error && error.status === 404)) {
-            this.error.set('Winning Product score is unavailable.');
-          }
-        }
-      }
-      if (detail.current_assessment_id) {
-        try {
-          this.scoreHistory.set(await this.service.getScoreHistory(id));
-        } catch {
-          this.error.set('Winning Product score history is unavailable.');
-        }
-      }
-      if (detail.current_assessment_id) {
-        try {
-          this.trendProjection.set(
-            await this.service.getTrendProjection(id, detail.current_assessment_id),
-          );
-        } catch (error: unknown) {
-          if (!(error && typeof error === 'object' && 'status' in error && error.status === 404)) {
-            this.error.set('Trend evidence is unavailable.');
-          }
-        }
-      }
-      if (detail.current_assessment_id) {
-        try {
-          this.intelligenceOutputs.set(
-            await this.service.listIntelligence(id, detail.current_assessment_id),
-          );
-        } catch {
-          /* Intelligence is optional until calculated. */
-        }
-        try {
-          this.competitionProjection.set(
-            await this.service.getCompetitionProjection(id, detail.current_assessment_id),
-          );
-        } catch (error: unknown) {
-          if (error && typeof error === 'object' && 'status' in error && error.status !== 404) {
-            this.error.set('Competition projection data is unavailable.');
-          }
-        }
-      }
+      this.detail.set(await this.service.get(id));
+      this.resetResearchState();
     } catch {
       this.error.set('The product opportunity could not be loaded.');
     } finally {
@@ -959,6 +1102,20 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     }
   }
 
+  private resetResearchState(): void {
+    this.intelligenceOutputs.set([]);
+    this.competitionProjection.set(null);
+    this.trendProjection.set(null);
+    this.commercialOutput.set(null);
+    this.sourcingFeasibility.set(null);
+    this.riskEvidence.set(null);
+    this.score.set(null);
+    this.reviewProjection.set(null);
+    this.scoreHistory.set([]);
+    this.comparison.set(null);
+    this.decisionMessage.set('');
+    this.handoffMessage.set('');
+  }
   async archive(id: string): Promise<void> {
     this.loading.set(true);
     try {
@@ -1004,6 +1161,290 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+  async retryLoad(): Promise<void> {
+    const id = this.route.snapshot.paramMap.get('opportunityId');
+    if (id) await this.loadDetail(id);
+    else await this.load();
+  }
+
+  backToList(): void {
+    this.detail.set(null);
+    void this.router.navigate(['/intelligence/product-opportunities']);
+    void this.load();
+  }
+
+  focusCreate(): void {
+    document
+      .getElementById('create-opportunity')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  focusEvidence(): void {
+    document
+      .getElementById('evidence-title')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  openBusinessAgent(): void {
+    void this.router.navigate(['/intelligence/business-agent']);
+  }
+
+  detailBreadcrumbs(item: OpportunityDetail): BreadcrumbItem[] {
+    return [
+      { label: 'Dashboard', url: '/dashboard' },
+      { label: 'Intelligence', url: '/intelligence' },
+      { label: 'Product opportunities', url: '/intelligence/product-opportunities' },
+      { label: item.name },
+    ];
+  }
+
+  statusLabel(value: string): string {
+    return value.replaceAll('_', ' ');
+  }
+
+  statusTone(value: string): StatusTone {
+    const normalized = value.toLowerCase();
+    if (
+      ['completed', 'available', 'eligible', 'ready', 'current', 'low', 'passed'].some((item) =>
+        normalized.includes(item),
+      )
+    )
+      return 'success';
+    if (
+      ['blocked', 'high', 'failed', 'rejected', 'error', 'stale'].some((item) =>
+        normalized.includes(item),
+      )
+    )
+      return 'danger';
+    if (
+      ['partial', 'moderate', 'warning', 'required', 'insufficient', 'unknown'].some((item) =>
+        normalized.includes(item),
+      )
+    )
+      return 'warning';
+    if (
+      ['researching', 'started', 'active', 'pending', 'in_progress'].some((item) =>
+        normalized.includes(item),
+      )
+    )
+      return 'info';
+    return 'neutral';
+  }
+
+  displayValue(value: unknown): string {
+    if (value === null || value === undefined || value === '') return 'UNKNOWN';
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean')
+      return String(value);
+    try {
+      return JSON.stringify(value);
+    } catch {
+      return 'Unavailable';
+    }
+  }
+
+  async loadScore(item: OpportunityDetail): Promise<void> {
+    if (!item.current_assessment_id) return;
+    await this.readSection(
+      'score',
+      () => this.service.getScore(item.id, item.current_assessment_id!),
+      (value) => this.score.set(value),
+    );
+  }
+
+  async loadTrend(item: OpportunityDetail): Promise<void> {
+    if (!item.current_assessment_id) return;
+    await this.readSection(
+      'Trend evidence',
+      () => this.service.getTrendProjection(item.id, item.current_assessment_id!),
+      (value) => this.trendProjection.set(value),
+    );
+  }
+
+  async loadCompetition(item: OpportunityDetail): Promise<void> {
+    if (!item.current_assessment_id) return;
+    await this.readSection(
+      'competition evidence',
+      () => this.service.getCompetitionProjection(item.id, item.current_assessment_id!),
+      (value) => this.competitionProjection.set(value),
+    );
+  }
+
+  async loadReview(item: OpportunityDetail): Promise<void> {
+    if (!item.current_assessment_id) return;
+    await this.readSection(
+      'customer evidence',
+      () => this.service.getReviewProjection(item.id, item.current_assessment_id!),
+      (value) => this.reviewProjection.set(value),
+    );
+  }
+
+  async loadSourcing(item: OpportunityDetail): Promise<void> {
+    if (!item.current_assessment_id) return;
+    await this.readSection(
+      'supplier evidence',
+      () => this.service.getSourcingFeasibility(item.id, item.current_assessment_id!),
+      (value) => this.sourcingFeasibility.set(value),
+    );
+  }
+
+  async loadCommercial(item: OpportunityDetail): Promise<void> {
+    if (!item.current_assessment_id) return;
+    await this.readSection(
+      'economics',
+      () => this.service.getCommercial(item.id, item.current_assessment_id!),
+      (value) => this.commercialOutput.set(value),
+    );
+  }
+
+  async loadRiskEvidence(item: OpportunityDetail): Promise<void> {
+    if (!item.current_assessment_id) return;
+    await this.readSection(
+      'risk evidence',
+      () => this.service.getRiskEvidenceSynthesis(item.id, item.current_assessment_id!),
+      (value) => this.riskEvidence.set(value),
+    );
+  }
+
+  async loadHistory(item: OpportunityDetail): Promise<void> {
+    if (!item.current_assessment_id) return;
+    await this.readSection(
+      'score history',
+      () => this.service.getScoreHistory(item.id),
+      (value) => this.scoreHistory.set(value),
+    );
+  }
+
+  private async readSection<T>(
+    label: string,
+    request: () => Promise<T>,
+    apply: (value: T) => void,
+  ): Promise<void> {
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      apply(await request());
+    } catch (error: unknown) {
+      const status = (error as { status?: number })?.status;
+      if (status !== 404) this.error.set(`${label} is unavailable.`);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  evidenceCards(): Array<{
+    title: string;
+    classification: string;
+    summary: string;
+    source: string;
+    observedAt: string;
+    details: EvidenceDetail[];
+  }> {
+    const cards: Array<{
+      title: string;
+      classification: string;
+      summary: string;
+      source: string;
+      observedAt: string;
+      details: EvidenceDetail[];
+    }> = [];
+    const trend = this.trendProjection();
+    if (trend)
+      cards.push({
+        title: 'Trend projection',
+        classification: trend.source_state || 'UNKNOWN',
+        summary: `${trend.signal_summaries.length} signal summary(ies), ${trend.momentum_summaries.length} momentum summary(ies).`,
+        source: 'Trend ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Winning Product projection',
+        observedAt: trend.created_at,
+        details: this.trendDetails(trend),
+      });
+    const competition = this.competitionProjection();
+    if (competition)
+      cards.push({
+        title: 'Competition projection',
+        classification: competition.source_state || 'UNKNOWN',
+        summary: `${this.displayValue(competition.projection.cohort?.authoritative_count)} authoritative competitor record(s).`,
+        source: 'Competitor Intelligence projection',
+        observedAt: '',
+        details: [
+          { label: 'Freshness', value: competition.freshness_state },
+          { label: 'Contradictions', value: competition.contradiction_state },
+          { label: 'Research gaps', value: competition.research_gaps.length },
+        ],
+      });
+    const review = this.reviewProjection();
+    if (review)
+      cards.push({
+        title: 'Customer-feedback projection',
+        classification: review.source_state || 'UNKNOWN',
+        summary: `${this.displayValue(review.cohort['review_count'])} review(s) in the returned cohort.`,
+        source: 'Review Intelligence projection',
+        observedAt: review.created_at,
+        details: [
+          { label: 'Readiness', value: review.readiness },
+          { label: 'Freshness', value: this.displayValue(review.freshness['state']) },
+          { label: 'Contradictions', value: review.contradictions.length },
+        ],
+      });
+    const supplier = this.sourcingFeasibility();
+    if (supplier)
+      cards.push({
+        title: 'Supplier feasibility projection',
+        classification: supplier.summary['feasibility_state'] || 'UNKNOWN',
+        summary: `${this.displayValue(supplier.summary['supplier_availability']?.matched)} matched supplier candidate(s).`,
+        source: 'Supplier and sourcing feasibility projection',
+        observedAt: supplier.created_at,
+        details: [
+          { label: 'Confidence', value: supplier.summary['confidence'] },
+          { label: 'Scenario availability', value: supplier.summary['scenario_availability'] },
+          { label: 'Research gaps', value: supplier.research_gaps.length },
+        ],
+      });
+    return cards;
+  }
+
+  trendDetails(trend: TrendWinningProductProjection): EvidenceDetail[] {
+    return [
+      { label: 'Readiness', value: trend.readiness },
+      { label: 'Confidence', value: this.displayValue(trend.evidence_confidence['state']) },
+      { label: 'Freshness', value: this.displayValue(trend.freshness['state']) },
+      { label: 'Contradictions', value: trend.contradictions.length },
+      { label: 'Research gaps', value: trend.research_gaps.length },
+    ];
+  }
+
+  researchGaps(): string[] {
+    const values: unknown[] = [];
+    const trend = this.trendProjection();
+    if (trend) values.push(...trend.research_gaps);
+    const competition = this.competitionProjection();
+    if (competition) values.push(...competition.research_gaps);
+    const review = this.reviewProjection();
+    if (review) values.push(...review.research_gaps);
+    const supplier = this.sourcingFeasibility();
+    if (supplier) values.push(...supplier.research_gaps);
+    const commercial = this.commercialOutput();
+    if (commercial) values.push(...commercial.research_gaps);
+    const risk = this.riskEvidence();
+    if (risk) values.push(...risk.research_gaps);
+    return this.uniqueDisplayValues(values);
+  }
+
+  contradictions(): string[] {
+    const values: unknown[] = [];
+    const trend = this.trendProjection();
+    if (trend) values.push(...trend.contradictions);
+    const review = this.reviewProjection();
+    if (review) values.push(...review.contradictions);
+    return this.uniqueDisplayValues(values);
+  }
+
+  private uniqueDisplayValues(values: unknown[]): string[] {
+    return [
+      ...new Set(
+        values.map((value) => this.displayValue(value)).filter((value) => value !== 'UNKNOWN'),
+      ),
+    ];
   }
   async calculateTrendProjection(item: OpportunityDetail): Promise<void> {
     if (!item.current_assessment_id) return;
