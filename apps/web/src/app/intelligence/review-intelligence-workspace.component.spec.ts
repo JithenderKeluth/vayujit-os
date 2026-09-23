@@ -37,6 +37,7 @@ describe('ReviewIntelligenceWorkspaceComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Review Intelligence');
+    expect(fixture.nativeElement.textContent).toContain('Customer Reviews');
     expect(fixture.nativeElement.textContent).toContain('Kitchen reviews');
     expect(fixture.nativeElement.textContent).toContain('PASS');
   });

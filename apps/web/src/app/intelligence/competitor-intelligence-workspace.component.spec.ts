@@ -48,6 +48,8 @@ describe('CompetitorIntelligenceWorkspaceComponent', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Competitor intelligence');
+    expect(fixture.nativeElement.textContent).toContain('Competitors');
+    expect(fixture.nativeElement.textContent).not.toContain('Easy market');
     expect(fixture.nativeElement.textContent).toContain('amazon');
     expect(fixture.nativeElement.textContent).toContain('Fixture seller');
     expect(fixture.nativeElement.textContent).toContain('PASS');

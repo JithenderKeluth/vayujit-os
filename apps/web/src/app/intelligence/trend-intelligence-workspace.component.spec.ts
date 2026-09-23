@@ -17,5 +17,6 @@ describe('TrendIntelligenceWorkspaceComponent', () => {
   it('renders an evidence-first workspace', () => {
     expect(fixture.nativeElement.textContent).toContain('Trend Intelligence');
     expect(fixture.nativeElement.textContent).toContain('Evidence-first');
+    expect(fixture.nativeElement.querySelector('[aria-label=Breadcrumb]')).not.toBeNull();
   });
 });

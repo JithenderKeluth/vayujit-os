@@ -5,6 +5,13 @@ import { RouterLink } from '@angular/router';
 import { EvidenceCardComponent } from '../shared/evidence-card.component';
 import { PageHeaderComponent } from '../shared/page-header.component';
 import { StatusBadgeComponent } from '../shared/status-badge.component';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 import {
   TrendAnalysis,
   TrendAnalysisSeries,
@@ -28,9 +35,18 @@ import {
     EvidenceCardComponent,
     PageHeaderComponent,
     StatusBadgeComponent,
+    BreadcrumbsComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
   ],
+  styleUrl: './intelligence-workspace.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <app-breadcrumbs [items]="breadcrumbs" />
+    @if (loading()) {
+      <app-loading-state message="Loading existing trend intelligence..." />
+    }
     <main class="workspace" aria-labelledby="trend-title">
       <app-page-header
         eyebrow="Intelligence / Evidence"
@@ -40,6 +56,12 @@ import {
       >
         <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
       </app-page-header>
+      @if (!contexts().length && !loading() && !error()) {
+        <app-empty-state
+          title="No trend research yet"
+          message="Create a trend context to begin reviewing observed external signals."
+        />
+      }
       <form (ngSubmit)="create()">
         <label>Context name <input name="name" [(ngModel)]="name" required /></label>
         <label
@@ -56,6 +78,12 @@ import {
         <button type="submit">Create context</button>
       </form>
       @if (error()) {
+        <app-error-state
+          title="Trend data is unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="load()"
+        />
         <p role="alert">{{ error() }}</p>
       }
       @if (contexts().length) {
@@ -73,6 +101,44 @@ import {
         </section>
       }
       @if (selected()) {
+        <section class="panel" aria-labelledby="trend-summary-heading">
+          <h2 id="trend-summary-heading">Trend evidence</h2>
+          <p class="semantic-note">
+            Trend evidence describes how observed external signals changed over time. It does not by
+            itself prove future demand, sales, or product success.
+          </p>
+          <div class="metric-grid">
+            <div class="metric">
+              <span>Observed direction</span><strong>{{ primarySeriesValue('direction') }}</strong>
+            </div>
+            <div class="metric">
+              <span>Persistence</span><strong>{{ primarySeriesValue('persistence') }}</strong>
+            </div>
+            <div class="metric">
+              <span>Confidence</span
+              ><strong>{{ validation()?.confidence || 'Not available' }}</strong>
+            </div>
+            <div class="metric">
+              <span>Freshness</span
+              ><strong>{{
+                validation()?.freshness_summary?.['state'] ||
+                  analysis()?.freshness_state ||
+                  'Not available'
+              }}</strong>
+            </div>
+            <div class="metric">
+              <span>Independent sources</span><strong>{{ sourceCount() }}</strong>
+            </div>
+          </div>
+          <p class="muted">
+            What we still don't know:
+            {{
+              validation()?.research_gaps?.join(', ') ||
+                analysis()?.limitations?.join(', ') ||
+                'No research gaps recorded.'
+            }}
+          </p>
+        </section>
         <section aria-labelledby="ingestion-heading">
           <h2 id="ingestion-heading">Local fixture ingestion</h2>
           <p>
@@ -304,9 +370,14 @@ export class TrendIntelligenceWorkspaceComponent {
     this.load();
   }
   load(): void {
+    this.loading.set(true);
     this.service.contexts().subscribe({
       next: (value) => this.contexts.set(value),
-      error: () => this.error.set('Trend data is unavailable.'),
+      error: () => {
+        this.error.set('Trend data is unavailable.');
+        this.loading.set(false);
+      },
+      complete: () => this.loading.set(false),
     });
   }
   create(): void {
@@ -452,5 +523,19 @@ export class TrendIntelligenceWorkspaceComponent {
         next: (batch) => this.ingestions.update((items) => [batch, ...items]),
         error: () => this.error.set('The local fixture could not be ingested.'),
       });
+  }
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Intelligence', url: '/intelligence' },
+    { label: 'Trends' },
+  ];
+  readonly loading = signal(false);
+  primarySeriesValue(key: 'direction' | 'persistence'): string {
+    return this.series()[0]?.[key] || 'Not available';
+  }
+  sourceCount(value: TrendValidation | null = this.validation()): string {
+    const count = value?.source_coverage?.['independent_source_count'];
+    if (typeof count === 'number' || typeof count === 'string') return `${count}`;
+    const inventory = this.snapshots()[0]?.source_inventory;
+    return inventory ? `${Object.keys(inventory).length}` : '0';
   }
 }
