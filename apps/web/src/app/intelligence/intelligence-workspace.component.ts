@@ -2,6 +2,9 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { JsonPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
 import {
   IntelligenceCandidate,
   IntelligenceMission,
@@ -22,9 +25,10 @@ import {
 
 @Component({
   selector: 'app-intelligence-workspace',
-  imports: [RouterLink, FormsModule, JsonPipe],
+  imports: [BreadcrumbsComponent, RouterLink, FormsModule, JsonPipe, SupplierJourneyNavComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: ` <main class="intelligence-page" aria-labelledby="intelligence-title">
+    <app-breadcrumbs [items]="breadcrumbs" />
     <header class="page-header">
       <div>
         <p class="eyebrow">Product Research &amp; Supplier Intelligence</p>
@@ -37,6 +41,7 @@ import {
         >Sourcing Scenarios</a
       >
     </header>
+    <app-supplier-journey-nav current="discover" />
     @if (error()) {
       <p class="error" role="alert">{{ error() }}</p>
     }
@@ -82,16 +87,54 @@ import {
 
       <nav class="workspace-tabs" aria-label="Intelligence sections">
         <a href="#overview" (click)="activateSection($event, 'overview', 'overview')">Overview</a>
-        <a href="#missions-workspace" (click)="activateSection($event, 'missions', 'missions-workspace')">Missions</a>
-        <a href="#candidates-workspace" (click)="activateSection($event, 'candidates', 'candidates-workspace')">Candidates</a>
-        <a href="#opportunities-workspace" (click)="activateSection($event, 'opportunities', 'opportunities-workspace')">Opportunities</a>
-        <a href="#rules-workspace" (click)="activateSection($event, 'rules', 'rules-workspace')">Rules</a>
-        <a href="#profiles-workspace" (click)="activateSection($event, 'profiles', 'profiles-workspace')">Profiles</a>
-        <a href="#comparison-workspace" (click)="activateSection($event, 'comparison', 'comparison-workspace')">Comparison</a>
-        <a href="#reports-workspace" (click)="activateSection($event, 'reports', 'reports-workspace')">Reports</a>
-        <a href="#history-workspace" (click)="activateSection($event, 'history', 'history-workspace')">History</a>
-        <a href="#evidence-workspace" (click)="activateSection($event, 'evidence', 'evidence-workspace')">Sources &amp; evidence</a>
-        <a href="#suppliers-workspace" (click)="activateSection($event, 'suppliers', 'suppliers-workspace')">Suppliers</a>
+        <a
+          href="#missions-workspace"
+          (click)="activateSection($event, 'missions', 'missions-workspace')"
+          >Missions</a
+        >
+        <a
+          href="#candidates-workspace"
+          (click)="activateSection($event, 'candidates', 'candidates-workspace')"
+          >Candidates</a
+        >
+        <a
+          href="#opportunities-workspace"
+          (click)="activateSection($event, 'opportunities', 'opportunities-workspace')"
+          >Opportunities</a
+        >
+        <a href="#rules-workspace" (click)="activateSection($event, 'rules', 'rules-workspace')"
+          >Rules</a
+        >
+        <a
+          href="#profiles-workspace"
+          (click)="activateSection($event, 'profiles', 'profiles-workspace')"
+          >Profiles</a
+        >
+        <a
+          href="#comparison-workspace"
+          (click)="activateSection($event, 'comparison', 'comparison-workspace')"
+          >Comparison</a
+        >
+        <a
+          href="#reports-workspace"
+          (click)="activateSection($event, 'reports', 'reports-workspace')"
+          >Reports</a
+        >
+        <a
+          href="#history-workspace"
+          (click)="activateSection($event, 'history', 'history-workspace')"
+          >History</a
+        >
+        <a
+          href="#evidence-workspace"
+          (click)="activateSection($event, 'evidence', 'evidence-workspace')"
+          >Sources &amp; evidence</a
+        >
+        <a
+          href="#suppliers-workspace"
+          (click)="activateSection($event, 'suppliers', 'suppliers-workspace')"
+          >Suppliers</a
+        >
       </nav>
 
       <section
@@ -1057,6 +1100,7 @@ import {
 })
 export class IntelligenceWorkspaceComponent {
   private readonly service = inject(IntelligenceService);
+  readonly breadcrumbs: BreadcrumbItem[] = [{ label: 'Intelligence' }];
   readonly overview = signal<IntelligenceOverview | null>(null);
   readonly projects = signal<IntelligenceProject[]>([]);
   readonly sources = signal<IntelligenceSource[]>([]);

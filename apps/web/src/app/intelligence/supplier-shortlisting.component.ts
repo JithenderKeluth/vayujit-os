@@ -1,28 +1,57 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { EvidenceCardComponent } from '../shared/evidence-card.component';
+import { RouterLink } from '@angular/router';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import { StatusBadgeComponent } from '../shared/status-badge.component';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
 import { SupplierShortlistingService } from './supplier-shortlisting.service';
 
 @Component({
   selector: 'app-supplier-shortlisting',
   standalone: true,
-  imports: [FormsModule, JsonPipe],
+  imports: [
+    BreadcrumbsComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    EvidenceCardComponent,
+    FormsModule,
+    JsonPipe,
+    LoadingStateComponent,
+    RouterLink,
+    StatusBadgeComponent,
+    SupplierJourneyNavComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main aria-labelledby="shortlisting-title">
+      <app-breadcrumbs [items]="breadcrumbs" />
       <header>
         <p>Intelligence / Sourcing</p>
         <h1 id="shortlisting-title">Supplier Shortlisting</h1>
         <p>Explainable, deterministic recommendations for human review.</p>
       </header>
+      <app-supplier-journey-nav current="shortlist" />
       <p class="boundary" role="note">
         INTERNAL HANDOFF ONLY - NO RFQ SENT - NO SUPPLIER CONTACT - NO PURCHASE - NO PAYMENT
       </p>
       @if (error()) {
-        <p role="alert" aria-live="assertive">{{ error() }}</p>
+        <app-error-state
+          title="Shortlisting is unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="load()"
+        />
       }
       @if (loading()) {
-        <p role="status" aria-live="polite">Loading...</p>
+        <app-loading-state message="Loading shortlist evidence..." />
       }
       <section aria-labelledby="overview">
         <h2 id="overview">Shortlisting Overview</h2>
@@ -50,9 +79,38 @@ import { SupplierShortlistingService } from './supplier-shortlisting.service';
       @if (result()) {
         <section aria-labelledby="shortlist">
           <h2 id="shortlist">Shortlist</h2>
-          <pre>{{ result() | json }}</pre>
+          <p>
+            The shortlist is server-derived for human review. It is not an automatic supplier winner
+            or purchase recommendation.
+          </p>
+          <app-status-badge
+            status="SHORTLIST_RESULT"
+            [label]="'Result: ' + shortlistStatus()"
+            tone="info"
+          />
+          <app-evidence-card
+            title="Shortlist evidence"
+            classification="DERIVED"
+            summary="Eligibility, scoring, evidence, risk, freshness, and contradiction gates were evaluated by the authoritative shortlisting service."
+            source="Supplier shortlisting projection"
+          />
+          <details>
+            <summary>View shortlist details</summary>
+            <pre>{{ result() | json }}</pre>
+          </details>
         </section>
+      } @else if (!loading()) {
+        <app-empty-state
+          title="No shortlist evaluated"
+          message="Enter a supplier intelligence context to review the authoritative shortlist."
+        />
       }
+      <section aria-labelledby="next-step">
+        <h2 id="next-step">Continue verification</h2>
+        <p>Review evidence gaps and contradictions before comparing sourcing scenarios.</p>
+        <a routerLink="/intelligence/due-diligence">Open Supplier Verification</a>
+        <a routerLink="/intelligence/sourcing-scenarios">Compare sourcing scenarios</a>
+      </section>
       <section aria-labelledby="safety">
         <h2 id="safety">Safety and readiness</h2>
         <p>
@@ -108,6 +166,10 @@ export class SupplierShortlistingComponent {
   readonly error = signal('');
   readonly loading = signal(false);
   contextId = '';
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Intelligence', url: '/intelligence' },
+    { label: 'Supplier shortlisting' },
+  ];
   constructor() {
     void this.load();
   }
@@ -140,5 +202,9 @@ export class SupplierShortlistingComponent {
     } finally {
       this.loading.set(false);
     }
+  }
+  shortlistStatus(): string {
+    const status = this.result()?.['status'];
+    return typeof status === 'string' && status.trim() ? status : 'Available for review';
   }
 }

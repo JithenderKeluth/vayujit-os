@@ -220,7 +220,7 @@ describe('IntelligenceWorkspaceComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const labels = fixture.debugElement
-      .queryAll(By.css('nav a'))
+      .queryAll(By.css('nav[aria-label="Intelligence sections"] a'))
       .map((link) => String(link.nativeElement.textContent ?? '').trim());
     expect(labels).toEqual([
       'Overview',
@@ -235,6 +235,8 @@ describe('IntelligenceWorkspaceComponent', () => {
       'Sources & evidence',
       'Suppliers',
     ]);
+    expect(fixture.nativeElement.textContent).toContain('Supplier journey');
+    expect(fixture.nativeElement.textContent).toContain('Find suppliers');
     http.verify();
   });
 

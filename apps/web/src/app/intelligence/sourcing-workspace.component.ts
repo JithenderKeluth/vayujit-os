@@ -2,14 +2,26 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { LoadingStateComponent } from '../shared/state-components';
+import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 import { IntelligenceService } from './intelligence.service';
+import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
 
 @Component({
   selector: 'app-sourcing-workspace',
-  imports: [FormsModule, RouterLink, JsonPipe],
+  imports: [
+    BreadcrumbsComponent,
+    FormsModule,
+    JsonPipe,
+    LoadingStateComponent,
+    RouterLink,
+    SupplierJourneyNavComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="sourcing-page" aria-labelledby="sourcing-title">
+      <app-breadcrumbs [items]="breadcrumbs" />
       <header class="page-header">
         <div>
           <p class="eyebrow">Intelligence / Sourcing</p>
@@ -20,8 +32,12 @@ import { IntelligenceService } from './intelligence.service';
         </div>
         <a routerLink="/intelligence">Back to Intelligence</a>
       </header>
+      <app-supplier-journey-nav current="scenarios" />
       @if (error()) {
         <p class="error" role="alert">{{ error() }}</p>
+      }
+      @if (busy()) {
+        <app-loading-state message="Loading sourcing workflow..." />
       }
       <section class="metric-grid" aria-label="Sourcing overview">
         <article>
@@ -52,11 +68,15 @@ import { IntelligenceService } from './intelligence.service';
         <a href="#samples" (click)="activateSection($event, 'samples')">Samples &amp; inspection</a>
         <a href="#comparison" (click)="activateSection($event, 'comparison')">Comparison</a>
         <a href="#negotiation" (click)="activateSection($event, 'negotiation')">Negotiation</a>
-        <a href="#economics" (click)="activateSection($event, 'economics')">Landed cost &amp; economics</a>
+        <a href="#economics" (click)="activateSection($event, 'economics')"
+          >Landed cost &amp; economics</a
+        >
         <a href="#sensitivity" (click)="activateSection($event, 'sensitivity')">Sensitivity</a>
         <a href="#capital" (click)="activateSection($event, 'capital')">Capital &amp; cash</a>
         <a href="#critic" (click)="activateSection($event, 'critic')">Critic</a>
-        <a href="#concentration" (click)="activateSection($event, 'concentration')">Concentration</a>
+        <a href="#concentration" (click)="activateSection($event, 'concentration')"
+          >Concentration</a
+        >
         <a href="#decisions" (click)="activateSection($event, 'decisions')">Decisions</a>
       </nav>
       <section id="requirements" class="panel">
@@ -183,8 +203,8 @@ import { IntelligenceService } from './intelligence.service';
       <section id="economics" class="panel">
         <h2>Landed cost &amp; economics</h2>
         <p>
-          Values are observed, configured, assumed or unknown; no live freight, FX or customs data
-          is used.
+          Values are observed, configured, assumed or unknown. No live freight, FX, customs, tax, or
+          profitability calculation is introduced by this workspace.
         </p>
         <form (submit)="$event.preventDefault(); calculate()" class="form-grid">
           <label
@@ -412,6 +432,10 @@ import { IntelligenceService } from './intelligence.service';
 })
 export class SourcingWorkspaceComponent {
   private readonly service = inject(IntelligenceService);
+  readonly breadcrumbs: BreadcrumbItem[] = [
+    { label: 'Intelligence', url: '/intelligence' },
+    { label: 'Sourcing workspace' },
+  ];
   readonly overview = signal<Record<string, unknown> | null>(null);
   readonly requirements = signal<Record<string, unknown>[]>([]);
   readonly quotes = signal<Record<string, unknown>[]>([]);
