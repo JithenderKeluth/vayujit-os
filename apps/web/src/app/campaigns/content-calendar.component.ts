@@ -5,12 +5,14 @@ import { RouterLink } from '@angular/router';
 import type { CampaignCalendar, CampaignCalendarEvent } from '@vayujit/shared';
 import { CampaignService } from './campaign.service';
 import { SocialCalendarEvent, SocialService } from '../social/social.service';
+import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.component';
 
 @Component({
   selector: 'app-content-calendar',
-  imports: [DatePipe, FormsModule, RouterLink],
+  imports: [DatePipe, FormsModule, RouterLink, GrowthJourneyNavComponent],
   template: `
     <section class="page">
+      <app-growth-journey-nav current="calendar" />
       <header class="page-header">
         <div>
           <p class="eyebrow">Content operations</p>
