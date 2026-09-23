@@ -2,7 +2,11 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 
 import { OperationsService } from './operations.service';
-import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
 import { PageHeaderComponent } from '../shared/page-header.component';
 import { StatusBadgeComponent } from '../shared/status-badge.component';
 
@@ -32,6 +36,7 @@ type OperationsOverview = {
   selector: 'app-operations-control-center',
   imports: [
     RouterLink,
+    EmptyStateComponent,
     ErrorStateComponent,
     LoadingStateComponent,
     PageHeaderComponent,
@@ -78,6 +83,92 @@ type OperationsOverview = {
         <app-error-state [message]="error()" retryLabel="Try again" (retry)="load()" />
       }
       @if (overview(); as value) {
+        <section class="operations-priority" aria-labelledby="attention-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Business operations</p>
+              <h2 id="attention-title">Needs Your Attention</h2>
+              <p>Authoritative issues and recovery work that may affect your workflows.</p>
+            </div>
+            <a class="op-button" routerLink="/operations/recovery">Open Recovery Center</a>
+          </div>
+          @if (value.alerts.length || value.recovery.recoverable) {
+            <div class="attention-grid">
+              @for (alert of value.alerts; track alert['code']) {
+                <article class="attention-item">
+                  <span class="alert-chip">{{ alert['severity'] }}</span>
+                  <h3>{{ attentionTitle(alert['code']) }}</h3>
+                  <p>{{ alert['message'] }}</p>
+                  <a class="op-button" [routerLink]="attentionRoute(alert['code'])">Review issue</a>
+                </article>
+              }
+              @if (value.recovery.recoverable) {
+                <article class="attention-item">
+                  <span class="alert-chip">action available</span>
+                  <h3>Recoverable execution failures</h3>
+                  <p>{{ value.recovery.recoverable }} item(s) have registered recovery data.</p>
+                  <a class="op-button" routerLink="/operations/recovery">Review recovery</a>
+                </article>
+              }
+            </div>
+          } @else {
+            <app-empty-state
+              title="Nothing needs your attention"
+              message="VAYUJIT has no current operational issues requiring action."
+            />
+          }
+        </section>
+
+        <div class="two-column">
+          <section class="op-card" aria-labelledby="active-work-title">
+            <p class="eyebrow">Active work</p>
+            <h2 id="active-work-title">Durable work by runtime state</h2>
+            @if (jobEntries(value.jobs).length) {
+              @for (entry of jobEntries(value.jobs); track entry[0]) {
+                <div class="health-row">
+                  <span>{{ entry[0] }}</span>
+                  <strong>{{ entry[1] }}</strong>
+                </div>
+              }
+            } @else {
+              <app-empty-state
+                title="No active work"
+                message="No durable job states are currently reported."
+              />
+            }
+            <a routerLink="/operations/jobs">Open advanced Job Explorer</a>
+          </section>
+          <section class="op-card" aria-labelledby="scheduled-work-title">
+            <p class="eyebrow">Scheduled work</p>
+            <h2 id="scheduled-work-title">Next operational window</h2>
+            <div class="health-row">
+              <span>Schedules</span><strong>{{ value.scheduler['scheduled_jobs'] || 0 }}</strong>
+            </div>
+            <div class="health-row">
+              <span>Due jobs</span><strong>{{ value.scheduler['due_jobs'] || 0 }}</strong>
+            </div>
+            <div class="health-row">
+              <span>Overdue schedules</span
+              ><strong>{{ value.scheduler['overdue_schedules'] || 0 }}</strong>
+            </div>
+            <p class="op-muted">
+              Scheduler and Calendar projections remain authoritative for timing and conflicts.
+            </p>
+            <a routerLink="/calendar">Open Calendar</a> &middot;
+            <a routerLink="/publishing/schedules">Open schedules</a>
+          </section>
+        </div>
+
+        <section class="op-card" aria-labelledby="recent-outcomes-title">
+          <p class="eyebrow">Recent outcomes</p>
+          <h2 id="recent-outcomes-title">Execution history</h2>
+          <p>
+            Completed, failed, cancelled, and recovered outcomes are available in the safe history
+            projection.
+          </p>
+          <a routerLink="/execution-history">Open execution history</a>
+        </section>
+
         <div class="alert-strip">
           @for (alert of value.alerts; track alert['code']) {
             <span class="alert-chip">{{ alert['severity'] }} · {{ alert['message'] }}</span>
@@ -186,5 +277,34 @@ export class ControlCenterComponent implements OnInit {
 
   jobEntries(value: Record<string, number>): Array<[string, number]> {
     return Object.entries(value);
+  }
+
+  attentionTitle(code: unknown): string {
+    switch (code) {
+      case 'failed_jobs':
+        return 'Publishing jobs need review';
+      case 'encryption_key_missing':
+        return 'Credential configuration is incomplete';
+      case 'maintenance_mode':
+        return 'Maintenance mode is active';
+      case 'live_mutations_enabled':
+        return 'Live mutation controls are enabled';
+      default:
+        return 'Operational issue';
+    }
+  }
+
+  attentionRoute(code: unknown): string {
+    switch (code) {
+      case 'failed_jobs':
+        return '/operations/recovery';
+      case 'encryption_key_missing':
+        return '/operations/health';
+      case 'maintenance_mode':
+      case 'live_mutations_enabled':
+        return '/operations/providers';
+      default:
+        return '/operations/health';
+    }
   }
 }
