@@ -10,6 +10,8 @@ import {
   OpportunityDetail,
   ProductOpportunityService,
   SourcingFeasibilityOutput,
+  ProductOpportunityScore,
+  TrendWinningProductProjection,
 } from './product-opportunity.service';
 
 const base = `${environment.apiUrl}/intelligence/product-opportunities/opportunity/assessments/assessment/sourcing-feasibility`;
@@ -199,6 +201,123 @@ describe('Product opportunity sourcing feasibility', () => {
     expect(request.request.withCredentials).toBe(true);
     request.flush({ source_state: 'INSUFFICIENT_EVIDENCE', research_gaps: [] });
     await expect(pending).resolves.toMatchObject({ source_state: 'INSUFFICIENT_EVIDENCE' });
+    http.verify();
+  });
+});
+
+describe('Product opportunity UX-4 context hub', () => {
+  it('uses the UX-1 empty state and supported research CTAs for an empty list', () => {
+    const { fixture, component, http } = setup();
+    component.detail.set(null);
+    component.opportunities.set([]);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('No product opportunities yet');
+    expect(text).toContain('Start Product Research');
+    expect(text).toContain('Ask VAYUJIT');
+    expect(fixture.nativeElement.querySelector('app-empty-state')).toBeTruthy();
+    http.verify();
+  });
+
+  it('loads an opportunity detail with one request and does not fan out into module requests', async () => {
+    const { component, service, http } = setup();
+    const get = vi.spyOn(service, 'get').mockResolvedValue(detail);
+    await component.loadDetail('opportunity');
+    expect(get).toHaveBeenCalledTimes(1);
+    expect(component.detail()).toEqual(detail);
+    expect(component.trendProjection()).toBeNull();
+    expect(component.competitionProjection()).toBeNull();
+    expect(component.reviewProjection()).toBeNull();
+    expect(component.sourcingFeasibility()).toBeNull();
+    http.verify();
+  });
+
+  it('keeps score, confidence, risk, readiness, and eligibility visibly separate', () => {
+    const { fixture, component, http } = setup();
+    component.detail.set(detail);
+    component.score.set({
+      overall_score: '78',
+      classification: 'PROMISING',
+      confidence: 'HIGH',
+      risk_level: 'MODERATE',
+      assessment_readiness: 'PARTIAL',
+      eligibility: 'ELIGIBLE',
+      dimensions: [],
+      positive_drivers: [],
+      negative_drivers: [],
+      improvement_areas: [],
+    } as unknown as ProductOpportunityScore);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    for (const expected of [
+      'Opportunity score',
+      'Evidence confidence',
+      'Risk',
+      'Research readiness',
+      'Eligibility',
+      '78',
+      'HIGH',
+      'MODERATE',
+      'PARTIAL',
+      'ELIGIBLE',
+    ])
+      expect(text).toContain(expected);
+    expect(text).not.toContain('WINNER');
+    expect(text).not.toContain('LAUNCH NOW');
+    http.verify();
+  });
+
+  it('keeps partial research distinct from a negative or fabricated score', () => {
+    const { fixture, component, http } = setup();
+    component.detail.set(detail);
+    component.score.set(null);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Assessment summary not loaded');
+    expect(text).toContain('Missing intelligence is not treated as a negative score.');
+    expect(text).not.toContain('0 / 100');
+    expect(text).toContain('Trend projection not loaded or not researched.');
+    http.verify();
+  });
+
+  it('renders hostile evidence as inert text', () => {
+    const { fixture, component, http } = setup();
+    component.detail.set({ ...detail, description: '<script>alert(1)</script>' });
+    component.sourcingFeasibility.set({
+      ...output,
+      candidates: [
+        {
+          ...output.candidates[0],
+          supplier: { id: 'supplier', name: '<img src=x onerror=alert(1)>' },
+        },
+      ],
+    });
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('script')).toBeNull();
+    expect(fixture.nativeElement.querySelector('img')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('<script>alert(1)</script>');
+    http.verify();
+  });
+
+  it('renders authoritative gaps and contradictions without inferring them', () => {
+    const { fixture, component, http } = setup();
+    component.detail.set(detail);
+    component.trendProjection.set({
+      research_gaps: [{ reason: 'LIMITED_HISTORY' }],
+      contradictions: [{ reason: 'SOURCES_DISAGREE' }],
+      signal_summaries: [],
+      momentum_summaries: [],
+      evidence_confidence: { state: 'MODERATE' },
+      freshness: { state: 'CURRENT' },
+      readiness: 'PARTIAL',
+      source_state: 'VALIDATED',
+      created_at: '2026-09-18T00:00:00Z',
+    } as unknown as TrendWinningProductProjection);
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('What we still do not know');
+    expect(text).toContain('LIMITED_HISTORY');
+    expect(text).toContain('SOURCES_DISAGREE');
     http.verify();
   });
 });
