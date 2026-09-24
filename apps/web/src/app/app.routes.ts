@@ -8,6 +8,15 @@ import { MarketingPlanComponent } from './ads/marketing-plan.component';
 
 export const routes: Routes = [
   {
+    path: 'intelligence/sourcing-economics',
+    loadComponent: () =>
+      import('./intelligence/sourcing-economics-workspace.component').then(
+        (m) => m.SourcingEconomicsWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+
+  {
     path: 'intelligence/trends',
     loadComponent: () =>
       import('./intelligence/trend-intelligence-workspace.component').then(
