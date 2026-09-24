@@ -20,6 +20,8 @@ TEST_DATABASE_URL = os.getenv("VAYUJIT_TEST_DATABASE_URL")
 ORIGIN = {"Origin": "http://127.0.0.1:4200"}
 PASSWORD = "correct horse battery staple"
 
+pytestmark = pytest.mark.integration
+
 
 @pytest.fixture
 def client() -> Generator[TestClient, None, None]:

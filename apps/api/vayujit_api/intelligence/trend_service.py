@@ -11,6 +11,7 @@ from typing import Any
 
 from fastapi import HTTPException
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
@@ -394,7 +395,20 @@ def create_snapshot(
         created_at=_now(),
     )
     db.add(row)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        existing = db.scalar(
+            select(TrendSnapshot).where(
+                TrendSnapshot.owner_id == owner.id,
+                TrendSnapshot.context_id == context.id,
+                TrendSnapshot.input_fingerprint == fingerprint,
+            )
+        )
+        if existing is not None:
+            return existing
+        raise
     record_event(
         db,
         actor_id=owner.id,

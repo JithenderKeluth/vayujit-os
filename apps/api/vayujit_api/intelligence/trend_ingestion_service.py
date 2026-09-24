@@ -11,6 +11,7 @@ from typing import Protocol
 from fastapi import HTTPException
 from fastapi.encoders import jsonable_encoder
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
@@ -175,7 +176,20 @@ def _empty_failure(
         summary_json={},
     )
     db.add(batch)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        existing = db.scalar(
+            select(TrendIngestionBatch).where(
+                TrendIngestionBatch.owner_id == owner.id,
+                TrendIngestionBatch.context_id == context.id,
+                TrendIngestionBatch.idempotency_key == (data.idempotency_key or fingerprint),
+            )
+        )
+        if existing is not None:
+            return existing
+        raise
     record_event(
         db,
         actor_id=owner.id,
@@ -249,7 +263,20 @@ def ingest(
         summary_json={},
     )
     db.add(batch)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        existing = db.scalar(
+            select(TrendIngestionBatch).where(
+                TrendIngestionBatch.owner_id == owner.id,
+                TrendIngestionBatch.context_id == context.id,
+                TrendIngestionBatch.idempotency_key == key,
+            )
+        )
+        if existing is not None:
+            return existing
+        raise
     accepted = rejected = duplicates = updated = 0
     quality: Counter[str] = Counter()
     freshness: Counter[str] = Counter()
