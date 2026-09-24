@@ -12,6 +12,7 @@ from typing import Any, cast
 
 from fastapi import HTTPException
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
@@ -484,7 +485,20 @@ def create_analysis(
     if len(groups) > 1:
         analysis.limitations.append("INCOMPATIBLE_SERIES_RETAINED_SEPARATELY")
     db.add(analysis)
-    db.flush()
+    try:
+        db.flush()
+    except IntegrityError:
+        db.rollback()
+        existing = db.scalar(
+            select(TrendAnalysis).where(
+                TrendAnalysis.owner_id == owner.id,
+                TrendAnalysis.context_id == context.id,
+                TrendAnalysis.input_fingerprint == fingerprint,
+            )
+        )
+        if existing is not None:
+            return existing
+        raise
     record_event(
         db,
         actor_id=owner.id,
