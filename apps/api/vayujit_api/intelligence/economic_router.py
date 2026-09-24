@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import uuid
 from typing import Annotated
@@ -15,6 +15,18 @@ from vayujit_api.intelligence.economic_calculation_service import (
     calculate_from_snapshot,
     list_breakdown,
 )
+from vayujit_api.intelligence.economic_fx_models import FXObservation
+from vayujit_api.intelligence.economic_fx_service import (
+    create_observation,
+    list_observations,
+    list_snapshots,
+)
+from vayujit_api.intelligence.economic_fx_service import (
+    create_snapshot as create_fx_snapshot,
+)
+from vayujit_api.intelligence.economic_fx_service import (
+    get_snapshot as get_fx_snapshot,
+)
 from vayujit_api.intelligence.economic_models import (
     EconomicAssumption,
     EconomicContext,
@@ -30,6 +42,8 @@ from vayujit_api.intelligence.economic_schemas import (
     EconomicContextUpdate,
     EconomicCostComponentCreate,
     EconomicQuoteInputCreate,
+    FXObservationCreate,
+    FXSnapshotCreate,
 )
 from vayujit_api.intelligence.economic_service import (
     create_assumption,
@@ -207,3 +221,44 @@ def calculation_detail(calculation_id: uuid.UUID, db: DB, owner: Owner):
 
         raise HTTPException(404, "Economic calculation is not available in the owner scope.")
     return {"calculation": row, "breakdown": list_breakdown(db, owner, row.id)}
+
+
+@router.post("/fx/observations", status_code=201)
+def fx_observation_create(data: FXObservationCreate, db: DB, owner: Owner):
+    row, reused = create_observation(db, owner, data)
+    return {"observation": row, "idempotent_reuse": reused}
+
+
+@router.get("/fx/observations")
+def fx_observation_list(db: DB, owner: Owner):
+    return {"items": list_observations(db, owner)}
+
+
+@router.get("/fx/observations/{observation_id}")
+def fx_observation_detail(observation_id: uuid.UUID, db: DB, owner: Owner):
+    row = db.scalar(
+        select(FXObservation).where(
+            FXObservation.id == observation_id, FXObservation.owner_id == owner.id
+        )
+    )
+    if row is None:
+        from fastapi import HTTPException
+
+        raise HTTPException(404, "FX observation is not available in the owner scope.")
+    return {"observation": row}
+
+
+@router.post("/fx/snapshots", status_code=201)
+def fx_snapshot_create(data: FXSnapshotCreate, db: DB, owner: Owner):
+    row, reused = create_fx_snapshot(db, owner, data)
+    return {"snapshot": row, "idempotent_reuse": reused}
+
+
+@router.get("/fx/snapshots")
+def fx_snapshot_list(db: DB, owner: Owner):
+    return {"items": list_snapshots(db, owner)}
+
+
+@router.get("/fx/snapshots/{fx_snapshot_id}")
+def fx_snapshot_detail(fx_snapshot_id: uuid.UUID, db: DB, owner: Owner):
+    return {"snapshot": get_fx_snapshot(db, owner, fx_snapshot_id)}
