@@ -53,6 +53,7 @@ from vayujit_api.intelligence.cross_marketplace_router import (
 from vayujit_api.intelligence.due_diligence_router import (
     router as intelligence_due_diligence_router,
 )
+from vayujit_api.intelligence.economic_router import router as intelligence_economic_router
 from vayujit_api.intelligence.external_router import router as intelligence_external_router
 from vayujit_api.intelligence.global_sources_router import (
     router as intelligence_global_sources_router,
@@ -197,6 +198,7 @@ def create_app() -> FastAPI:
     application.include_router(intelligence_autonomous_router)
     application.include_router(intelligence_business_agent_router)
     application.include_router(intelligence_external_router)
+    application.include_router(intelligence_economic_router)
     application.include_router(intelligence_supplier_router)
     application.include_router(intelligence_website_router)
     application.include_router(intelligence_indiamart_router)

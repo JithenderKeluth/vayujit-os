@@ -95,6 +95,12 @@ __all__ = [
     "Inspection",
     "InspectionFinding",
     "NegotiationRound",
+    "EconomicContext",
+    "EconomicQuoteInput",
+    "EconomicCostComponent",
+    "EconomicAssumption",
+    "EconomicInputSnapshot",
+    "EconomicSnapshotComponent",
     "CostScenario",
     "LandedCostEstimate",
     "LogisticsEstimate",
@@ -170,6 +176,14 @@ from vayujit_api.intelligence.competitor_models import (
 )
 from vayujit_api.intelligence.competitor_winning_product_models import (
     CompetitorWinningProductProjection,
+)
+from vayujit_api.intelligence.economic_models import (
+    EconomicAssumption,
+    EconomicContext,
+    EconomicCostComponent,
+    EconomicInputSnapshot,
+    EconomicQuoteInput,
+    EconomicSnapshotComponent,
 )
 from vayujit_api.intelligence.marketplace_runtime import (
     MarketplaceExecution,
