@@ -1,4 +1,4 @@
-﻿"""Immutable deterministic landed-cost calculation persistence (13B)."""
+"""Immutable deterministic landed-cost calculation persistence (13B)."""
 
 from __future__ import annotations
 
@@ -61,11 +61,18 @@ class EconomicCalculation(Base):
         ForeignKey("intelligence_economic_input_snapshots.id", ondelete="RESTRICT"),
         index=True,
     )
+    fx_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_fx_rate_snapshots.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
     calculation_version: Mapped[str] = mapped_column(String(64))
     policy_version: Mapped[str] = mapped_column(String(64))
     calculation_fingerprint: Mapped[str] = mapped_column(String(128), index=True)
     status: Mapped[str] = mapped_column(String(16), index=True)
     currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
+    reporting_currency: Mapped[str | None] = mapped_column(String(3), nullable=True)
     target_quantity: Mapped[float | None] = mapped_column(Numeric(24, 8), nullable=True)
     total_included_cost: Mapped[float] = mapped_column(Numeric(24, 8), default=0)
     per_unit_cost: Mapped[float | None] = mapped_column(Numeric(24, 8), nullable=True)
@@ -107,6 +114,16 @@ class EconomicCalculationBreakdown(Base):
     basis: Mapped[str | None] = mapped_column(String(40), nullable=True)
     multiplier: Mapped[float | None] = mapped_column(Numeric(24, 8), nullable=True)
     included_amount: Mapped[float | None] = mapped_column(Numeric(24, 8), nullable=True)
+    converted_amount: Mapped[float | None] = mapped_column(Numeric(24, 8), nullable=True)
+    fx_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True, index=True
+    )
+    fx_pair: Mapped[str | None] = mapped_column(String(7), nullable=True)
+    fx_rate: Mapped[float | None] = mapped_column(Numeric(30, 16), nullable=True)
+    fx_effective_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    fx_provider: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    fx_freshness: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    fx_inverted: Mapped[bool | None] = mapped_column(nullable=True)
     provenance: Mapped[str] = mapped_column(String(16))
     freshness: Mapped[str] = mapped_column(String(16))
     assumption_reason: Mapped[str | None] = mapped_column(Text, nullable=True)

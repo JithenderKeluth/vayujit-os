@@ -17,12 +17,15 @@ from vayujit_api.intelligence.economic_calculation_models import (
     EconomicCalculation,
     EconomicCalculationBreakdown,
 )
+from vayujit_api.intelligence.economic_fx_models import FXRateSnapshot
 from vayujit_api.intelligence.economic_models import EconomicInputSnapshot
 from vayujit_api.intelligence.economic_schemas import EconomicCalculationRequest
 from vayujit_api.intelligence.economic_service import fingerprint, now
 
 CALCULATION_VERSION = "landed-cost-v1"
 POLICY_VERSION = "known-cost-v1"
+FX_CALCULATION_VERSION = "landed-cost-v2"
+FX_POLICY_VERSION = "known-cost-fx-v1"
 SUPPORTED_BASES = {"PER_UNIT", "PER_SHIPMENT", "ONE_TIME"}
 STORAGE_QUANTUM = Decimal("0.00000001")
 
@@ -89,6 +92,14 @@ def _line(
         "basis": basis or source.get("unit_basis"),
         "multiplier": multiplier,
         "included_amount": included_amount,
+        "converted_amount": None,
+        "fx_snapshot_id": None,
+        "fx_pair": None,
+        "fx_rate": None,
+        "fx_effective_at": None,
+        "fx_provider": None,
+        "fx_freshness": None,
+        "fx_inverted": None,
         "provenance": _upper(source.get("provenance"), "UNKNOWN"),
         "freshness": _upper(source.get("freshness"), "UNKNOWN"),
         "assumption_reason": source.get("assumption_reason"),
@@ -185,19 +196,63 @@ def _evaluate_source(
     )
 
 
+def _apply_fx(
+    line: dict[str, object],
+    value: Decimal | None,
+    reporting: str | None,
+    fx_snapshots: list[FXRateSnapshot],
+) -> tuple[Decimal | None, str | None]:
+    source = _upper(line.get("currency"))
+    if (
+        value is None
+        or line.get("inclusion_status") != "INCLUDED"
+        or not source
+        or not reporting
+        or source == reporting
+    ):
+        if value is not None and line.get("inclusion_status") == "INCLUDED":
+            line["converted_amount"] = _money(value)
+        return value, None
+    fx = next(
+        (
+            item
+            for item in fx_snapshots
+            if item.base_currency == source and item.quote_currency == reporting
+        ),
+        None,
+    )
+    if fx is None:
+        line["inclusion_status"] = "EXCLUDED"
+        line["exclusion_reason"] = "NO_COMPATIBLE_FX_SNAPSHOT"
+        line["included_amount"] = None
+        return None, f"{line.get('category')}:NO_COMPATIBLE_FX_SNAPSHOT"
+    converted = _money(value * Decimal(fx.rate))
+    line["converted_amount"] = converted
+    line["fx_snapshot_id"] = fx.id
+    line["fx_pair"] = f"{fx.base_currency}/{fx.quote_currency}"
+    line["fx_rate"] = fx.rate
+    line["fx_effective_at"] = fx.effective_at
+    line["fx_provider"] = fx.provider
+    line["fx_freshness"] = fx.freshness
+    line["fx_inverted"] = fx.inverted
+    return converted, ("STALE_FX_RATE" if fx.freshness == "STALE" else None)
+
+
 def _calculate(
-    snapshot: EconomicInputSnapshot, request: EconomicCalculationRequest
+    snapshot: EconomicInputSnapshot,
+    request: EconomicCalculationRequest,
+    fx_snapshots: list[FXRateSnapshot],
 ) -> dict[str, Any]:
     payload = snapshot.payload if isinstance(snapshot.payload, dict) else {}
     context_value = payload.get("context")
     context: dict[str, object] = context_value if isinstance(context_value, dict) else {}
     component_rows = payload.get("components", [])
-    quote_rows = payload.get("quotes", [])
     components: list[dict[str, object]] = (
         [row for row in component_rows if isinstance(row, dict)]
         if isinstance(component_rows, list)
         else []
     )
+    quote_rows = payload.get("quotes", [])
     quotes: list[dict[str, object]] = (
         [row for row in quote_rows if isinstance(row, dict)] if isinstance(quote_rows, list) else []
     )
@@ -212,63 +267,64 @@ def _calculate(
     stale: list[dict[str, object]] = []
     explicit_product = any(_upper(row.get("category")) == "PRODUCT_COST" for row in components)
 
+    def add_line(line: dict[str, object], value: Decimal | None) -> None:
+        nonlocal included_total
+        converted, fx_issue = _apply_fx(line, value, currency, fx_snapshots)
+        if fx_issue == "STALE_FX_RATE":
+            warnings.append("Calculation includes stale FX rates.")
+        elif fx_issue:
+            missing.append(fx_issue)
+        if converted is not None and line["inclusion_status"] == "INCLUDED":
+            included_total += converted
+            included_categories.add(str(line["category"]))
+        if line["provenance"] == "ASSUMED" and line["inclusion_status"] == "INCLUDED":
+            assumptions.append(
+                {"source_id": line["source_id"], "reason": line["assumption_reason"]}
+            )
+        if line["freshness"] == "STALE" and line["inclusion_status"] == "INCLUDED":
+            stale.append({"source_id": line["source_id"], "category": line["category"]})
+        if line["inclusion_status"] == "EXCLUDED" and line["exclusion_reason"] in {
+            "UNKNOWN_AMOUNT",
+            "CURRENCY_MISMATCH",
+            "UNSUPPORTED_BASIS",
+            "NO_COMPATIBLE_FX_SNAPSHOT",
+        }:
+            missing.append(f"{line['category']}:{line['exclusion_reason']}")
+        lines.append(line)
+
     for row in components:
         category = _upper(row.get("category"), "OTHER")
         line, value = _evaluate_source(
             source_kind="component",
             source=row,
             category=category,
-            currency=currency,
+            currency=_upper(row.get("currency")) if fx_snapshots else currency,
             target_quantity=target_quantity,
         )
-        lines.append(line)
-        if value is not None:
-            included_total += value
-            included_categories.add(category)
-        if line["provenance"] == "ASSUMED" and line["inclusion_status"] == "INCLUDED":
-            assumptions.append(
-                {"source_id": line["source_id"], "reason": line["assumption_reason"]}
-            )
-        if line["freshness"] == "STALE" and line["inclusion_status"] == "INCLUDED":
-            stale.append({"source_id": line["source_id"], "category": category})
-        if line["inclusion_status"] == "EXCLUDED" and line["exclusion_reason"] in {
-            "UNKNOWN_AMOUNT",
-            "CURRENCY_MISMATCH",
-            "UNSUPPORTED_BASIS",
-        }:
-            missing.append(f"{category}:{line['exclusion_reason']}")
+        add_line(line, value)
 
     if not explicit_product:
         for row in quotes:
             if _decimal(row.get("unit_price")) is None:
                 continue
+            source_currency = _upper(row.get("currency"))
             line, value = _evaluate_source(
                 source_kind="quote",
                 source=row,
                 category="PRODUCT_COST",
-                currency=currency,
+                currency=(
+                    source_currency if fx_snapshots and source_currency != currency else currency
+                ),
                 target_quantity=target_quantity,
             )
-            lines.append(line)
-            if value is not None and "PRODUCT_COST" not in included_categories:
-                included_total += value
-                included_categories.add("PRODUCT_COST")
-                if line["provenance"] == "ASSUMED":
-                    assumptions.append(
-                        {"source_id": line["source_id"], "reason": line["assumption_reason"]}
-                    )
-                if line["freshness"] == "STALE":
-                    stale.append({"source_id": line["source_id"], "category": "PRODUCT_COST"})
-                break
-            if value is not None:
+            if value is not None and "PRODUCT_COST" in included_categories:
                 line["inclusion_status"] = "EXCLUDED"
                 line["exclusion_reason"] = "DUPLICATE_PRODUCT_COST"
-            elif line["exclusion_reason"] in {
-                "UNKNOWN_AMOUNT",
-                "CURRENCY_MISMATCH",
-                "UNSUPPORTED_BASIS",
-            }:
-                missing.append(f"PRODUCT_COST:{line['exclusion_reason']}")
+                lines.append(line)
+            else:
+                add_line(line, value)
+            if "PRODUCT_COST" in included_categories:
+                break
     else:
         for row in quotes:
             if _decimal(row.get("unit_price")) is not None:
@@ -305,21 +361,24 @@ def _calculate(
         warnings.append("Calculation includes assumed inputs.")
     if stale:
         warnings.append("Calculation includes stale inputs.")
-
     missing = list(dict.fromkeys(missing))
     warnings = list(dict.fromkeys(warnings))
-    if "PRODUCT_COST" not in included_categories:
-        status = "INSUFFICIENT"
-    elif missing or warnings or any(line["inclusion_status"] == "EXCLUDED" for line in lines):
-        status = "PARTIAL"
-    else:
-        status = "COMPLETE"
+    status = (
+        "INSUFFICIENT"
+        if "PRODUCT_COST" not in included_categories
+        else (
+            "PARTIAL"
+            if missing or warnings or any(line["inclusion_status"] == "EXCLUDED" for line in lines)
+            else "COMPLETE"
+        )
+    )
     per_unit = (
         included_total / target_quantity if status != "INSUFFICIENT" and target_quantity else None
     )
     explanation = {
         "target_quantity": str(target_quantity) if target_quantity is not None else None,
         "currency": currency,
+        "reporting_currency": currency,
         "included_total_label": (
             "Known-cost subtotal" if status != "COMPLETE" else "Calculated landed cost"
         ),
@@ -327,13 +386,15 @@ def _calculate(
         "missing_inputs": missing,
         "assumption_count": len(assumptions),
         "stale_input_count": len(stale),
+        "fx_snapshot_ids": [str(item.id) for item in fx_snapshots],
         "rounding": (
-            "Decimal arithmetic; values stored to 8 fractional places with HALF_UP rounding."
+            "Decimal arithmetic; values stored to 8 fractional places with " "HALF_UP rounding."
         ),
     }
     return {
         "status": status,
         "currency": currency,
+        "reporting_currency": currency,
         "target_quantity": target_quantity,
         "total_included_cost": _money(included_total) or Decimal("0"),
         "per_unit_cost": _money(per_unit),
@@ -358,21 +419,37 @@ def calculate_from_snapshot(
 ) -> tuple[EconomicCalculation, bool]:
     snapshot = db.scalar(
         select(EconomicInputSnapshot).where(
-            EconomicInputSnapshot.id == snapshot_id,
-            EconomicInputSnapshot.owner_id == owner.id,
+            EconomicInputSnapshot.id == snapshot_id, EconomicInputSnapshot.owner_id == owner.id
         )
     )
     if snapshot is None:
         raise HTTPException(404, "Economic snapshot is not available in the owner scope.")
-    if request.calculation_version != CALCULATION_VERSION:
-        raise HTTPException(422, "Unsupported calculation version.")
-    if request.policy_version != POLICY_VERSION:
-        raise HTTPException(422, "Unsupported calculation policy.")
+    fx_snapshots: list[FXRateSnapshot] = []
+    if request.fx_snapshot_id is not None:
+        fx = db.scalar(
+            select(FXRateSnapshot).where(
+                FXRateSnapshot.id == request.fx_snapshot_id, FXRateSnapshot.owner_id == owner.id
+            )
+        )
+        if fx is None:
+            raise HTTPException(404, "FX snapshot is not available in the owner scope.")
+        fx_snapshots = [fx]
+        if (
+            request.calculation_version != FX_CALCULATION_VERSION
+            or request.policy_version != FX_POLICY_VERSION
+        ):
+            raise HTTPException(422, "FX calculations require landed-cost-v2 and known-cost-fx-v1.")
+    elif (
+        request.calculation_version != CALCULATION_VERSION
+        or request.policy_version != POLICY_VERSION
+    ):
+        raise HTTPException(422, "Unsupported calculation version or policy.")
     calc_fingerprint = fingerprint(
         {
             "snapshot_fingerprint": snapshot.fingerprint,
             "calculation_version": request.calculation_version,
             "policy_version": request.policy_version,
+            "fx_snapshot_ids": [str(item.id) for item in fx_snapshots],
             "options": request.options,
         }
     )
@@ -384,16 +461,18 @@ def calculate_from_snapshot(
     )
     if existing is not None:
         return existing, True
-    evaluated = _calculate(snapshot, request)
+    evaluated = _calculate(snapshot, request, fx_snapshots)
     row = EconomicCalculation(
         owner_id=owner.id,
         context_id=snapshot.context_id,
         snapshot_id=snapshot.id,
+        fx_snapshot_id=fx_snapshots[0].id if fx_snapshots else None,
         calculation_version=request.calculation_version,
         policy_version=request.policy_version,
         calculation_fingerprint=calc_fingerprint,
         status=evaluated["status"],
         currency=evaluated["currency"],
+        reporting_currency=evaluated["reporting_currency"],
         target_quantity=(
             evaluated["target_quantity"]
             if evaluated["target_quantity"] is not None and evaluated["target_quantity"] > 0
@@ -430,6 +509,14 @@ def calculate_from_snapshot(
                     basis=line["basis"],
                     multiplier=line["multiplier"],
                     included_amount=line["included_amount"],
+                    converted_amount=line["converted_amount"],
+                    fx_snapshot_id=line["fx_snapshot_id"],
+                    fx_pair=line["fx_pair"],
+                    fx_rate=line["fx_rate"],
+                    fx_effective_at=line["fx_effective_at"],
+                    fx_provider=line["fx_provider"],
+                    fx_freshness=line["fx_freshness"],
+                    fx_inverted=line["fx_inverted"],
                     provenance=line["provenance"],
                     freshness=line["freshness"],
                     assumption_reason=line["assumption_reason"],
@@ -447,6 +534,7 @@ def calculate_from_snapshot(
                 entity_id=row.id,
                 metadata_json={
                     "snapshot_id": str(snapshot.id),
+                    "fx_snapshot_id": str(fx_snapshots[0].id) if fx_snapshots else None,
                     "status": row.status,
                     "calculation_version": row.calculation_version,
                 },

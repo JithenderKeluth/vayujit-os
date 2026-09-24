@@ -3,6 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -213,6 +214,7 @@ def safe_metadata(value: dict[str, object]) -> dict[str, object]:
 
 
 class EconomicCalculationRequest(EconomicSchema):
+    fx_snapshot_id: uuid.UUID | None = None
     calculation_version: str = Field(default="landed-cost-v1", min_length=1, max_length=64)
     policy_version: str = Field(default="known-cost-v1", min_length=1, max_length=64)
     options: dict[str, object] = Field(default_factory=dict)
@@ -220,4 +222,49 @@ class EconomicCalculationRequest(EconomicSchema):
     @model_validator(mode="after")
     def bounded_options(self) -> EconomicCalculationRequest:
         safe_metadata(self.options)
+        return self
+
+
+class FXObservationCreate(EconomicSchema):
+    idempotency_key: str = Field(min_length=3, max_length=180)
+    base_currency: str
+    quote_currency: str
+    rate: Decimal = Field(gt=0)
+    observed_at: datetime
+    provider: str = Field(min_length=1, max_length=120)
+    mode: Literal["LOCAL_FIXTURE", "MANUAL"] = "LOCAL_FIXTURE"
+    provenance: Literal["OBSERVED", "QUOTED", "CONFIGURED", "ASSUMED", "LOCAL_FIXTURE"] = (
+        "LOCAL_FIXTURE"
+    )
+    freshness: Literal["CURRENT", "STALE", "UNKNOWN"] = "UNKNOWN"
+    evidence_ref: uuid.UUID | None = None
+    assumption_reason: str | None = Field(default=None, max_length=4000)
+    metadata_json: dict[str, object] = Field(default_factory=dict)
+
+    _normalize_base = field_validator("base_currency")(_currency)
+    _normalize_quote = field_validator("quote_currency")(_currency)
+
+    @model_validator(mode="after")
+    def validate_pair(self) -> FXObservationCreate:
+        if self.base_currency == self.quote_currency:
+            raise ValueError("FX base and quote currencies must differ.")
+        if self.provenance == "ASSUMED" and not self.assumption_reason:
+            raise ValueError("An assumption reason is required for ASSUMED FX.")
+        safe_metadata(self.metadata_json)
+        return self
+
+
+class FXSnapshotCreate(EconomicSchema):
+    observation_id: uuid.UUID
+    base_currency: str
+    quote_currency: str
+    version: str = Field(default="fx-snapshot-v1", min_length=1, max_length=32)
+
+    _normalize_base = field_validator("base_currency")(_currency)
+    _normalize_quote = field_validator("quote_currency")(_currency)
+
+    @model_validator(mode="after")
+    def validate_pair(self) -> FXSnapshotCreate:
+        if self.base_currency == self.quote_currency:
+            raise ValueError("FX base and quote currencies must differ.")
         return self

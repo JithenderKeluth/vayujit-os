@@ -51,7 +51,7 @@ interface EconomicCalculationView {
   warnings: string[];
   assumptions: Array<{ source_id: string; reason: string | null }>;
   stale_inputs: Array<{ source_id: string; category: string }>;
-  explanation: { included_total_label?: string };
+  explanation: { included_total_label?: string; reporting_currency?: string };
 }
 
 interface ContextCreateResponse {
@@ -159,6 +159,18 @@ interface EconomicContextDraft {
               Snapshot {{ snapshot()?.version }} saved. Calculations always use this immutable
               snapshot.
             </p>
+            <label class="fx-selector">
+              FX snapshot ID (optional)
+              <input
+                name="fx_snapshot_id"
+                [(ngModel)]="fxSnapshotId"
+                placeholder="Explicit immutable FX snapshot UUID"
+              />
+            </label>
+            <p class="hint">
+              FX conversion uses only the explicit immutable snapshot above; no latest/live rate is
+              selected.
+            </p>
             <button type="button" (click)="calculateSnapshot()" [disabled]="busy()">
               Calculate from snapshot
             </button>
@@ -169,8 +181,8 @@ interface EconomicContextDraft {
         <section class="panel result-panel" aria-labelledby="result-title">
           <h2 id="result-title">{{ calculation()?.explanation?.included_total_label }}</h2>
           <p class="status" role="status">
-            Status: <strong>{{ calculation()?.status }}</strong> � Version
-            {{ calculation()?.calculation_version }} � Snapshot {{ snapshot()?.version }}
+            Status: <strong>{{ calculation()?.status }}</strong> ï¿½ Version
+            {{ calculation()?.calculation_version }} ï¿½ Snapshot {{ snapshot()?.version }}
           </p>
           <dl class="input-list">
             <div>
@@ -217,7 +229,7 @@ interface EconomicContextDraft {
                         {{ line.currency || '' }}
                       </td>
                       <td>{{ line.basis || 'UNKNOWN' }}</td>
-                      <td>{{ line.provenance }} � {{ line.freshness }}</td>
+                      <td>{{ line.provenance }} ï¿½ {{ line.freshness }}</td>
                       <td>
                         {{
                           line.exclusion_reason ||
@@ -371,6 +383,7 @@ export class SourcingEconomicsWorkspaceComponent {
   readonly context = signal<EconomicContextView | null>(null);
   readonly snapshot = signal<EconomicSnapshotView | null>(null);
   readonly calculation = signal<EconomicCalculationView | null>(null);
+  fxSnapshotId = '';
   draft: EconomicContextDraft = {
     idempotency_key: `economic-context-${Date.now()}`,
     base_currency: '',
@@ -432,7 +445,13 @@ export class SourcingEconomicsWorkspaceComponent {
       const response = await firstValueFrom(
         this.http.post<CalculationResponse>(
           `${environment.apiUrl}/intelligence/sourcing-economics/snapshots/${row.id}/calculate`,
-          {},
+          this.fxSnapshotId
+            ? {
+                fx_snapshot_id: this.fxSnapshotId,
+                calculation_version: 'landed-cost-v2',
+                policy_version: 'known-cost-fx-v1',
+              }
+            : {},
         ),
       );
       this.calculation.set({ ...response.calculation, breakdown: response.breakdown });
