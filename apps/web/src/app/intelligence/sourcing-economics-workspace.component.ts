@@ -171,6 +171,18 @@ interface EconomicContextDraft {
               FX conversion uses only the explicit immutable snapshot above; no latest/live rate is
               selected.
             </p>
+            <label class="fx-selector">
+              Freight snapshot ID (optional)
+              <input
+                name="freight_snapshot_id"
+                [(ngModel)]="freightSnapshotId"
+                placeholder="Explicit immutable freight snapshot UUID"
+              />
+            </label>
+            <p class="hint">
+              Freight uses only an explicit immutable LOCAL_FIXTURE or manual snapshot. Unknown
+              freight remains unknown; no live carrier quote is fetched.
+            </p>
             <button type="button" (click)="calculateSnapshot()" [disabled]="busy()">
               Calculate from snapshot
             </button>
@@ -384,6 +396,7 @@ export class SourcingEconomicsWorkspaceComponent {
   readonly snapshot = signal<EconomicSnapshotView | null>(null);
   readonly calculation = signal<EconomicCalculationView | null>(null);
   fxSnapshotId = '';
+  freightSnapshotId = '';
   draft: EconomicContextDraft = {
     idempotency_key: `economic-context-${Date.now()}`,
     base_currency: '',
@@ -445,13 +458,20 @@ export class SourcingEconomicsWorkspaceComponent {
       const response = await firstValueFrom(
         this.http.post<CalculationResponse>(
           `${environment.apiUrl}/intelligence/sourcing-economics/snapshots/${row.id}/calculate`,
-          this.fxSnapshotId
+          this.freightSnapshotId
             ? {
-                fx_snapshot_id: this.fxSnapshotId,
-                calculation_version: 'landed-cost-v2',
-                policy_version: 'known-cost-fx-v1',
+                freight_snapshot_id: this.freightSnapshotId,
+                ...(this.fxSnapshotId ? { fx_snapshot_id: this.fxSnapshotId } : {}),
+                calculation_version: 'landed-cost-v3',
+                policy_version: 'known-cost-freight-v1',
               }
-            : {},
+            : this.fxSnapshotId
+              ? {
+                  fx_snapshot_id: this.fxSnapshotId,
+                  calculation_version: 'landed-cost-v2',
+                  policy_version: 'known-cost-fx-v1',
+                }
+              : {},
         ),
       );
       this.calculation.set({ ...response.calculation, breakdown: response.breakdown });
