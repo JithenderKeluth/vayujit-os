@@ -15,6 +15,33 @@ from vayujit_api.intelligence.economic_calculation_service import (
     calculate_from_snapshot,
     list_breakdown,
 )
+from vayujit_api.intelligence.economic_freight_models import (
+    FreightObservation,
+    FreightSnapshot,
+)
+from vayujit_api.intelligence.economic_freight_service import (
+    create_logistics_context,
+    get_logistics_context,
+    list_logistics_contexts,
+)
+from vayujit_api.intelligence.economic_freight_service import (
+    create_observation as create_freight_observation,
+)
+from vayujit_api.intelligence.economic_freight_service import (
+    create_snapshot as create_freight_snapshot,
+)
+from vayujit_api.intelligence.economic_freight_service import (
+    get_observation as get_freight_observation,
+)
+from vayujit_api.intelligence.economic_freight_service import (
+    get_snapshot as get_freight_snapshot,
+)
+from vayujit_api.intelligence.economic_freight_service import (
+    list_observations as list_freight_observations,
+)
+from vayujit_api.intelligence.economic_freight_service import (
+    list_snapshots as list_freight_snapshots,
+)
 from vayujit_api.intelligence.economic_fx_models import FXObservation
 from vayujit_api.intelligence.economic_fx_service import (
     create_observation,
@@ -42,8 +69,11 @@ from vayujit_api.intelligence.economic_schemas import (
     EconomicContextUpdate,
     EconomicCostComponentCreate,
     EconomicQuoteInputCreate,
+    FreightObservationCreate,
+    FreightSnapshotCreate,
     FXObservationCreate,
     FXSnapshotCreate,
+    LogisticsContextCreate,
 )
 from vayujit_api.intelligence.economic_service import (
     create_assumption,
@@ -262,3 +292,70 @@ def fx_snapshot_list(db: DB, owner: Owner):
 @router.get("/fx/snapshots/{fx_snapshot_id}")
 def fx_snapshot_detail(fx_snapshot_id: uuid.UUID, db: DB, owner: Owner):
     return {"snapshot": get_fx_snapshot(db, owner, fx_snapshot_id)}
+
+
+@router.post("/logistics/contexts", status_code=201)
+def logistics_context_create(data: LogisticsContextCreate, db: DB, owner: Owner):
+    row, reused = create_logistics_context(db, owner, data)
+    return {"context": row, "idempotent_reuse": reused}
+
+
+@router.get("/logistics/contexts")
+def logistics_context_list(db: DB, owner: Owner):
+    return {"items": list_logistics_contexts(db, owner)}
+
+
+@router.get("/logistics/contexts/{context_id}")
+def logistics_context_detail(context_id: uuid.UUID, db: DB, owner: Owner):
+    row = get_logistics_context(db, owner, context_id)
+    return {
+        "context": row,
+        "observations": db.scalars(
+            select(FreightObservation)
+            .where(
+                FreightObservation.owner_id == owner.id,
+                FreightObservation.logistics_context_id == row.id,
+            )
+            .order_by(FreightObservation.created_at.desc())
+        ).all(),
+        "snapshots": db.scalars(
+            select(FreightSnapshot)
+            .where(
+                FreightSnapshot.owner_id == owner.id,
+                FreightSnapshot.logistics_context_id == row.id,
+            )
+            .order_by(FreightSnapshot.created_at.desc())
+        ).all(),
+    }
+
+
+@router.post("/freight/observations", status_code=201)
+def freight_observation_create(data: FreightObservationCreate, db: DB, owner: Owner):
+    row, reused = create_freight_observation(db, owner, data)
+    return {"observation": row, "idempotent_reuse": reused}
+
+
+@router.get("/freight/observations")
+def freight_observation_list(db: DB, owner: Owner):
+    return {"items": list_freight_observations(db, owner)}
+
+
+@router.get("/freight/observations/{observation_id}")
+def freight_observation_detail(observation_id: uuid.UUID, db: DB, owner: Owner):
+    return {"observation": get_freight_observation(db, owner, observation_id)}
+
+
+@router.post("/freight/snapshots", status_code=201)
+def freight_snapshot_create(data: FreightSnapshotCreate, db: DB, owner: Owner):
+    row, reused = create_freight_snapshot(db, owner, data)
+    return {"snapshot": row, "idempotent_reuse": reused}
+
+
+@router.get("/freight/snapshots")
+def freight_snapshot_list(db: DB, owner: Owner):
+    return {"items": list_freight_snapshots(db, owner)}
+
+
+@router.get("/freight/snapshots/{freight_snapshot_id}")
+def freight_snapshot_detail(freight_snapshot_id: uuid.UUID, db: DB, owner: Owner):
+    return {"snapshot": get_freight_snapshot(db, owner, freight_snapshot_id)}

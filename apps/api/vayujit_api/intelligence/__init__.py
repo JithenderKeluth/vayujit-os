@@ -1,10 +1,15 @@
 """Product Research and Supplier Intelligence bounded context."""
 
-from vayujit_api.intelligence.economic_fx_models import FXObservation, FXRateSnapshot
 from vayujit_api.intelligence.economic_calculation_models import (
     EconomicCalculation,
     EconomicCalculationBreakdown,
 )
+from vayujit_api.intelligence.economic_freight_models import (
+    FreightObservation,
+    FreightSnapshot,
+    LogisticsContext,
+)
+from vayujit_api.intelligence.economic_fx_models import FXObservation, FXRateSnapshot
 from vayujit_api.intelligence.models import (
     IntelligenceClaim,
     IntelligenceEvidence,
@@ -311,4 +316,12 @@ __all__ += [
     "CompetitorDiscoverySnapshot",
     "TrendWinningProductProjection",
 ]
-__all__ += ["EconomicCalculation", "EconomicCalculationBreakdown", "FXObservation", "FXRateSnapshot"]
+__all__ += [
+    "EconomicCalculation",
+    "EconomicCalculationBreakdown",
+    "FXObservation",
+    "FXRateSnapshot",
+    "LogisticsContext",
+    "FreightObservation",
+    "FreightSnapshot",
+]

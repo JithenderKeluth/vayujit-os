@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import uuid
+from collections.abc import Mapping
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any
 
@@ -17,6 +18,7 @@ from vayujit_api.intelligence.economic_calculation_models import (
     EconomicCalculation,
     EconomicCalculationBreakdown,
 )
+from vayujit_api.intelligence.economic_freight_models import FreightSnapshot, LogisticsContext
 from vayujit_api.intelligence.economic_fx_models import FXRateSnapshot
 from vayujit_api.intelligence.economic_models import EconomicInputSnapshot
 from vayujit_api.intelligence.economic_schemas import EconomicCalculationRequest
@@ -26,6 +28,8 @@ CALCULATION_VERSION = "landed-cost-v1"
 POLICY_VERSION = "known-cost-v1"
 FX_CALCULATION_VERSION = "landed-cost-v2"
 FX_POLICY_VERSION = "known-cost-fx-v1"
+FREIGHT_CALCULATION_VERSION = "landed-cost-v3"
+FREIGHT_POLICY_VERSION = "known-cost-freight-v1"
 SUPPORTED_BASES = {"PER_UNIT", "PER_SHIPMENT", "ONE_TIME"}
 STORAGE_QUANTUM = Decimal("0.00000001")
 
@@ -60,7 +64,7 @@ def _json(value: object) -> object:
     return value
 
 
-def _lineage(source_kind: str, source: dict[str, object]) -> dict[str, object]:
+def _lineage(source_kind: str, source: Mapping[str, object]) -> dict[str, object]:
     return {
         "source_kind": source_kind,
         "source_id": source.get("id"),
@@ -75,7 +79,7 @@ def _lineage(source_kind: str, source: dict[str, object]) -> dict[str, object]:
 def _line(
     *,
     source_kind: str,
-    source: dict[str, object],
+    source: Mapping[str, object],
     category: str,
     reason: str | None = None,
     inclusion_status: str = "EXCLUDED",
@@ -100,6 +104,7 @@ def _line(
         "fx_provider": None,
         "fx_freshness": None,
         "fx_inverted": None,
+        "freight_snapshot_id": None,
         "provenance": _upper(source.get("provenance"), "UNKNOWN"),
         "freshness": _upper(source.get("freshness"), "UNKNOWN"),
         "assumption_reason": source.get("assumption_reason"),
@@ -113,7 +118,7 @@ def _line(
 def _evaluate_source(
     *,
     source_kind: str,
-    source: dict[str, object],
+    source: Mapping[str, object],
     category: str,
     currency: str | None,
     target_quantity: Decimal | None,
@@ -238,10 +243,78 @@ def _apply_fx(
     return converted, ("STALE_FX_RATE" if fx.freshness == "STALE" else None)
 
 
+def _freight_line(
+    freight: FreightSnapshot,
+) -> tuple[dict[str, object], Decimal | None]:
+    source = {
+        "id": freight.id,
+        "amount": freight.amount,
+        "currency": freight.currency,
+        "unit_basis": freight.basis,
+        "provenance": freight.provenance,
+        "freshness": freight.freshness,
+        "assumption_reason": freight.assumption_reason,
+        "evidence_ref": freight.evidence_ref,
+    }
+    line = _line(
+        source_kind="freight_snapshot",
+        source=source,
+        category="FREIGHT",
+        basis=freight.basis,
+    )
+    line["freight_snapshot_id"] = freight.id
+    amount = _decimal(freight.amount)
+    if amount is None or freight.provenance == "UNKNOWN":
+        line["exclusion_reason"] = "UNKNOWN_AMOUNT"
+        return line, None
+    multiplier = Decimal("1")
+    basis = _upper(freight.basis)
+    if basis == "PER_KG":
+        if freight.quoted_weight is None or freight.quoted_weight_unit != "KG":
+            line["exclusion_reason"] = "UNSUPPORTED_BASIS"
+            return line, None
+        multiplier = Decimal(str(freight.quoted_weight))
+    elif basis == "PER_CBM":
+        if freight.quoted_volume is None or freight.quoted_volume_unit != "CBM":
+            line["exclusion_reason"] = "UNSUPPORTED_BASIS"
+            return line, None
+        multiplier = Decimal(str(freight.quoted_volume))
+    elif basis == "PER_CARTON":
+        if freight.quoted_package_count is None:
+            line["exclusion_reason"] = "UNSUPPORTED_BASIS"
+            return line, None
+        multiplier = Decimal(freight.quoted_package_count)
+    elif basis == "PER_CONTAINER":
+        if freight.quoted_container_count is None:
+            line["exclusion_reason"] = "UNSUPPORTED_BASIS"
+            return line, None
+        multiplier = Decimal(freight.quoted_container_count)
+    elif basis not in {"PER_SHIPMENT", "FIXED_QUOTE"}:
+        line["exclusion_reason"] = "UNSUPPORTED_BASIS"
+        return line, None
+    if multiplier <= 0:
+        line["exclusion_reason"] = "UNSUPPORTED_BASIS"
+        return line, None
+    line["multiplier"] = multiplier
+    line["included_amount"] = amount * multiplier
+    line["inclusion_status"] = "INCLUDED"
+    line["exclusion_reason"] = None
+    line["lineage"] = {
+        "source_kind": "freight_snapshot",
+        "source_id": freight.id,
+        "freight_snapshot_id": freight.id,
+        "observation_id": freight.observation_id,
+        "logistics_context_id": freight.logistics_context_id,
+        "evidence_ref": freight.evidence_ref,
+    }
+    return line, amount * multiplier
+
+
 def _calculate(
     snapshot: EconomicInputSnapshot,
     request: EconomicCalculationRequest,
     fx_snapshots: list[FXRateSnapshot],
+    freight_snapshot: FreightSnapshot | None = None,
 ) -> dict[str, Any]:
     payload = snapshot.payload if isinstance(snapshot.payload, dict) else {}
     context_value = payload.get("context")
@@ -266,6 +339,7 @@ def _calculate(
     assumptions: list[dict[str, object]] = []
     stale: list[dict[str, object]] = []
     explicit_product = any(_upper(row.get("category")) == "PRODUCT_COST" for row in components)
+    explicit_freight = any(_upper(row.get("category")) == "FREIGHT" for row in components)
 
     def add_line(line: dict[str, object], value: Decimal | None) -> None:
         nonlocal included_total
@@ -302,6 +376,12 @@ def _calculate(
             target_quantity=target_quantity,
         )
         add_line(line, value)
+
+    if freight_snapshot is not None and not explicit_freight:
+        freight_line, freight_value = _freight_line(freight_snapshot)
+        add_line(freight_line, freight_value)
+    elif freight_snapshot is not None:
+        warnings.append("Explicit FREIGHT component takes precedence over the freight snapshot.")
 
     if not explicit_product:
         for row in quotes:
@@ -387,6 +467,7 @@ def _calculate(
         "assumption_count": len(assumptions),
         "stale_input_count": len(stale),
         "fx_snapshot_ids": [str(item.id) for item in fx_snapshots],
+        "freight_snapshot_id": str(freight_snapshot.id) if freight_snapshot else None,
         "rounding": (
             "Decimal arithmetic; values stored to 8 fractional places with " "HALF_UP rounding."
         ),
@@ -424,6 +505,36 @@ def calculate_from_snapshot(
     )
     if snapshot is None:
         raise HTTPException(404, "Economic snapshot is not available in the owner scope.")
+
+    freight_snapshot: FreightSnapshot | None = None
+    if request.freight_snapshot_id is not None:
+        freight_snapshot = db.scalar(
+            select(FreightSnapshot).where(
+                FreightSnapshot.id == request.freight_snapshot_id,
+                FreightSnapshot.owner_id == owner.id,
+            )
+        )
+        if freight_snapshot is None:
+            raise HTTPException(404, "Freight snapshot is not available in the owner scope.")
+        logistics_context = db.scalar(
+            select(LogisticsContext).where(
+                LogisticsContext.id == freight_snapshot.logistics_context_id,
+                LogisticsContext.owner_id == owner.id,
+            )
+        )
+        if (
+            logistics_context is None
+            or logistics_context.economic_context_id != snapshot.context_id
+        ):
+            raise HTTPException(422, "Freight snapshot must belong to the economic context.")
+        if (
+            request.calculation_version != FREIGHT_CALCULATION_VERSION
+            or request.policy_version != FREIGHT_POLICY_VERSION
+        ):
+            raise HTTPException(
+                422, "Freight calculations require landed-cost-v3 and known-cost-freight-v1."
+            )
+
     fx_snapshots: list[FXRateSnapshot] = []
     if request.fx_snapshot_id is not None:
         fx = db.scalar(
@@ -434,22 +545,24 @@ def calculate_from_snapshot(
         if fx is None:
             raise HTTPException(404, "FX snapshot is not available in the owner scope.")
         fx_snapshots = [fx]
-        if (
+        if freight_snapshot is None and (
             request.calculation_version != FX_CALCULATION_VERSION
             or request.policy_version != FX_POLICY_VERSION
         ):
             raise HTTPException(422, "FX calculations require landed-cost-v2 and known-cost-fx-v1.")
-    elif (
+    elif freight_snapshot is None and (
         request.calculation_version != CALCULATION_VERSION
         or request.policy_version != POLICY_VERSION
     ):
         raise HTTPException(422, "Unsupported calculation version or policy.")
+
     calc_fingerprint = fingerprint(
         {
             "snapshot_fingerprint": snapshot.fingerprint,
             "calculation_version": request.calculation_version,
             "policy_version": request.policy_version,
             "fx_snapshot_ids": [str(item.id) for item in fx_snapshots],
+            "freight_snapshot_id": str(freight_snapshot.id) if freight_snapshot else None,
             "options": request.options,
         }
     )
@@ -461,12 +574,14 @@ def calculate_from_snapshot(
     )
     if existing is not None:
         return existing, True
-    evaluated = _calculate(snapshot, request, fx_snapshots)
+
+    evaluated = _calculate(snapshot, request, fx_snapshots, freight_snapshot)
     row = EconomicCalculation(
         owner_id=owner.id,
         context_id=snapshot.context_id,
         snapshot_id=snapshot.id,
         fx_snapshot_id=fx_snapshots[0].id if fx_snapshots else None,
+        freight_snapshot_id=freight_snapshot.id if freight_snapshot else None,
         calculation_version=request.calculation_version,
         policy_version=request.policy_version,
         calculation_fingerprint=calc_fingerprint,
@@ -517,6 +632,7 @@ def calculate_from_snapshot(
                     fx_provider=line["fx_provider"],
                     fx_freshness=line["fx_freshness"],
                     fx_inverted=line["fx_inverted"],
+                    freight_snapshot_id=line["freight_snapshot_id"],
                     provenance=line["provenance"],
                     freshness=line["freshness"],
                     assumption_reason=line["assumption_reason"],
@@ -535,6 +651,7 @@ def calculate_from_snapshot(
                 metadata_json={
                     "snapshot_id": str(snapshot.id),
                     "fx_snapshot_id": str(fx_snapshots[0].id) if fx_snapshots else None,
+                    "freight_snapshot_id": str(freight_snapshot.id) if freight_snapshot else None,
                     "status": row.status,
                     "calculation_version": row.calculation_version,
                 },
@@ -542,6 +659,21 @@ def calculate_from_snapshot(
                 idempotency_key=f"intelligence.economic_calculation_created:{row.id}",
             )
         )
+        if freight_snapshot is not None:
+            db.add(
+                AuditEvent(
+                    actor_id=owner.id,
+                    action="intelligence.economic_freight_linked",
+                    entity_type="economic_calculation",
+                    entity_id=row.id,
+                    metadata_json={
+                        "freight_snapshot_id": str(freight_snapshot.id),
+                        "observation_id": str(freight_snapshot.observation_id),
+                    },
+                    occurred_at=now(),
+                    idempotency_key=f"intelligence.economic_freight_linked:{row.id}",
+                )
+            )
         db.commit()
     except IntegrityError as exc:
         db.rollback()
