@@ -210,3 +210,14 @@ def safe_metadata(value: dict[str, object]) -> dict[str, object]:
     if any(str(key).lower() in blocked for key in value):
         raise ValueError("Sensitive metadata is not allowed.")
     return value
+
+
+class EconomicCalculationRequest(EconomicSchema):
+    calculation_version: str = Field(default="landed-cost-v1", min_length=1, max_length=64)
+    policy_version: str = Field(default="known-cost-v1", min_length=1, max_length=64)
+    options: dict[str, object] = Field(default_factory=dict)
+
+    @model_validator(mode="after")
+    def bounded_options(self) -> EconomicCalculationRequest:
+        safe_metadata(self.options)
+        return self

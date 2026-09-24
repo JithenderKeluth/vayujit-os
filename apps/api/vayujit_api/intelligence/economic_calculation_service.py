@@ -1,0 +1,487 @@
+"""Deterministic landed-cost calculation from immutable 13A snapshots."""
+
+from __future__ import annotations
+
+import uuid
+from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
+from typing import Any
+
+from fastapi import HTTPException
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from vayujit_api.audit.models import AuditEvent
+from vayujit_api.identity.models import User
+from vayujit_api.intelligence.economic_calculation_models import (
+    EconomicCalculation,
+    EconomicCalculationBreakdown,
+)
+from vayujit_api.intelligence.economic_models import EconomicInputSnapshot
+from vayujit_api.intelligence.economic_schemas import EconomicCalculationRequest
+from vayujit_api.intelligence.economic_service import fingerprint, now
+
+CALCULATION_VERSION = "landed-cost-v1"
+POLICY_VERSION = "known-cost-v1"
+SUPPORTED_BASES = {"PER_UNIT", "PER_SHIPMENT", "ONE_TIME"}
+STORAGE_QUANTUM = Decimal("0.00000001")
+
+
+def _decimal(value: object) -> Decimal | None:
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        result = Decimal(str(value))
+    except (InvalidOperation, TypeError, ValueError):
+        return None
+    return result if result.is_finite() else None
+
+
+def _money(value: Decimal | None) -> Decimal | None:
+    return value.quantize(STORAGE_QUANTUM, rounding=ROUND_HALF_UP) if value is not None else None
+
+
+def _upper(value: object, default: str = "") -> str:
+    return str(value or default).strip().upper()
+
+
+def _json(value: object) -> object:
+    if isinstance(value, Decimal):
+        return str(value)
+    if isinstance(value, uuid.UUID):
+        return str(value)
+    if isinstance(value, dict):
+        return {str(key): _json(item) for key, item in value.items()}
+    if isinstance(value, (list, tuple)):
+        return [_json(item) for item in value]
+    return value
+
+
+def _lineage(source_kind: str, source: dict[str, object]) -> dict[str, object]:
+    return {
+        "source_kind": source_kind,
+        "source_id": source.get("id"),
+        "snapshot_component_id": source.get("id") if source_kind == "component" else None,
+        "quote_input_id": (
+            source.get("quote_input_id") if source_kind == "component" else source.get("id")
+        ),
+        "evidence_ref": source.get("evidence_ref"),
+    }
+
+
+def _line(
+    *,
+    source_kind: str,
+    source: dict[str, object],
+    category: str,
+    reason: str | None = None,
+    inclusion_status: str = "EXCLUDED",
+    multiplier: Decimal | None = None,
+    included_amount: Decimal | None = None,
+    basis: str | None = None,
+) -> dict[str, object]:
+    return {
+        "source_kind": source_kind,
+        "source_id": source.get("id"),
+        "category": category,
+        "original_amount": _decimal(source.get("amount", source.get("unit_price"))),
+        "currency": source.get("currency"),
+        "basis": basis or source.get("unit_basis"),
+        "multiplier": multiplier,
+        "included_amount": included_amount,
+        "provenance": _upper(source.get("provenance"), "UNKNOWN"),
+        "freshness": _upper(source.get("freshness"), "UNKNOWN"),
+        "assumption_reason": source.get("assumption_reason"),
+        "evidence_ref": source.get("evidence_ref"),
+        "inclusion_status": inclusion_status,
+        "exclusion_reason": reason,
+        "lineage": _lineage(source_kind, source),
+    }
+
+
+def _evaluate_source(
+    *,
+    source_kind: str,
+    source: dict[str, object],
+    category: str,
+    currency: str | None,
+    target_quantity: Decimal | None,
+) -> tuple[dict[str, object], Decimal | None]:
+    amount = _decimal(source.get("amount", source.get("unit_price")))
+    provenance = _upper(source.get("provenance"), "UNKNOWN")
+    basis = _upper(source.get("unit_basis"))
+    if amount is None or provenance == "UNKNOWN":
+        return (
+            _line(
+                source_kind=source_kind,
+                source=source,
+                category=category,
+                reason="UNKNOWN_AMOUNT",
+                basis=basis,
+            ),
+            None,
+        )
+    source_currency = _upper(source.get("currency"))
+    if currency is None or not source_currency:
+        return (
+            _line(
+                source_kind=source_kind,
+                source=source,
+                category=category,
+                reason="MISSING_CURRENCY",
+                basis=basis,
+            ),
+            None,
+        )
+    if source_currency != currency:
+        return (
+            _line(
+                source_kind=source_kind,
+                source=source,
+                category=category,
+                reason="CURRENCY_MISMATCH",
+                basis=basis,
+            ),
+            None,
+        )
+    if basis not in SUPPORTED_BASES:
+        return (
+            _line(
+                source_kind=source_kind,
+                source=source,
+                category=category,
+                reason="UNSUPPORTED_BASIS",
+                basis=basis or None,
+            ),
+            None,
+        )
+    if basis == "PER_UNIT":
+        if target_quantity is None or target_quantity <= 0:
+            return (
+                _line(
+                    source_kind=source_kind,
+                    source=source,
+                    category=category,
+                    reason="MISSING_TARGET_QUANTITY",
+                    basis=basis,
+                ),
+                None,
+            )
+        multiplier = target_quantity
+    else:
+        multiplier = Decimal("1")
+    included = amount * multiplier
+    return (
+        _line(
+            source_kind=source_kind,
+            source=source,
+            category=category,
+            inclusion_status="INCLUDED",
+            multiplier=multiplier,
+            included_amount=included,
+            basis=basis,
+        ),
+        included,
+    )
+
+
+def _calculate(
+    snapshot: EconomicInputSnapshot, request: EconomicCalculationRequest
+) -> dict[str, Any]:
+    payload = snapshot.payload if isinstance(snapshot.payload, dict) else {}
+    context_value = payload.get("context")
+    context: dict[str, object] = context_value if isinstance(context_value, dict) else {}
+    component_rows = payload.get("components", [])
+    quote_rows = payload.get("quotes", [])
+    components: list[dict[str, object]] = (
+        [row for row in component_rows if isinstance(row, dict)]
+        if isinstance(component_rows, list)
+        else []
+    )
+    quotes: list[dict[str, object]] = (
+        [row for row in quote_rows if isinstance(row, dict)] if isinstance(quote_rows, list) else []
+    )
+    target_quantity = _decimal(context.get("target_quantity"))
+    currency = _upper(context.get("base_currency")) or None
+    lines: list[dict[str, object]] = []
+    included_total = Decimal("0")
+    included_categories: set[str] = set()
+    missing: list[str] = []
+    warnings: list[str] = []
+    assumptions: list[dict[str, object]] = []
+    stale: list[dict[str, object]] = []
+    explicit_product = any(_upper(row.get("category")) == "PRODUCT_COST" for row in components)
+
+    for row in components:
+        category = _upper(row.get("category"), "OTHER")
+        line, value = _evaluate_source(
+            source_kind="component",
+            source=row,
+            category=category,
+            currency=currency,
+            target_quantity=target_quantity,
+        )
+        lines.append(line)
+        if value is not None:
+            included_total += value
+            included_categories.add(category)
+        if line["provenance"] == "ASSUMED" and line["inclusion_status"] == "INCLUDED":
+            assumptions.append(
+                {"source_id": line["source_id"], "reason": line["assumption_reason"]}
+            )
+        if line["freshness"] == "STALE" and line["inclusion_status"] == "INCLUDED":
+            stale.append({"source_id": line["source_id"], "category": category})
+        if line["inclusion_status"] == "EXCLUDED" and line["exclusion_reason"] in {
+            "UNKNOWN_AMOUNT",
+            "CURRENCY_MISMATCH",
+            "UNSUPPORTED_BASIS",
+        }:
+            missing.append(f"{category}:{line['exclusion_reason']}")
+
+    if not explicit_product:
+        for row in quotes:
+            if _decimal(row.get("unit_price")) is None:
+                continue
+            line, value = _evaluate_source(
+                source_kind="quote",
+                source=row,
+                category="PRODUCT_COST",
+                currency=currency,
+                target_quantity=target_quantity,
+            )
+            lines.append(line)
+            if value is not None and "PRODUCT_COST" not in included_categories:
+                included_total += value
+                included_categories.add("PRODUCT_COST")
+                if line["provenance"] == "ASSUMED":
+                    assumptions.append(
+                        {"source_id": line["source_id"], "reason": line["assumption_reason"]}
+                    )
+                if line["freshness"] == "STALE":
+                    stale.append({"source_id": line["source_id"], "category": "PRODUCT_COST"})
+                break
+            if value is not None:
+                line["inclusion_status"] = "EXCLUDED"
+                line["exclusion_reason"] = "DUPLICATE_PRODUCT_COST"
+            elif line["exclusion_reason"] in {
+                "UNKNOWN_AMOUNT",
+                "CURRENCY_MISMATCH",
+                "UNSUPPORTED_BASIS",
+            }:
+                missing.append(f"PRODUCT_COST:{line['exclusion_reason']}")
+    else:
+        for row in quotes:
+            if _decimal(row.get("unit_price")) is not None:
+                lines.append(
+                    _line(
+                        source_kind="quote",
+                        source=row,
+                        category="PRODUCT_COST",
+                        reason="DUPLICATE_PRODUCT_COST",
+                        basis=_upper(row.get("unit_basis")) or None,
+                    )
+                )
+
+    if "PRODUCT_COST" not in included_categories:
+        missing.append("PRODUCT_COST")
+    if "FREIGHT" not in included_categories:
+        missing.append("FREIGHT")
+    if target_quantity is not None:
+        for row in quotes:
+            moq = _decimal(row.get("moq"))
+            if moq is not None and target_quantity < moq:
+                warnings.append(
+                    "Target quantity is below the known MOQ; requested quantity was not changed."
+                )
+                break
+    if currency is None:
+        missing.append("base_currency")
+        warnings.append("No calculation currency is present in the immutable snapshot.")
+    if target_quantity is None or target_quantity <= 0:
+        missing.append("target_quantity")
+    if snapshot.completeness == "UNKNOWN":
+        warnings.append("The immutable snapshot is marked UNKNOWN.")
+    if assumptions:
+        warnings.append("Calculation includes assumed inputs.")
+    if stale:
+        warnings.append("Calculation includes stale inputs.")
+
+    missing = list(dict.fromkeys(missing))
+    warnings = list(dict.fromkeys(warnings))
+    if "PRODUCT_COST" not in included_categories:
+        status = "INSUFFICIENT"
+    elif missing or warnings or any(line["inclusion_status"] == "EXCLUDED" for line in lines):
+        status = "PARTIAL"
+    else:
+        status = "COMPLETE"
+    per_unit = (
+        included_total / target_quantity if status != "INSUFFICIENT" and target_quantity else None
+    )
+    explanation = {
+        "target_quantity": str(target_quantity) if target_quantity is not None else None,
+        "currency": currency,
+        "included_total_label": (
+            "Known-cost subtotal" if status != "COMPLETE" else "Calculated landed cost"
+        ),
+        "included_categories": sorted(included_categories),
+        "missing_inputs": missing,
+        "assumption_count": len(assumptions),
+        "stale_input_count": len(stale),
+        "rounding": (
+            "Decimal arithmetic; values stored to 8 fractional places with HALF_UP rounding."
+        ),
+    }
+    return {
+        "status": status,
+        "currency": currency,
+        "target_quantity": target_quantity,
+        "total_included_cost": _money(included_total) or Decimal("0"),
+        "per_unit_cost": _money(per_unit),
+        "lines": lines,
+        "missing_inputs": missing,
+        "warnings": warnings,
+        "assumptions": assumptions,
+        "stale_inputs": stale,
+        "explanation": explanation,
+    }
+
+
+def _is_unique_violation(exc: IntegrityError) -> bool:
+    return getattr(exc.orig, "pgcode", None) == "23505" or "duplicate key" in str(exc.orig).lower()
+
+
+def calculate_from_snapshot(
+    db: Session,
+    owner: User,
+    snapshot_id: uuid.UUID,
+    request: EconomicCalculationRequest,
+) -> tuple[EconomicCalculation, bool]:
+    snapshot = db.scalar(
+        select(EconomicInputSnapshot).where(
+            EconomicInputSnapshot.id == snapshot_id,
+            EconomicInputSnapshot.owner_id == owner.id,
+        )
+    )
+    if snapshot is None:
+        raise HTTPException(404, "Economic snapshot is not available in the owner scope.")
+    if request.calculation_version != CALCULATION_VERSION:
+        raise HTTPException(422, "Unsupported calculation version.")
+    if request.policy_version != POLICY_VERSION:
+        raise HTTPException(422, "Unsupported calculation policy.")
+    calc_fingerprint = fingerprint(
+        {
+            "snapshot_fingerprint": snapshot.fingerprint,
+            "calculation_version": request.calculation_version,
+            "policy_version": request.policy_version,
+            "options": request.options,
+        }
+    )
+    existing = db.scalar(
+        select(EconomicCalculation).where(
+            EconomicCalculation.owner_id == owner.id,
+            EconomicCalculation.calculation_fingerprint == calc_fingerprint,
+        )
+    )
+    if existing is not None:
+        return existing, True
+    evaluated = _calculate(snapshot, request)
+    row = EconomicCalculation(
+        owner_id=owner.id,
+        context_id=snapshot.context_id,
+        snapshot_id=snapshot.id,
+        calculation_version=request.calculation_version,
+        policy_version=request.policy_version,
+        calculation_fingerprint=calc_fingerprint,
+        status=evaluated["status"],
+        currency=evaluated["currency"],
+        target_quantity=(
+            evaluated["target_quantity"]
+            if evaluated["target_quantity"] is not None and evaluated["target_quantity"] > 0
+            else None
+        ),
+        total_included_cost=evaluated["total_included_cost"],
+        per_unit_cost=evaluated["per_unit_cost"],
+        included_component_count=sum(
+            1 for line in evaluated["lines"] if line["inclusion_status"] == "INCLUDED"
+        ),
+        excluded_component_count=sum(
+            1 for line in evaluated["lines"] if line["inclusion_status"] == "EXCLUDED"
+        ),
+        missing_inputs=_json(evaluated["missing_inputs"]),
+        warnings=_json(evaluated["warnings"]),
+        assumptions=_json(evaluated["assumptions"]),
+        stale_inputs=_json(evaluated["stale_inputs"]),
+        explanation=_json(evaluated["explanation"]),
+    )
+    db.add(row)
+    try:
+        db.flush()
+        for order, line in enumerate(evaluated["lines"]):
+            db.add(
+                EconomicCalculationBreakdown(
+                    owner_id=owner.id,
+                    calculation_id=row.id,
+                    line_order=order,
+                    source_kind=line["source_kind"],
+                    source_id=line["source_id"],
+                    category=line["category"],
+                    original_amount=line["original_amount"],
+                    currency=line["currency"],
+                    basis=line["basis"],
+                    multiplier=line["multiplier"],
+                    included_amount=line["included_amount"],
+                    provenance=line["provenance"],
+                    freshness=line["freshness"],
+                    assumption_reason=line["assumption_reason"],
+                    evidence_ref=line["evidence_ref"],
+                    inclusion_status=line["inclusion_status"],
+                    exclusion_reason=line["exclusion_reason"],
+                    lineage=_json(line["lineage"]),
+                )
+            )
+        db.add(
+            AuditEvent(
+                actor_id=owner.id,
+                action="intelligence.economic_calculation_created",
+                entity_type="economic_calculation",
+                entity_id=row.id,
+                metadata_json={
+                    "snapshot_id": str(snapshot.id),
+                    "status": row.status,
+                    "calculation_version": row.calculation_version,
+                },
+                occurred_at=now(),
+                idempotency_key=f"intelligence.economic_calculation_created:{row.id}",
+            )
+        )
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        if not _is_unique_violation(exc):
+            raise
+        existing = db.scalar(
+            select(EconomicCalculation).where(
+                EconomicCalculation.owner_id == owner.id,
+                EconomicCalculation.calculation_fingerprint == calc_fingerprint,
+            )
+        )
+        if existing is None:
+            raise
+        return existing, True
+    db.refresh(row)
+    return row, False
+
+
+def list_breakdown(
+    db: Session, owner: User, calculation_id: uuid.UUID
+) -> list[EconomicCalculationBreakdown]:
+    return list(
+        db.scalars(
+            select(EconomicCalculationBreakdown)
+            .where(
+                EconomicCalculationBreakdown.owner_id == owner.id,
+                EconomicCalculationBreakdown.calculation_id == calculation_id,
+            )
+            .order_by(EconomicCalculationBreakdown.line_order)
+        )
+    )
