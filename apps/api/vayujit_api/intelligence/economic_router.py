@@ -10,6 +10,11 @@ from sqlalchemy.orm import Session
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.intelligence.economic_calculation_models import EconomicCalculation
+from vayujit_api.intelligence.economic_calculation_service import (
+    calculate_from_snapshot,
+    list_breakdown,
+)
 from vayujit_api.intelligence.economic_models import (
     EconomicAssumption,
     EconomicContext,
@@ -20,6 +25,7 @@ from vayujit_api.intelligence.economic_models import (
 )
 from vayujit_api.intelligence.economic_schemas import (
     EconomicAssumptionCreate,
+    EconomicCalculationRequest,
     EconomicContextCreate,
     EconomicContextUpdate,
     EconomicCostComponentCreate,
@@ -161,3 +167,43 @@ def snapshot_detail(snapshot_id: uuid.UUID, db: DB, owner: Owner):
         )
     ).all()
     return {"snapshot": row, "components": components}
+
+
+@router.post("/snapshots/{snapshot_id}/calculate", status_code=201)
+def snapshot_calculate(
+    snapshot_id: uuid.UUID,
+    data: EconomicCalculationRequest,
+    db: DB,
+    owner: Owner,
+):
+    row, reused = calculate_from_snapshot(db, owner, snapshot_id, data)
+    return {
+        "calculation": row,
+        "breakdown": list_breakdown(db, owner, row.id),
+        "idempotent_reuse": reused,
+    }
+
+
+@router.get("/calculations")
+def calculation_list(db: DB, owner: Owner):
+    rows = db.scalars(
+        select(EconomicCalculation)
+        .where(EconomicCalculation.owner_id == owner.id)
+        .order_by(EconomicCalculation.created_at.desc())
+    ).all()
+    return {"items": rows}
+
+
+@router.get("/calculations/{calculation_id}")
+def calculation_detail(calculation_id: uuid.UUID, db: DB, owner: Owner):
+    row = db.scalar(
+        select(EconomicCalculation).where(
+            EconomicCalculation.id == calculation_id,
+            EconomicCalculation.owner_id == owner.id,
+        )
+    )
+    if row is None:
+        from fastapi import HTTPException
+
+        raise HTTPException(404, "Economic calculation is not available in the owner scope.")
+    return {"calculation": row, "breakdown": list_breakdown(db, owner, row.id)}

@@ -1,4 +1,4 @@
-﻿import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -17,9 +17,41 @@ interface EconomicContextView {
 }
 
 interface EconomicSnapshotView {
+  id: string;
   version: number;
   fingerprint: string;
   completeness: string;
+}
+
+interface EconomicBreakdownView {
+  id: string;
+  category: string;
+  inclusion_status: string;
+  original_amount: number | string | null;
+  included_amount: number | string | null;
+  currency: string | null;
+  basis: string | null;
+  provenance: string;
+  freshness: string;
+  evidence_ref: string | null;
+  exclusion_reason: string | null;
+}
+
+interface EconomicCalculationView {
+  id: string;
+  calculation_version: string;
+  policy_version: string;
+  status: string;
+  currency: string | null;
+  target_quantity: number | string | null;
+  total_included_cost: number | string;
+  per_unit_cost: number | string | null;
+  breakdown: EconomicBreakdownView[];
+  missing_inputs: string[];
+  warnings: string[];
+  assumptions: Array<{ source_id: string; reason: string | null }>;
+  stale_inputs: Array<{ source_id: string; category: string }>;
+  explanation: { included_total_label?: string };
 }
 
 interface ContextCreateResponse {
@@ -28,6 +60,11 @@ interface ContextCreateResponse {
 
 interface SnapshotCreateResponse {
   snapshot: EconomicSnapshotView;
+}
+
+interface CalculationResponse {
+  calculation: EconomicCalculationView;
+  breakdown: EconomicBreakdownView[];
 }
 
 interface EconomicContextDraft {
@@ -51,7 +88,8 @@ interface EconomicContextDraft {
           <p class="eyebrow">Intelligence / Sourcing economics</p>
           <h1 id="economics-title">Sourcing economic inputs</h1>
           <p class="lede">
-            Capture evidence-first inputs now. Final landed-cost calculations come later.
+            Capture immutable inputs, calculate a reproducible known-cost subtotal, and inspect
+            every included or excluded line.
           </p>
         </div>
         <a routerLink="/intelligence">Back to Intelligence</a>
@@ -118,8 +156,101 @@ interface EconomicContextDraft {
           </button>
           @if (snapshot()) {
             <p role="status">
-              Snapshot {{ snapshot()?.version }} saved. Inputs are preserved for later calculation.
+              Snapshot {{ snapshot()?.version }} saved. Calculations always use this immutable
+              snapshot.
             </p>
+            <button type="button" (click)="calculateSnapshot()" [disabled]="busy()">
+              Calculate from snapshot
+            </button>
+          }
+        </section>
+      }
+      @if (calculation()) {
+        <section class="panel result-panel" aria-labelledby="result-title">
+          <h2 id="result-title">{{ calculation()?.explanation?.included_total_label }}</h2>
+          <p class="status" role="status">
+            Status: <strong>{{ calculation()?.status }}</strong> � Version
+            {{ calculation()?.calculation_version }} � Snapshot {{ snapshot()?.version }}
+          </p>
+          <dl class="input-list">
+            <div>
+              <dt>Currency</dt>
+              <dd>{{ calculation()?.currency || 'UNKNOWN' }}</dd>
+            </div>
+            <div>
+              <dt>Known-cost subtotal</dt>
+              <dd>{{ calculation()?.total_included_cost }} {{ calculation()?.currency || '' }}</dd>
+            </div>
+            <div>
+              <dt>Target quantity</dt>
+              <dd>{{ calculation()?.target_quantity ?? 'UNKNOWN' }}</dd>
+            </div>
+            <div>
+              <dt>Per-unit cost</dt>
+              <dd>{{ calculation()?.per_unit_cost ?? 'UNKNOWN' }}</dd>
+            </div>
+          </dl>
+          @if ((calculation()?.breakdown?.length ?? 0) > 0) {
+            <h3>Cost breakdown and lineage</h3>
+            <div class="breakdown-scroll">
+              <table>
+                <caption>
+                  Included and excluded calculation inputs
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Category</th>
+                    <th scope="col">Status</th>
+                    <th scope="col">Amount</th>
+                    <th scope="col">Basis</th>
+                    <th scope="col">Provenance</th>
+                    <th scope="col">Reason / evidence</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (line of calculation()?.breakdown; track line.id) {
+                    <tr>
+                      <th scope="row">{{ line.category }}</th>
+                      <td>{{ line.inclusion_status }}</td>
+                      <td>
+                        {{ line.included_amount ?? line.original_amount ?? 'UNKNOWN' }}
+                        {{ line.currency || '' }}
+                      </td>
+                      <td>{{ line.basis || 'UNKNOWN' }}</td>
+                      <td>{{ line.provenance }} � {{ line.freshness }}</td>
+                      <td>
+                        {{
+                          line.exclusion_reason ||
+                            (line.evidence_ref ? 'Evidence linked' : 'No evidence reference')
+                        }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+          @if ((calculation()?.assumptions?.length ?? 0) > 0) {
+            <p>Includes {{ calculation()?.assumptions?.length }} assumed inputs.</p>
+          }
+          @if ((calculation()?.stale_inputs?.length ?? 0) > 0) {
+            <p>Includes stale inputs. Review freshness before relying on this result.</p>
+          }
+          @if ((calculation()?.missing_inputs?.length ?? 0) > 0) {
+            <h3>Missing / excluded inputs</h3>
+            <ul>
+              @for (item of calculation()?.missing_inputs; track item) {
+                <li>{{ item }}</li>
+              }
+            </ul>
+          }
+          @if ((calculation()?.warnings?.length ?? 0) > 0) {
+            <h3>Warnings</h3>
+            <ul>
+              @for (warning of calculation()?.warnings; track warning) {
+                <li>{{ warning }}</li>
+              }
+            </ul>
           }
         </section>
       }
@@ -198,6 +329,26 @@ interface EconomicContextDraft {
         margin: 0.35rem 0 0;
         font-weight: 700;
       }
+      .breakdown-scroll {
+        overflow-x: auto;
+      }
+      table {
+        width: 100%;
+        min-width: 680px;
+        border-collapse: collapse;
+      }
+      th,
+      td {
+        padding: 0.65rem;
+        border-bottom: 1px solid #d6e0e5;
+        text-align: left;
+        vertical-align: top;
+      }
+      caption {
+        text-align: left;
+        font-weight: 700;
+        padding: 0.65rem 0;
+      }
       @media (max-width: 600px) {
         .economics-page {
           padding: 1rem;
@@ -219,10 +370,11 @@ export class SourcingEconomicsWorkspaceComponent {
   readonly error = signal('');
   readonly context = signal<EconomicContextView | null>(null);
   readonly snapshot = signal<EconomicSnapshotView | null>(null);
+  readonly calculation = signal<EconomicCalculationView | null>(null);
   draft: EconomicContextDraft = {
     idempotency_key: `economic-context-${Date.now()}`,
     base_currency: '',
-    target_quantity: null as number | null,
+    target_quantity: null,
     quantity_unit: '',
     origin_country: '',
     destination_country: '',
@@ -231,6 +383,8 @@ export class SourcingEconomicsWorkspaceComponent {
   async createContext(): Promise<void> {
     this.busy.set(true);
     this.error.set('');
+    this.snapshot.set(null);
+    this.calculation.set(null);
     try {
       const response = await firstValueFrom(
         this.http.post<ContextCreateResponse>(
@@ -253,6 +407,7 @@ export class SourcingEconomicsWorkspaceComponent {
     if (!row) return;
     this.busy.set(true);
     this.error.set('');
+    this.calculation.set(null);
     try {
       const response = await firstValueFrom(
         this.http.post<SnapshotCreateResponse>(
@@ -263,6 +418,26 @@ export class SourcingEconomicsWorkspaceComponent {
       this.snapshot.set(response.snapshot);
     } catch {
       this.error.set('The immutable input snapshot could not be created.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async calculateSnapshot(): Promise<void> {
+    const row = this.snapshot();
+    if (!row) return;
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      const response = await firstValueFrom(
+        this.http.post<CalculationResponse>(
+          `${environment.apiUrl}/intelligence/sourcing-economics/snapshots/${row.id}/calculate`,
+          {},
+        ),
+      );
+      this.calculation.set({ ...response.calculation, breakdown: response.breakdown });
+    } catch {
+      this.error.set('The deterministic calculation could not be created from this snapshot.');
     } finally {
       this.busy.set(false);
     }

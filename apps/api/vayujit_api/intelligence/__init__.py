@@ -1,5 +1,9 @@
 """Product Research and Supplier Intelligence bounded context."""
 
+from vayujit_api.intelligence.economic_calculation_models import (
+    EconomicCalculation,
+    EconomicCalculationBreakdown,
+)
 from vayujit_api.intelligence.models import (
     IntelligenceClaim,
     IntelligenceEvidence,
@@ -306,3 +310,4 @@ __all__ += [
     "CompetitorDiscoverySnapshot",
     "TrendWinningProductProjection",
 ]
+__all__ += ["EconomicCalculation", "EconomicCalculationBreakdown"]

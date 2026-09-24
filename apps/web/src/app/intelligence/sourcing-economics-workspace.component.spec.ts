@@ -14,7 +14,7 @@ describe('SourcingEconomicsWorkspaceComponent', () => {
     fixture.detectChanges();
     const text = fixture.nativeElement.textContent as string;
     expect(text).toContain('Sourcing economic inputs');
-    expect(text).toContain('Final landed-cost calculations come later');
+    expect(text).toContain('calculate a reproducible known-cost subtotal');
     expect(text).toContain('UNKNOWN is unavailable; it is never displayed as zero');
     expect(fixture.nativeElement.querySelector('[aria-label="Breadcrumb"]')).not.toBeNull();
     expect(fixture.nativeElement.innerHTML).not.toContain('<script');
