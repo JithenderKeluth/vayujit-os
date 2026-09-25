@@ -202,6 +202,11 @@ from vayujit_api.intelligence.economic_models import (
     EconomicQuoteInput,
     EconomicSnapshotComponent,
 )
+from vayujit_api.intelligence.economic_scenario_models import (
+    EconomicScenario,
+    EconomicScenarioResult,
+    EconomicSensitivityRun,
+)
 from vayujit_api.intelligence.marketplace_runtime import (
     MarketplaceExecution,
     MarketplaceLedger,
@@ -340,3 +345,5 @@ __all__ += [
     "RegulatoryCostEvidence",
     "CustomsTaxSnapshot",
 ]
+
+__all__ += ["EconomicScenario", "EconomicScenarioResult", "EconomicSensitivityRun"]

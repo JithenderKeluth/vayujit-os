@@ -75,6 +75,42 @@ interface EconomicContextDraft {
   origin_country: string;
   destination_country: string;
 }
+interface EconomicScenarioView {
+  id: string;
+  name: string;
+  description: string;
+  status: string;
+  baseline_calculation_id: string;
+  overrides: Record<string, string | number | null>;
+}
+
+interface EconomicScenarioResultView {
+  id: string;
+  comparability: string;
+  baseline: { total: string | null; per_unit: string | null };
+  scenario: { total: string | null; per_unit: string | null };
+  delta: { absolute: string | null; percentage: string | null; per_unit: string | null };
+  changed_inputs: Array<{
+    field: string;
+    before: string | null;
+    after: string | null;
+    provenance: string;
+  }>;
+  warnings: string[];
+}
+
+interface EconomicSensitivityView {
+  id: string;
+  dimension: string;
+  points: Array<{
+    value: string;
+    status: string;
+    scenario_total: string | null;
+    per_unit_cost: string | null;
+    comparability: string;
+    provenance: string;
+  }>;
+}
 
 @Component({
   selector: 'app-sourcing-economics-workspace',
@@ -206,8 +242,8 @@ interface EconomicContextDraft {
         <section class="panel result-panel" aria-labelledby="result-title">
           <h2 id="result-title">{{ calculation()?.explanation?.included_total_label }}</h2>
           <p class="status" role="status">
-            Status: <strong>{{ calculation()?.status }}</strong> ï¿½ Version
-            {{ calculation()?.calculation_version }} ï¿½ Snapshot {{ snapshot()?.version }}
+            Status: <strong>{{ calculation()?.status }}</strong> Ã¯Â¿Â½ Version
+            {{ calculation()?.calculation_version }} Ã¯Â¿Â½ Snapshot {{ snapshot()?.version }}
           </p>
           <dl class="input-list">
             <div>
@@ -254,7 +290,7 @@ interface EconomicContextDraft {
                         {{ line.currency || '' }}
                       </td>
                       <td>{{ line.basis || 'UNKNOWN' }}</td>
-                      <td>{{ line.provenance }} ï¿½ {{ line.freshness }}</td>
+                      <td>{{ line.provenance }} Ã¯Â¿Â½ {{ line.freshness }}</td>
                       <td>
                         {{
                           line.exclusion_reason ||
@@ -286,6 +322,69 @@ interface EconomicContextDraft {
             <ul>
               @for (warning of calculation()?.warnings; track warning) {
                 <li>{{ warning }}</li>
+              }
+            </ul>
+          }
+        </section>
+      }
+      @if (calculation()) {
+        <section class="panel" aria-labelledby="scenario-title">
+          <h2 id="scenario-title">Bounded what-if scenario</h2>
+          <p>
+            Compare one explicit landed-cost assumption against the immutable baseline. This is
+            hypothetical decision support, not a forecast or recommendation.
+          </p>
+          <form (submit)="$event.preventDefault(); createEconomicScenario()" class="form-grid">
+            <label
+              >Scenario name
+              <input name="scenarioName" required [(ngModel)]="scenarioName" /></label
+            ><label
+              >Product unit cost (optional)
+              <input
+                name="scenarioProductCost"
+                type="number"
+                min="0"
+                step="0.00000001"
+                [(ngModel)]="scenarioProductCost" /></label
+            ><label
+              >Reason <input name="scenarioReason" required [(ngModel)]="scenarioReason" /></label
+            ><button type="submit" [disabled]="busy()">Create hypothetical scenario</button>
+          </form>
+          @if (scenario()) {
+            <p role="status">Scenario {{ scenario()?.name }} is {{ scenario()?.status }}.</p>
+            <button type="button" (click)="runEconomicScenario()" [disabled]="busy()">
+              Run comparison</button
+            ><label
+              >One-variable product-cost points<input
+                name="sensitivityPoints"
+                [(ngModel)]="sensitivityPoints"
+                placeholder="8, 10, 12" /></label
+            ><button type="button" (click)="runEconomicSensitivity()" [disabled]="busy()">
+              Run bounded sensitivity
+            </button>
+          }
+          @if (scenarioResult(); as result) {
+            <h3>Comparison result</h3>
+            <p>
+              Comparability: <strong>{{ result.comparability }}</strong>
+            </p>
+            <p>
+              Baseline {{ result.baseline.total || 'UNKNOWN' }}; scenario
+              {{ result.scenario.total || 'UNKNOWN' }}; delta
+              {{ result.delta.absolute || 'UNKNOWN' }}
+            </p>
+          }
+          @if (sensitivity(); as run) {
+            <h3>Bounded sensitivity points</h3>
+            <p>Dimension: {{ run.dimension }}. No trend or forecast is inferred.</p>
+            <ul>
+              @for (point of run.points; track point.value) {
+                <li>
+                  {{ point.value }} -> {{ point.scenario_total || 'UNKNOWN' }}; per unit
+                  {{ point.per_unit_cost || 'UNKNOWN' }}; {{ point.status }} ({{
+                    point.comparability
+                  }})
+                </li>
               }
             </ul>
           }
@@ -408,6 +507,13 @@ export class SourcingEconomicsWorkspaceComponent {
   readonly context = signal<EconomicContextView | null>(null);
   readonly snapshot = signal<EconomicSnapshotView | null>(null);
   readonly calculation = signal<EconomicCalculationView | null>(null);
+  readonly scenario = signal<EconomicScenarioView | null>(null);
+  readonly scenarioResult = signal<EconomicScenarioResultView | null>(null);
+  readonly sensitivity = signal<EconomicSensitivityView | null>(null);
+  scenarioName = 'Explicit landed-cost what-if';
+  scenarioProductCost = '';
+  scenarioReason = 'Test one explicit unit-cost assumption.';
+  sensitivityPoints = '8, 10, 12';
   fxSnapshotId = '';
   freightSnapshotId = '';
   customsTaxSnapshotId = '';
@@ -500,6 +606,92 @@ export class SourcingEconomicsWorkspaceComponent {
       this.calculation.set({ ...response.calculation, breakdown: response.breakdown });
     } catch {
       this.error.set('The deterministic calculation could not be created from this snapshot.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  async createEconomicScenario(): Promise<void> {
+    const context = this.context();
+    const calculation = this.calculation();
+    if (!context || !calculation) return;
+    this.busy.set(true);
+    this.error.set('');
+    this.scenarioResult.set(null);
+    this.sensitivity.set(null);
+    const overrides: Record<string, string | number> = { reason: this.scenarioReason };
+    if (this.scenarioProductCost.trim()) {
+      overrides['product_unit_cost'] = this.scenarioProductCost.trim();
+    }
+    try {
+      const response = await firstValueFrom(
+        this.http.post<EconomicScenarioView>(
+          environment.apiUrl + '/intelligence/sourcing-economics/scenarios/contexts/' + context.id,
+          {
+            idempotency_key: 'economic-scenario-' + Date.now(),
+            name: this.scenarioName,
+            description: 'Hypothetical comparison only; not a forecast or recommendation.',
+            baseline_calculation_id: calculation.id,
+            overrides,
+          },
+        ),
+      );
+      this.scenario.set(response);
+    } catch {
+      this.error.set('The hypothetical scenario could not be created.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async runEconomicScenario(): Promise<void> {
+    const scenario = this.scenario();
+    if (!scenario) return;
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      const response = await firstValueFrom(
+        this.http.post<EconomicScenarioResultView>(
+          environment.apiUrl + '/intelligence/sourcing-economics/scenarios/' + scenario.id + '/run',
+          { idempotency_key: 'economic-scenario-run-' + Date.now() },
+        ),
+      );
+      this.scenarioResult.set(response);
+    } catch {
+      this.error.set('The scenario comparison could not be completed.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async runEconomicSensitivity(): Promise<void> {
+    const scenario = this.scenario();
+    if (!scenario) return;
+    const values = this.sensitivityPoints
+      .split(',')
+      .map((value) => value.trim())
+      .filter((value) => value.length > 0);
+    if (values.length === 0) {
+      this.error.set('Enter at least one product-cost sensitivity point.');
+      return;
+    }
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      const response = await firstValueFrom(
+        this.http.post<EconomicSensitivityView>(
+          environment.apiUrl +
+            '/intelligence/sourcing-economics/scenarios/' +
+            scenario.id +
+            '/sensitivity',
+          {
+            idempotency_key: 'economic-sensitivity-' + Date.now(),
+            points: values.map((value) => ({ dimension: 'product_unit_cost', value })),
+          },
+        ),
+      );
+      this.sensitivity.set(response);
+    } catch {
+      this.error.set('The bounded sensitivity run could not be completed.');
     } finally {
       this.busy.set(false);
     }
