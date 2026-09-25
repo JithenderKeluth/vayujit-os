@@ -841,6 +841,16 @@ export class IntelligenceService {
     );
   }
 
+  supplierResearch(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.base}/suppliers/research`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+
   runSupplierSearch(id: string): Promise<Record<string, unknown>> {
     return firstValueFrom(
       this.http.post<Record<string, unknown>>(

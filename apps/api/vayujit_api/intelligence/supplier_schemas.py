@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import ipaddress
 import uuid
@@ -33,6 +33,45 @@ class SupplierSearchCreate(BaseModel):
         if len(value) > 40:
             raise ValueError("Supplier requirements are too large.")
         return value
+
+
+class SupplierResearchCreate(BaseModel):
+    """Bounded provider-neutral supplier discovery request."""
+
+    product_query: str = Field(min_length=2, max_length=240)
+    product_opportunity_id: uuid.UUID | None = None
+    category: str = Field(default="", max_length=120)
+    country: str = Field(default="", max_length=100)
+    region: str = Field(default="", max_length=120)
+    supplier_type: str = Field(default="unknown", max_length=32)
+    manufacturer_preferred: bool = True
+    keywords: list[str] = Field(default_factory=list, max_length=10)
+    excluded_terms: list[str] = Field(default_factory=list, max_length=10)
+    max_candidates: int = Field(default=10, ge=1, le=20)
+    research_depth: Literal["summary", "standard"] = "standard"
+    idempotency_key: str | None = Field(default=None, max_length=180)
+
+    @field_validator("product_query", "category", "country", "region")
+    @classmethod
+    def clean_text(cls, value: str) -> str:
+        if any(ord(char) < 32 and char not in "\t" for char in value):
+            raise ValueError("control characters are not allowed")
+        return value.strip()
+
+    @field_validator("supplier_type")
+    @classmethod
+    def valid_supplier_type(cls, value: str) -> str:
+        if value not in SUPPLIER_TYPES:
+            raise ValueError("Unsupported supplier type.")
+        return value
+
+    @field_validator("keywords", "excluded_terms")
+    @classmethod
+    def bounded_terms(cls, value: list[str]) -> list[str]:
+        normalized = [item.strip() for item in value if item.strip()]
+        if any(len(item) > 80 for item in normalized):
+            raise ValueError("Research terms are too long.")
+        return list(dict.fromkeys(normalized))
 
 
 class SupplierSearchResponse(SupplierModel):
