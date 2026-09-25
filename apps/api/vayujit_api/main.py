@@ -116,6 +116,7 @@ from vayujit_api.operations.router import (
 )
 from vayujit_api.operations.staging_router import router as staging_router
 from vayujit_api.products.router import router as products_router
+from vayujit_api.providers.router import router as providers_router
 from vayujit_api.publishing.router import router as publishing_router
 from vayujit_api.publishing.scheduler_router import operations_router as scheduler_operations_router
 from vayujit_api.publishing.scheduler_router import router as scheduler_router
@@ -177,6 +178,7 @@ def create_app() -> FastAPI:
     application.include_router(meesho_router)
     application.include_router(marketplace_video_router)
     application.include_router(products_router)
+    application.include_router(providers_router)
     application.include_router(ai_router)
     application.include_router(ai_studio_router)
     application.include_router(ai_bulk_router)
