@@ -32,6 +32,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
   'winning_product.score': 'Evaluate product opportunity',
   'winning_product.rank': 'Rank product opportunities',
   'decision_brief.generate': 'Prepare decision brief',
+  'sourcing_economics.inspect': 'Review sourcing economics',
   TREND_CONTEXT_RESOLUTION: 'Resolve trend context',
   TREND_INGESTION: 'Collect trend evidence',
   TREND_ANALYSIS: 'Analyze trend evidence',
@@ -446,6 +447,26 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       <div class="intelligence-summary">
                         <h5>Customer-feedback evidence</h5>
                         <p>{{ displayValue(objectValue(review, 'label')) }}</p>
+                      </div>
+                    }
+                    @if (brief.payload['sourcing_economics']; as economics) {
+                      <div class="intelligence-summary">
+                        <h5>Sourcing Economics</h5>
+                        <p>Factual landed-cost evidence; human review required.</p>
+                        <dl>
+                          @if (objectValue(economics, 'readiness'); as value) {
+                            <div>
+                              <dt>Readiness</dt>
+                              <dd>{{ displayValue(value) }}</dd>
+                            </div>
+                          }
+                          @if (objectValue(economics, 'status'); as value) {
+                            <div>
+                              <dt>Status</dt>
+                              <dd>{{ displayValue(value) }}</dd>
+                            </div>
+                          }
+                        </dl>
                       </div>
                     }
                     <p class="quiet">

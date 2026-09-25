@@ -156,7 +156,7 @@ class CustomsRateEvidence(Base):
         CheckConstraint("rate_scale = 'FRACTION_OF_ONE'", name="ck_customs_rate_scale"),
         CheckConstraint(
             "basis IN ('PRODUCT_VALUE','PRODUCT_PLUS_FREIGHT','EXPLICIT_CUSTOMS_VALUE',"
-            "EXPLICIT_TAXABLE_VALUE','UNKNOWN')",
+            "'EXPLICIT_TAXABLE_VALUE','UNKNOWN')",
             name="ck_customs_rate_basis",
         ),
         CheckConstraint(

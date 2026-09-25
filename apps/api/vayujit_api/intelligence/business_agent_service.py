@@ -29,6 +29,10 @@ from vayujit_api.intelligence.business_agent_models import (
     agent_now,
 )
 from vayujit_api.intelligence.business_agent_registry import capability_map
+from vayujit_api.intelligence.economic_integration_service import (
+    ECONOMICS_CAPABILITIES,
+    project_economics_for_opportunity,
+)
 from vayujit_api.intelligence.competitor_agent_service import (
     competitor_decision_brief,
     execute_competitor_capability,
@@ -189,6 +193,23 @@ def _competitor_enabled(goal: BusinessAgentGoal) -> bool:
     )
 
 
+def _economics_enabled(goal: BusinessAgentGoal) -> bool:
+    structured = goal.structured_goal or {}
+    return bool(
+        structured.get("include_sourcing_economics")
+        or structured.get("sourcing_economics")
+        or "sourcing economics" in goal.raw_goal.casefold()
+    )
+
+
+def _economics_context_id(goal: BusinessAgentGoal) -> uuid.UUID | None:
+    value = (goal.structured_goal or {}).get("economic_context_id")
+    try:
+        return uuid.UUID(str(value)) if value else None
+    except (TypeError, ValueError):
+        return None
+
+
 def _steps(goal: BusinessAgentGoal) -> list[dict[str, object]]:
     enabled = _competitor_enabled(goal)
     reviews = review_enabled(goal)
@@ -300,11 +321,21 @@ def _steps(goal: BusinessAgentGoal) -> list[dict[str, object]]:
                 },
             ]
         )
+    if _economics_enabled(goal):
+        steps.append(
+            {
+                "key": "sourcing_economics",
+                "capability": "sourcing_economics.inspect",
+                "deps": ["opportunity"],
+            }
+        )
     brief_deps = ["rank"]
     if reviews:
         brief_deps.append("review_winning_product_projection")
     if trend:
         brief_deps.append("trend_projection")
+    if _economics_enabled(goal):
+        brief_deps.append("sourcing_economics")
     steps.append(
         {
             "key": "brief",
@@ -697,12 +728,26 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
     goal_record = db.get(BusinessAgentGoal, run.goal_id)
     if goal_record is None:
         raise HTTPException(404, "Business goal not found.")
-    opportunity = db.scalar(
-        select(ProductOpportunity).where(
-            ProductOpportunity.owner_id == owner.id,
-            ProductOpportunity.idempotency_key == f"business-agent:{run.id}",
+    structured_goal = goal_record.structured_goal or {}
+    explicit_opportunity_id = structured_goal.get("product_opportunity_id")
+    opportunity = None
+    if explicit_opportunity_id:
+        try:
+            opportunity = db.scalar(
+                select(ProductOpportunity).where(
+                    ProductOpportunity.id == uuid.UUID(str(explicit_opportunity_id)),
+                    ProductOpportunity.owner_id == owner.id,
+                )
+            )
+        except (TypeError, ValueError):
+            opportunity = None
+    if opportunity is None:
+        opportunity = db.scalar(
+            select(ProductOpportunity).where(
+                ProductOpportunity.owner_id == owner.id,
+                ProductOpportunity.idempotency_key == f"business-agent:{run.id}",
+            )
         )
-    )
     if opportunity is None:
         opportunity = ProductOpportunity(
             owner_id=owner.id,
@@ -798,6 +843,41 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                         "external_mutation": False,
                     },
                 )
+            elif step.capability_id in ECONOMICS_CAPABILITIES:
+                context_id = _economics_context_id(goal_record)
+                if context_id is None:
+                    output = {
+                        "status": "RESEARCH_GAP",
+                        "readiness": "NOT_EVALUATED",
+                        "code": "ECONOMIC_CONTEXT_REQUIRED",
+                        "research_gaps": [
+                            {
+                                "code": "ECONOMICS_RESEARCH_GAP",
+                                "message": "An explicit economic_context_id is required for Business Agent sourcing economics.",
+                            }
+                        ],
+                        "external_writes": [],
+                    }
+                else:
+                    output = project_economics_for_opportunity(
+                        db, owner, opportunity.id, economic_context_id=context_id
+                    )
+                output["capability"] = step.capability_id
+                output["opportunity_id"] = str(opportunity.id)
+                output["external_writes"] = []
+                _audit(
+                    db,
+                    owner,
+                    "sourcing_economics.capability_invoked",
+                    run.id,
+                    f"{run.id}:{step.id}:{step.attempt_count}",
+                    {
+                        "capability": step.capability_id,
+                        "opportunity_id": str(opportunity.id),
+                        "economic_context_id": str(context_id) if context_id else None,
+                        "external_mutation": False,
+                    },
+                )
             elif _competitor_enabled(goal_record) and (
                 step.capability_id
                 in {
@@ -835,21 +915,29 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 }
         except Exception:
             failure_code = (
-                "TREND_EXECUTION_FAILED"
-                if step.capability_id in TREND_CAPABILITIES
+                "ECONOMICS_EXECUTION_FAILED"
+                if step.capability_id in ECONOMICS_CAPABILITIES
                 else (
-                    "REVIEW_EXECUTION_FAILED"
-                    if step.capability_id in REVIEW_CAPABILITIES
-                    else "COMPETITOR_EXECUTION_FAILED"
+                    "TREND_EXECUTION_FAILED"
+                    if step.capability_id in TREND_CAPABILITIES
+                    else (
+                        "REVIEW_EXECUTION_FAILED"
+                        if step.capability_id in REVIEW_CAPABILITIES
+                        else "COMPETITOR_EXECUTION_FAILED"
+                    )
                 )
             )
             safe_message = (
-                "Trend Intelligence execution could not be completed safely."
-                if step.capability_id in TREND_CAPABILITIES
+                "Sourcing Economics execution could not be completed safely."
+                if step.capability_id in ECONOMICS_CAPABILITIES
                 else (
-                    "Review Intelligence execution could not be completed safely."
-                    if step.capability_id in REVIEW_CAPABILITIES
-                    else "Competitor intelligence execution could not be completed safely."
+                    "Trend Intelligence execution could not be completed safely."
+                    if step.capability_id in TREND_CAPABILITIES
+                    else (
+                        "Review Intelligence execution could not be completed safely."
+                        if step.capability_id in REVIEW_CAPABILITIES
+                        else "Competitor intelligence execution could not be completed safely."
+                    )
                 )
             )
             step.status = "FAILED"
@@ -943,8 +1031,13 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
         if review_enabled_run:
             integrated_slices.extend(["11A", "11B", "11C", "11D", "11E", "11F"])
         trend_enabled_run = _trend_enabled(goal_record)
+        economics_enabled_run = _economics_enabled(goal_record)
         if trend_enabled_run:
             integrated_slices.extend(["12A", "12B", "12C", "12D", "12E", "12F"])
+        if economics_enabled_run:
+            integrated_slices.append("13G")
+        economics_steps = [step for step in steps if step.capability_id in ECONOMICS_CAPABILITIES]
+        economics_outputs = [step.result for step in economics_steps]
         review_steps = [step for step in steps if step.capability_id in REVIEW_CAPABILITIES]
         trend_steps = [step for step in steps if step.capability_id in TREND_CAPABILITIES]
         trend_outputs = [step.result for step in trend_steps]
@@ -987,6 +1080,9 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             "trend_artifacts": trend_artifacts,
             "trend_findings": trend_findings,
             "trend_evidence_gaps": trend_gaps,
+            "economics_enabled": economics_enabled_run,
+            "economics_capabilities": [step.capability_id for step in economics_steps],
+            "economics_projection": economics_outputs[-1] if economics_outputs else None,
             "external_writes": [],
         }
         brief_payload: dict[str, object] = {
@@ -1010,7 +1106,7 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 "external_writes": [],
             }
         if trend_enabled_run:
-            latest_trend = next(
+            latest_trend: dict[str, object] = next(
                 (
                     output
                     for output in reversed(trend_outputs)
@@ -1064,6 +1160,17 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 "requires_validation": True,
                 "external_writes": [],
                 "semantic_boundary": "Trend evidence is not a forecast, sales, revenue, or product-success claim.",
+            }
+        if economics_enabled_run:
+            latest_economics = economics_outputs[-1] if economics_outputs else {}
+            brief_payload["sourcing_economics"] = {
+                "label": "SOURCING ECONOMICS / FACTUAL COST EVIDENCE",
+                "readiness": latest_economics.get("readiness", "NOT_EVALUATED"),
+                "status": latest_economics.get("status", "RESEARCH_GAP"),
+                "projection": latest_economics,
+                "requires_human_review": True,
+                "external_writes": [],
+                "semantic_boundary": "Cost evidence does not rank suppliers or products and is not a profitability or forecast claim.",
             }
         db.add(
             BusinessAgentArtifact(

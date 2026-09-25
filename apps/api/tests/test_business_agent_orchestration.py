@@ -498,3 +498,48 @@ def test_hard_certification_integrity_and_query_budget(
         assert all(item.step_id in step_ids and item.run_id in run_ids for item in attempts)
         assert all(item.step_id in step_ids and item.run_id in run_ids for item in invocations)
         assert all(item.run_id in run_ids for item in checkpoints)
+
+
+def test_explicit_sourcing_economics_opt_in_is_factual_and_reviewable(
+    client: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    api, _ = client
+    _owner(api)
+    goal_response = api.post(
+        "/api/v1/intelligence/business-agent/goals",
+        json={
+            "raw_goal": "Evaluate a candidate product with sourcing economics.",
+            "structured_goal": {"include_sourcing_economics": True},
+            "idempotency_key": "business-agent-economics-opt-in",
+        },
+        headers=ORIGIN,
+    )
+    assert goal_response.status_code == 201, goal_response.text
+    goal = goal_response.json()
+    plan = api.post(f"/api/v1/intelligence/business-agent/goals/{goal['id']}/plan", headers=ORIGIN)
+    assert plan.status_code == 200, plan.text
+    assert len(plan.json()["steps"]) == 10
+    assert any(
+        step["capability_id"] == "sourcing_economics.inspect" for step in plan.json()["steps"]
+    )
+    run = api.post(
+        f"/api/v1/intelligence/business-agent/goals/{goal['id']}/runs",
+        json={"idempotency_key": "business-agent-economics-run", "max_steps": 20},
+        headers=ORIGIN,
+    )
+    assert run.status_code == 201, run.text
+    started = api.post(
+        f"/api/v1/intelligence/business-agent/runs/{run.json()['id']}/start", headers=ORIGIN
+    )
+    assert started.status_code == 200, started.text
+    body = started.json()
+    assert body["status"] == "WAITING_APPROVAL"
+    assert body["result"]["economics_enabled"] is True
+    assert body["result"]["economics_projection"]["status"] == "RESEARCH_GAP"
+    assert body["result"]["external_writes"] == []
+    briefs = [
+        item for item in body["artifacts"] if item["artifact_type"] == "BUSINESS_DECISION_BRIEF"
+    ]
+    assert len(briefs) == 1
+    assert briefs[0]["payload"]["sourcing_economics"]["requires_human_review"] is True
+    assert "ranking" not in briefs[0]["payload"]["sourcing_economics"]
