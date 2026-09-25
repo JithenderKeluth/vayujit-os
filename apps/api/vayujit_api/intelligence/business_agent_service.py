@@ -49,6 +49,9 @@ from vayujit_api.intelligence.trend_business_agent_service import (
     execute_trend_capability,
 )
 from vayujit_api.intelligence.business_agent_schemas import BusinessGoalCreate, RunCreate
+from vayujit_api.intelligence.supplier_research import execute_provider_neutral_search
+from vayujit_api.intelligence.supplier_schemas import SupplierSearchCreate
+from vayujit_api.intelligence.supplier_service import create_search
 
 
 def _audit(
@@ -905,6 +908,55 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                     run.id,
                     f"{run.id}:{step.id}:{step.attempt_count}",
                     {"capability": step.capability_id, "opportunity_id": str(opportunity.id)},
+                )
+            elif step.capability_id == "supplier.discovery":
+                query = str(
+                    structured_goal.get("product_query")
+                    or structured_goal.get("product_concept")
+                    or goal_record.raw_goal
+                )[:240]
+                supplier_search = create_search(
+                    db,
+                    owner,
+                    SupplierSearchCreate(
+                        requirements={
+                            "product_query": query,
+                            "product_opportunity_id": str(opportunity.id),
+                            "category": str(opportunity.category or ""),
+                            "country": str(structured_goal.get("country") or ""),
+                            "manufacturer_preferred": True,
+                            "max_candidates": min(
+                                _bounded_int(run.budget.get("max_candidates"), 10), 20
+                            ),
+                        },
+                        source_policy={
+                            "mode": "PROVIDER_NEUTRAL",
+                            "external_connectors": "disabled",
+                        },
+                        ruleset_version="supplier-research-14f-v1",
+                        idempotency_key=f"business-agent:{run.id}:supplier-discovery",
+                    ),
+                )
+                execute_provider_neutral_search(db, owner, supplier_search)
+                output = {
+                    "capability": step.capability_id,
+                    "mode": "LOCAL_DETERMINISTIC",
+                    "opportunity_id": str(opportunity.id),
+                    "research_request_id": str(supplier_search.id),
+                    "result": supplier_search.summary_json,
+                    "external_writes": [],
+                    "external_mutation": False,
+                }
+                _audit(
+                    db,
+                    owner,
+                    "supplier.discovery_invoked",
+                    run.id,
+                    f"{run.id}:{step.id}:{step.attempt_count}",
+                    {
+                        "capability": step.capability_id,
+                        "research_request_id": str(supplier_search.id),
+                    },
                 )
             else:
                 output = {

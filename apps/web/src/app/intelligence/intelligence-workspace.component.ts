@@ -251,6 +251,17 @@ import {
               submitting() === 'supplier-search' ? 'Creating search...' : 'Create supplier search'
             }}
           </button>
+          <button
+            type="button"
+            [disabled]="submitting() === 'supplier-research'"
+            (click)="researchSupplierWebsites()"
+          >
+            {{
+              submitting() === 'supplier-research'
+                ? 'Researching approved websites...'
+                : 'Research approved supplier websites'
+            }}
+          </button>
         </form>
         <form
           class="form-grid"
@@ -1591,6 +1602,32 @@ export class IntelligenceWorkspaceComponent {
       await this.loadSuppliers();
     } catch (error: unknown) {
       this.supplierError.set(this.apiError(error, 'The supplier search could not be completed.'));
+    } finally {
+      this.submitting.set('');
+    }
+  }
+
+  async researchSupplierWebsites(): Promise<void> {
+    if (this.submitting() || this.supplierSearchForm.category.trim().length < 2) {
+      this.supplierError.set('Supplier category is required.');
+      return;
+    }
+    this.submitting.set('supplier-research');
+    try {
+      await this.service.supplierResearch({
+        product_query: this.supplierSearchForm.category.trim(),
+        category: this.supplierSearchForm.category.trim(),
+        country: this.supplierSearchForm.market || undefined,
+        manufacturer_preferred: this.supplierSearchForm.private_label,
+        max_candidates: 10,
+        research_depth: 'standard',
+        idempotency_key: `supplier-research-ui-${this.supplierSearchForm.category.trim().toLowerCase()}-${this.supplierSearchForm.market.trim().toLowerCase()}`,
+      });
+      await this.loadSuppliers();
+    } catch (error: unknown) {
+      this.supplierError.set(
+        this.apiError(error, 'Approved supplier website research could not be completed.'),
+      );
     } finally {
       this.submitting.set('');
     }

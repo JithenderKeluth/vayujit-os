@@ -1,4 +1,4 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import uuid
 from typing import Annotated
@@ -10,6 +10,7 @@ from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
 from vayujit_api.intelligence.supplier_models import SUPPLIER_ACCESS_MODES, SUPPLIER_SOURCE_TYPES
+from vayujit_api.intelligence.supplier_research import execute_provider_neutral_search
 from vayujit_api.intelligence.supplier_schemas import (
     SupplierCertificationClaimCreate,
     SupplierCommercialTermCreate,
@@ -23,6 +24,7 @@ from vayujit_api.intelligence.supplier_schemas import (
     SupplierOverviewResponse,
     SupplierRecoveryRequest,
     SupplierReportResponse,
+    SupplierResearchCreate,
     SupplierResponse,
     SupplierRuleResponse,
     SupplierScoreCreate,
@@ -134,6 +136,8 @@ def operations(db: DB, owner: Owner) -> dict[str, object]:
         ),
         "recovery": "operator_bounded",
         "external_connectors": "disabled",
+        "provider_neutral_discovery": "LOCAL_FIXTURE",
+        "live_discovery": "PENDING_EXTERNAL_PROVIDER",
     }
 
 
@@ -184,6 +188,43 @@ def add_search(data: SupplierSearchCreate, db: DB, owner: Owner) -> object:
     db.commit()
     db.refresh(search)
     return search
+
+
+@router.post("/research")
+def research_suppliers(data: SupplierResearchCreate, db: DB, owner: Owner) -> dict[str, object]:
+    """Run bounded provider-neutral discovery using the existing SupplierSearch ledger."""
+    search_data = SupplierSearchCreate(
+        opportunity_id=None,
+        requirements={
+            "product_query": data.product_query,
+            "product_opportunity_id": (
+                str(data.product_opportunity_id) if data.product_opportunity_id else None
+            ),
+            "category": data.category,
+            "country": data.country,
+            "region": data.region,
+            "supplier_type": data.supplier_type,
+            "manufacturer_preferred": data.manufacturer_preferred,
+            "keywords": data.keywords,
+            "excluded_terms": data.excluded_terms,
+            "max_candidates": data.max_candidates,
+            "research_depth": data.research_depth,
+        },
+        source_policy={"mode": "PROVIDER_NEUTRAL", "external_connectors": "disabled"},
+        ruleset_version="supplier-research-14f-v1",
+        idempotency_key=data.idempotency_key,
+    )
+    search = create_search(db, owner, search_data)
+    execute_provider_neutral_search(db, owner, search)
+    db.commit()
+    db.refresh(search)
+    return {
+        "request": _row(search),
+        "result": search.summary_json,
+        "status": search.status,
+        "live_discovery": "PENDING",
+        "external_calls": False,
+    }
 
 
 @router.get("/searches", response_model=list[SupplierSearchResponse])
