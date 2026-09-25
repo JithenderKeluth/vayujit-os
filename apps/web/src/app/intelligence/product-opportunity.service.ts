@@ -362,6 +362,24 @@ export interface ReviewWinningProductProjection {
   projection: Record<string, unknown>;
   created_at: string;
 }
+export interface SourcingEconomicsProjection {
+  opportunity_id: string;
+  status: string;
+  readiness: string;
+  economic_context_id: string | null;
+  product_id?: string | null;
+  supplier_id?: string | null;
+  sourcing_scenario_id?: string | null;
+  target_quantity?: string | null;
+  quantity_unit?: string | null;
+  base_currency?: string | null;
+  calculation?: Record<string, unknown>;
+  scenario_comparisons?: Array<Record<string, unknown>>;
+  sensitivity_runs?: Array<Record<string, unknown>>;
+  research_gaps: Array<Record<string, unknown>>;
+  semantic_boundary?: string;
+  external_writes: string[];
+}
 @Injectable({ providedIn: 'root' })
 export class ProductOpportunityService {
   private readonly http = inject(HttpClient);
@@ -372,6 +390,20 @@ export class ProductOpportunityService {
     return firstValueFrom(this.http.get<ProductOpportunity[]>(this.base, this.options));
   }
 
+  getSourcingEconomics(
+    opportunityId: string,
+    economicContextId?: string,
+  ): Promise<SourcingEconomicsProjection> {
+    const query = economicContextId
+      ? `?economic_context_id=${encodeURIComponent(economicContextId)}`
+      : '';
+    return firstValueFrom(
+      this.http.get<SourcingEconomicsProjection>(
+        `${this.base}/${opportunityId}/sourcing-economics${query}`,
+        this.options,
+      ),
+    );
+  }
   get(id: string): Promise<OpportunityDetail> {
     return firstValueFrom(this.http.get<OpportunityDetail>(`${this.base}/${id}`, this.options));
   }

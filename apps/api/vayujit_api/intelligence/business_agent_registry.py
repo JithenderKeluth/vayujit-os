@@ -241,6 +241,16 @@ CAPABILITY_REGISTRY: tuple[CapabilitySpec, ...] = (
         False,
     ),
     CapabilitySpec(
+        "sourcing_economics.inspect",
+        "1",
+        "EconomicContextRef",
+        "EconomicProjection",
+        "deterministic",
+        "NONE",
+        False,
+        False,
+    ),
+    CapabilitySpec(
         "decision_brief.generate",
         "1",
         "AgentRun",

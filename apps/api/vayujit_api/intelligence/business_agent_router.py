@@ -25,6 +25,7 @@ from vayujit_api.intelligence.business_agent_models import (
     agent_now,
 )
 from vayujit_api.intelligence.business_agent_registry import CAPABILITY_REGISTRY
+from vayujit_api.intelligence.economic_integration_service import ECONOMICS_CAPABILITIES
 from vayujit_api.intelligence.trend_business_agent_service import TREND_CAPABILITIES
 from vayujit_api.intelligence.review_business_agent_service import (
     REVIEW_CAPABILITIES,
@@ -311,10 +312,37 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
         "external_writes": 0,
     }
     trend_hard_counters["total"] = sum(trend_hard_counters.values())
+    economics_invocations = list(
+        db.scalars(
+            select(BusinessAgentToolInvocation).where(
+                BusinessAgentToolInvocation.owner_id == owner.id,
+                BusinessAgentToolInvocation.capability_id.in_(ECONOMICS_CAPABILITIES),
+            )
+        )
+    )
+    economics_hard_counters: dict[str, int] = {
+        "missing_capabilities": len(ECONOMICS_CAPABILITIES - registered),
+        "external_write_exposure": sum(
+            1
+            for spec in CAPABILITY_REGISTRY
+            if spec.id in ECONOMICS_CAPABILITIES and spec.side_effect_class == "EXTERNAL_WRITE"
+        ),
+        "orphan_tool_invocations": sum(
+            1
+            for item in economics_invocations
+            if item.run_id not in owner_runs or item.step_id not in owner_steps
+        ),
+        "external_writes": 0,
+        "ranking_or_winner_claims": 0,
+        "profitability_or_forecast_claims": 0,
+    }
+    economics_hard_counters["total"] = sum(economics_hard_counters.values())
     return {
         "status": (
             "PASS"
-            if review_hard_counters["total"] == 0 and trend_hard_counters["total"] == 0
+            if review_hard_counters["total"] == 0
+            and trend_hard_counters["total"] == 0
+            and economics_hard_counters["total"] == 0
             else "FAIL"
         ),
         "checks": {
@@ -343,7 +371,33 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
                 "recovery": "NO NEW RECOVERY ACTION REQUIRED",
             },
             "trend_hard_counters": trend_hard_counters,
+            "economics": {
+                "capabilities_registered": ECONOMICS_CAPABILITIES <= registered,
+                "agent_runs": len({item.run_id for item in economics_invocations}),
+                "external_writes": False,
+                "recovery": "NO NEW RECOVERY ACTION REQUIRED",
+            },
+            "economics_hard_counters": economics_hard_counters,
         },
+    }
+
+
+@router.get("/operations/economics")
+def economics_operations(db: DB, owner: Owner) -> dict[str, object]:
+    invocations = list(
+        db.scalars(
+            select(BusinessAgentToolInvocation).where(
+                BusinessAgentToolInvocation.owner_id == owner.id,
+                BusinessAgentToolInvocation.capability_id.in_(ECONOMICS_CAPABILITIES),
+            )
+        )
+    )
+    return {
+        "owner_scoped": True,
+        "economics_invocations": len(invocations),
+        "failed_invocations": sum(1 for item in invocations if item.status != "SUCCEEDED"),
+        "external_writes": [],
+        "latest_activity_at": max((item.created_at for item in invocations), default=None),
     }
 
 

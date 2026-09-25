@@ -27,6 +27,7 @@ import {
   ProductOpportunityComparison,
   SourcingFeasibilityOutput,
   RiskEvidenceSynthesisOutput,
+  SourcingEconomicsProjection,
   ReviewWinningProductProjection,
   TrendWinningProductProjection,
   SourcingCandidate,
@@ -776,6 +777,75 @@ import {
               </div>
               <span class="muted">Observed, derived and technical states remain authoritative</span>
             </div>
+            @if (economicProjection(); as economics) {
+              <article class="research-card economics-evidence">
+                <div class="research-heading">
+                  <h3>Sourcing economics</h3>
+                  <span class="muted">Factual cost evidence / human review</span>
+                </div>
+                <dl class="compact-facts">
+                  <div>
+                    <dt>Readiness</dt>
+                    <dd>{{ economics.readiness }}</dd>
+                  </div>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{{ economics.status }}</dd>
+                  </div>
+                  @if (economics.calculation; as calculation) {
+                    <div>
+                      <dt>Total included cost</dt>
+                      <dd>
+                        {{ displayValue(calculation['total_included_cost']) }}
+                        {{ displayValue(calculation['reporting_currency']) }}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Per unit cost</dt>
+                      <dd>
+                        {{ displayValue(calculation['per_unit_cost']) }}
+                        {{ displayValue(calculation['reporting_currency']) }}
+                      </dd>
+                    </div>
+                  }
+                  <div>
+                    <dt>Scenario comparisons</dt>
+                    <dd>{{ economics.scenario_comparisons?.length ?? 0 }}</dd>
+                  </div>
+                  <div>
+                    <dt>Research gaps</dt>
+                    <dd>{{ economics.research_gaps.length }}</dd>
+                  </div>
+                </dl>
+                @if (economics.research_gaps.length) {
+                  <ul class="muted">
+                    @for (gap of economics.research_gaps; track gap['code']) {
+                      <li>{{ displayValue(gap['message']) }}</li>
+                    }
+                  </ul>
+                }
+                <p class="muted">
+                  This evidence does not rank suppliers or products and is not a profitability or
+                  forecast claim.
+                </p>
+              </article>
+            } @else {
+              <article class="research-card economics-evidence">
+                <div class="research-heading">
+                  <h3>Sourcing economics</h3>
+                  <span class="muted">Optional</span>
+                </div>
+                <p class="muted">Load existing 13A–13F cost evidence for this opportunity.</p>
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="loadSourcingEconomics(item)"
+                  [disabled]="loading()"
+                >
+                  Load sourcing economics
+                </button>
+              </article>
+            }
             @if (evidenceCards().length) {
               <div class="evidence-grid">
                 @for (card of evidenceCards(); track card.title) {
@@ -1011,6 +1081,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   readonly commercialOutput = signal<CommercialOutput | null>(null);
   readonly sourcingFeasibility = signal<SourcingFeasibilityOutput | null>(null);
   readonly riskEvidence = signal<RiskEvidenceSynthesisOutput | null>(null);
+  readonly economicProjection = signal<SourcingEconomicsProjection | null>(null);
   readonly score = signal<ProductOpportunityScore | null>(null);
   readonly reviewProjection = signal<ReviewWinningProductProjection | null>(null);
   readonly scoreHistory = signal<ProductOpportunityScoreHistory[]>([]);
@@ -1109,6 +1180,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     this.commercialOutput.set(null);
     this.sourcingFeasibility.set(null);
     this.riskEvidence.set(null);
+    this.economicProjection.set(null);
     this.score.set(null);
     this.reviewProjection.set(null);
     this.scoreHistory.set([]);
@@ -1297,6 +1369,17 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     );
   }
 
+  async loadSourcingEconomics(item: OpportunityDetail): Promise<void> {
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      this.economicProjection.set(await this.service.getSourcingEconomics(item.id));
+    } catch {
+      this.error.set('Sourcing economics evidence is unavailable for this opportunity.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
   async loadRiskEvidence(item: OpportunityDetail): Promise<void> {
     if (!item.current_assessment_id) return;
     await this.readSection(
