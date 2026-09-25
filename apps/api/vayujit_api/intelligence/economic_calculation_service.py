@@ -18,6 +18,8 @@ from vayujit_api.intelligence.economic_calculation_models import (
     EconomicCalculation,
     EconomicCalculationBreakdown,
 )
+from vayujit_api.intelligence.economic_customs_models import CustomsTaxSnapshot
+from vayujit_api.intelligence.economic_customs_service import build_customs_lines
 from vayujit_api.intelligence.economic_freight_models import FreightSnapshot, LogisticsContext
 from vayujit_api.intelligence.economic_fx_models import FXRateSnapshot
 from vayujit_api.intelligence.economic_models import EconomicInputSnapshot
@@ -30,6 +32,8 @@ FX_CALCULATION_VERSION = "landed-cost-v2"
 FX_POLICY_VERSION = "known-cost-fx-v1"
 FREIGHT_CALCULATION_VERSION = "landed-cost-v3"
 FREIGHT_POLICY_VERSION = "known-cost-freight-v1"
+CUSTOMS_CALCULATION_VERSION = "landed-cost-v4"
+CUSTOMS_POLICY_VERSION = "known-cost-customs-tax-v1"
 SUPPORTED_BASES = {"PER_UNIT", "PER_SHIPMENT", "ONE_TIME"}
 STORAGE_QUANTUM = Decimal("0.00000001")
 
@@ -315,6 +319,7 @@ def _calculate(
     request: EconomicCalculationRequest,
     fx_snapshots: list[FXRateSnapshot],
     freight_snapshot: FreightSnapshot | None = None,
+    customs_snapshot: CustomsTaxSnapshot | None = None,
 ) -> dict[str, Any]:
     payload = snapshot.payload if isinstance(snapshot.payload, dict) else {}
     context_value = payload.get("context")
@@ -377,6 +382,27 @@ def _calculate(
         )
         add_line(line, value)
 
+    if customs_snapshot is not None:
+        customs_lines, customs_missing, customs_warnings = build_customs_lines(
+            None, None, customs_snapshot, currency, freight_snapshot
+        )
+        explicit_custom_categories = {_upper(row.get("category")) for row in components}
+        for customs_line in customs_lines:
+            if str(customs_line["category"]) in explicit_custom_categories:
+                customs_line["inclusion_status"] = "EXCLUDED"
+                customs_line["exclusion_reason"] = "EXPLICIT_COMPONENT_PRECEDENCE"
+                warnings.append(
+                    "An explicit 13A component takes precedence over customs/tax evidence."
+                )
+                lines.append(customs_line)
+            else:
+                customs_amount = customs_line.get("included_amount")
+                add_line(
+                    customs_line,
+                    customs_amount if isinstance(customs_amount, Decimal) else None,
+                )
+        missing.extend(customs_missing)
+        warnings.extend(customs_warnings)
     if freight_snapshot is not None and not explicit_freight:
         freight_line, freight_value = _freight_line(freight_snapshot)
         add_line(freight_line, freight_value)
@@ -506,6 +532,35 @@ def calculate_from_snapshot(
     if snapshot is None:
         raise HTTPException(404, "Economic snapshot is not available in the owner scope.")
 
+    customs_snapshot: CustomsTaxSnapshot | None = None
+    if request.customs_tax_snapshot_id is not None:
+        customs_snapshot = db.scalar(
+            select(CustomsTaxSnapshot).where(
+                CustomsTaxSnapshot.id == request.customs_tax_snapshot_id,
+                CustomsTaxSnapshot.owner_id == owner.id,
+            )
+        )
+        if customs_snapshot is None:
+            raise HTTPException(404, "Customs/tax snapshot is not available in the owner scope.")
+        from vayujit_api.intelligence.economic_customs_models import CustomsTaxContext
+
+        customs_context = db.scalar(
+            select(CustomsTaxContext).where(
+                CustomsTaxContext.id == customs_snapshot.context_id,
+                CustomsTaxContext.owner_id == owner.id,
+            )
+        )
+        if customs_context is None or customs_context.economic_context_id != snapshot.context_id:
+            raise HTTPException(422, "Customs/tax snapshot must belong to the economic context.")
+        if (
+            request.calculation_version != CUSTOMS_CALCULATION_VERSION
+            or request.policy_version != CUSTOMS_POLICY_VERSION
+        ):
+            raise HTTPException(
+                422,
+                "Customs/tax calculations require landed-cost-v4 and known-cost-customs-tax-v1.",
+            )
+
     freight_snapshot: FreightSnapshot | None = None
     if request.freight_snapshot_id is not None:
         freight_snapshot = db.scalar(
@@ -527,7 +582,7 @@ def calculate_from_snapshot(
             or logistics_context.economic_context_id != snapshot.context_id
         ):
             raise HTTPException(422, "Freight snapshot must belong to the economic context.")
-        if (
+        if request.customs_tax_snapshot_id is None and (
             request.calculation_version != FREIGHT_CALCULATION_VERSION
             or request.policy_version != FREIGHT_POLICY_VERSION
         ):
@@ -550,9 +605,13 @@ def calculate_from_snapshot(
             or request.policy_version != FX_POLICY_VERSION
         ):
             raise HTTPException(422, "FX calculations require landed-cost-v2 and known-cost-fx-v1.")
-    elif freight_snapshot is None and (
-        request.calculation_version != CALCULATION_VERSION
-        or request.policy_version != POLICY_VERSION
+    elif (
+        freight_snapshot is None
+        and customs_snapshot is None
+        and (
+            request.calculation_version != CALCULATION_VERSION
+            or request.policy_version != POLICY_VERSION
+        )
     ):
         raise HTTPException(422, "Unsupported calculation version or policy.")
 
@@ -563,6 +622,7 @@ def calculate_from_snapshot(
             "policy_version": request.policy_version,
             "fx_snapshot_ids": [str(item.id) for item in fx_snapshots],
             "freight_snapshot_id": str(freight_snapshot.id) if freight_snapshot else None,
+            "customs_tax_snapshot_id": str(customs_snapshot.id) if customs_snapshot else None,
             "options": request.options,
         }
     )
@@ -575,13 +635,14 @@ def calculate_from_snapshot(
     if existing is not None:
         return existing, True
 
-    evaluated = _calculate(snapshot, request, fx_snapshots, freight_snapshot)
+    evaluated = _calculate(snapshot, request, fx_snapshots, freight_snapshot, customs_snapshot)
     row = EconomicCalculation(
         owner_id=owner.id,
         context_id=snapshot.context_id,
         snapshot_id=snapshot.id,
         fx_snapshot_id=fx_snapshots[0].id if fx_snapshots else None,
         freight_snapshot_id=freight_snapshot.id if freight_snapshot else None,
+        customs_tax_snapshot_id=customs_snapshot.id if customs_snapshot else None,
         calculation_version=request.calculation_version,
         policy_version=request.policy_version,
         calculation_fingerprint=calc_fingerprint,
@@ -633,6 +694,7 @@ def calculate_from_snapshot(
                     fx_freshness=line["fx_freshness"],
                     fx_inverted=line["fx_inverted"],
                     freight_snapshot_id=line["freight_snapshot_id"],
+                    customs_tax_snapshot_id=customs_snapshot.id if customs_snapshot else None,
                     provenance=line["provenance"],
                     freshness=line["freshness"],
                     assumption_reason=line["assumption_reason"],
@@ -652,6 +714,9 @@ def calculate_from_snapshot(
                     "snapshot_id": str(snapshot.id),
                     "fx_snapshot_id": str(fx_snapshots[0].id) if fx_snapshots else None,
                     "freight_snapshot_id": str(freight_snapshot.id) if freight_snapshot else None,
+                    "customs_tax_snapshot_id": (
+                        str(customs_snapshot.id) if customs_snapshot else None
+                    ),
                     "status": row.status,
                     "calculation_version": row.calculation_version,
                 },

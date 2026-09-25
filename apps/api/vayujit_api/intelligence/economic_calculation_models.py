@@ -73,6 +73,12 @@ class EconomicCalculation(Base):
         nullable=True,
         index=True,
     )
+    customs_tax_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_customs_tax_snapshots.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
     calculation_version: Mapped[str] = mapped_column(String(64))
     policy_version: Mapped[str] = mapped_column(String(64))
     calculation_fingerprint: Mapped[str] = mapped_column(String(128), index=True)
@@ -131,6 +137,9 @@ class EconomicCalculationBreakdown(Base):
     fx_freshness: Mapped[str | None] = mapped_column(String(16), nullable=True)
     fx_inverted: Mapped[bool | None] = mapped_column(nullable=True)
     freight_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True, index=True
+    )
+    customs_tax_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True, index=True
     )
     provenance: Mapped[str] = mapped_column(String(16))

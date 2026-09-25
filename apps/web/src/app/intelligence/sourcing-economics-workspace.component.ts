@@ -183,6 +183,19 @@ interface EconomicContextDraft {
               Freight uses only an explicit immutable LOCAL_FIXTURE or manual snapshot. Unknown
               freight remains unknown; no live carrier quote is fetched.
             </p>
+            <label class="fx-selector">
+              Customs/tax snapshot ID (optional)
+              <input
+                name="customs_tax_snapshot_id"
+                [(ngModel)]="customsTaxSnapshotId"
+                placeholder="Explicit immutable customs/tax snapshot UUID"
+              />
+            </label>
+            <p class="hint">
+              Customs/tax inputs are bounded decision-support evidence, not legal, customs, tax, or
+              regulatory determinations. Unknown and conflicting data stays visible; no official
+              compliance is implied.
+            </p>
             <button type="button" (click)="calculateSnapshot()" [disabled]="busy()">
               Calculate from snapshot
             </button>
@@ -397,6 +410,7 @@ export class SourcingEconomicsWorkspaceComponent {
   readonly calculation = signal<EconomicCalculationView | null>(null);
   fxSnapshotId = '';
   freightSnapshotId = '';
+  customsTaxSnapshotId = '';
   draft: EconomicContextDraft = {
     idempotency_key: `economic-context-${Date.now()}`,
     base_currency: '',
@@ -455,23 +469,32 @@ export class SourcingEconomicsWorkspaceComponent {
     this.busy.set(true);
     this.error.set('');
     try {
+      const payload = this.customsTaxSnapshotId
+        ? {
+            customs_tax_snapshot_id: this.customsTaxSnapshotId,
+            ...(this.freightSnapshotId ? { freight_snapshot_id: this.freightSnapshotId } : {}),
+            ...(this.fxSnapshotId ? { fx_snapshot_id: this.fxSnapshotId } : {}),
+            calculation_version: 'landed-cost-v4',
+            policy_version: 'known-cost-customs-tax-v1',
+          }
+        : this.freightSnapshotId
+          ? {
+              freight_snapshot_id: this.freightSnapshotId,
+              ...(this.fxSnapshotId ? { fx_snapshot_id: this.fxSnapshotId } : {}),
+              calculation_version: 'landed-cost-v3',
+              policy_version: 'known-cost-freight-v1',
+            }
+          : this.fxSnapshotId
+            ? {
+                fx_snapshot_id: this.fxSnapshotId,
+                calculation_version: 'landed-cost-v2',
+                policy_version: 'known-cost-fx-v1',
+              }
+            : {};
       const response = await firstValueFrom(
         this.http.post<CalculationResponse>(
           `${environment.apiUrl}/intelligence/sourcing-economics/snapshots/${row.id}/calculate`,
-          this.freightSnapshotId
-            ? {
-                freight_snapshot_id: this.freightSnapshotId,
-                ...(this.fxSnapshotId ? { fx_snapshot_id: this.fxSnapshotId } : {}),
-                calculation_version: 'landed-cost-v3',
-                policy_version: 'known-cost-freight-v1',
-              }
-            : this.fxSnapshotId
-              ? {
-                  fx_snapshot_id: this.fxSnapshotId,
-                  calculation_version: 'landed-cost-v2',
-                  policy_version: 'known-cost-fx-v1',
-                }
-              : {},
+          payload,
         ),
       );
       this.calculation.set({ ...response.calculation, breakdown: response.breakdown });
