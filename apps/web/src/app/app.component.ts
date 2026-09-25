@@ -108,6 +108,7 @@ export class AppComponent {
       items: [
         ['Integrations', '/settings/publishing/connectors'],
         ['AI Providers', '/settings/ai/providers'],
+        ['Provider Integrations', '/settings/providers'],
         ['Settings', '/settings'],
       ] as const,
     },

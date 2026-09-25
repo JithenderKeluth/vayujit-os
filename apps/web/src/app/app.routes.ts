@@ -858,6 +858,12 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'settings/providers',
+    loadComponent: () =>
+      import('./operations/provider-settings.component').then((m) => m.ProviderSettingsComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'settings',
     loadComponent: () => import('./operations/settings.component').then((m) => m.SettingsComponent),
     canActivate: [authGuard],

@@ -46,6 +46,7 @@ from vayujit_api.operations.hardening import health_details
 from vayujit_api.operations.models import BackupRecord
 from vayujit_api.operations.staging import provider_metrics_snapshot, staging_configuration_errors
 from vayujit_api.products.models import Product
+from vayujit_api.providers.service import provider_summaries
 from vayujit_api.publishing.job_queue import TERMINAL_STATES
 from vayujit_api.publishing.models import (
     PublishingExecution,
@@ -1239,6 +1240,7 @@ def system_doctor(db: DatabaseSession, _user: CurrentUser) -> dict[str, object]:
     settings = get_settings()
     return {
         "status": value.status,
+        "providers": provider_summaries(),
         "external_research": {
             "configured": settings.intelligence_external_provider_mode != "DISABLED",
             "provider": settings.intelligence_search_provider,
