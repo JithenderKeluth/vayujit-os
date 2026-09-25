@@ -15,6 +15,37 @@ from vayujit_api.intelligence.economic_calculation_service import (
     calculate_from_snapshot,
     list_breakdown,
 )
+from vayujit_api.intelligence.economic_customs_models import (
+    ClassificationEvidence,
+    CustomsRateEvidence,
+    CustomsTaxContext,
+    CustomsTaxSnapshot,
+    RegulatoryCostEvidence,
+)
+from vayujit_api.intelligence.economic_customs_schemas import (
+    ClassificationEvidenceCreate,
+    CustomsRateEvidenceCreate,
+    CustomsTaxContextCreate,
+    CustomsTaxSnapshotCreate,
+    RegulatoryCostEvidenceCreate,
+)
+from vayujit_api.intelligence.economic_customs_service import (
+    create_classification,
+    create_rate,
+    create_regulatory_cost,
+)
+from vayujit_api.intelligence.economic_customs_service import (
+    create_context as create_customs_context,
+)
+from vayujit_api.intelligence.economic_customs_service import (
+    create_snapshot as create_customs_snapshot,
+)
+from vayujit_api.intelligence.economic_customs_service import (
+    get_row as get_customs_row,
+)
+from vayujit_api.intelligence.economic_customs_service import (
+    list_rows as list_customs_rows,
+)
 from vayujit_api.intelligence.economic_freight_models import (
     FreightObservation,
     FreightSnapshot,
@@ -359,3 +390,104 @@ def freight_snapshot_list(db: DB, owner: Owner):
 @router.get("/freight/snapshots/{freight_snapshot_id}")
 def freight_snapshot_detail(freight_snapshot_id: uuid.UUID, db: DB, owner: Owner):
     return {"snapshot": get_freight_snapshot(db, owner, freight_snapshot_id)}
+
+
+@router.post("/customs-tax/contexts", status_code=201)
+def customs_context_create(data: CustomsTaxContextCreate, db: DB, owner: Owner):
+    row, reused = create_customs_context(db, owner, data)
+    return {"context": row, "idempotent_reuse": reused}
+
+
+@router.get("/customs-tax/contexts")
+def customs_context_list(db: DB, owner: Owner):
+    return {"items": list_customs_rows(db, owner, CustomsTaxContext)}
+
+
+@router.get("/customs-tax/contexts/{context_id}")
+def customs_context_detail(context_id: uuid.UUID, db: DB, owner: Owner):
+    row = get_customs_row(db, owner, CustomsTaxContext, context_id, "Customs/tax context")
+    return {
+        "context": row,
+        "classifications": list_customs_rows(db, owner, ClassificationEvidence, row.id),
+        "rates": list_customs_rows(db, owner, CustomsRateEvidence, row.id),
+        "regulatory_costs": list_customs_rows(db, owner, RegulatoryCostEvidence, row.id),
+        "snapshots": list_customs_rows(db, owner, CustomsTaxSnapshot, row.id),
+    }
+
+
+@router.post("/customs-tax/classifications", status_code=201)
+def customs_classification_create(data: ClassificationEvidenceCreate, db: DB, owner: Owner):
+    row, reused = create_classification(db, owner, data)
+    return {"classification": row, "idempotent_reuse": reused}
+
+
+@router.get("/customs-tax/classifications")
+def customs_classification_list(db: DB, owner: Owner, context_id: uuid.UUID | None = None):
+    return {"items": list_customs_rows(db, owner, ClassificationEvidence, context_id)}
+
+
+@router.get("/customs-tax/classifications/{evidence_id}")
+def customs_classification_detail(evidence_id: uuid.UUID, db: DB, owner: Owner):
+    return {
+        "classification": get_customs_row(
+            db, owner, ClassificationEvidence, evidence_id, "Classification evidence"
+        )
+    }
+
+
+@router.post("/customs-tax/rates", status_code=201)
+def customs_rate_create(data: CustomsRateEvidenceCreate, db: DB, owner: Owner):
+    row, reused = create_rate(db, owner, data)
+    return {"rate": row, "idempotent_reuse": reused}
+
+
+@router.get("/customs-tax/rates")
+def customs_rate_list(db: DB, owner: Owner, context_id: uuid.UUID | None = None):
+    return {"items": list_customs_rows(db, owner, CustomsRateEvidence, context_id)}
+
+
+@router.get("/customs-tax/rates/{rate_id}")
+def customs_rate_detail(rate_id: uuid.UUID, db: DB, owner: Owner):
+    return {
+        "rate": get_customs_row(db, owner, CustomsRateEvidence, rate_id, "Customs rate evidence")
+    }
+
+
+@router.post("/customs-tax/regulatory-costs", status_code=201)
+def regulatory_cost_create(data: RegulatoryCostEvidenceCreate, db: DB, owner: Owner):
+    row, reused = create_regulatory_cost(db, owner, data)
+    return {"regulatory_cost": row, "idempotent_reuse": reused}
+
+
+@router.get("/customs-tax/regulatory-costs")
+def regulatory_cost_list(db: DB, owner: Owner, context_id: uuid.UUID | None = None):
+    return {"items": list_customs_rows(db, owner, RegulatoryCostEvidence, context_id)}
+
+
+@router.get("/customs-tax/regulatory-costs/{cost_id}")
+def regulatory_cost_detail(cost_id: uuid.UUID, db: DB, owner: Owner):
+    return {
+        "regulatory_cost": get_customs_row(
+            db, owner, RegulatoryCostEvidence, cost_id, "Regulatory cost evidence"
+        )
+    }
+
+
+@router.post("/customs-tax/snapshots", status_code=201)
+def customs_snapshot_create(data: CustomsTaxSnapshotCreate, db: DB, owner: Owner):
+    row, reused = create_customs_snapshot(db, owner, data)
+    return {"snapshot": row, "idempotent_reuse": reused}
+
+
+@router.get("/customs-tax/snapshots")
+def customs_snapshot_list(db: DB, owner: Owner, context_id: uuid.UUID | None = None):
+    return {"items": list_customs_rows(db, owner, CustomsTaxSnapshot, context_id)}
+
+
+@router.get("/customs-tax/snapshots/{snapshot_id}")
+def customs_snapshot_detail(snapshot_id: uuid.UUID, db: DB, owner: Owner):
+    return {
+        "snapshot": get_customs_row(
+            db, owner, CustomsTaxSnapshot, snapshot_id, "Customs/tax snapshot"
+        )
+    }

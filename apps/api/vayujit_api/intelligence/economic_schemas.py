@@ -215,6 +215,7 @@ def safe_metadata(value: dict[str, object]) -> dict[str, object]:
 
 
 class EconomicCalculationRequest(EconomicSchema):
+    customs_tax_snapshot_id: uuid.UUID | None = None
     freight_snapshot_id: uuid.UUID | None = None
     fx_snapshot_id: uuid.UUID | None = None
     calculation_version: str = Field(default="landed-cost-v1", min_length=1, max_length=64)

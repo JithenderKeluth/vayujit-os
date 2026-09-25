@@ -4,6 +4,13 @@ from vayujit_api.intelligence.economic_calculation_models import (
     EconomicCalculation,
     EconomicCalculationBreakdown,
 )
+from vayujit_api.intelligence.economic_customs_models import (
+    ClassificationEvidence,
+    CustomsRateEvidence,
+    CustomsTaxContext,
+    CustomsTaxSnapshot,
+    RegulatoryCostEvidence,
+)
 from vayujit_api.intelligence.economic_freight_models import (
     FreightObservation,
     FreightSnapshot,
@@ -324,4 +331,12 @@ __all__ += [
     "LogisticsContext",
     "FreightObservation",
     "FreightSnapshot",
+]
+
+__all__ += [
+    "CustomsTaxContext",
+    "ClassificationEvidence",
+    "CustomsRateEvidence",
+    "RegulatoryCostEvidence",
+    "CustomsTaxSnapshot",
 ]
