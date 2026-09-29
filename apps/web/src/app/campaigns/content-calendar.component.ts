@@ -6,20 +6,30 @@ import type { CampaignCalendar, CampaignCalendarEvent } from '@vayujit/shared';
 import { CampaignService } from './campaign.service';
 import { SocialCalendarEvent, SocialService } from '../social/social.service';
 import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.component';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { EmptyStateComponent, LoadingStateComponent } from '../shared/state-components';
 
 @Component({
   selector: 'app-content-calendar',
-  imports: [DatePipe, FormsModule, RouterLink, GrowthJourneyNavComponent],
+  imports: [
+    DatePipe,
+    FormsModule,
+    RouterLink,
+    GrowthJourneyNavComponent,
+    PageHeaderComponent,
+    EmptyStateComponent,
+    LoadingStateComponent,
+  ],
   template: `
     <section class="page">
       <app-growth-journey-nav current="calendar" />
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">Content operations</p>
-          <h1>Content Calendar</h1>
-        </div>
-        <a routerLink="/campaigns">Campaigns</a>
-      </header>
+      <app-page-header
+        eyebrow="Manage / calendar"
+        title="Content calendar"
+        description="Review campaign and social publishing activity before anything is sent."
+      >
+        <a page-header-actions routerLink="/campaigns">Campaigns</a>
+      </app-page-header>
       <nav class="calendar-nav" aria-label="Calendar view">
         <div role="group" aria-label="View">
           <button (click)="setView('month')">Month</button
@@ -47,7 +57,10 @@ import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.componen
       <section class="panel" aria-labelledby="social-calendar-title">
         <h2 id="social-calendar-title">Social publishing</h2>
         @if (!socialEvents().length) {
-          <p>No Social posts are scheduled in this period.</p>
+          <app-empty-state
+            title="No social posts scheduled"
+            message="No social posts are scheduled in this period."
+          />
         } @else {
           <div class="calendar-social-list" role="list">
             @for (event of socialEvents(); track event.id) {
@@ -70,19 +83,22 @@ import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.componen
         }
       </section>
       <p aria-live="polite">
-        {{ start() | date: 'mediumDate' }} – {{ end() | date: 'mediumDate' }} · {{ view() }} view
+        {{ start() | date: 'mediumDate' }} - {{ end() | date: 'mediumDate' }} - {{ view() }} view
       </p>
       @if (loading()) {
-        <p>Loading calendar…</p>
+        <app-loading-state message="Loading calendar..." />
       } @else if (!filtered().length) {
-        <div class="panel"><h2>No scheduled Campaign activities</h2></div>
+        <app-empty-state
+          title="No scheduled campaign activities"
+          message="No campaign activities are scheduled in this period."
+        />
       }
       @if (projection()?.view === 'month') {
         <div class="calendar-grid month-grid" role="grid" aria-label="Month calendar">
           @for (day of monthDays(); track day.date) {
             <section role="gridcell" tabindex="0">
               <h2>{{ day.date | date: 'd' }}</h2>
-              <p>{{ day.activity_count }} activities · {{ day.campaign_count }} campaigns</p>
+              <p>{{ day.activity_count }} activities - {{ day.campaign_count }} campaigns</p>
               @if (day.conflict_count) {
                 <strong class="error">{{ day.conflict_count }} conflicts</strong>
               }
@@ -126,7 +142,7 @@ import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.componen
                 <a [routerLink]="['/campaigns', event.campaign_id]">{{ event.activity_name }}</a>
               </h2>
               <p>
-                {{ event.campaign_name }} · {{ event.connector_key || 'checkpoint' }} ·
+                {{ event.campaign_name }} - {{ event.connector_key || 'checkpoint' }} -
                 {{ event.requested_action || 'review' }}
               </p>
               <span class="badge">{{ event.status }}</span>

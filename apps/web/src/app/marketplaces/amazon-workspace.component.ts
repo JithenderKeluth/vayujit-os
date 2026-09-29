@@ -1,4 +1,6 @@
 import { HttpClient } from '@angular/common/http';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { ErrorStateComponent } from '../shared/state-components';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
@@ -106,20 +108,23 @@ interface AmazonProfitability {
 
 @Component({
   selector: 'app-amazon-workspace',
-  imports: [FormsModule],
+  imports: [FormsModule, PageHeaderComponent, ErrorStateComponent],
   template: `
     <section class="marketplace-page">
-      <header>
-        <h1>Amazon Marketplace workspace</h1>
-        <p>
-          Prepare, review, and operate a fake-certified Amazon listing without exposing secrets.
-        </p>
-      </header>
+      <app-page-header
+        eyebrow="Sell / Amazon"
+        title="Amazon Marketplace workspace"
+        description="Prepare and review a local Amazon listing without exposing secrets."
+      >
+        <span page-header-actions class="badge"
+          >Local demo mode - live validation is not performed</span
+        >
+      </app-page-header>
       @if (message()) {
         <p class="marketplace-success" role="status">{{ message() }}</p>
       }
       @if (error()) {
-        <p class="marketplace-error" role="alert">{{ error() }}</p>
+        <app-error-state title="Amazon workspace is unavailable" [message]="error()" />
       }
 
       <section class="marketplace-card">
@@ -152,7 +157,7 @@ interface AmazonProfitability {
         @if (account(); as current) {
           <div class="marketplace-status-row">
             <strong>{{ current.display_name }}</strong
-            ><span>{{ current.marketplace_id }} · {{ current.currency }}</span
+            ><span>{{ current.marketplace_id }} - {{ current.currency }}</span
             ><span>{{ current.credential_status }} / {{ current.validation_status }}</span>
           </div>
           <p class="muted">Last validated: {{ current.last_validated_at || 'Not validated' }}</p>
@@ -487,11 +492,11 @@ interface AmazonProfitability {
                   </td>
                   <td>
                     @for (item of order.items; track item.sku) {
-                      <div>{{ item.sku }} × {{ item.quantity }} — {{ item.total }}</div>
+                      <div>{{ item.sku }} × {{ item.quantity }} - {{ item.total }}</div>
                     }
                   </td>
                   <td>
-                    {{ formatJson(order.totals) }}<br />Tax {{ order.tax }} · Shipping
+                    {{ formatJson(order.totals) }}<br />Tax {{ order.tax }} - Shipping
                     {{ order.shipping }}
                   </td>
                 </tr>
@@ -534,7 +539,7 @@ interface AmazonProfitability {
                     {{ item.refund_amount }}
                     <ul>
                       @for (refund of item.refunds; track refund.reason) {
-                        <li>{{ refund.amount }} {{ refund.currency }} · {{ refund.status }}</li>
+                        <li>{{ refund.amount }} {{ refund.currency }} - {{ refund.status }}</li>
                       }
                     </ul>
                   </td>
@@ -572,7 +577,7 @@ interface AmazonProfitability {
               @for (settlement of settlements(); track settlement.settlement_id) {
                 <tr>
                   <td>{{ settlement.settlement_id }}<br />{{ settlement.status }}</td>
-                  <td>{{ settlement.period_start }} – {{ settlement.period_end }}</td>
+                  <td>{{ settlement.period_start }} - {{ settlement.period_end }}</td>
                   <td>{{ settlement.gross_sales }} {{ settlement.currency }}</td>
                   <td>{{ settlement.fees }}</td>
                   <td>{{ settlement.refunds }}</td>
@@ -598,8 +603,8 @@ interface AmazonProfitability {
           <div class="marketplace-callout">
             <strong>Profitability: {{ profit.profit_status }}</strong>
             <p>
-              Gross {{ profit.gross_sales }} · Fees {{ profit.fees }} · Refunds
-              {{ profit.refunds }} · Contribution {{ profit.contribution }}
+              Gross {{ profit.gross_sales }} - Fees {{ profit.fees }} - Refunds
+              {{ profit.refunds }} - Contribution {{ profit.contribution }}
             </p>
             <p>{{ profit.accounting_semantics }}</p>
             <p>Missing inputs: {{ profit.missing_inputs.join(', ') || 'none' }}</p>
@@ -616,7 +621,7 @@ interface AmazonProfitability {
         </div>
         @if (drift(); as currentDrift) {
           <p>
-            State: {{ currentDrift.drift_state }} · Classification:
+            State: {{ currentDrift.drift_state }} - Classification:
             {{ currentDrift.classification }}
           </p>
           <div class="marketplace-table">

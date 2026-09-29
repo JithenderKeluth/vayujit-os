@@ -1,14 +1,20 @@
+# ruff: noqa: B008
 from __future__ import annotations
 
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.intelligence.cross_marketplace_service import list_canonical
+from vayujit_api.intelligence.external_service import provider_preflight
+from vayujit_api.intelligence.models import IntelligenceOpportunity
 from vayujit_api.intelligence.supplier_models import SUPPLIER_ACCESS_MODES, SUPPLIER_SOURCE_TYPES
 from vayujit_api.intelligence.supplier_research import execute_provider_neutral_search
 from vayujit_api.intelligence.supplier_schemas import (
@@ -66,6 +72,16 @@ from vayujit_api.intelligence.supplier_service import (
 router = APIRouter(prefix="/api/v1/intelligence/suppliers", tags=["intelligence-suppliers"])
 DB = Annotated[Session, Depends(get_session)]
 Owner = Annotated[User, Depends(current_user)]
+
+
+def _live_discovery_status() -> str:
+    status = provider_preflight(get_settings()).get("status")
+    return {
+        "VALIDATED": "LIVE_READY",
+        "BLOCKED_BY_EXTERNAL_CREDENTIALS": "LIVE_CONFIGURATION_INCOMPLETE",
+        "BLOCKED_BY_CONFIGURATION": "LIVE_CONFIGURATION_INCOMPLETE",
+        "DISABLED": "PENDING_EXTERNAL_PROVIDER",
+    }.get(str(status), "LIVE_CONFIGURATION_INCOMPLETE")
 
 
 def _row(value: object) -> dict[str, object]:
@@ -137,7 +153,7 @@ def operations(db: DB, owner: Owner) -> dict[str, object]:
         "recovery": "operator_bounded",
         "external_connectors": "disabled",
         "provider_neutral_discovery": "LOCAL_FIXTURE",
-        "live_discovery": "PENDING_EXTERNAL_PROVIDER",
+        "live_discovery": _live_discovery_status(),
     }
 
 
@@ -182,6 +198,102 @@ def rules() -> list[dict[str, object]]:
     ]
 
 
+@router.get("/research-results")
+def research_results(
+    db: DB,
+    owner: Owner,
+    opportunity_id: uuid.UUID | None = Query(default=None),
+) -> dict[str, object]:
+    """Bounded supplier-research projection for the selected product journey.
+
+    This composes the existing 14F search ledger with the 8A canonical supplier
+    projection. It never starts research, contacts a provider, or performs an
+    external write.
+    """
+    opportunity: IntelligenceOpportunity | None = None
+    if opportunity_id is not None:
+        opportunity = db.scalar(
+            select(IntelligenceOpportunity).where(
+                IntelligenceOpportunity.id == opportunity_id,
+                IntelligenceOpportunity.owner_id == owner.id,
+            )
+        )
+        if opportunity is None:
+            from fastapi import HTTPException
+
+            raise HTTPException(404, "Product opportunity not found.")
+
+    from vayujit_api.intelligence.supplier_models import SupplierSearch
+
+    searches = list(
+        db.scalars(
+            select(SupplierSearch)
+            .where(SupplierSearch.owner_id == owner.id)
+            .order_by(SupplierSearch.created_at.desc())
+            .limit(25)
+        )
+    )
+
+    def belongs_to_product(search: SupplierSearch) -> bool:
+        requirements = search.requirements or {}
+        if opportunity_id is None:
+            return True
+        return search.opportunity_id == opportunity_id or str(
+            requirements.get("product_opportunity_id") or ""
+        ) == str(opportunity_id)
+
+    search = next((item for item in searches if belongs_to_product(item)), None)
+    summary = dict(search.summary_json or {}) if search is not None else {}
+    raw_supplier_ids = summary.get("supplier_ids", [])
+    supplier_ids = (
+        {str(value) for value in raw_supplier_ids if value is not None}
+        if isinstance(raw_supplier_ids, (list, tuple, set))
+        else set()
+    )
+    suppliers = list_canonical(db, owner)
+    if supplier_ids:
+        suppliers = [
+            row
+            for row in suppliers
+            if supplier_ids.intersection(
+                str(value) for value in (row.get("identity", {}) or {}).get("supplier_ids", [])
+            )
+        ]
+    status = str(summary.get("status") or (search.status if search else "NOT_STARTED"))
+    next_action = (
+        "Review supplier candidates"
+        if suppliers
+        else "Start supplier research" if search is None else "Review supplier research gaps"
+    )
+    return {
+        "product_context": (
+            {
+                "opportunity_id": str(opportunity.id),
+                "product": opportunity.title,
+                "category": opportunity.category,
+                "marketplace": opportunity.market,
+                "status": opportunity.status,
+            }
+            if opportunity is not None
+            else None
+        ),
+        "research": {
+            "status": status,
+            "mode": summary.get("mode")
+            or ((search.source_policy or {}).get("mode") if search else "LOCAL_FIXTURE"),
+            "provider": summary.get("provider"),
+            "search_id": str(search.id) if search else None,
+            "summary": summary,
+            "checkpoint": (search.checkpoint_state if search else {}),
+            "external_calls": bool(summary.get("external_calls", False)),
+        },
+        "suppliers": suppliers[:20],
+        "count": len(suppliers),
+        "next_action": next_action,
+        "external_write": False,
+    }
+
+
 @router.post("/searches", response_model=SupplierSearchResponse)
 def add_search(data: SupplierSearchCreate, db: DB, owner: Owner) -> object:
     search = create_search(db, owner, data)
@@ -209,8 +321,9 @@ def research_suppliers(data: SupplierResearchCreate, db: DB, owner: Owner) -> di
             "excluded_terms": data.excluded_terms,
             "max_candidates": data.max_candidates,
             "research_depth": data.research_depth,
+            "approved_domains": data.approved_domains,
         },
-        source_policy={"mode": "PROVIDER_NEUTRAL", "external_connectors": "disabled"},
+        source_policy={"mode": data.mode, "external_connectors": "disabled"},
         ruleset_version="supplier-research-14f-v1",
         idempotency_key=data.idempotency_key,
     )
@@ -222,14 +335,17 @@ def research_suppliers(data: SupplierResearchCreate, db: DB, owner: Owner) -> di
         "request": _row(search),
         "result": search.summary_json,
         "status": search.status,
-        "live_discovery": "PENDING",
-        "external_calls": False,
+        "live_discovery": (
+            "LIVE_READY"
+            if data.mode == "LIVE_READ_ONLY" and search.status == "completed"
+            else ("LIVE_CONFIGURATION_INCOMPLETE" if data.mode == "LIVE_READ_ONLY" else "PENDING")
+        ),
+        "external_calls": bool((search.summary_json or {}).get("external_calls", False)),
     }
 
 
 @router.get("/searches", response_model=list[SupplierSearchResponse])
 def searches(db: DB, owner: Owner) -> list[object]:
-    from sqlalchemy import select
 
     from vayujit_api.intelligence.supplier_models import SupplierSearch
 
@@ -245,7 +361,6 @@ def searches(db: DB, owner: Owner) -> list[object]:
 @router.post("/searches/{search_id}/run", response_model=SupplierSearchResponse)
 def run_search(search_id: uuid.UUID, db: DB, owner: Owner) -> object:
     from fastapi import HTTPException
-    from sqlalchemy import select
 
     from vayujit_api.intelligence.supplier_models import SupplierSearch
 

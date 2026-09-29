@@ -3,22 +3,36 @@ import { ChangeDetectionStrategy, Component, effect, inject, signal } from '@ang
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import type { BrandSummary, PaginatedProductResponse, ProductSummary } from '@vayujit/shared';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
 import { BrandService } from '../brands/brand.service';
 import { ProductService } from './product.service';
 
 @Component({
   selector: 'app-product-list',
-  imports: [CurrencyPipe, DatePipe, ReactiveFormsModule, RouterLink],
+  imports: [
+    PageHeaderComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    CurrencyPipe,
+    DatePipe,
+    ReactiveFormsModule,
+    RouterLink,
+  ],
   template: `
     <section class="page">
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">Product Management</p>
-          <h1>Products</h1>
-          <p>Context: {{ selectedBrandName() }}</p>
-        </div>
-        <a class="button primary" routerLink="/products/new">Create product</a>
-      </header>
+      <app-page-header
+        eyebrow="Product management"
+        title="Products"
+        [description]="'Context: ' + selectedBrandName()"
+      >
+        <a page-header-actions class="button primary" routerLink="/products/new">Create product</a>
+      </app-page-header>
       <form class="filters" (submit)="apply($event)">
         <label
           >Brand<select [formControl]="brandFilter" (change)="brandChanged()">
@@ -76,20 +90,26 @@ import { ProductService } from './product.service';
         <button class="button" type="submit">Apply</button>
       </form>
       @if (!activeBrand() && !explicitBrand()) {
-        <div class="state">
-          <h2>No active brand</h2>
-          <p>Select an active brand from Brands, or choose an owned brand above.</p>
+        <app-empty-state
+          title="No active brand"
+          message="Select an active brand from Brands, or choose an owned brand above."
+        >
           <a class="button" routerLink="/brands">Manage brands</a>
-        </div>
+        </app-empty-state>
       } @else if (loading()) {
-        <p class="state">Loading products…</p>
+        <app-loading-state message="Loading products..." />
       } @else if (error()) {
-        <p class="state error" role="alert">{{ error() }}</p>
+        <app-error-state
+          title="Products are unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="load()"
+        />
       } @else if (!result()?.items?.length) {
-        <div class="state">
-          <h2>No products found</h2>
-          <p>Create a product or change the filters.</p>
-        </div>
+        <app-empty-state
+          title="No products found"
+          message="Create a product or change the filters."
+        />
       } @else {
         <div class="product-grid">
           @for (product of result()!.items; track product.id) {
@@ -99,7 +119,7 @@ import { ProductService } from './product.service';
                   <h2>
                     <a [routerLink]="['/products', product.id]">{{ product.name }}</a>
                   </h2>
-                  <p>{{ product.brand_name }} · {{ product.product_type }}</p>
+                  <p>{{ product.brand_name }} - {{ product.product_type }}</p>
                 </div>
                 <span class="badge">{{ product.status }}</span>
                 @if (product.is_featured) {
@@ -109,11 +129,11 @@ import { ProductService } from './product.service';
               <dl>
                 <div>
                   <dt>SKU</dt>
-                  <dd>{{ product.sku || '—' }}</dd>
+                  <dd>{{ product.sku || '-' }}</dd>
                 </div>
                 <div>
                   <dt>Category</dt>
-                  <dd>{{ product.category || '—' }}</dd>
+                  <dd>{{ product.category || '-' }}</dd>
                 </div>
                 <div>
                   <dt>Price</dt>
@@ -121,7 +141,7 @@ import { ProductService } from './product.service';
                     @if (product.price_amount && product.price_currency) {
                       {{ product.price_amount | currency: product.price_currency }}
                     } @else {
-                      —
+                      -
                     }
                   </dd>
                 </div>
@@ -163,7 +183,7 @@ import { ProductService } from './product.service';
             Previous
           </button>
           <span
-            >Page {{ result()!.page }} of {{ result()!.pages || 1 }} ·
+            >Page {{ result()!.page }} of {{ result()!.pages || 1 }} -
             {{ result()!.total }} products</span
           >
           <button

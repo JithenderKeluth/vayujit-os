@@ -94,8 +94,8 @@ import { CampaignService } from './campaign.service';
                 aria-describedby="fold-help"
               >
                 <option value="">Choose a fold</option>
-                <option value="0">Fold 0 · first occurrence · refresh preview</option>
-                <option value="1">Fold 1 · second occurrence · refresh preview</option>
+                <option value="0">Fold 0 - first occurrence - refresh preview</option>
+                <option value="1">Fold 1 - second occurrence - refresh preview</option>
               </select>
             </label>
             <p id="fold-help">
@@ -131,7 +131,7 @@ import { CampaignService } from './campaign.service';
                 (value.dst_classification === 'ambiguous_local_time' && selectedFold() === null)
               "
             >
-              {{ pending() ? 'Confirming…' : 'Confirm reschedule' }}
+              {{ pending() ? 'Confirming...' : 'Confirm reschedule' }}
             </button>
             <button type="button" class="secondary" (click)="preview()" [disabled]="pending()">
               Refresh preview
@@ -146,7 +146,7 @@ import { CampaignService } from './campaign.service';
           <ol>
             @for (item of history(); track item.id) {
               <li>
-                <strong>{{ item.status }}</strong> · {{ item.requested_local_datetime }} ({{
+                <strong>{{ item.status }}</strong> - {{ item.requested_local_datetime }} ({{
                   item.requested_timezone
                 }})
                 <span>{{ item.reason }}</span>

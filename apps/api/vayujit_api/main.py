@@ -37,6 +37,9 @@ from vayujit_api.intelligence.autonomous_router import router as intelligence_au
 from vayujit_api.intelligence.business_agent_router import (
     router as intelligence_business_agent_router,
 )
+from vayujit_api.intelligence.commerce_journey_router import (
+    router as intelligence_commerce_journey_router,
+)
 from vayujit_api.intelligence.competitor_change_router import (
     router as intelligence_competitor_change_router,
 )
@@ -135,13 +138,7 @@ def create_app() -> FastAPI:
     settings = get_settings()
     configure_logging(settings.log_level)
     application = FastAPI(title="VAYUJIT OS API", version=__version__)
-    application.add_middleware(
-        CORSMiddleware,
-        allow_origins=sorted(settings.allowed_origin_set),
-        allow_credentials=True,
-        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type", "X-Correlation-ID"],
-    )
+
     application.add_middleware(OriginProtectionMiddleware)
     application.add_middleware(SafetyMiddleware)
     application.add_middleware(OperationalMiddleware)
@@ -161,6 +158,15 @@ def create_app() -> FastAPI:
                 "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
             )
         return response
+
+    # Keep CORS outermost so allowed origins receive headers on error responses too.
+    application.add_middleware(
+        CORSMiddleware,
+        allow_origins=sorted(settings.allowed_origin_set),
+        allow_credentials=True,
+        allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "X-Correlation-ID"],
+    )
 
     install_exception_handlers(application)
     application.include_router(auth_router)
@@ -205,6 +211,7 @@ def create_app() -> FastAPI:
     application.include_router(intelligence_router)
     application.include_router(intelligence_autonomous_router)
     application.include_router(intelligence_business_agent_router)
+    application.include_router(intelligence_commerce_journey_router)
     application.include_router(intelligence_external_router)
     application.include_router(intelligence_economic_router)
     application.include_router(intelligence_economic_integration_router)

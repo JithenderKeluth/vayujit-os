@@ -2,27 +2,45 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import type { BrandSummary, CreateProductRequest, ProductType, WeightUnit } from '@vayujit/shared';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
 import { BrandService } from '../brands/brand.service';
 import { ProductService } from './product.service';
 
 @Component({
   selector: 'app-product-form',
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [
+    PageHeaderComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    ReactiveFormsModule,
+    RouterLink,
+  ],
   template: `
     <section class="page narrow">
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">Product Management</p>
-          <h1>{{ editing() ? 'Edit product' : 'Create product' }}</h1>
-        </div>
-      </header>
+      <app-page-header
+        eyebrow="Product management"
+        [title]="editing() ? 'Edit product' : 'Create product'"
+        [description]="
+          editing()
+            ? 'Update the product details used across your workspace.'
+            : 'Create a product as the source of truth for channels and research.'
+        "
+      />
       @if (loading()) {
-        <p class="state">Loading product…</p>
+        <app-loading-state message="Loading product..." />
       } @else if (!brands().length) {
-        <div class="state">
-          <h2>Create a brand first</h2>
+        <app-empty-state
+          title="Create a brand first"
+          message="Products belong to an owned brand before they can be published."
+        >
           <a class="button" routerLink="/brands/new">Create brand</a>
-        </div>
+        </app-empty-state>
       } @else {
         <form class="product-form" [formGroup]="form" (ngSubmit)="save()">
           <fieldset>
@@ -130,12 +148,12 @@ import { ProductService } from './product.service';
             <p class="error">Compare-at price must use a valid decimal format.</p>
           }
           @if (error()) {
-            <p class="error" role="alert">{{ error() }}</p>
+            <app-error-state title="Product could not be saved" [message]="error()" />
           }
           <div class="actions">
             <a class="button" [routerLink]="cancelUrl()">Cancel</a>
             <button class="button primary" type="submit" [disabled]="form.invalid || saving()">
-              {{ saving() ? 'Saving…' : 'Save product' }}
+              {{ saving() ? 'Saving...' : 'Save product' }}
             </button>
           </div>
         </form>

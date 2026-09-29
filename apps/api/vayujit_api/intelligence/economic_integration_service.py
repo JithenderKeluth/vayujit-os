@@ -3,13 +3,18 @@
 from __future__ import annotations
 
 import uuid
+from datetime import UTC, datetime
 from decimal import Decimal
+from typing import cast
 
 from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from vayujit_api.identity.models import User
+from vayujit_api.intelligence.business_agent_models import BusinessAgentGoal
+from vayujit_api.intelligence.cross_marketplace_models import CrossMarketplaceSupplier
+from vayujit_api.intelligence.due_diligence_models import SupplierDueDiligenceContext
 from vayujit_api.intelligence.economic_calculation_models import (
     EconomicCalculation,
     EconomicCalculationBreakdown,
@@ -24,6 +29,12 @@ from vayujit_api.intelligence.economic_scenario_models import (
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
 
 ECONOMICS_CAPABILITIES = {"sourcing_economics.inspect"}
+DECISION_ACTIONS = (
+    "PROCEED_TO_LAUNCH_PREPARATION",
+    "RESEARCH_FURTHER",
+    "RECONSIDER_SUPPLIERS",
+    "RECONSIDER_PRODUCT",
+)
 
 
 def _json(value: object) -> object:
@@ -277,3 +288,253 @@ def project_economics_for_opportunity(
         ),
         "external_writes": [],
     }
+
+
+def _selected_supplier_view(
+    db: Session, owner: User, opportunity_id: uuid.UUID
+) -> dict[str, object]:
+    """Project supplier verification without creating a second supplier authority."""
+    contexts = list(
+        db.scalars(
+            select(SupplierDueDiligenceContext)
+            .where(
+                SupplierDueDiligenceContext.owner_id == owner.id,
+                SupplierDueDiligenceContext.opportunity_id == opportunity_id,
+            )
+            .order_by(SupplierDueDiligenceContext.updated_at.desc())
+        )
+    )
+    supplier_ids = [row.supplier_id for row in contexts]
+    suppliers = (
+        {
+            row.id: row
+            for row in db.scalars(
+                select(CrossMarketplaceSupplier).where(
+                    CrossMarketplaceSupplier.id.in_(supplier_ids)
+                )
+            )
+        }
+        if supplier_ids
+        else {}
+    )
+    verified = sum(row.status in {"SUFFICIENT", "CLOSED"} for row in contexts)
+    return {
+        "shortlisted_count": len(contexts),
+        "verified_count": verified,
+        "readiness": "READY" if contexts and verified == len(contexts) else "NEEDS_REVIEW",
+        "items": [
+            {
+                "supplier_id": str(row.supplier_id),
+                "supplier_name": getattr(suppliers.get(row.supplier_id), "display_name", None)
+                or getattr(suppliers.get(row.supplier_id), "name", None)
+                or "UNKNOWN",
+                "due_diligence_status": row.status,
+                "provenance": "SUPPLIER_DUE_DILIGENCE",
+            }
+            for row in contexts
+        ],
+    }
+
+
+def _budget_fit(
+    db: Session, owner: User, calculation: dict[str, object] | None
+) -> dict[str, object]:
+    goal = db.scalar(
+        select(BusinessAgentGoal)
+        .where(BusinessAgentGoal.owner_id == owner.id)
+        .order_by(BusinessAgentGoal.updated_at.desc(), BusinessAgentGoal.created_at.desc())
+    )
+    context = (goal.structured_goal or {}).get("commerce_context", {}) if goal else {}
+    confirmed = bool((goal.provenance or {}).get("commerce_context_confirmed")) if goal else False
+    amount = context.get("budget_amount") if isinstance(context, dict) else None
+    currency = context.get("currency") if isinstance(context, dict) else None
+    total = calculation.get("total_included_cost") if calculation else None
+    scope = (
+        "Only modeled sourcing costs; launch, advertising, and working capital are excluded "
+        "unless explicitly modeled."
+    )
+    if not confirmed or amount is None or currency is None or total is None:
+        return {
+            "status": "UNKNOWN",
+            "budget": str(amount) if amount is not None else None,
+            "currency": currency,
+            "remaining_or_shortfall": None,
+            "scope": scope,
+            "provenance": "USER_CONFIRMED" if confirmed else "UNKNOWN",
+        }
+    try:
+        remaining = Decimal(str(amount)) - Decimal(str(total))
+    except Exception:
+        remaining = None
+    return {
+        "status": "WITHIN_BUDGET" if remaining is not None and remaining >= 0 else "SHORTFALL",
+        "budget": str(amount),
+        "currency": currency,
+        "remaining_or_shortfall": str(remaining) if remaining is not None else None,
+        "scope": scope,
+        "provenance": "USER_CONFIRMED",
+    }
+
+
+def decision_brief_for_opportunity(
+    db: Session,
+    owner: User,
+    opportunity_id: uuid.UUID,
+    economic_context_id: uuid.UUID | None = None,
+) -> dict[str, object]:
+    """Compose a human-readable brief from existing owner-scoped authorities."""
+    opportunity = db.scalar(
+        select(ProductOpportunity).where(
+            ProductOpportunity.id == opportunity_id,
+            ProductOpportunity.owner_id == owner.id,
+        )
+    )
+    if opportunity is None:
+        raise HTTPException(404, "Product opportunity not found.")
+    economics = project_economics_for_opportunity(
+        db, owner, opportunity_id, economic_context_id=economic_context_id
+    )
+    calculation = economics.get("calculation")
+    suppliers = _selected_supplier_view(db, owner, opportunity_id)
+    raw_gaps = economics.get("research_gaps")
+    gaps: list[dict[str, object]] = (
+        [row for row in raw_gaps if isinstance(row, dict)] if isinstance(raw_gaps, list) else []
+    )
+    if suppliers["readiness"] != "READY":
+        gaps.append(
+            {
+                "code": "SUPPLIER_VERIFICATION_REQUIRED",
+                "message": (
+                    "Verify every shortlisted supplier before relying on a sourcing decision."
+                ),
+                "provenance": "UNKNOWN",
+            }
+        )
+    if isinstance(calculation, dict):
+        for item in calculation.get("missing_inputs", []):
+            gaps.append({"code": "UNKNOWN_INPUT", "message": str(item), "provenance": "UNKNOWN"})
+        for item in calculation.get("stale_inputs", []):
+            gaps.append({"code": "STALE_INPUT", "message": str(item), "provenance": "STALE"})
+    raw_comparisons = economics.get("scenario_comparisons")
+    comparisons = (
+        [row for row in raw_comparisons if isinstance(row, dict)]
+        if isinstance(raw_comparisons, list)
+        else []
+    )
+    comparable = [
+        row
+        for row in comparisons
+        if row.get("comparability") in {"COMPARABLE", "PARTIALLY_COMPARABLE"}
+    ]
+    calc_status = calculation.get("status") if isinstance(calculation, dict) else None
+    if calc_status == "COMPLETE" and suppliers["readiness"] == "READY" and comparable:
+        readiness = "READY_FOR_HUMAN_DECISION"
+    elif calc_status in {"PARTIAL", "COMPLETE"} or comparisons:
+        readiness = "NEEDS_REVIEW"
+    else:
+        readiness = "NOT_READY"
+    budget_fit = _budget_fit(db, owner, calculation if isinstance(calculation, dict) else None)
+    risk = (
+        "HIGH" if gaps or (isinstance(calculation, dict) and calculation.get("warnings")) else "LOW"
+    )
+    goal = db.scalar(
+        select(BusinessAgentGoal)
+        .where(BusinessAgentGoal.owner_id == owner.id)
+        .order_by(BusinessAgentGoal.updated_at.desc(), BusinessAgentGoal.created_at.desc())
+    )
+    return {
+        "opportunity_id": str(opportunity.id),
+        "goal": {
+            "text": goal.raw_goal if goal else None,
+            "provenance": "USER_PROVIDED" if goal else "UNKNOWN",
+        },
+        "product": {
+            "name": opportunity.name,
+            "category": opportunity.category,
+            "marketplace": opportunity.target_marketplace,
+            "provenance": "USER_PROVIDED",
+        },
+        "suppliers": suppliers,
+        "economics": economics,
+        "budget_fit": budget_fit,
+        "risk": risk,
+        "evidence_completeness": "COMPLETE" if not gaps else "PARTIAL",
+        "decision_readiness": readiness,
+        "key_risks": [gap["message"] for gap in gaps],
+        "data_gaps": gaps,
+        "next_options": [
+            "PROCEED_TO_LAUNCH_PREPARATION",
+            "RESEARCH_FURTHER",
+            "RECONSIDER_SUPPLIERS",
+            "RECONSIDER_PRODUCT",
+        ],
+        "provenance": {
+            "opportunity_id": str(opportunity.id),
+            "economic_context_id": economics.get("economic_context_id"),
+            "calculation_id": calculation.get("id") if isinstance(calculation, dict) else None,
+            "source": "13A-13H / 8C-8E owner-scoped projections",
+        },
+        "external_writes": [],
+    }
+
+
+def record_journey_decision(
+    db: Session,
+    owner: User,
+    journey_id: uuid.UUID,
+    *,
+    opportunity_id: uuid.UUID,
+    action: str,
+    note: str | None = None,
+    economic_context_id: uuid.UUID | None = None,
+    scenario_id: uuid.UUID | None = None,
+    idempotency_key: str,
+) -> dict[str, object]:
+    if action not in DECISION_ACTIONS:
+        raise HTTPException(422, "Unsupported human journey decision.")
+    goal = db.scalar(
+        select(BusinessAgentGoal).where(
+            BusinessAgentGoal.id == journey_id,
+            BusinessAgentGoal.owner_id == owner.id,
+        )
+    )
+    if goal is None:
+        raise HTTPException(404, "Commerce journey not found.")
+    brief = decision_brief_for_opportunity(db, owner, opportunity_id, economic_context_id)
+    if (
+        action == "PROCEED_TO_LAUNCH_PREPARATION"
+        and brief["decision_readiness"] != "READY_FOR_HUMAN_DECISION"
+    ):
+        raise HTTPException(409, "Complete the evidence-backed decision brief before proceeding.")
+    provenance = dict(goal.provenance or {})
+    raw_history = provenance.get("commerce_decisions")
+    history: list[dict[str, object]] = (
+        [row for row in raw_history if isinstance(row, dict)]
+        if isinstance(raw_history, list)
+        else []
+    )
+    prior = next((row for row in history if row.get("idempotency_key") == idempotency_key), None)
+    if prior is not None:
+        return {"decision": prior, "brief": brief, "external_writes": []}
+    decision: dict[str, object] = {
+        "idempotency_key": idempotency_key,
+        "action": action,
+        "note": note,
+        "journey_id": str(journey_id),
+        "opportunity_id": str(opportunity_id),
+        "economic_context_id": (
+            str(economic_context_id)
+            if economic_context_id
+            else cast(dict[str, object], brief["provenance"]).get("economic_context_id")
+        ),
+        "scenario_id": str(scenario_id) if scenario_id else None,
+        "provenance": "HUMAN",
+        "created_at": datetime.now(UTC).isoformat(),
+        "external_writes": [],
+    }
+    history.append(decision)
+    provenance["commerce_decisions"] = history[-50:]
+    goal.provenance = provenance
+    goal.updated_at = datetime.now(UTC)
+    db.commit()
+    return {"decision": decision, "brief": brief, "external_writes": []}

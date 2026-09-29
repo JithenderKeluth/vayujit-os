@@ -122,7 +122,7 @@ type Json = any;
             @for (item of anomalies; track item.id) {
               <article>
                 <strong>{{ item.anomaly_type }}</strong
-                ><span>{{ item.severity }} · {{ item.status }}</span>
+                ><span>{{ item.severity }} - {{ item.status }}</span>
               </article>
             }
             @for (item of fatigue; track item.id) {

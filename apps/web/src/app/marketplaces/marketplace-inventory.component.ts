@@ -1,19 +1,37 @@
-﻿import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
 
 import { MarketplaceInventory, MarketplaceService } from './marketplace.service';
 
 @Component({
   selector: 'app-marketplace-inventory',
-  imports: [FormsModule],
+  imports: [
+    PageHeaderComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    FormsModule,
+  ],
   template: `
     <section class="marketplace-page">
-      <header>
-        <h1>Marketplace inventory</h1>
-        <p>Inventory writes are explicit; continuous synchronization is not enabled.</p>
-      </header>
+      <app-page-header
+        eyebrow="Sell · marketplace"
+        title="Marketplace inventory"
+        description="Inventory writes are explicit; continuous synchronization is not enabled."
+      />
       @if (error()) {
-        <p class="marketplace-error" role="alert">{{ error() }}</p>
+        <app-error-state
+          title="Marketplace inventory is unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="load()"
+        />
       }
       <div class="workspace-grid-form">
         <label
@@ -25,8 +43,14 @@ import { MarketplaceInventory, MarketplaceService } from './marketplace.service'
           </select></label
         ><label><input type="checkbox" [(ngModel)]="lowStockOnly" /> Low stock only</label>
       </div>
+      @if (loading()) {
+        <app-loading-state message="Loading saved marketplace data..." />
+      }
       @if (!filteredItems().length && !loading()) {
-        <p class="marketplace-empty">No inventory snapshots match the filters.</p>
+        <app-empty-state
+          title="No inventory snapshots"
+          message="No inventory snapshots match the filters."
+        />
       }
       <div class="marketplace-table">
         <table>

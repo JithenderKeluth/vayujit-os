@@ -3,6 +3,9 @@ import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
+import { ErrorStateComponent } from '../shared/state-components';
 
 type Plan = {
   id: string;
@@ -17,19 +20,23 @@ type Plan = {
 @Component({
   selector: 'app-marketing-plan',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    BusinessEntitySelectorsComponent,
+    CommonModule,
+    FormsModule,
+    PageHeaderComponent,
+    ErrorStateComponent,
+  ],
   template: `
     <main class="marketing-shell" aria-labelledby="marketing-title">
-      <header>
-        <p class="eyebrow">Ads &amp; Marketing Automation</p>
-        <h1 id="marketing-title">Cross-channel marketing plans</h1>
-        <p class="lede">
-          Coordinate approved content, marketplace Ads, social publishing, Campaigns, and Calendar
-          from one version-pinned plan.
-        </p>
-      </header>
+      <app-page-header
+        eyebrow="Grow / plans"
+        title="Cross-channel marketing plans"
+        description="Coordinate approved content, marketplace ads, social publishing, campaigns, and calendar from one version-pinned plan."
+        headingId="marketing-title"
+      />
       @if (error()) {
-        <p class="error" role="alert">{{ error() }}</p>
+        <app-error-state title="Marketing plans are unavailable" [message]="error()" />
       }
       <section class="card" aria-labelledby="create-title">
         <h2 id="create-title">Plan readiness</h2>
@@ -42,7 +49,7 @@ type Plan = {
             @for (channel of value.channels; track channel) {
               <span>{{ channel }}</span>
             }
-            <span class="unsupported">meesho · unsupported</span>
+            <span class="unsupported">meesho - unsupported</span>
           </div>
         }
       </section>
@@ -69,12 +76,13 @@ type Plan = {
           <div class="wizard-panel">
             <h3>{{ steps[wizardStep()] }}</h3>
             @if (wizardStep() === 0) {
-              <label
-                >Brand ID <input [(ngModel)]="draft.brand_id" placeholder="Brand UUID"
-              /></label>
-              <label
-                >Product ID <input [(ngModel)]="draft.product_id" placeholder="Product UUID"
-              /></label>
+              <app-business-entity-selectors
+                [showBrand]="true"
+                [productId]="draft.product_id"
+                [brandId]="draft.brand_id"
+                (productIdChange)="draft.product_id = $event"
+                (brandIdChange)="draft.brand_id = $event"
+              />
             }
             @if (wizardStep() === 1) {
               <label
@@ -112,7 +120,7 @@ type Plan = {
               }
             </div>
             @if (wizardError()) {
-              <p class="error" role="alert">{{ wizardError() }}</p>
+              <app-error-state title="Plan could not be created" [message]="wizardError()" />
             }
           </div>
         }
@@ -133,14 +141,14 @@ type Plan = {
               <article class="plan">
                 <div>
                   <h3>{{ plan.objective | titlecase }}</h3>
-                  <p>{{ plan.target_channels.join(' · ') }}</p>
+                  <p>{{ plan.target_channels.join(' - ') }}</p>
                 </div>
                 <div class="plan-meta">
                   <strong>{{ plan.status | titlecase }}</strong
                   ><span>v{{ plan.current_version }}</span
                   ><span
-                    >{{ plan.budget_envelope.total || '0' }}
-                    {{ plan.budget_envelope.currency || 'INR' }}</span
+                    >{{ plan.budget_envelope.total ?? 'Not available' }}
+                    {{ plan.budget_envelope.currency || 'Currency not established' }}</span
                   >
                 </div>
               </article>

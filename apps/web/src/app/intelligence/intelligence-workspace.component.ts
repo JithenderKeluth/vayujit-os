@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
+import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
 import {
   IntelligenceCandidate,
   IntelligenceMission,
@@ -25,7 +26,14 @@ import {
 
 @Component({
   selector: 'app-intelligence-workspace',
-  imports: [BreadcrumbsComponent, RouterLink, FormsModule, JsonPipe, SupplierJourneyNavComponent],
+  imports: [
+    BreadcrumbsComponent,
+    RouterLink,
+    FormsModule,
+    JsonPipe,
+    SupplierJourneyNavComponent,
+    CommerceJourneyContextComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: ` <main class="intelligence-page" aria-labelledby="intelligence-title">
     <app-breadcrumbs [items]="breadcrumbs" />
@@ -42,6 +50,78 @@ import {
       >
     </header>
     <app-supplier-journey-nav current="discover" />
+    <app-commerce-journey-context />
+    <section class="advanced-intelligence-home panel" aria-labelledby="advanced-home-title">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ADVANCED INTELLIGENCE</p>
+          <h2 id="advanced-home-title">Research by purpose, then inspect the evidence</h2>
+          <p class="muted">
+            Guided Commerce stays focused on decisions. This layer is for deeper research, source
+            inspection, contradictions, freshness, and bounded specialist workflows.
+          </p>
+        </div>
+        <a routerLink="/dashboard">Return to Guided Commerce</a>
+      </div>
+      <div class="intelligence-purpose-grid">
+        <article>
+          <p class="eyebrow">MARKET INTELLIGENCE</p>
+          <h3>Understand the market signals</h3>
+          <p>
+            Observed trends, competitor evidence, and customer feedback remain separate evidence
+            types.
+          </p>
+          <div class="purpose-links">
+            <a routerLink="/intelligence/trends">Trend Intelligence</a
+            ><a routerLink="/intelligence/competitors">Competitor Intelligence</a
+            ><a routerLink="/intelligence/reviews">Customer Reviews</a>
+          </div>
+        </article>
+        <article>
+          <p class="eyebrow">SOURCE INTELLIGENCE</p>
+          <h3>Understand suppliers and websites</h3>
+          <p>Inspect supplier identity, website findings, claims, verification, and provenance.</p>
+          <div class="purpose-links">
+            <a routerLink="/intelligence/cross-marketplace">Supplier Intelligence</a
+            ><a routerLink="/intelligence/websites">Website Intelligence</a>
+          </div>
+        </article>
+        <article>
+          <p class="eyebrow">RESEARCH OPERATIONS</p>
+          <h3>Run bounded research</h3>
+          <p>
+            Start explicit missions or approved external research without bypassing policy controls.
+          </p>
+          <div class="purpose-links">
+            <a routerLink="/intelligence/autonomous">Autonomous Research</a
+            ><a routerLink="/intelligence/external">External Research</a>
+          </div>
+        </article>
+        <article>
+          <p class="eyebrow">EVIDENCE &amp; DIAGNOSTICS</p>
+          <h3>Review trust and recovery</h3>
+          <p>
+            Use the existing evidence, reports, recovery, and operations views when a finding needs
+            deeper inspection.
+          </p>
+          <div class="purpose-links">
+            <a
+              href="#evidence-workspace"
+              (click)="activateSection($event, 'evidence', 'evidence-workspace')"
+              >Sources &amp; evidence</a
+            ><a
+              href="#history-workspace"
+              (click)="activateSection($event, 'history', 'history-workspace')"
+              >Research history</a
+            >
+          </div>
+        </article>
+      </div>
+      <div class="semantic-note">
+        <strong>Trust boundary:</strong> opening a specialist page never starts research
+        automatically. Research remains explicit, bounded, and provider-policy controlled.
+      </div>
+    </section>
     @if (error()) {
       <p class="error" role="alert">{{ error() }}</p>
     }

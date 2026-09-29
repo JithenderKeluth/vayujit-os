@@ -184,6 +184,7 @@ describe('BusinessAgentWorkspaceComponent', () => {
     );
     expect(element.textContent).toContain('Advanced research options');
     expect(element.textContent).toContain('Include Trend Intelligence');
+    expect(element.textContent).toContain('Local demo data');
     expect(element.querySelector('input[name="provider"]')).toBeNull();
   });
 
@@ -230,6 +231,9 @@ describe('BusinessAgentWorkspaceComponent', () => {
     const element = fixture.nativeElement as HTMLElement;
     const text = element.textContent ?? '';
     expect(text).toContain('Research progress');
+    expect(text).toContain('What VAYUJIT is doing');
+    expect(text).toContain('What has been found');
+    expect(text).toContain('What is still missing');
     expect(text).toContain('1 of 2 steps complete');
     expect(text).toContain('VAYUJIT is waiting for your approval');
     expect(text).toContain('Decision brief');
@@ -239,6 +243,22 @@ describe('BusinessAgentWorkspaceComponent', () => {
     expect(text).toContain('Signals disagree on direction.');
     expect(element.querySelector('[data-status="WAITING_APPROVAL"]')).toBeTruthy();
     expect(element.querySelector('app-evidence-card')).toBeTruthy();
+  });
+  it('bounds previous goals behind a collapsed history disclosure', async () => {
+    const fixture = await create();
+    const component = fixture.componentInstance;
+    component.goals.set([
+      goal,
+      { ...goal, id: 'goal-2', raw_goal: 'Earlier product research goal.' },
+      { ...goal, id: 'goal-3', raw_goal: 'Older supplier research goal.' },
+    ]);
+    fixture.detectChanges();
+    const element = fixture.nativeElement as HTMLElement;
+    const previous = element.querySelector('details.previous-research') as HTMLDetailsElement;
+    expect(previous).toBeTruthy();
+    expect(previous.open).toBe(false);
+    expect(previous.textContent).toContain('Earlier product research goal.');
+    expect(element.querySelectorAll('.goal-card')).toHaveLength(1);
   });
 
   it('keeps completed and failed work inspectable with runtime-gated controls', async () => {

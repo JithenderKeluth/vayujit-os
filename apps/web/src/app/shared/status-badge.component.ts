@@ -7,11 +7,12 @@ import type { StatusTone } from './ux-foundation.types';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<span
-    class="ux-status"
-    [class]="'ux-status tone-' + tone()"
+    class="ux-status vj-status-badge"
+    [class]="'ux-status vj-status-badge tone-' + tone()"
     [attr.data-status]="status()"
+    [attr.aria-label]="displayLabel()"
     [title]="tooltip()"
-    >{{ label() }}</span
+    >{{ displayLabel() }}</span
   >`,
   styles: `
     :host {
@@ -54,5 +55,22 @@ export class StatusBadgeComponent {
   readonly status = input.required<string>();
   readonly label = input('');
   readonly tone = input<StatusTone>('neutral');
+  readonly displayLabel = computed(() => {
+    const value = this.label() || this.status();
+    if (!/^[A-Z0-9_ -]+$/.test(value)) return value;
+    const labels: Record<string, string> = {
+      PENDING_REVIEW: 'Needs review',
+      WAITING_FOR_APPROVAL: 'Waiting for approval',
+      RETRYABLE: 'Ready to retry',
+      FAILED: 'Failed',
+      BLOCKED: 'Blocked',
+      COMPLETED: 'Complete',
+      SUCCEEDED: 'Complete',
+      READY: 'Ready',
+      IN_PROGRESS: 'In progress',
+      REVIEW_REQUIRED: 'Needs review',
+    };
+    return labels[value] ?? value;
+  });
   readonly tooltip = computed(() => `Status: ${this.status()}`);
 }

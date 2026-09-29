@@ -1,4 +1,7 @@
 import { HttpClient } from '@angular/common/http';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
+import { EmptyStateComponent, ErrorStateComponent } from '../shared/state-components';
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -118,21 +121,28 @@ interface PriceDraft {
 
 @Component({
   selector: 'app-flipkart-workspace',
-  imports: [FormsModule, RouterLink],
+  imports: [
+    BusinessEntitySelectorsComponent,
+    FormsModule,
+    RouterLink,
+    PageHeaderComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+  ],
   template: `
     <section class="marketplace-page">
-      <header>
-        <h1>Flipkart operations</h1>
-        <p>
-          Local fake-certified workspace. Live Flipkart validation is
-          <strong>not performed</strong>.
-        </p>
-      </header>
+      <app-page-header
+        eyebrow="Sell / Flipkart"
+        title="Flipkart operations"
+        description="Local demo workspace. Live Flipkart validation is not performed."
+      >
+        <span page-header-actions class="badge">Local demo mode - not live channel data</span>
+      </app-page-header>
       @if (message()) {
         <p class="marketplace-success" role="status">{{ message() }}</p>
       }
       @if (error()) {
-        <p class="marketplace-error" role="alert">{{ error() }}</p>
+        <app-error-state title="Flipkart workspace is unavailable" [message]="error()" />
       }
 
       <nav class="workspace-tabs" aria-label="Flipkart workspace sections">
@@ -166,7 +176,10 @@ interface PriceDraft {
             <button type="submit">Configure</button>
           </form>
           @if (!accounts().length) {
-            <p class="marketplace-empty">No Flipkart account configured.</p>
+            <app-empty-state
+              title="No Flipkart account configured"
+              message="Add a Flipkart account before preparing a channel listing."
+            />
           }
           @for (account of accounts(); track account.id) {
             <article class="workspace-account">
@@ -180,7 +193,7 @@ interface PriceDraft {
                 ><span>{{ account.enabled ? 'enabled' : 'disabled' }}</span>
               </div>
               <small
-                >Last validated: {{ account.last_validated_at || 'Never' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· NOT
+                >Last validated: {{ account.last_validated_at || 'Never' }} - NOT
                 LIVE-VALIDATED</small
               >
               <div class="marketplace-actions">
@@ -221,9 +234,7 @@ interface PriceDraft {
                   <tr>
                     <td>{{ listing.title }}</td>
                     <td>{{ listing.marketplace_sku }}</td>
-                    <td>
-                      {{ listing.status }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· {{ listing.publication_state }}
-                    </td>
+                    <td>{{ listing.status }} - {{ listing.publication_state }}</td>
                     <td>{{ listing.remote_listing_id || 'Not submitted' }}</td>
                     <td><button type="button" (click)="selectListing(listing)">Edit</button></td>
                   </tr>
@@ -257,12 +268,16 @@ interface PriceDraft {
                 }
               </select></label
             >
-            <label
-              >Approved Artifact ID<input
-                name="artifact"
-                [(ngModel)]="listingDraft.artifact_id"
-                required
-            /></label>
+            '
+            <app-business-entity-selectors
+              [showProduct]="false"
+              [showArtifact]="true"
+              [approvedOnly]="true"
+              [productId]="listingDraft.product_id"
+              [artifactId]="listingDraft.artifact_id"
+              artifactLabel="Approved listing content"
+              (artifactIdChange)="listingDraft.artifact_id = $event"
+            />'
             <label>Title<input name="title" [(ngModel)]="listingDraft.title" required /></label>
             <label
               >Category<select
@@ -290,8 +305,8 @@ interface PriceDraft {
           <section class="marketplace-card">
             <h2>Listing editor: {{ listing.title }}</h2>
             <p>
-              Product channel ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· SKU
-              {{ listing.marketplace_sku }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Artifact
+              Product channel - SKU
+              {{ listing.marketplace_sku }} - Artifact
               {{ listing.content_artifact_id || 'not attached' }}
             </p>
             <div class="workspace-tabs inner-tabs" aria-label="Listing editor sections">
@@ -367,7 +382,7 @@ interface PriceDraft {
                 <button type="submit">Build variant matrix</button>
               </form>
               @if (matrixError()) {
-                <p class="marketplace-error" role="alert">{{ matrixError() }}</p>
+                <app-error-state title="Variant setup needs attention" [message]="matrixError()" />
               }
               <div class="marketplace-table">
                 <table>
@@ -460,12 +475,14 @@ interface PriceDraft {
             }
             @if (editorSection() === 'Media') {
               <form class="workspace-grid-form" (ngSubmit)="addMedia()">
-                <label
-                  >Media asset ID<input
-                    name="mediaId"
-                    [(ngModel)]="mediaDraft.media_id"
-                    required /></label
-                ><label
+                <app-business-entity-selectors
+                  [showProduct]="false"
+                  [showMedia]="true"
+                  [productId]="listingDraft.product_id"
+                  [mediaIds]="mediaDraft.media_id ? [mediaDraft.media_id] : []"
+                  mediaLabel="Approved media asset"
+                  (mediaIdsChange)="mediaDraft.media_id = $event[0] || ''"
+                /><label
                   >Alt/internal label<input name="alt" [(ngModel)]="mediaDraft.alt_text" /></label
                 ><label
                   >Position<input
@@ -521,8 +538,7 @@ interface PriceDraft {
               </form>
               <p>
                 Remote quantity:
-                {{ inventory()?.marketplace_reported_quantity ?? 'Unknown' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-                State:
+                {{ inventory()?.marketplace_reported_quantity ?? 'Unknown' }} - State:
                 {{ inventory()?.synchronization_status || 'Not synchronized' }}
               </p>
             }
@@ -574,11 +590,9 @@ interface PriceDraft {
                 @for (field of value.fields || []; track field.path) {
                   <p>
                     {{ field.path }}: local
-                    {{ field.local || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }}
-                    ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· remote
-                    {{ field.remote || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }} ({{
-                      field.classification
-                    }})
+                    {{ field.local || 'Not available' }}
+                    - remote
+                    {{ field.remote || 'Not available' }} ({{ field.classification }})
                   </p>
                 }
               </div>
@@ -617,7 +631,7 @@ interface PriceDraft {
                       {{ order.fulfilments?.[0]?.tracking_reference || '' }}
                     </td>
                     <td>
-                      {{ order.totals?.total || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }}
+                      {{ order.totals?.total || 'Not available' }}
                       {{ order.totals?.currency || '' }}
                     </td>
                     <td>{{ order.returns?.length || 0 }} / {{ order.refunds?.length || 0 }}</td>
@@ -651,7 +665,7 @@ interface PriceDraft {
                 @for (item of settlements(); track item.id) {
                   <tr>
                     <td>
-                      {{ item.period_start }} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã…â€œ
+                      {{ item.period_start }} -
                       {{ item.period_end }}
                     </td>
                     <td>{{ item.status }}</td>

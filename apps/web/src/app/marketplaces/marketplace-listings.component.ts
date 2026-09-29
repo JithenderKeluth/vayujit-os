@@ -7,6 +7,7 @@ import {
   LoadingStateComponent,
 } from '../shared/state-components';
 import { StatusBadgeComponent } from '../shared/status-badge.component';
+import { PageHeaderComponent } from '../shared/page-header.component';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 import { MarketplaceListing, MarketplaceService } from './marketplace.service';
 
@@ -18,14 +19,16 @@ import { MarketplaceListing, MarketplaceService } from './marketplace.service';
     EmptyStateComponent,
     ErrorStateComponent,
     LoadingStateComponent,
+    PageHeaderComponent,
     StatusBadgeComponent,
   ],
   template: `<section class="marketplace-page">
     <app-breadcrumbs [items]="breadcrumbs" />
-    <header>
-      <h1>Marketplace listings</h1>
-      <p>Review channel-specific listing state without replacing the Product source of truth.</p>
-    </header>
+    <app-page-header
+      eyebrow="Sell · marketplace"
+      title="Marketplace listings"
+      description="Review channel-specific listing state without replacing the product source of truth."
+    />
     <app-commerce-journey-nav current="listings" />
     @if (error()) {
       <app-error-state
@@ -60,7 +63,7 @@ import { MarketplaceListing, MarketplaceService } from './marketplace.service';
             <tr>
               <td>{{ marketplaceLabel(item.marketplace) }}</td>
               <td>{{ item.title }}</td>
-              <td>{{ item.marketplace_sku || '—' }}</td>
+              <td>{{ item.marketplace_sku || '-' }}</td>
               <td>
                 <app-status-badge [status]="item.status" [label]="item.status" tone="info" />
               </td>

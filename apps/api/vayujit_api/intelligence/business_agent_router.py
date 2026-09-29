@@ -24,7 +24,7 @@ from vayujit_api.intelligence.business_agent_models import (
     BusinessAgentToolInvocation,
     agent_now,
 )
-from vayujit_api.intelligence.business_agent_registry import CAPABILITY_REGISTRY
+from vayujit_api.intelligence.business_agent_registry import CAPABILITY_REGISTRY, business_copy
 from vayujit_api.intelligence.economic_integration_service import ECONOMICS_CAPABILITIES
 from vayujit_api.intelligence.trend_business_agent_service import TREND_CAPABILITIES
 from vayujit_api.intelligence.review_business_agent_service import (
@@ -552,6 +552,15 @@ def run_retry(run_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
     run.status = "QUEUED"
     run.failure = {}
     run.updated_at = agent_now()
+    for step in db.scalars(
+        select(BusinessAgentStep).where(
+            BusinessAgentStep.plan_id == run.plan_id,
+            BusinessAgentStep.owner_id == owner.id,
+        )
+    ):
+        if step.status in {"FAILED", "BLOCKED"}:
+            step.status = "QUEUED"
+            step.result = {}
     db.commit()
     return _run_payload(db, execute_run(db, owner, run), owner)
 
@@ -693,6 +702,15 @@ def run_resume(run_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
         raise HTTPException(409, "Terminal runs cannot be resumed.")
     run.status = "QUEUED"
     run.updated_at = agent_now()
+    for step in db.scalars(
+        select(BusinessAgentStep).where(
+            BusinessAgentStep.plan_id == run.plan_id,
+            BusinessAgentStep.owner_id == owner.id,
+        )
+    ):
+        if step.status in {"FAILED", "BLOCKED"}:
+            step.status = "QUEUED"
+            step.result = {}
     db.commit()
     return _run_payload(db, execute_run(db, owner, run), owner)
 

@@ -49,6 +49,8 @@ class SupplierResearchCreate(BaseModel):
     excluded_terms: list[str] = Field(default_factory=list, max_length=10)
     max_candidates: int = Field(default=10, ge=1, le=20)
     research_depth: Literal["summary", "standard"] = "standard"
+    mode: Literal["LOCAL_FIXTURE", "LIVE_READ_ONLY"] = "LOCAL_FIXTURE"
+    approved_domains: list[str] = Field(default_factory=list, max_length=20)
     idempotency_key: str | None = Field(default=None, max_length=180)
 
     @field_validator("product_query", "category", "country", "region")

@@ -1,4 +1,4 @@
-﻿import { DatePipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -7,6 +7,7 @@ import { environment } from '../../environments/environment';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
 import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
+import { PageHeaderComponent } from '../shared/page-header.component';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 
 type MarketplaceVideoUsage = {
@@ -44,19 +45,20 @@ type ProductMediaItem = {
     DatePipe,
     ErrorStateComponent,
     LoadingStateComponent,
+    PageHeaderComponent,
     RouterLink,
   ],
   template: `
     <section class="media-page" aria-labelledby="product-media-title">
       <app-breadcrumbs [items]="breadcrumbs" />
-      <header class="media-header">
-        <div>
-          <p class="eyebrow">Product Media</p>
-          <h1 id="product-media-title">Image and Video usage</h1>
-          <p>Review original assets, immutable AI versions, and marketplace Video handoffs.</p>
-        </div>
-        <a routerLink="../" class="button">Back to product</a>
-      </header>
+      <app-page-header
+        eyebrow="Product / media"
+        title="Image and video usage"
+        description="Review original assets, immutable AI versions, and marketplace video handoffs."
+        headingId="product-media-title"
+      >
+        <a page-header-actions routerLink="../" class="button">Back to product</a>
+      </app-page-header>
       <app-commerce-journey-nav current="images" />
       @if (error()) {
         <app-error-state title="Product media is unavailable" [message]="error()" />

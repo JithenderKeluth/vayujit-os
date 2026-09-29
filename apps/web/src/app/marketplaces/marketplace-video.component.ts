@@ -5,6 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import {
+  BlockedStateComponent,
+  EmptyStateComponent,
+  ErrorStateComponent,
+} from '../shared/state-components';
 
 interface Account {
   id: string;
@@ -130,29 +136,42 @@ interface Diagnostics {
 
 @Component({
   selector: 'app-marketplace-video',
-  imports: [DatePipe, FormsModule, RouterLink],
+  imports: [
+    DatePipe,
+    FormsModule,
+    RouterLink,
+    PageHeaderComponent,
+    BlockedStateComponent,
+    ErrorStateComponent,
+    EmptyStateComponent,
+  ],
   template: `
     <section class="marketplace-page video-workspace" aria-labelledby="marketplace-video-heading">
-      <header class="workspace-header">
-        <div>
-          <p class="eyebrow">Marketplace Video</p>
-          <h1 id="marketplace-video-heading">Local Video attachment workspace</h1>
-          <p>One normalized workflow for Amazon, Flipkart, and Meesho.</p>
-        </div>
-        <div class="workspace-actions">
-          <span class="certified-badge">Local Fake-Certified Marketplace Workflow</span>
+      <app-page-header
+        eyebrow="Sell / marketplace video"
+        title="Marketplace video attachment"
+        description="One normalized workflow for Amazon, Flipkart, and Meesho."
+        headingId="marketplace-video-heading"
+      >
+        <div page-header-actions class="workspace-actions">
+          <span class="certified-badge">Local demo mode - not live marketplace data</span>
           <button type="button" (click)="load()" [disabled]="loading()">Refresh data</button>
         </div>
-      </header>
+      </app-page-header>
       <p class="marketplace-callout">
         {{ capabilities()?.ruleset || 'Server-derived capability rules' }}. No live marketplace API
         is contacted.
       </p>
       @if (loading()) {
-        <p class="marketplace-callout" role="status">Loading Marketplace Video data…</p>
+        <p class="marketplace-callout" role="status">Loading Marketplace Video data...</p>
       }
       @if (error()) {
-        <p class="marketplace-error" role="alert">{{ error() }}</p>
+        <app-error-state
+          title="Marketplace video is unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="load()"
+        />
       }
       @if (message()) {
         <p class="marketplace-success" role="status">{{ message() }}</p>
@@ -251,7 +270,7 @@ interface Diagnostics {
               <option value="">Select an account</option>
               @for (account of accounts(); track account.id) {
                 <option [value]="account.id">
-                  {{ account.marketplace }} · {{ account.display_name }}
+                  {{ account.marketplace }} - {{ account.display_name }}
                 </option>
               }
             </select>
@@ -266,7 +285,7 @@ interface Diagnostics {
               <option value="">Select a Video-capable listing</option>
               @for (listing of eligibleListings(); track listing.id) {
                 <option [value]="listing.id">
-                  {{ listing.marketplace }} · {{ listing.title }} ·
+                  {{ listing.marketplace }} - {{ listing.title }} -
                   {{ listing.marketplace_sku || 'no SKU' }}
                 </option>
               }
@@ -278,7 +297,7 @@ interface Diagnostics {
               <option value="">Select an exact approved Video</option>
               @for (video of eligibleVideos(); track video.id) {
                 <option [value]="video.id">
-                  {{ video.video_type }} · {{ video.id }} · v{{ videoVersion(video) }}
+                  {{ video.video_type }} - {{ video.id }} - v{{ videoVersion(video) }}
                 </option>
               }
             </select>
@@ -295,25 +314,28 @@ interface Diagnostics {
           }}
         </p>
         @if (!accounts().length) {
-          <p class="marketplace-empty">
-            No marketplace account. Configure one before attaching a Video.
-          </p>
+          <app-empty-state
+            title="No marketplace account"
+            message="Configure an account before attaching a video."
+          />
         }
         @if (accounts().length && !eligibleListings().length) {
-          <p class="marketplace-empty">
-            No Video-capable listing is ready. Create or activate a listing first.
-          </p>
+          <app-empty-state
+            title="No ready listing"
+            message="Create or activate a listing before attaching a video."
+          />
         }
         @if (accounts().length && !eligibleVideos().length) {
-          <p class="marketplace-empty">
-            No approved Video Output is available for this owner. Generate and approve a Video
-            first.
-          </p>
+          <app-empty-state
+            title="No approved video"
+            message="Generate and approve a video before attaching it."
+          />
         }
         @if (selectedAccount() && !accountReady()) {
-          <p class="marketplace-error" role="alert">
-            This account is disabled or not validated; attachment is blocked.
-          </p>
+          <app-blocked-state
+            title="Attachment blocked"
+            reason="This account is disabled or not validated."
+          />
         }
         <div class="marketplace-actions">
           <button type="button" (click)="preview()" [disabled]="!canPreview() || loading()">
@@ -327,11 +349,11 @@ interface Diagnostics {
       @if (previewResult(); as preview) {
         <section class="marketplace-card preview-card" aria-labelledby="preview-heading">
           <h2 id="preview-heading">Attachment preview</h2>
-          <p class="preview-label">Preview only — no marketplace change has been made.</p>
+          <p class="preview-label">Preview only - no marketplace change has been made.</p>
           <div class="readiness-grid">
             <div>
               <h3>Target</h3>
-              <p>{{ preview.marketplace }} · {{ listingTitle(preview.listing_id) }}</p>
+              <p>{{ preview.marketplace }} - {{ listingTitle(preview.listing_id) }}</p>
               <p>SKU: {{ preview.marketplace_sku || 'not supplied' }}</p>
               <p>Account: {{ accountName(preview.account_id) }}</p>
             </div>
@@ -344,11 +366,11 @@ interface Diagnostics {
                 Media <code>{{ preview.video_media_id }}</code>
               </p>
               <p>
-                Version {{ preview.video_version }} · {{ preview.media.duration_seconds || '—' }}s ·
-                {{ preview.media.aspect_ratio || '—' }}
+                Version {{ preview.video_version }} - {{ preview.media.duration_seconds || '-' }}s -
+                {{ preview.media.aspect_ratio || '-' }}
               </p>
               <p>
-                {{ preview.media.width || '—' }}×{{ preview.media.height || '—' }} ·
+                {{ preview.media.width || '-' }}×{{ preview.media.height || '-' }} -
                 {{ preview.media.mime_type || 'unknown' }}
               </p>
             </div>
@@ -362,15 +384,15 @@ interface Diagnostics {
             </div>
           </div>
           <div class="video-placeholder" role="img" aria-label="Approved Video preview">
-            Approved Video preview · {{ preview.video_output_id }}
+            Approved Video preview - {{ preview.video_output_id }}
           </div>
           <p>
-            Intended mutation: {{ preview.intended_mutation || 'attach_video' }} · fingerprint
+            Intended mutation: {{ preview.intended_mutation || 'attach_video' }} - fingerprint
             <code>{{ preview.fingerprint }}</code>
           </p>
           <div class="marketplace-actions">
             <button type="button" (click)="confirm()" [disabled]="!preview.ready || confirming()">
-              {{ confirming() ? 'Submitting…' : 'Confirm attachment' }}</button
+              {{ confirming() ? 'Submitting...' : 'Confirm attachment' }}</button
             ><button type="button" class="secondary-button" (click)="previewResult.set(null)">
               Close preview
             </button>
@@ -381,10 +403,10 @@ interface Diagnostics {
       <section class="marketplace-card" aria-labelledby="mapping-heading">
         <h2 id="mapping-heading">Video Attachments</h2>
         @if (!mappings().length) {
-          <p class="marketplace-empty">
-            No active Video mappings yet. Select an account, listing, and approved Video to preview
-            an attachment.
-          </p>
+          <app-empty-state
+            title="No video mappings yet"
+            message="Select an account, listing, and approved video to preview an attachment."
+          />
         }
         @if (mappings().length) {
           <div class="marketplace-table">
@@ -437,7 +459,10 @@ interface Diagnostics {
       <section class="marketplace-card" aria-labelledby="operations-heading">
         <h2 id="operations-heading">Pending Operations & Recovery</h2>
         @if (!jobs().length) {
-          <p class="marketplace-empty">No pending, processing, or completed Video operations.</p>
+          <app-empty-state
+            title="No video operations"
+            message="No pending, processing, or completed video operations."
+          />
         }
         @if (jobs().length) {
           <div class="marketplace-table">
@@ -462,7 +487,7 @@ interface Diagnostics {
                     <td>{{ job.operation }}</td>
                     <td>{{ job.state }}</td>
                     <td>{{ job.attempt_count }}</td>
-                    <td>{{ job.safe_error_message || '—' }}</td>
+                    <td>{{ job.safe_error_message || '-' }}</td>
                     <td>
                       <button type="button" (click)="openRecovery(job)">Open recovery</button>
                     </td>
@@ -477,7 +502,7 @@ interface Diagnostics {
         }
         @for (item of recovery(); track item.job_id) {
           <article class="recovery-row">
-            <h3>{{ item.marketplace }} · {{ item.error_code || 'Video failure' }}</h3>
+            <h3>{{ item.marketplace }} - {{ item.error_code || 'Video failure' }}</h3>
             <p>{{ item.safe_error_message || 'Review the operation safely.' }}</p>
             <p>Available actions: {{ item.available_actions.join(', ') }}</p>
             <div class="marketplace-actions">
@@ -501,9 +526,10 @@ interface Diagnostics {
       <section class="marketplace-card" aria-labelledby="history-heading">
         <h2 id="history-heading">History</h2>
         @if (!history().length) {
-          <p class="marketplace-empty">
-            No Video history yet. Preview and confirm an attachment to create an auditable event.
-          </p>
+          <app-empty-state
+            title="No video history yet"
+            message="Preview and confirm an attachment to create an auditable event."
+          />
         }
         @if (history().length) {
           <div class="marketplace-table">
@@ -972,13 +998,13 @@ export class MarketplaceVideoComponent {
     return this.listings().find((item) => item.id === id)?.marketplace_sku || 'SKU unavailable';
   }
   accountSummary(account: Account): string {
-    return `${account.marketplace} · ${account.enabled ? 'enabled' : 'disabled'} · validation ${account.validation_status} · ${account.environment} · Video ${account.capabilities.includes('video') ? 'supported' : 'not declared'}`;
+    return `${account.marketplace} - ${account.enabled ? 'enabled' : 'disabled'} - validation ${account.validation_status} - ${account.environment} - Video ${account.capabilities.includes('video') ? 'supported' : 'not declared'}`;
   }
   listingSummary(listing: Listing): string {
-    return `${listing.marketplace} · ${listing.title} · ${listing.marketplace_sku || 'no SKU'} · ${listing.status} · drift ${listing.drift_state}`;
+    return `${listing.marketplace} - ${listing.title} - ${listing.marketplace_sku || 'no SKU'} - ${listing.status} - drift ${listing.drift_state}`;
   }
   text(value: unknown): string {
-    return typeof value === 'string' ? value : value == null ? '—' : JSON.stringify(value);
+    return typeof value === 'string' ? value : value == null ? '-' : JSON.stringify(value);
   }
   safeSummary(item: HistoryItem): string {
     const metadata = item.metadata;

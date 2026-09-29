@@ -1,10 +1,11 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { environment } from '../../environments/environment';
 import { provideRouter } from '@angular/router';
 import { SupplierShortlistingComponent } from './supplier-shortlisting.component';
 
-const base = '/api/v1/intelligence/supplier-shortlisting';
+const base = `${environment.apiUrl}/intelligence/supplier-shortlisting`;
 
 function create() {
   TestBed.configureTestingModule({
@@ -41,6 +42,8 @@ describe('SupplierShortlistingComponent', () => {
     expect(root.textContent).toContain('Shortlists 0');
     expect(root.textContent).toContain('INTERNAL HANDOFF ONLY');
     expect(root.textContent).toContain('Human approval is required');
+    expect(root.textContent).toContain('Find suppliers before shortlisting');
+    expect(root.querySelector('a[href="/intelligence/cross-marketplace"]')).not.toBeNull();
     expect(root.querySelector('[role="alert"]')).toBeNull();
     http.verify();
   });
@@ -53,7 +56,9 @@ describe('SupplierShortlistingComponent', () => {
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelector('[role="alert"]')).not.toBeNull();
-    expect(root.textContent).toContain('Supplier shortlisting data is unavailable.');
+    expect(root.textContent).toContain(
+      'Something went wrong while loading this information. Try again.',
+    );
     expect(root.textContent?.toLowerCase()).not.toContain('traceback');
     expect(root.textContent?.toLowerCase()).not.toContain('token');
     http.verify();

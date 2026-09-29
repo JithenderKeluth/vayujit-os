@@ -82,6 +82,7 @@ class ProductOpportunity(Base):
     lifecycle_status: Mapped[str] = mapped_column(String(32), default="draft", index=True)
     research_state: Mapped[str] = mapped_column(String(32), default="not_started")
     evidence_state: Mapped[str] = mapped_column(String(32), default="unknown")
+    intelligence_profile: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
     current_constraint_version_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True), nullable=True
     )

@@ -14,6 +14,7 @@ import {
   WebsiteRefreshJob,
   WebsiteSourceProfile,
 } from './intelligence.service';
+import { intelligenceErrorMessage } from './intelligence-error';
 
 interface WebsiteFilters {
   country: string;
@@ -62,9 +63,7 @@ interface WebsiteFilters {
         }
       </nav>
       @if (loading()) {
-        <p class="loading" role="status" aria-live="polite">
-          Loading website intelligenceÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦
-        </p>
+        <p class="loading" role="status" aria-live="polite">Loading website intelligence...</p>
       }
       @if (error()) {
         <p class="error" role="alert">{{ error() }}</p>
@@ -88,7 +87,7 @@ interface WebsiteFilters {
         </div>
         <p class="muted">
           Last successful website research:
-          {{ overview()?.last_researched || 'Not yet recorded' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· Next refresh:
+          {{ overview()?.last_researched || 'Not yet recorded' }} - Next refresh:
           {{ nextRefresh() }}
         </p>
       </section>
@@ -125,8 +124,8 @@ interface WebsiteFilters {
           ><label
             >Confidence<select name="confidence" [(ngModel)]="filters.confidence">
               <option value="">Any</option>
-              <option value="0.75">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°Ãƒâ€šÃ‚Â¥ 0.75</option>
-              <option value="0.5">ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â°Ãƒâ€šÃ‚Â¥ 0.50</option>
+              <option value="0.75">At least 0.75</option>
+              <option value="0.5">At least 0.50</option>
             </select></label
           ><label
             >Risk<select name="risk" [(ngModel)]="filters.risk">
@@ -186,10 +185,7 @@ interface WebsiteFilters {
                     <td>{{ row.confidence | number: '1.2-2' }}</td>
                     <td>{{ riskText(row.risk) }}</td>
                     <td>{{ row.freshness }}</td>
-                    <td>
-                      {{ row.source_count }} sources ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-                      {{ row.evidence_count }} evidence
-                    </td>
+                    <td>{{ row.source_count }} sources - {{ row.evidence_count }} evidence</td>
                   </tr>
                 }
               </tbody>
@@ -215,7 +211,7 @@ interface WebsiteFilters {
                 <dt>Verification</dt>
                 <dd>
                   {{ selectedManufacturer()?.['verification'] || 'UNVERIFIED' }}
-                  ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· source-provided
+                  - source-provided
                 </dd>
               </dl>
             </div>
@@ -236,10 +232,7 @@ interface WebsiteFilters {
             <article>
               <h3>Offerings &amp; match state</h3>
               <p>{{ listText(selectedManufacturer()?.['offerings']) }}</p>
-              <p class="muted">
-                MATCH ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· POSSIBLE_MATCH ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· NO_MATCH
-                ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· REQUIRES_REVIEW
-              </p>
+              <p class="muted">MATCH - POSSIBLE_MATCH - NO_MATCH - REQUIRES_REVIEW</p>
             </article>
             <article>
               <h3>Capabilities</h3>
@@ -324,10 +317,7 @@ interface WebsiteFilters {
               : 'No offerings yet.'
           }}
         </p>
-        <p class="muted">
-          MATCH ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· POSSIBLE_MATCH ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· NO_MATCH
-          ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· REQUIRES_REVIEW
-        </p>
+        <p class="muted">MATCH - POSSIBLE_MATCH - NO_MATCH - REQUIRES_REVIEW</p>
       </section>
       <section id="capabilities" class="panel" aria-labelledby="capabilities-title">
         <p class="eyebrow">Capabilities &amp; facilities</p>
@@ -336,10 +326,7 @@ interface WebsiteFilters {
           @for (claim of capabilityClaims; track claim) {
             <span
               ><strong>{{ claim }}</strong
-              ><small
-                >Current / historical ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· verification ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-                freshness ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· evidence</small
-              ></span
+              ><small>Current / historical - verification - freshness - evidence</small></span
             >
           }
         </div>
@@ -416,10 +403,8 @@ interface WebsiteFilters {
           <div>
             <h3>Confidence components</h3>
             <p>
-              Identity ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· verification ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· freshness
-              ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· diversity ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· commercial completeness
-              ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· certification support ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· contradictions
-              ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· risk ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· unknown ratio
+              Identity - verification - freshness - diversity - commercial completeness -
+              certification support - contradictions - risk - unknown ratio
             </p>
             <p class="muted">
               A single first-party website does not independently prove supplier legitimacy.
@@ -429,8 +414,7 @@ interface WebsiteFilters {
         <div class="matrix-grid">
           @for (state of riskStates; track state) {
             <span class="state" [class]="stateClass(state)"
-              >{{ state
-              }}<small>ACTIVE ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· RESOLVED / NO_LONGER_ACTIVE</small></span
+              >{{ state }}<small>ACTIVE - RESOLVED / NO_LONGER_ACTIVE</small></span
             >
           }
         </div>
@@ -484,7 +468,7 @@ interface WebsiteFilters {
         @if (selectedContradiction(); as detail) {
           <p class="muted">
             Selected contradiction:
-            {{ detail['reason'] || detail['resolution_state'] || 'Unknown' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
+            {{ detail['reason'] || detail['resolution_state'] || 'Unknown' }} -
             {{ detail['correlation_id'] || 'Unknown' }}
           </p>
         }
@@ -534,7 +518,7 @@ interface WebsiteFilters {
         @if (selectedChange(); as detail) {
           <p class="muted">
             Selected change:
-            {{ detail['reason'] || detail['materiality'] || 'Unknown' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
+            {{ detail['reason'] || detail['materiality'] || 'Unknown' }} -
             {{ detail['correlation_id'] || 'Unknown' }}
           </p>
         }
@@ -582,7 +566,7 @@ interface WebsiteFilters {
         @if (selectedAlert(); as detail) {
           <p class="muted">
             Selected alert:
-            {{ detail['detail'] || detail['title'] || 'Unknown' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
+            {{ detail['detail'] || detail['title'] || 'Unknown' }} -
             {{ detail['correlation_id'] || 'Unknown' }}
           </p>
         }
@@ -617,9 +601,7 @@ interface WebsiteFilters {
                 @for (profile of profiles(); track profile.id) {
                   <tr>
                     <td>{{ profile.domain }}</td>
-                    <td>
-                      {{ profile.display_name }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· {{ profile.source_type }}
-                    </td>
+                    <td>{{ profile.display_name }} - {{ profile.source_type }}</td>
                     <td>{{ profile.classification }}</td>
                     <td>{{ profile.enabled ? 'Yes' : 'No' }}</td>
                     <td>
@@ -648,9 +630,7 @@ interface WebsiteFilters {
           <span class="status-pill">{{ refreshSummary() }}</span>
         </div>
         <p class="muted">
-          Due ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· queued ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· running ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-          succeeded ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· failed ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· skipped ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-          backlog ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· next due ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· last success.
+          Due - queued - running - succeeded - failed - skipped - backlog - next due - last success.
         </p>
         @if (!jobs().length) {
           <p class="empty">No refresh jobs yet.</p>
@@ -680,7 +660,7 @@ interface WebsiteFilters {
                     <td>
                       <span class="state" [class]="stateClass(job.status)">{{ job.status }}</span>
                     </td>
-                    <td>{{ job.failure_code || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }}</td>
+                    <td>{{ job.failure_code || 'Not available' }}</td>
                     <td>{{ job.failure_code ? 'Available from catalog' : 'None' }}</td>
                     <td>
                       <button
@@ -757,12 +737,12 @@ interface WebsiteFilters {
                 @for (item of history(); track item['id'] || $index) {
                   <tr>
                     <td>{{ item['type'] || item['claim_type'] || 'Observation' }}</td>
-                    <td>{{ item['value'] || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }}</td>
-                    <td>{{ item['domain'] || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }}</td>
+                    <td>{{ item['value'] || 'Not available' }}</td>
+                    <td>{{ item['domain'] || 'Not available' }}</td>
                     <td>{{ item['verification'] || 'UNKNOWN' }}</td>
                     <td>{{ item['freshness'] || 'UNKNOWN' }}</td>
-                    <td>{{ item['retrieved_at'] || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }}</td>
-                    <td>{{ item['mission_id'] || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }}</td>
+                    <td>{{ item['retrieved_at'] || 'Not available' }}</td>
+                    <td>{{ item['mission_id'] || 'Not available' }}</td>
                   </tr>
                 }
               </tbody>
@@ -813,7 +793,7 @@ interface WebsiteFilters {
         }
         @if (selectedReport(); as detail) {
           <p class="muted">
-            Selected report: {{ detail['format'] || 'Unknown' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
+            Selected report: {{ detail['format'] || 'Unknown' }} -
             {{ detail['content'] || detail['safe_content'] || 'No content' }}
           </p>
         }
@@ -834,7 +814,7 @@ interface WebsiteFilters {
             placeholder="Owner-scoped Product UUID"
           />
           <button type="submit" [disabled]="productChannelLoading() || !productChannelId.trim()">
-            {{ productChannelLoading() ? 'LoadingÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¦' : 'View projection' }}
+            {{ productChannelLoading() ? 'Loading...' : 'View projection' }}
           </button>
         </form>
         @if (productChannel(); as channel) {
@@ -906,10 +886,8 @@ interface WebsiteFilters {
           <a routerLink="/operations">Operations</a>. This workspace does not duplicate controls.
         </p>
         <p class="muted">
-          System Doctor visibility: website intelligence ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· refresh worker
-          ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· scheduler ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· profiles ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· budgets
-          ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· rate limits ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· live broad web state
-          ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· supplier contact disabled ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· purchasing not
+          System Doctor visibility: website intelligence - refresh worker - scheduler - profiles -
+          budgets - rate limits - live broad web state - supplier contact disabled - purchasing not
           implemented.
         </p>
       </section>
@@ -1365,9 +1343,13 @@ export class WebsiteIntelligenceComponent {
     if (changes.status === 'fulfilled') this.changes.set(changes.value);
     if (alerts.status === 'fulfilled') this.alerts.set(alerts.value);
     if (reports.status === 'fulfilled') this.reports.set(reports.value);
-    if (results.some((item) => item['status'] === 'rejected'))
+    const rejected = results.find((item) => item.status === 'rejected');
+    if (rejected?.status === 'rejected')
       this.error.set(
-        'Website intelligence data is unavailable. Check the authenticated API connection.',
+        intelligenceErrorMessage(
+          rejected.reason,
+          'Website intelligence data is unavailable. Check the authenticated API connection.',
+        ),
       );
     this.loading.set(false);
   }
@@ -1524,7 +1506,7 @@ export class WebsiteIntelligenceComponent {
   refreshSummary(): string {
     const statuses = this.jobs().map((job) => job.status);
     return statuses.length
-      ? `${statuses.length} jobs ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· ${statuses.filter((status) => status === 'FAILED').length} failed`
+      ? `${statuses.length} jobs  -  ${statuses.filter((status) => status === 'FAILED').length} failed`
       : 'No jobs';
   }
   profileName(id: string): string {
@@ -1544,7 +1526,7 @@ export class WebsiteIntelligenceComponent {
     if (!Array.isArray(value) || !value.length) return 'No persisted records.';
     return value
       .map((item) => (typeof item === 'string' ? item : String(JSON.stringify(item))))
-      .join(' ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· ');
+      .join('  -  ');
   }
   selectedArray(key: string): unknown[] {
     const value = this.selectedManufacturer()?.[key];

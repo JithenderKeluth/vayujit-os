@@ -12,6 +12,7 @@ from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
 from vayujit_api.intelligence.economic_integration_service import (
+    decision_brief_for_opportunity,
     project_economics_for_opportunity,
 )
 
@@ -31,5 +32,17 @@ def sourcing_economics_projection(
     economic_context_id: uuid.UUID | None = None,
 ) -> dict[str, object]:
     return project_economics_for_opportunity(
+        db, owner, opportunity_id, economic_context_id=economic_context_id
+    )
+
+
+@router.get("/{opportunity_id}/decision-brief")
+def decision_brief_projection(
+    opportunity_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    economic_context_id: uuid.UUID | None = None,
+) -> dict[str, object]:
+    return decision_brief_for_opportunity(
         db, owner, opportunity_id, economic_context_id=economic_context_id
     )

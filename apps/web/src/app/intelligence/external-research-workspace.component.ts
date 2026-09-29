@@ -26,8 +26,8 @@ type Section = { id: string; label: string };
 
       <div class="runtime-banner" role="status" aria-live="polite">
         <strong>{{ runtimeLabel() }}</strong>
-        <span>LIVE SEARCH ? NOT VALIDATED ? {{ fetchBannerLabel() }}</span>
-        <span>External AI disabled ? Unrestricted scraping disabled</span>
+        <span>LIVE SEARCH - NOT VALIDATED - {{ fetchBannerLabel() }}</span>
+        <span>External AI disabled - unrestricted scraping disabled</span>
       </div>
 
       <nav class="workspace-nav" aria-label="External Research sections">
@@ -42,7 +42,7 @@ type Section = { id: string; label: string };
       </nav>
 
       @if (loading()) {
-        <p class="loading" role="status">Loading external research workspace?</p>
+        <p class="loading" role="status">Loading external research workspace...</p>
       }
       @if (error()) {
         <p class="error" role="alert">{{ error() }}</p>
@@ -98,8 +98,8 @@ type Section = { id: string; label: string };
           </article>
         </div>
         <div class="callout" aria-label="Live provider boundary">
-          <strong>LIVE SEARCH ? NOT VALIDATED</strong>
-          <strong>LIVE FETCH ? NOT VALIDATED</strong>
+          <strong>LIVE SEARCH - NOT VALIDATED</strong>
+          <strong>LIVE FETCH - NOT VALIDATED</strong>
           <span
             >Credentials and approved live domains are deployment-controlled and are never shown
             here.</span
@@ -264,7 +264,7 @@ type Section = { id: string; label: string };
                   <td>{{ text(row, 'snippet') }}</td>
                   <td>{{ text(row, 'provider') }}</td>
                   <td>
-                    <span class="badge">DISCOVERY ONLY</span> ?
+                    <span class="badge">DISCOVERY ONLY</span> -
                     {{ boolLabel(row, 'fetch_eligible') }}
                   </td>
                 </tr>
@@ -330,7 +330,7 @@ type Section = { id: string; label: string };
           is never rendered.
         </p>
         <p class="untrusted-label">
-          UNTRUSTED EXTERNAL CONTENT ? bounded extracted text is treated as plain text only.
+          UNTRUSTED EXTERNAL CONTENT - bounded extracted text is treated as plain text only.
         </p>
       </section>
 
@@ -465,12 +465,12 @@ type Section = { id: string; label: string };
         @for (row of alerts(); track text(row, 'id')) {
           <article class="alert-card" role="status">
             <strong
-              >{{ text(row, 'severity', 'INFO') }} ? {{ text(row, 'alert_type', 'Alert') }}</strong
+              >{{ text(row, 'severity', 'INFO') }} - {{ text(row, 'alert_type', 'Alert') }}</strong
             >
             <h3>{{ text(row, 'title') }}</h3>
             <p>{{ text(row, 'detail') }}</p>
             <span
-              >Acknowledgement: {{ boolLabel(row, 'acknowledged') }} ?
+              >Acknowledgement: {{ boolLabel(row, 'acknowledged') }} -
               {{ text(row, 'created_at') }}</span
             >
           </article>
@@ -493,7 +493,7 @@ type Section = { id: string; label: string };
               {{ text(row, 'safe_reason_code', text(row, 'safe_message', 'Safe recovery state')) }}
             </p>
             <p>
-              <strong>Action:</strong> {{ text(row, 'action') }} ? <strong>Result:</strong>
+              <strong>Action:</strong> {{ text(row, 'action') }} - <strong>Result:</strong>
               {{ text(row, 'status') }}
             </p>
             <p><strong>Correlation:</strong> {{ text(row, 'correlation_id') }}</p>
@@ -501,9 +501,9 @@ type Section = { id: string; label: string };
         }
         <h3>Execution checkpoints, budgets, and rate limits</h3>
         <p class="hint">
-          CLAIMED ? BEFORE_PROVIDER / BEFORE_FETCH ? PROVIDER_COMPLETE / FETCH_COMPLETE ?
-          RESULTS_PERSISTED / CONTENT_HASHED ? EVIDENCE_PERSISTED ? VERIFICATION_COMPLETE ?
-          DOWNSTREAM_COMPLETE ? TERMINAL
+          CLAIMED - BEFORE_PROVIDER / BEFORE_FETCH - PROVIDER_COMPLETE / FETCH_COMPLETE -
+          RESULTS_PERSISTED / CONTENT_HASHED - EVIDENCE_PERSISTED - VERIFICATION_COMPLETE -
+          DOWNSTREAM_COMPLETE - TERMINAL
         </p>
         <p class="hint">
           Searches, fetches, domains, results, response bytes, elapsed time, retries, provider
@@ -560,7 +560,7 @@ type Section = { id: string; label: string };
             placeholder="Owner-scoped Product UUID"
           />
           <button type="submit" [disabled]="productLoading() || !productId.trim()">
-            {{ productLoading() ? 'Loading?' : 'View projection' }}
+            {{ productLoading() ? 'Loading...' : 'View projection' }}
           </button>
         </form>
         @if (productError()) {
@@ -630,7 +630,7 @@ type Section = { id: string; label: string };
                   <th scope="row">{{ text(row, 'event_type') }}</th>
                   <td>{{ text(row, 'scheduled_for') }}</td>
                   <td>{{ text(row, 'mission_id') }}</td>
-                  <td>None ? informational only</td>
+                  <td>None - informational only</td>
                 </tr>
               }
             </tbody>
@@ -687,9 +687,9 @@ type Section = { id: string; label: string };
           </table>
         </div>
         <p class="hint">
-          System Doctor: provider configured {{ boolLabel(policy(), 'credentials_configured') }} ?
-          fetch configured {{ boolLabel(policy(), 'fetch_enabled') }} ? allowlist
-          {{ boolLabel(policy(), 'approved_domains_configured') }} ? budgets and rate limits
+          System Doctor: provider configured {{ boolLabel(policy(), 'credentials_configured') }} -
+          fetch configured {{ boolLabel(policy(), 'fetch_enabled') }} - allowlist
+          {{ boolLabel(policy(), 'approved_domains_configured') }} - budgets and rate limits
           server-enforced.
         </p>
         <a routerLink="/operations" class="secondary-button">View Operations Control Center</a>
@@ -1122,21 +1122,21 @@ export class ExternalResearchWorkspaceComponent {
   runtimeLabel(): string {
     const mode = this.text(this.policy(), 'mode', 'LOCAL FIXTURE');
     if (mode === 'LIVE_READ_ONLY' && !this.policy()?.credentials_configured) {
-      return 'LIVE SEARCH â€” BLOCKED BY EXTERNAL CREDENTIALS';
+      return 'LIVE SEARCH - BLOCKED BY EXTERNAL CREDENTIALS';
     }
-    return mode === 'LIVE_READ_ONLY' ? 'LIVE SEARCH READ-ONLY â€” NOT VALIDATED' : mode;
+    return mode === 'LIVE_READ_ONLY' ? 'LIVE SEARCH READ-ONLY - NOT VALIDATED' : mode;
   }
   fetchBannerLabel(): string {
     const mode = this.text(this.policy(), 'mode', 'DISABLED');
-    if (mode !== 'LIVE_READ_ONLY') return 'LIVE FETCH ? NOT VALIDATED';
+    if (mode !== 'LIVE_READ_ONLY') return 'LIVE FETCH - NOT VALIDATED';
     const completed = this.fetches().some(
       (row) => this.text(row, 'status', '').toUpperCase() === 'COMPLETED',
     );
-    if (completed) return 'LIVE APPROVED FETCH ? VALIDATED';
+    if (completed) return 'LIVE APPROVED FETCH - VALIDATED';
     if (!this.policy()?.approved_domains_configured) {
-      return 'LIVE APPROVED FETCH ? BLOCKED BY EXTERNAL CONFIGURATION';
+      return 'LIVE APPROVED FETCH - BLOCKED BY EXTERNAL CONFIGURATION';
     }
-    return 'LIVE FETCH ? NOT VALIDATED';
+    return 'LIVE FETCH - NOT VALIDATED';
   }
   quotaLabel(): string {
     const quota = this.status()?.['quota'];

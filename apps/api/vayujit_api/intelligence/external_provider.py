@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import hashlib
 import ipaddress
+import json
 import re
 import socket
 from dataclasses import dataclass
@@ -44,6 +45,10 @@ class _SafeHTMLParser(HTMLParser):
         self.meta_description = ""
         self.canonical_url = ""
         self.publication_timestamp = ""
+        self.open_graph: dict[str, str] = {}
+        self.product_metadata: dict[str, object] = {}
+        self._in_jsonld = False
+        self._jsonld_parts: list[str] = []
         self._in_title = False
         self._blocked_depth = 0
         self._title_parts: list[str] = []
@@ -52,6 +57,10 @@ class _SafeHTMLParser(HTMLParser):
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         attrs_map = {key.lower(): value or "" for key, value in attrs}
         lowered = tag.lower()
+        if lowered == "script" and attrs_map.get("type", "").lower() == "application/ld+json":
+            self._in_jsonld = True
+            self._jsonld_parts = []
+            return
         if lowered == "title":
             self._in_title = True
         if lowered in {"script", "style", "iframe", "form", "noscript", "svg"}:
@@ -63,6 +72,12 @@ class _SafeHTMLParser(HTMLParser):
             content = attrs_map.get("content", "")
             if name == "description" and content:
                 self.meta_description = content[:2_000]
+            if property_name.startswith("og:") and content:
+                self.open_graph[property_name[3:]] = content[:2_000]
+            if name.startswith("twitter:") and content:
+                self.open_graph[name] = content[:2_000]
+            if property_name.startswith("product:") and content:
+                self.product_metadata[property_name[8:]] = content[:500]
             if name in {"date", "datepublished", "pubdate"} or property_name in {
                 "article:published_time",
                 "og:published_time",
@@ -72,6 +87,20 @@ class _SafeHTMLParser(HTMLParser):
             self.canonical_url = attrs_map.get("href", "")[:2_000]
 
     def handle_endtag(self, tag: str) -> None:
+        if tag.lower() == "script" and self._in_jsonld:
+            self._in_jsonld = False
+            raw = "".join(self._jsonld_parts).strip()
+            if raw:
+                try:
+                    value = json.loads(raw)
+                    if isinstance(value, dict):
+                        self.product_metadata["json_ld"] = value
+                    elif isinstance(value, list):
+                        self.product_metadata["json_ld"] = value[:10]
+                except (TypeError, ValueError):
+                    self.product_metadata["json_ld_parse"] = "INVALID"
+            self._jsonld_parts = []
+            return
         if tag.lower() in {"script", "style", "iframe", "form", "noscript", "svg"}:
             self._blocked_depth = max(0, self._blocked_depth - 1)
             return
@@ -80,6 +109,9 @@ class _SafeHTMLParser(HTMLParser):
             self.title = sanitize_text(" ".join(self._title_parts), max_length=500)
 
     def handle_data(self, data: str) -> None:
+        if self._in_jsonld:
+            self._jsonld_parts.append(data[:100_000])
+            return
         if self._blocked_depth:
             return
         if self._in_title:
@@ -94,6 +126,8 @@ class _SafeHTMLParser(HTMLParser):
             "canonical_url": self.canonical_url or fallback_url,
             "text": sanitize_text(" ".join(self._text_parts), max_length=max_length),
             "publication_timestamp": self.publication_timestamp or None,
+            "open_graph": dict(self.open_graph),
+            "product_metadata": dict(self.product_metadata),
         }
 
 
@@ -351,6 +385,7 @@ class BraveSearchProvider(SearchProvider):
                         "country": self.settings.intelligence_search_provider_country[:2],
                         "search_lang": self.settings.intelligence_search_provider_language,
                         "safesearch": "strict",
+                        "result_filter": "web",
                     },
                     headers={
                         "Accept": "application/json",
@@ -388,7 +423,13 @@ class BraveSearchProvider(SearchProvider):
                     "http_status": response.status_code,
                 }
             response.raise_for_status()
-            if not isinstance(response.json(), dict):
+            payload = response.json()
+            if not isinstance(payload, dict):
+                return base | {"status": "INVALID_RESPONSE", "credential_status": "CONFIGURED"}
+            web = payload.get("web")
+            if web is not None and (
+                not isinstance(web, dict) or not isinstance(web.get("results"), list)
+            ):
                 return base | {"status": "INVALID_RESPONSE", "credential_status": "CONFIGURED"}
             return base | {"status": "VALIDATED", "credential_status": "CONFIGURED"}
         except httpx.TimeoutException:
@@ -435,6 +476,7 @@ class BraveSearchProvider(SearchProvider):
             "country": country[:2],
             "search_lang": language,
             "safesearch": "strict" if bool(kwargs.get("safe_search", True)) else "off",
+            "result_filter": "web",
         }
         try:
             with httpx.Client(
@@ -463,9 +505,14 @@ class BraveSearchProvider(SearchProvider):
                 raise SearchProviderError("search_provider_unavailable")
             response.raise_for_status()
             payload = response.json()
-            web = payload.get("web") if isinstance(payload, dict) else None
-            raw_results = web.get("results") if isinstance(web, dict) else None
-            if not isinstance(raw_results, list):
+            if not isinstance(payload, dict):
+                raise SearchProviderError("search_invalid_response")
+            web = payload.get("web")
+            if web is None:
+                raw_results: list[object] = []
+            elif isinstance(web, dict) and isinstance(web.get("results"), list):
+                raw_results = web["results"]
+            else:
                 raise SearchProviderError("search_invalid_response")
             now = datetime.now(UTC)
             normalized: list[SearchResult] = []
@@ -479,7 +526,7 @@ class BraveSearchProvider(SearchProvider):
                     continue
                 title = sanitize_text(str(item.get("title", "")), max_length=500)
                 snippet = sanitize_text(str(item.get("description", "")), max_length=2000)
-                if not title or not snippet:
+                if not title:
                     continue
                 normalized.append(
                     SearchResult(

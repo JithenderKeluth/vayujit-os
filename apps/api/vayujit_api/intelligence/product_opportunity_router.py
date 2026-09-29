@@ -1,4 +1,4 @@
-"""Owner-scoped Product Opportunity APIs for the 9A foundation."""
+﻿"""Owner-scoped Product Opportunity APIs for the 9A foundation."""
 
 from __future__ import annotations
 
@@ -35,6 +35,7 @@ from vayujit_api.intelligence.product_opportunity_schemas import (
     OpportunityResponse,
     OpportunityUpdate,
 )
+from vayujit_api.intelligence.product_research import run_product_research
 from vayujit_api.products.models import Product
 
 router = APIRouter(
@@ -240,6 +241,27 @@ def system_doctor(db: DB, owner: Owner) -> dict[str, object]:
         ),
     }
     return {"status": "PASS" if not any(checks.values()) else "FAIL", "checks": checks}
+
+
+@router.post("/{opportunity_id}/market-research")
+def research_market_evidence(
+    opportunity_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+    max_queries: int = Query(default=3, ge=1, le=5),
+    max_results: int = Query(default=5, ge=1, le=10),
+    fetch_sources: bool = True,
+) -> dict[str, object]:
+    """Run bounded, read-only market research for one meaningful opportunity."""
+    opportunity = _opportunity_or_404(db, owner, opportunity_id)
+    return run_product_research(
+        db,
+        owner,
+        opportunity,
+        max_queries=max_queries,
+        max_results=max_results,
+        fetch_sources=fetch_sources,
+    )
 
 
 @router.get("/{opportunity_id}", response_model=OpportunityDetail)

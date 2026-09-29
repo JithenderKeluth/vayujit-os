@@ -32,7 +32,7 @@ import { AIService } from './ai.service';
         <article class="ai-card">
           <h2>Tokens</h2>
           <strong>{{ value.total_tokens }}</strong>
-          <p>{{ value.input_tokens }} input · {{ value.output_tokens }} output</p>
+          <p>{{ value.input_tokens }} input - {{ value.output_tokens }} output</p>
         </article>
         <article class="ai-card">
           <h2>Estimated cost</h2>
@@ -60,8 +60,8 @@ import { AIService } from './ai.service';
         }
         @for (item of history(); track item.generation_id) {
           <p>
-            <strong>{{ item.product_name }}</strong> · {{ item.provider_key }} ·
-            {{ item.model || 'No model' }} · {{ item.total_tokens ?? 'Usage unavailable' }} tokens ·
+            <strong>{{ item.product_name }}</strong> - {{ item.provider_key }} -
+            {{ item.model || 'No model' }} - {{ item.total_tokens ?? 'Usage unavailable' }} tokens -
             {{
               item.estimated_cost
                 ? item.cost_currency + ' ' + item.estimated_cost
@@ -71,7 +71,7 @@ import { AIService } from './ai.service';
         }
       </article>
     } @else {
-      <p role="status">Loading bounded usage summary…</p>
+      <p role="status">Loading bounded usage summary...</p>
     }
   </section>`,
   styleUrl: './ai.css',

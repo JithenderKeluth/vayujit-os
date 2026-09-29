@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
+import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
 import {
   EmptyStateComponent,
   ErrorStateComponent,
@@ -21,6 +22,7 @@ import { AIService } from './ai.service';
   selector: 'app-ai-studio',
   imports: [
     BreadcrumbsComponent,
+    BusinessEntitySelectorsComponent,
     CommerceJourneyNavComponent,
     EmptyStateComponent,
     ErrorStateComponent,
@@ -60,32 +62,19 @@ import { AIService } from './ai.service';
     </nav>
     <article class="ai-card" id="generate">
       <h2>Generate content</h2>
+      <app-business-entity-selectors
+        [productId]="productId()"
+        [showArtifact]="false"
+        (productIdChange)="productId.set($event)"
+      />
       <label
-        >Product ID
-        <input
-          [value]="productId()"
-          (input)="productId.set($any($event.target).value)"
-          placeholder="Product UUID"
-      /></label>
-      <div class="ai-grid">
-        <label
-          >Channels
-          <select multiple (change)="setChannels($event)">
-            @for (channel of channels; track channel) {
-              <option [value]="channel" [selected]="selectedChannels().includes(channel)">
-                {{ channel }}
-              </option>
-            }
-          </select></label
-        ><label
-          >Content types
-          <select multiple (change)="setContentTypes($event)">
-            @for (type of contentTypes; track type) {
-              <option [value]="type" [selected]="selectedTypes().includes(type)">{{ type }}</option>
-            }
-          </select></label
-        >
-      </div>
+        >Content types
+        <select multiple (change)="setContentTypes($event)">
+          @for (type of contentTypes; track type) {
+            <option [value]="type" [selected]="selectedTypes().includes(type)">{{ type }}</option>
+          }
+        </select></label
+      >
       <label
         >Instructions
         <textarea
@@ -111,7 +100,7 @@ import { AIService } from './ai.service';
       @if (!artifacts().length) {
         <app-empty-state
           title="No generated content yet"
-          message="Enter a Product ID and use the existing generation workflow to create a reviewable result."
+          message="Select a Product and use the existing generation workflow to create a reviewable result."
         />
       }
       @for (artifact of artifacts(); track artifact.id) {
@@ -120,7 +109,7 @@ import { AIService } from './ai.service';
           {{ artifact.content_type }} &middot; v{{ artifact.version_number }} &middot;
           {{ artifact.status }}
           <app-status-badge [status]="artifact.status" [label]="artifact.status" tone="info" />
-          <span> · Source: {{ artifact.source || 'Not reported' }}</span>
+          <span> - Source: {{ artifact.source || 'Not reported' }}</span>
           <a [routerLink]="['/ai/artifacts', artifact.id]">Review</a>
         </p>
       }

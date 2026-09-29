@@ -12,32 +12,45 @@ import {
   SocialService,
 } from './social.service';
 import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.component';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
+import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
 
 type Platform = 'youtube' | 'instagram' | 'facebook';
 @Component({
   selector: 'app-social-workspace',
-  imports: [FormsModule, RouterLink, GrowthJourneyNavComponent],
+  imports: [
+    BusinessEntitySelectorsComponent,
+    FormsModule,
+    RouterLink,
+    GrowthJourneyNavComponent,
+    PageHeaderComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+  ],
   template: `
     <section class="social-page" aria-labelledby="social-title">
       <app-growth-journey-nav current="social" />
-      <header class="social-header">
-        <div>
-          <p class="eyebrow">Multi-channel publishing</p>
-          <h1 id="social-title">Social Video workspace</h1>
-          <p>
-            Exact-version Video publishing with safe review, scheduling, Recovery, and synthetic
-            analytics.
-          </p>
-        </div>
-        <button type="button" (click)="load()" [disabled]="loading()">Refresh</button>
-      </header>
+      <app-page-header
+        eyebrow="Grow / social"
+        title="Social video workspace"
+        description="Exact-version video publishing with safe review, scheduling, recovery, and local analytics."
+        headingId="social-title"
+      >
+        <button page-header-actions type="button" (click)="load()" [disabled]="loading()">
+          Refresh
+        </button>
+      </app-page-header>
       @if (loading()) {
-        <p role="status">Loading Social Video data...</p>
+        <app-loading-state message="Loading social video data..." />
       }
       @if (error()) {
-        <p class="social-error" role="alert">
-          {{ error() }} <button type="button" (click)="load()">Retry</button>
-        </p>
+        <app-error-state
+          title="Social workspace is unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="load()"
+        />
       }
       <nav class="social-tabs" aria-label="Social workspace">
         <a routerLink="/social">Overview</a><a routerLink="/social/compose">Compose</a
@@ -52,7 +65,7 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
             <dl>
               <dt>Product</dt>
               <dd>
-                <code>{{ post.product_id || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }}</code>
+                <code>{{ post.product_id || 'Not available' }}</code>
               </dd>
               <dt>Video</dt>
               <dd>
@@ -62,20 +75,20 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
               </dd>
               <dt>Metadata</dt>
               <dd>
-                {{ post.metadata_artifact_id || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }} v{{
-                  post.metadata_artifact_version || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â'
+                {{ post.metadata_artifact_id || 'Not available' }} v{{
+                  post.metadata_artifact_version || 'Not available'
                 }}
               </dd>
               <dt>Thumbnail</dt>
               <dd>
-                {{ post.thumbnail_output_id || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }} v{{
-                  post.thumbnail_version || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â'
+                {{ post.thumbnail_output_id || 'Not available' }} v{{
+                  post.thumbnail_version || 'Not available'
                 }}
               </dd>
               <dt>Caption</dt>
               <dd>
-                {{ post.caption_track_id || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }} v{{
-                  post.caption_version || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â'
+                {{ post.caption_track_id || 'Not available' }} v{{
+                  post.caption_version || 'Not available'
                 }}
               </dd>
               <dt>Status</dt>
@@ -83,10 +96,10 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
                 <span class="state">{{ post.lifecycle_status }}</span>
               </dd>
               <dt>Remote ID</dt>
-              <dd>{{ post.remote_publication_id || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }}</dd>
+              <dd>{{ post.remote_publication_id || 'Not available' }}</dd>
               <dt>Correlation</dt>
               <dd>
-                <code>{{ post.correlation_id || 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â' }}</code>
+                <code>{{ post.correlation_id || 'Not available' }}</code>
               </dd>
             </dl>
             <div>
@@ -107,9 +120,7 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
         @if (isCompose()) {
           <article class="card wide" aria-labelledby="compose-title">
             <h2 id="compose-title">Compose Video post</h2>
-            <p>
-              Step {{ step() }} of 10 ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· exact immutable identities are required.
-            </p>
+            <p>Step {{ step() }} of 10 - exact immutable identities are required.</p>
             <ol class="wizard">
               @for (name of steps; track name; let i = $index) {
                 <li [class.current]="step() === i + 1">{{ i + 1 }}. {{ name }}</li>
@@ -141,15 +152,13 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
               <fieldset>
                 <legend>Product and Brand</legend>
                 <div class="form-grid">
-                  <label
-                    >Brand ID<input
-                      [(ngModel)]="draft.brandId"
-                      placeholder="Exact Brand UUID" /></label
-                  ><label
-                    >Product ID<input
-                      [(ngModel)]="draft.productId"
-                      placeholder="Exact Product UUID"
-                  /></label>
+                  <app-business-entity-selectors
+                    [showBrand]="true"
+                    [productId]="draft.productId"
+                    [brandId]="draft.brandId"
+                    (productIdChange)="draft.productId = $event"
+                    (brandIdChange)="draft.brandId = $event"
+                  />
                 </div>
               </fieldset>
             }
@@ -164,10 +173,10 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
                     <option value="">Select an approved Video</option>
                     @for (video of eligibleVideos(); track video['id']) {
                       <option [value]="video['id']">
-                        {{ video['video_type'] || video['target_channel'] || 'Video' }} · v{{
+                        {{ video['video_type'] || video['target_channel'] || 'Video' }} - v{{
                           video['version'] || video['video_version'] || 1
                         }}
-                        · {{ video['duration_seconds'] || '—' }}s
+                        - {{ video['duration_seconds'] || '-' }}s
                       </option>
                     }
                   </select></label
@@ -187,16 +196,14 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
               <fieldset>
                 <legend>Metadata Artifact</legend>
                 <div class="form-grid">
-                  <label
-                    >Artifact ID<input
-                      [(ngModel)]="draft.metadataId"
-                      placeholder="Exact approved Artifact UUID" /></label
-                  ><label
-                    >Artifact version<input
-                      type="number"
-                      min="1"
-                      [(ngModel)]="draft.metadataVersion"
-                  /></label>
+                  <app-business-entity-selectors
+                    [showArtifact]="true"
+                    [approvedOnly]="true"
+                    [productId]="draft.productId"
+                    [artifactId]="draft.metadataId"
+                    artifactLabel="Approved content"
+                    (artifactIdChange)="draft.metadataId = $event"
+                  />
                 </div>
               </fieldset>
             }
@@ -242,7 +249,7 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
                     <option value="">Select enabled validated account</option>
                     @for (account of eligibleAccounts(); track account.id) {
                       <option [value]="account.id">
-                        {{ account.display_name }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· {{ account.platform }}
+                        {{ account.display_name }} - {{ account.platform }}
                       </option>
                     }
                   </select></label
@@ -328,26 +335,30 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
               <p class="success" role="status">{{ message() }}</p>
             }
             @if (composeError()) {
-              <p class="social-error" role="alert">{{ composeError() }}</p>
+              <app-error-state
+                title="Social post could not be prepared"
+                [message]="composeError()"
+              />
             }
           </article>
         } @else if (isChannel()) {
           <article class="card wide">
-            <h2>Product Channel Ãƒâ€šÃ‚Â· Social Video</h2>
+            <h2>Product Channel - Social Video</h2>
             <p>Server projection only; no client-side eligibility reconstruction.</p>
-            <label
-              >Product ID<input [(ngModel)]="channelProductId" placeholder="Exact Product UUID"
-            /></label>
+            <app-business-entity-selectors
+              [productId]="channelProductId"
+              (productIdChange)="channelProductId = $event"
+            />
             <button type="button" (click)="loadChannel()">Load channel</button>
             @if (channel(); as value) {
               @for (row of value.video; track row['post_id']) {
                 <div class="channel-row">
                   <strong>{{ row['platform'] }} / {{ row['format'] }}</strong>
                   <span
-                    >Current v{{ row['current_video_version'] }} Ãƒâ€šÃ‚Â· Available v{{
+                    >Current v{{ row['current_video_version'] }} - Available v{{
                       row['latest_approved_video_version']
                     }}
-                    Ãƒâ€šÃ‚Â· {{ row['update_available'] ? 'Update available' : 'Current' }}</span
+                    - {{ row['update_available'] ? 'Update available' : 'Current' }}</span
                   >
                   <button
                     type="button"
@@ -396,9 +407,8 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
               <div class="row">
                 <strong>{{ account.display_name }}</strong
                 ><span
-                  >{{ account.platform }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-                  {{ account.environment || 'local' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-                  {{ account.enabled ? 'Enabled' : 'Disabled' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
+                  >{{ account.platform }} - {{ account.environment || 'local' }} -
+                  {{ account.enabled ? 'Enabled' : 'Disabled' }} -
                   {{ account.validation_status }}</span
                 >
               </div>
@@ -427,15 +437,10 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
                 ><span
                   >Scheduled <strong>{{ value.scheduled }}</strong></span
                 ><span
-                  >Views
-                  <strong>{{
-                    value.video?.views ?? 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â'
-                  }}</strong></span
+                  >Views <strong>{{ value.video?.views ?? 'Not available' }}</strong></span
                 ><span
                   >Engagement
-                  <strong>{{
-                    value.video?.engagement ?? 'ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â'
-                  }}</strong></span
+                  <strong>{{ value.video?.engagement ?? 'Not available' }}</strong></span
                 >
               </div>
             } @else {
@@ -463,10 +468,7 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
               @for (account of accounts(); track account.id) {
                 <div class="row">
                   <strong>{{ account.display_name }}</strong
-                  ><span
-                    >{{ account.platform }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-                    {{ account.validation_status }}</span
-                  >
+                  ><span>{{ account.platform }} - {{ account.validation_status }}</span>
                 </div>
               }
             </article>
@@ -823,7 +825,7 @@ export class SocialWorkspaceComponent {
   }
   async loadChannel() {
     if (!this.channelProductId) {
-      this.error.set('Enter a Product ID to load the Social Channel projection.');
+      this.error.set('Select a Product to load the Social Channel projection.');
       return;
     }
     try {

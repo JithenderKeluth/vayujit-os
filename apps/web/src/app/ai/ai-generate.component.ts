@@ -26,7 +26,7 @@ import { AIService } from './ai.service';
           <option value="">Select a product</option>
           @for (product of products(); track product.id) {
             <option [value]="product.id">
-              {{ product.brand_name }} · {{ product.name }} ({{ product.status }})
+              {{ product.brand_name }} - {{ product.name }} ({{ product.status }})
             </option>
           }
         </select></label
@@ -34,7 +34,7 @@ import { AIService } from './ai.service';
       <label
         >Template<select name="template" [(ngModel)]="templateId">
           @for (template of templates(); track template.id) {
-            <option [value]="template.id">{{ template.name }} · v{{ template.version }}</option>
+            <option [value]="template.id">{{ template.name }} - v{{ template.version }}</option>
           }
         </select></label
       >
@@ -89,13 +89,13 @@ import { AIService } from './ai.service';
       }
       <div>
         <button [disabled]="busy() || !productId">
-          {{ busy() ? 'Generating…' : 'Generate review draft' }}
+          {{ busy() ? 'Generating...' : 'Generate review draft' }}
         </button>
       </div>
       <aside class="ai-card">
         <h2>Generation summary</h2>
         <p>
-          Provider: {{ providerKey }} · Model:
+          Provider: {{ providerKey }} - Model:
           {{
             providerKey === 'openai_compatible'
               ? model || 'Not selected'

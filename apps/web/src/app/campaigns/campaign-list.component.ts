@@ -3,33 +3,52 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { RouterLink } from '@angular/router';
 import type { Campaign } from '@vayujit/shared';
 import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.component';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
 import { CampaignService } from './campaign.service';
 
 @Component({
   selector: 'app-campaign-list',
-  imports: [DatePipe, RouterLink, GrowthJourneyNavComponent],
+  imports: [
+    DatePipe,
+    RouterLink,
+    GrowthJourneyNavComponent,
+    PageHeaderComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+  ],
   template: `
     <section class="page">
       <app-growth-journey-nav current="campaigns" />
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">Orchestration</p>
-          <h1>Campaigns</h1>
-        </div>
-        <div class="actions">
+      <app-page-header
+        eyebrow="Grow / campaigns"
+        title="Campaigns"
+        description="Organize approved content into reviewable campaign work."
+      >
+        <div page-header-actions class="actions">
           <a class="button" routerLink="/calendar">Content calendar</a>
-          <a class="button primary" routerLink="/campaigns/new">Create Campaign</a>
+          <a class="button primary" routerLink="/campaigns/new">Create campaign</a>
         </div>
-      </header>
+      </app-page-header>
       @if (loading()) {
-        <p aria-live="polite">Loading Campaigns…</p>
+        <app-loading-state message="Loading campaigns..." />
       } @else if (error()) {
-        <p class="error" role="alert">{{ error() }}</p>
+        <app-error-state
+          title="Campaigns are unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="load()"
+        />
       } @else if (!campaigns().length) {
-        <div class="panel">
-          <h2>No Campaigns yet</h2>
-          <p>Create a Campaign to organize approved content.</p>
-        </div>
+        <app-empty-state
+          title="No campaigns yet"
+          message="Create a campaign to organize approved content."
+        />
       } @else {
         <div class="grid">
           @for (campaign of campaigns(); track campaign.id) {
@@ -40,7 +59,7 @@ import { CampaignService } from './campaign.service';
               </h2>
               <p>{{ campaign.objective || 'No objective provided.' }}</p>
               <p>
-                {{ campaign.start_at_utc | date: 'medium' }} –
+                {{ campaign.start_at_utc | date: 'medium' }} -
                 {{ campaign.end_at_utc | date: 'medium' }}
               </p>
               <small>{{ campaign.timezone_name }}</small>
@@ -61,7 +80,7 @@ export class CampaignListComponent {
   constructor() {
     void this.load();
   }
-  private async load(): Promise<void> {
+  async load(): Promise<void> {
     try {
       this.campaigns.set(await this.api.list());
     } catch {

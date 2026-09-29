@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -13,6 +13,11 @@ from vayujit_api.audit.service import record_event
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.intelligence.business_agent_models import BusinessAgentGoal, BusinessAgentRun
+from vayujit_api.intelligence.product_opportunity_models import (
+    ProductOpportunity,
+    ProductOpportunityAssessment,
+)
 from vayujit_api.intelligence.product_opportunity_scoring_models import (
     SCORING_MODEL_VERSION,
     ProductOpportunityDecision,
@@ -55,6 +60,253 @@ def _row(
         return get_score(db, owner, opportunity_id, assessment_id)
     except LookupError as exc:
         raise HTTPException(404, str(exc)) from exc
+
+
+def _meaningful_opportunity(opportunity: ProductOpportunity) -> bool:
+    profile = opportunity.intelligence_profile or {}
+    if str(opportunity.name).casefold() in {
+        "business agent product opportunity",
+        "candidate product",
+        "product opportunity 1",
+        "test product",
+        "example product",
+    }:
+        return False
+    return bool(
+        profile.get("normalized_product_concept")
+        or (opportunity.category and opportunity.description and opportunity.product_concept)
+    )
+
+
+def _candidate_state(opportunity: ProductOpportunity, score: ProductOpportunityScore | None) -> str:
+    if not _meaningful_opportunity(opportunity):
+        return "INSUFFICIENT_EVIDENCE"
+    if score is None or score.eligibility == "INSUFFICIENT_EVIDENCE":
+        return "NEEDS_MORE_RESEARCH"
+    if score.assessment_readiness in {"UNKNOWN", "INSUFFICIENT_EVIDENCE"}:
+        return "NEEDS_MORE_RESEARCH"
+    return "READY_TO_COMPARE"
+
+
+def _research_scope(
+    db: Session, owner: User, goal_id: uuid.UUID | None
+) -> tuple[list[ProductOpportunity], BusinessAgentGoal | None, list[uuid.UUID], int]:
+    """Resolve current-goal candidates through existing Business Agent run lineage."""
+    owner_rows = list(
+        db.scalars(
+            select(ProductOpportunity)
+            .where(
+                ProductOpportunity.owner_id == owner.id,
+                ProductOpportunity.lifecycle_status != "archived",
+            )
+            .order_by(ProductOpportunity.updated_at.desc())
+        )
+    )
+    meaningful_owner_rows = [row for row in owner_rows if _meaningful_opportunity(row)]
+    goal_statement = select(BusinessAgentGoal).where(BusinessAgentGoal.owner_id == owner.id)
+    if goal_id is not None:
+        goal_statement = goal_statement.where(BusinessAgentGoal.id == goal_id)
+    goal = db.scalar(
+        goal_statement.order_by(
+            BusinessAgentGoal.updated_at.desc(), BusinessAgentGoal.created_at.desc()
+        )
+    )
+    if goal is None:
+        if goal_id is not None:
+            raise HTTPException(404, "Business goal not found.")
+        # Preserve the standalone Product Opportunity contract when no goal exists.
+        return owner_rows, None, [], 0
+    run_ids = list(
+        db.scalars(
+            select(BusinessAgentRun.id)
+            .where(BusinessAgentRun.owner_id == owner.id, BusinessAgentRun.goal_id == goal.id)
+            .order_by(BusinessAgentRun.created_at.desc())
+        )
+    )
+    explicit_id = (goal.structured_goal or {}).get("product_opportunity_id")
+    explicit_uuid: uuid.UUID | None = None
+    try:
+        if explicit_id:
+            explicit_uuid = uuid.UUID(str(explicit_id))
+    except (TypeError, ValueError):
+        explicit_uuid = None
+    prefixes = tuple(f"business-agent:{run_id}:candidate:" for run_id in run_ids)
+    active_rows = [
+        row
+        for row in meaningful_owner_rows
+        if (explicit_uuid is not None and row.id == explicit_uuid)
+        or any(row.idempotency_key.startswith(prefix) for prefix in prefixes)
+    ]
+    historical_count = max(0, len(meaningful_owner_rows) - len(active_rows))
+    return active_rows, goal, run_ids, historical_count
+
+
+@router.get("/research-results")
+def research_results(
+    db: DB, owner: Owner, goal_id: Annotated[uuid.UUID | None, Query()] = None
+) -> dict[str, Any]:
+    """Bounded owner-scoped projection over Product Opportunity and 9F."""
+    opportunities, active_goal, active_run_ids, historical_count = _research_scope(
+        db, owner, goal_id
+    )
+    active_total = len(opportunities)
+    opportunities = opportunities[:50]
+    opportunity_ids = [row.id for row in opportunities]
+    assessments = (
+        list(
+            db.scalars(
+                select(ProductOpportunityAssessment)
+                .where(
+                    ProductOpportunityAssessment.owner_id == owner.id,
+                    ProductOpportunityAssessment.opportunity_id.in_(opportunity_ids),
+                )
+                .order_by(ProductOpportunityAssessment.version.desc())
+            )
+        )
+        if opportunity_ids
+        else []
+    )
+    assessments_by_id = {row.id: row for row in assessments}
+    assessment_by_opportunity: dict[uuid.UUID, ProductOpportunityAssessment] = {}
+    for opportunity in opportunities:
+        current = (
+            assessments_by_id.get(opportunity.current_assessment_id)
+            if opportunity.current_assessment_id is not None
+            else None
+        )
+        if current is not None:
+            assessment_by_opportunity[opportunity.id] = current
+    for row in assessments:
+        assessment_by_opportunity.setdefault(row.opportunity_id, row)
+    assessment_ids = [row.id for row in assessments]
+    scores = (
+        list(
+            db.scalars(
+                select(ProductOpportunityScore)
+                .where(
+                    ProductOpportunityScore.owner_id == owner.id,
+                    ProductOpportunityScore.assessment_id.in_(assessment_ids),
+                )
+                .order_by(ProductOpportunityScore.created_at.desc())
+            )
+        )
+        if assessment_ids
+        else []
+    )
+    score_by_assessment: dict[uuid.UUID, ProductOpportunityScore] = {}
+    for score_row in scores:
+        score_by_assessment.setdefault(score_row.assessment_id, score_row)
+    decisions = (
+        list(
+            db.scalars(
+                select(ProductOpportunityDecision).where(
+                    ProductOpportunityDecision.owner_id == owner.id,
+                    ProductOpportunityDecision.opportunity_id.in_(opportunity_ids),
+                )
+            )
+        )
+        if opportunity_ids
+        else []
+    )
+    selected = {row.opportunity_id for row in decisions if row.action == "shortlist"}
+    cards: list[dict[str, Any]] = []
+    for opportunity in opportunities:
+        assessment = assessment_by_opportunity.get(opportunity.id)
+        score = score_by_assessment.get(assessment.id) if assessment else None
+        profile = opportunity.intelligence_profile or {}
+        profile_why = profile.get("why_this_surfaced")
+        profile_why_list = profile_why if isinstance(profile_why, list) else []
+        dimensions = score.dimensions if score else []
+        gaps = (
+            list(score.improvement_areas)
+            if score
+            else ["Complete an assessment and gather supporting evidence."]
+        )
+        positive = list(score.positive_drivers) if score else []
+        negative = list(score.negative_drivers) if score else []
+        cards.append(
+            {
+                "id": str(opportunity.id),
+                "name": opportunity.name,
+                "description": opportunity.description or opportunity.product_concept,
+                "product_concept": opportunity.product_concept,
+                "category": opportunity.category,
+                "subcategory": opportunity.subcategory,
+                "marketplace": opportunity.target_marketplace,
+                "region": opportunity.target_region,
+                "research_run_id": (
+                    str(opportunity.research_run_id) if opportunity.research_run_id else None
+                ),
+                "research_state": opportunity.research_state,
+                "evidence_state": opportunity.evidence_state,
+                "intelligence_profile": profile,
+                "assessment_id": str(assessment.id) if assessment else None,
+                "candidate_state": _candidate_state(opportunity, score),
+                "selected": opportunity.id in selected,
+                "score": _response(score) if score else None,
+                "why_this_surfaced": [item for item in profile_why_list if isinstance(item, str)]
+                or positive
+                or ["Insufficient evidence"],
+                "strengths": positive,
+                "risks": negative,
+                "data_gaps": gaps,
+                "evidence": [
+                    {
+                        "dimension": item.get("dimension", "UNKNOWN"),
+                        "classification": item.get("evidence_state", "UNKNOWN"),
+                        "source": item.get("source", "UNKNOWN"),
+                        "freshness": "UNKNOWN",
+                        "confidence": score.confidence if score else "UNKNOWN",
+                        "contradiction": "UNKNOWN",
+                        "value": item.get("raw_input"),
+                    }
+                    for item in dimensions
+                    if isinstance(item, dict)
+                ],
+                "next_validation": gaps[:3],
+            }
+        )
+    ready = sum(card["candidate_state"] == "READY_TO_COMPARE" for card in cards)
+    needs_more_research = sum(card["candidate_state"] == "NEEDS_MORE_RESEARCH" for card in cards)
+    insufficient_evidence = sum(
+        card["candidate_state"] == "INSUFFICIENT_EVIDENCE" for card in cards
+    )
+    return {
+        "active_goal_id": str(active_goal.id) if active_goal else None,
+        "active_run_ids": [str(value) for value in active_run_ids],
+        "total_owner_opportunities": historical_count + active_total,
+        "historical_opportunities": historical_count,
+        "goal_context": (
+            {
+                "summary": active_goal.raw_goal[:280],
+                "confirmed": bool((active_goal.provenance or {}).get("commerce_context_confirmed")),
+                "values": (
+                    (active_goal.structured_goal or {}).get("commerce_context", {})
+                    if active_goal
+                    else {}
+                ),
+            }
+            if active_goal
+            else None
+        ),
+        "status": (
+            "RESEARCH_COMPLETED_WITH_GAPS"
+            if cards and ready < len(cards)
+            else ("RESEARCH_COMPLETE" if cards else "NO_RESULTS")
+        ),
+        "summary": {
+            "total": len(cards),
+            "ready_for_comparison": ready,
+            "needs_more_research": needs_more_research,
+            "insufficient_evidence": insufficient_evidence,
+        },
+        "candidates": cards,
+        "selected_candidate_ids": [str(value) for value in selected],
+        "human_selection": {
+            "provenance": "HUMAN" if selected else "UNKNOWN",
+            "count": len(selected),
+        },
+    }
 
 
 @router.get("/scoring-model")

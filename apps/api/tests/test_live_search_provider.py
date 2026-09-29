@@ -58,6 +58,16 @@ def test_missing_credentials_preflight_is_blocked_without_network() -> None:
     }
 
 
+@pytest.mark.parametrize("payload", [[], {"web": {"unexpected": []}}])
+def test_brave_preflight_rejects_invalid_response_shape(
+    monkeypatch: pytest.MonkeyPatch, payload: object
+) -> None:
+    fake = FakeClient(response(200, payload))
+    monkeypatch.setattr(external_provider.httpx, "Client", lambda **_kwargs: fake)
+    result = BraveSearchProvider(settings()).preflight()
+    assert result["status"] == "INVALID_RESPONSE"
+
+
 def test_brave_normalizes_results_and_sends_subscription_header(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -111,6 +121,91 @@ def test_brave_normalizes_results_and_sends_subscription_header(
     assert results[0].raw_payload_reference is None
     assert fake.calls[0][2]["X-Subscription-Token"] == "test-token"
     assert fake.calls[0][1]["country"] == "IN"
+    assert fake.calls[0][1]["result_filter"] == "web"
+
+
+def test_brave_accepts_legitimate_empty_web_results(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = FakeClient(response(200, {"type": "search", "query": "empty", "web": {"results": []}}))
+    monkeypatch.setattr(external_provider.httpx, "Client", lambda **_kwargs: fake)
+    results = BraveSearchProvider(settings()).search(
+        query="empty",
+        market="US",
+        language="en",
+        max_results=3,
+        safe_search=True,
+        source_categories=(),
+        allowed_domains=(),
+        excluded_domains=(),
+        correlation_id="corr-empty",
+    )
+    assert results == []
+
+
+def test_brave_does_not_treat_mixed_only_response_as_web_results(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake = FakeClient(
+        response(
+            200,
+            {"type": "search", "query": "mixed", "mixed": {"main": [], "top": [], "side": []}},
+        )
+    )
+    monkeypatch.setattr(external_provider.httpx, "Client", lambda **_kwargs: fake)
+    results = BraveSearchProvider(settings()).search(
+        query="mixed",
+        market="US",
+        language="en",
+        max_results=3,
+        safe_search=True,
+        source_categories=(),
+        allowed_domains=(),
+        excluded_domains=(),
+        correlation_id="corr-mixed",
+    )
+    assert results == []
+
+
+def test_brave_rejects_malformed_web_bucket(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = FakeClient(response(200, {"web": {"unexpected": []}}))
+    monkeypatch.setattr(external_provider.httpx, "Client", lambda **_kwargs: fake)
+    with pytest.raises(SearchProviderError) as error:
+        BraveSearchProvider(settings()).search(
+            query="malformed",
+            market="US",
+            language="en",
+            max_results=3,
+            safe_search=True,
+            source_categories=(),
+            allowed_domains=(),
+            excluded_domains=(),
+            correlation_id="corr-malformed",
+        )
+    assert str(error.value) == "search_invalid_response"
+
+
+def test_brave_allows_missing_optional_description(monkeypatch: pytest.MonkeyPatch) -> None:
+    fake = FakeClient(
+        response(200, {"web": {"results": [{"title": "Title", "url": "https://example.org/item"}]}})
+    )
+    monkeypatch.setattr(external_provider.httpx, "Client", lambda **_kwargs: fake)
+    monkeypatch.setattr(
+        external_provider,
+        "_resolved_addresses",
+        lambda _host: [ipaddress.ip_address("93.184.216.34")],
+    )
+    results = BraveSearchProvider(settings()).search(
+        query="optional description",
+        market="US",
+        language="en",
+        max_results=3,
+        safe_search=True,
+        source_categories=(),
+        allowed_domains=("example.org",),
+        excluded_domains=(),
+        correlation_id="corr-optional",
+    )
+    assert len(results) == 1
+    assert results[0].snippet == ""
 
 
 @pytest.mark.parametrize(

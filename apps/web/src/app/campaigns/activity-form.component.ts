@@ -56,7 +56,7 @@ import { CampaignService } from './campaign.service';
             <option value="">Select exact version</option>
             @for (item of artifacts(); track item.id) {
               <option [value]="item.id" [disabled]="item.disabled">
-                {{ item.label }} · {{ item.status }}
+                {{ item.label }} - {{ item.status }}
               </option>
             }
           </select></label
@@ -69,7 +69,7 @@ import { CampaignService } from './campaign.service';
             <option value="">Select destination</option>
             @for (item of destinations(); track item.id) {
               <option [value]="item.id" [disabled]="item.disabled">
-                {{ item.label }} · {{ item.connector_key }}
+                {{ item.label }} - {{ item.connector_key }}
               </option>
             }
           </select></label

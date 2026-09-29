@@ -14,7 +14,7 @@ export interface ProductOpportunity {
   description: string;
   product_concept: string;
   category: string;
-  subcategory: string;
+  subcategory?: string;
   brand_strategy: string;
   target_marketplace: string;
   target_region: string;
@@ -27,6 +27,7 @@ export interface ProductOpportunity {
   lifecycle_status: string;
   research_state: string;
   evidence_state: string;
+  intelligence_profile?: Record<string, unknown>;
   current_constraint_version_id: string | null;
   current_assessment_id: string | null;
   created_at: string;
@@ -380,12 +381,89 @@ export interface SourcingEconomicsProjection {
   semantic_boundary?: string;
   external_writes: string[];
 }
+export interface ResearchCandidate {
+  research_run_id: string | null;
+  id: string;
+  name: string;
+  description: string;
+  product_concept: string;
+  category: string;
+  subcategory?: string;
+  marketplace: string;
+  region: string;
+  research_state: string;
+  evidence_state: string;
+  intelligence_profile?: Record<string, unknown>;
+  assessment_id: string | null;
+  candidate_state: 'READY_TO_COMPARE' | 'NEEDS_MORE_RESEARCH' | 'INSUFFICIENT_EVIDENCE';
+  selected: boolean;
+  score: ProductOpportunityScore | null;
+  why_this_surfaced: string[];
+  strengths: string[];
+  risks: string[];
+  data_gaps: string[];
+  next_validation: string[];
+  evidence: Array<Record<string, unknown>>;
+}
+
+export interface ProductResearchResponse {
+  opportunity_id: string;
+  research_state: string;
+  evidence_state: string;
+  mode: string;
+  query_count: number;
+  result_count: number;
+  fetch_count: number;
+  queries: Array<Record<string, unknown>>;
+  results: Array<Record<string, unknown>>;
+  fetches: Array<Record<string, unknown>>;
+  failures: Array<Record<string, string>>;
+  gaps: string[];
+}
+export interface ResearchResults {
+  status: string;
+  active_goal_id?: string | null;
+  active_run_ids?: string[];
+  total_owner_opportunities?: number;
+  historical_opportunities?: number;
+  goal_context?: {
+    summary: string;
+    confirmed: boolean;
+    values: Record<string, unknown>;
+  } | null;
+  summary: {
+    total: number;
+    ready_for_comparison: number;
+    needs_more_research: number;
+    insufficient_evidence?: number;
+  };
+  candidates: ResearchCandidate[];
+  selected_candidate_ids: string[];
+  human_selection: { provenance: string; count: number };
+}
 @Injectable({ providedIn: 'root' })
 export class ProductOpportunityService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/intelligence/product-opportunities`;
   private readonly options = { withCredentials: true } as const;
 
+  getResearchResults(): Promise<ResearchResults> {
+    return firstValueFrom(
+      this.http.get<ResearchResults>(`${this.base}/research-results`, this.options),
+    );
+  }
+  researchMarketEvidence(
+    opportunityId: string,
+    payload: { max_queries?: number; max_results?: number; fetch_sources?: boolean } = {},
+  ): Promise<ProductResearchResponse> {
+    return firstValueFrom(
+      this.http.post<ProductResearchResponse>(
+        `${this.base}/${opportunityId}/market-research`,
+        payload,
+        this.options,
+      ),
+    );
+  }
   list(): Promise<ProductOpportunity[]> {
     return firstValueFrom(this.http.get<ProductOpportunity[]>(this.base, this.options));
   }

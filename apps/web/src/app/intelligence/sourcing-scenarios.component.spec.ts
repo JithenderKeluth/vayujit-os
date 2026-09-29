@@ -1,6 +1,7 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { environment } from '../../environments/environment';
 import { provideRouter } from '@angular/router';
 import { SourcingScenariosComponent } from './sourcing-scenarios.component';
 
@@ -19,6 +20,27 @@ describe('SourcingScenariosComponent', () => {
     expect(text).toContain('Create analysis context');
   });
 
+  it('guides users to shortlisting when no supplier prerequisite exists', async () => {
+    TestBed.configureTestingModule({
+      imports: [SourcingScenariosComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(SourcingScenariosComponent);
+    const http = TestBed.inject(HttpTestingController);
+    fixture.detectChanges();
+    http.expectOne(`${environment.apiUrl}/intelligence/sourcing-scenarios/contexts`).flush([]);
+    await Promise.resolve();
+    http.expectOne(`${environment.apiUrl}/intelligence/supplier-shortlisting/contexts`).flush([]);
+    await Promise.resolve();
+    http.expectOne(`${environment.apiUrl}/intelligence/supplier-due-diligence/contexts`).flush([]);
+    await fixture.whenStable();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Create a supplier shortlist first');
+    expect(
+      fixture.nativeElement.querySelector('a[href="/intelligence/supplier-shortlisting"]'),
+    ).not.toBeNull();
+    http.verify();
+  });
   it('keeps approval disabled for incomplete analysis', () => {
     TestBed.configureTestingModule({
       imports: [SourcingScenariosComponent],
@@ -64,9 +86,9 @@ describe('SourcingScenariosComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('1 evidenced baseline scenarios generated');
     http.expectOne(component.base + '/contexts').flush([]);
     await Promise.resolve();
-    http.expectOne('/api/v1/intelligence/supplier-shortlisting/contexts').flush([]);
+    http.expectOne(`${environment.apiUrl}/intelligence/supplier-shortlisting/contexts`).flush([]);
     await Promise.resolve();
-    http.expectOne('/api/v1/intelligence/supplier-due-diligence/contexts').flush([]);
+    http.expectOne(`${environment.apiUrl}/intelligence/supplier-due-diligence/contexts`).flush([]);
     await Promise.resolve();
     http.verify();
   });

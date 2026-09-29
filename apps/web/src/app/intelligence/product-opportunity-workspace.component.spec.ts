@@ -11,6 +11,7 @@ import {
   ProductOpportunityService,
   SourcingFeasibilityOutput,
   ProductOpportunityScore,
+  ResearchCandidate,
   TrendWinningProductProjection,
 } from './product-opportunity.service';
 
@@ -318,6 +319,144 @@ describe('Product opportunity UX-4 context hub', () => {
     expect(text).toContain('What we still do not know');
     expect(text).toContain('LIMITED_HISTORY');
     expect(text).toContain('SOURCES_DISAGREE');
+    http.verify();
+  });
+});
+describe('Product opportunity GP-3 research results', () => {
+  function candidate(id: string, state: ResearchCandidate['candidate_state']): ResearchCandidate {
+    return {
+      research_run_id: null,
+      id,
+      name: 'Candidate ' + id,
+      description: 'Evidence-backed concept',
+      product_concept: 'Reusable product',
+      category: 'Home',
+      marketplace: 'Amazon India',
+      region: 'IN',
+      research_state: 'completed',
+      evidence_state: 'partial',
+      assessment_id: 'assessment-' + id,
+      candidate_state: state,
+      selected: false,
+      score: null,
+      why_this_surfaced: ['Insufficient evidence'],
+      strengths: [],
+      risks: ['Supplier economics remain unknown.'],
+      data_gaps: ['Verified quotation'],
+      next_validation: ['Research suppliers'],
+      evidence: [],
+    };
+  }
+
+  it('renders bounded candidate comparison and explicit evidence gaps', () => {
+    const { fixture, component, http } = setup();
+    component.researchResults.set({
+      status: 'RESEARCH_COMPLETED_WITH_GAPS',
+      summary: { total: 2, ready_for_comparison: 0, needs_more_research: 2 },
+      candidates: [candidate('a', 'NEEDS_MORE_RESEARCH'), candidate('b', 'INSUFFICIENT_EVIDENCE')],
+      selected_candidate_ids: [],
+      human_selection: { provenance: 'UNKNOWN', count: 0 },
+    });
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Your product research results');
+    expect(text).toContain('Why this product surfaced');
+    expect(text).toContain('Insufficient evidence');
+    expect(text).toContain('View evidence');
+    expect(text).toContain('Compare selected products');
+
+    component.toggleCandidate(candidate('a', 'NEEDS_MORE_RESEARCH'));
+    component.toggleCandidate(candidate('b', 'INSUFFICIENT_EVIDENCE'));
+    expect(component.canCompareCandidates()).toBe(true);
+    expect(component.selectedCandidateIds()).toEqual(['a', 'b']);
+    http.verify();
+  });
+
+  it('makes local fixture trust and missing imagery explicit on candidate cards', () => {
+    const { fixture, component, http } = setup();
+    const item = candidate('fixture', 'NEEDS_MORE_RESEARCH');
+    item.intelligence_profile = {
+      candidate_source: 'LOCAL_DETERMINISTIC_RESEARCH_FIXTURE',
+      candidate_provenance: { mode: 'LOCAL_DETERMINISTIC' },
+      goal_fit: ['Lightweight preference matched.'],
+      detailed_description: 'A compact reusable product concept.',
+      image: { available: false, source: 'NOT_AVAILABLE' },
+    };
+    component.researchResults.set({
+      status: 'RESEARCH_COMPLETED_WITH_GAPS',
+      summary: { total: 1, ready_for_comparison: 0, needs_more_research: 1 },
+      candidates: [item],
+      selected_candidate_ids: [],
+      human_selection: { provenance: 'UNKNOWN', count: 0 },
+    });
+    fixture.detectChanges();
+    const card = fixture.nativeElement.querySelector('.candidate-card') as HTMLElement;
+    expect(card.textContent).toContain('Local demo - not live evidence');
+    expect(card.textContent).toContain('Product image not available');
+    expect(card.textContent).toContain('Why this product surfaced');
+    expect(card.textContent).not.toContain('Price: 0');
+    http.verify();
+  });
+
+  it('renders bounded comparison dimensions without declaring a winner', () => {
+    const { fixture, component, http } = setup();
+    const first = candidate('one', 'READY_TO_COMPARE');
+    const second = candidate('two', 'READY_TO_COMPARE');
+    first.name = 'Insulated Lunch Container';
+    second.name = 'Foldable Wardrobe Organizer';
+    component.researchResults.set({
+      status: 'RESEARCH_COMPLETED',
+      summary: { total: 2, ready_for_comparison: 2, needs_more_research: 0 },
+      candidates: [first, second],
+      selected_candidate_ids: ['one', 'two'],
+      human_selection: { provenance: 'UNKNOWN', count: 0 },
+    });
+    component.selectedCandidateIds.set(['one', 'two']);
+    component.comparison.set({
+      comparability: 'COMPARABLE',
+      reason: 'Same assessment model.',
+      items: [],
+      ranking: [],
+    });
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('Dimension');
+    expect(text).toContain('Goal fit');
+    expect(text).toContain('Important unknowns');
+    expect(text).toContain('does not choose a winner');
+    expect(text).not.toContain('Winner');
+    http.verify();
+  });
+});
+
+describe('Product opportunity human selection', () => {
+  it('records explicit human selection and carries supplier context', async () => {
+    const { component, service, http } = setup();
+    const selected = {
+      ...detail,
+      current_assessment_id: 'assessment',
+      category: 'Home',
+      subcategory: 'Storage',
+      target_marketplace: 'AMAZON_IN',
+      target_region: 'IN',
+      product_concept: 'Reusable storage product',
+      intelligence_profile: { research_keywords: ['storage', 'reusable'] },
+    } as unknown as OpportunityDetail;
+    component.detail.set(selected);
+    const decide = vi.spyOn(service, 'decide').mockResolvedValue({ id: 'decision' });
+    await component.selectDetailForSupplier(selected);
+    expect(decide).toHaveBeenCalledWith('opportunity', 'assessment', {
+      action: 'shortlist',
+      rationale: 'Human selected this product for supplier research.',
+    });
+    expect(component.supplierHandoffParams(selected)).toMatchObject({
+      opportunity_id: 'opportunity',
+      category: 'Home',
+      subcategory: 'Storage',
+      marketplace: 'AMAZON_IN',
+      region: 'IN',
+      search_terms: 'storage, reusable',
+    });
     http.verify();
   });
 });

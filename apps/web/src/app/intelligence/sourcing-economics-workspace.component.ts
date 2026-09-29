@@ -1,11 +1,19 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
+import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
+import { CommerceJourneyService } from '../commerce-journey.service';
+import {
+  BlockedStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
+import { PageHeaderComponent } from '../shared/page-header.component';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 
 interface EconomicContextView {
@@ -99,6 +107,47 @@ interface EconomicScenarioResultView {
   warnings: string[];
 }
 
+interface DecisionBriefView {
+  opportunity_id: string;
+  product: { name: string; category: string; marketplace: string; provenance: string };
+  suppliers: {
+    shortlisted_count: number;
+    verified_count: number;
+    readiness: string;
+    items: Array<{ supplier_name: string; due_diligence_status: string }>;
+  };
+  economics: {
+    readiness: string;
+    calculation?: {
+      total_included_cost: string;
+      per_unit_cost: string | null;
+      currency: string | null;
+      status: string;
+      missing_inputs: string[];
+      warnings: string[];
+    };
+    scenario_comparisons: Array<{
+      scenario_name: string;
+      comparability: string;
+      baseline: { total: string | null; per_unit: string | null };
+      scenario: { total: string | null; per_unit: string | null };
+      warnings: string[];
+    }>;
+  };
+  budget_fit: {
+    status: string;
+    budget: string | null;
+    currency: string | null;
+    remaining_or_shortfall: string | null;
+    scope: string;
+  };
+  risk: string;
+  evidence_completeness: string;
+  decision_readiness: string;
+  key_risks: string[];
+  data_gaps: Array<{ message: string }>;
+  next_options: string[];
+}
 interface EconomicSensitivityView {
   id: string;
   dimension: string;
@@ -114,25 +163,163 @@ interface EconomicSensitivityView {
 
 @Component({
   selector: 'app-sourcing-economics-workspace',
-  imports: [BreadcrumbsComponent, CommonModule, FormsModule, RouterLink],
+  imports: [
+    BlockedStateComponent,
+    BreadcrumbsComponent,
+    CommonModule,
+    CommerceJourneyContextComponent,
+    ErrorStateComponent,
+    FormsModule,
+    LoadingStateComponent,
+    PageHeaderComponent,
+    RouterLink,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="economics-page" aria-labelledby="economics-title">
       <app-breadcrumbs [items]="breadcrumbs" />
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">Intelligence / Sourcing economics</p>
-          <h1 id="economics-title">Sourcing economic inputs</h1>
-          <p class="lede">
-            Capture immutable inputs, calculate a reproducible known-cost subtotal, and inspect
-            every included or excluded line.
-          </p>
-        </div>
-        <a routerLink="/intelligence">Back to Intelligence</a>
-      </header>
+      <app-page-header
+        eyebrow="Intelligence / Sourcing economics"
+        title="Review sourcing economics"
+        headingId="economics-title"
+        description="Compare known costs, evidence gaps, budget fit, and risks. Sourcing economic inputs remain immutable while you calculate a reproducible known-cost subtotal before deciding."
+      >
+        <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
+      </app-page-header>
+      <app-commerce-journey-context />
       @if (error()) {
-        <p class="error" role="alert">{{ error() }}</p>
+        <app-error-state
+          [message]="error()"
+          retryLabel="Retry decision brief"
+          (retry)="retryLoad()"
+        />
       }
+      @if (busy()) {
+        <app-loading-state message="Updating sourcing economics..." />
+      }
+      <section class="panel" aria-labelledby="brief-title">
+        <h2 id="brief-title">Decision brief</h2>
+        <p>
+          Review authoritative sourcing economics, evidence gaps, budget scope, and risks before
+          making an explicit human decision. Unknown values remain unknown.
+        </p>
+        @if (opportunityId) {
+          <p class="context-note" role="status">
+            Using the selected product from the guided journey{{
+              journeyProductName ? ': ' + journeyProductName : ''
+            }}.
+          </p>
+        }
+        <form (submit)="$event.preventDefault(); loadDecisionBrief()" class="form-grid">
+          @if (!opportunityId) {
+            <app-blocked-state
+              title="Select a product before reviewing economics"
+              reason="Sourcing economics and the Decision Brief stay scoped to a human-selected product opportunity."
+            />
+            <a routerLink="/intelligence/product-opportunities">Choose a product opportunity</a>
+          }
+          <details>
+            <summary>Advanced decision identifiers</summary>
+            <label
+              >Product opportunity ID
+              <input name="opportunityIdAdvanced" [(ngModel)]="opportunityId" />
+            </label>
+            <label
+              >Journey ID (for decision)
+              <input
+                name="journeyId"
+                [(ngModel)]="journeyId"
+                placeholder="Business Agent goal UUID"
+            /></label>
+          </details>
+          <button type="submit" [disabled]="busy()">Load decision brief</button>
+        </form>
+        @if (decisionBrief(); as brief) {
+          <div class="brief-summary" role="status">
+            <h3>{{ brief.product.name }}</h3>
+            <p>
+              Readiness: <strong>{{ brief.decision_readiness }}</strong> · Risk:
+              <strong>{{ brief.risk }}</strong> · Evidence:
+              <strong>{{ brief.evidence_completeness }}</strong>
+            </p>
+            <p>
+              Suppliers: {{ brief.suppliers.verified_count }} verified /
+              {{ brief.suppliers.shortlisted_count }} shortlisted.
+            </p>
+            <p>
+              Budget: {{ brief.budget_fit.budget || 'UNKNOWN' }}
+              {{ brief.budget_fit.currency || '' }} · {{ brief.budget_fit.status }}
+            </p>
+            <p class="hint">{{ brief.budget_fit.scope }}</p>
+          </div>
+          @if (brief.economics.calculation; as cost) {
+            <h3>Known landed-cost evidence</h3>
+            <dl class="input-list">
+              <div>
+                <dt>Total modeled cost</dt>
+                <dd>{{ cost.total_included_cost }} {{ cost.currency || '' }}</dd>
+              </div>
+              <div>
+                <dt>Per-unit cost</dt>
+                <dd>{{ cost.per_unit_cost || 'UNKNOWN' }}</dd>
+              </div>
+              <div>
+                <dt>Calculation status</dt>
+                <dd>{{ cost.status }}</dd>
+              </div>
+            </dl>
+          } @else {
+            <p class="hint">
+              More commercial information is required before landed cost can be calculated.
+            </p>
+          }
+          @if (brief.economics.scenario_comparisons.length) {
+            <h3>Scenario comparison (no automatic winner)</h3>
+            <div class="breakdown-scroll">
+              <table>
+                <caption>
+                  Authoritative scenario results
+                </caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Scenario</th>
+                    <th scope="col">Comparability</th>
+                    <th scope="col">Scenario total</th>
+                    <th scope="col">Per unit</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of brief.economics.scenario_comparisons; track row.scenario_name) {
+                    <tr>
+                      <th scope="row">{{ row.scenario_name }}</th>
+                      <td>{{ row.comparability }}</td>
+                      <td>{{ row.scenario.total || 'UNKNOWN' }}</td>
+                      <td>{{ row.scenario.per_unit || 'UNKNOWN' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <p class="hint">The current sourcing options cannot yet be compared reliably.</p>
+          }
+          @if (brief.data_gaps.length) {
+            <h3>What still needs review</h3>
+            <ul>
+              @for (gap of brief.data_gaps; track gap.message) {
+                <li>{{ gap.message }}</li>
+              }
+            </ul>
+          }
+          <div class="decision-actions" aria-label="Human decision options">
+            @for (action of brief.next_options; track action) {
+              <button type="button" (click)="submitDecision(action)" [disabled]="busy()">
+                {{ action.replaceAll('_', ' ') }}
+              </button>
+            }
+          </div>
+        }
+      </section>
       <section class="panel" aria-labelledby="context-title">
         <h2 id="context-title">Sourcing context</h2>
         <p>
@@ -141,9 +328,6 @@ interface EconomicSensitivityView {
         </p>
         <p>UNKNOWN is unavailable; it is never displayed as zero.</p>
         <form (submit)="$event.preventDefault(); createContext()" class="form-grid">
-          <label
-            >Idempotency key <input name="key" required [(ngModel)]="draft.idempotency_key"
-          /></label>
           <label
             >Base currency
             <input
@@ -242,8 +426,8 @@ interface EconomicSensitivityView {
         <section class="panel result-panel" aria-labelledby="result-title">
           <h2 id="result-title">{{ calculation()?.explanation?.included_total_label }}</h2>
           <p class="status" role="status">
-            Status: <strong>{{ calculation()?.status }}</strong> Ã¯Â¿Â½ Version
-            {{ calculation()?.calculation_version }} Ã¯Â¿Â½ Snapshot {{ snapshot()?.version }}
+            Status: <strong>{{ calculation()?.status }}</strong> - Version
+            {{ calculation()?.calculation_version }} - Snapshot {{ snapshot()?.version }}
           </p>
           <dl class="input-list">
             <div>
@@ -290,7 +474,7 @@ interface EconomicSensitivityView {
                         {{ line.currency || '' }}
                       </td>
                       <td>{{ line.basis || 'UNKNOWN' }}</td>
-                      <td>{{ line.provenance }} Ã¯Â¿Â½ {{ line.freshness }}</td>
+                      <td>{{ line.provenance }} - {{ line.freshness }}</td>
                       <td>
                         {{
                           line.exclusion_reason ||
@@ -485,6 +669,17 @@ interface EconomicSensitivityView {
         font-weight: 700;
         padding: 0.65rem 0;
       }
+      .brief-summary {
+        border-left: 4px solid #0f766e;
+        padding: 1rem;
+        background: #f0fdfa;
+      }
+      .decision-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
       @media (max-width: 600px) {
         .economics-page {
           padding: 1rem;
@@ -496,8 +691,9 @@ interface EconomicSensitivityView {
     `,
   ],
 })
-export class SourcingEconomicsWorkspaceComponent {
+export class SourcingEconomicsWorkspaceComponent implements OnInit {
   private readonly http = inject(HttpClient);
+  private readonly journey = inject(CommerceJourneyService, { optional: true });
   readonly breadcrumbs: BreadcrumbItem[] = [
     { label: 'Intelligence', url: '/intelligence' },
     { label: 'Sourcing economics' },
@@ -510,6 +706,89 @@ export class SourcingEconomicsWorkspaceComponent {
   readonly scenario = signal<EconomicScenarioView | null>(null);
   readonly scenarioResult = signal<EconomicScenarioResultView | null>(null);
   readonly sensitivity = signal<EconomicSensitivityView | null>(null);
+  readonly decisionBrief = signal<DecisionBriefView | null>(null);
+  private readonly route = inject(ActivatedRoute);
+  opportunityId = '';
+  journeyId = '';
+  journeyProductName = '';
+  decisionNote = '';
+
+  ngOnInit(): void {
+    this.opportunityId = this.route.snapshot.queryParamMap.get('opportunity_id') || '';
+    this.journeyId = this.route.snapshot.queryParamMap.get('journey_id') || '';
+    void this.loadJourneyContext();
+  }
+
+  private async loadJourneyContext(): Promise<void> {
+    if (this.journey) {
+      try {
+        const active = await this.journey.active();
+        const values = active?.context.values || {};
+        if (!this.opportunityId && typeof values['selected_product_opportunity_id'] === 'string') {
+          this.opportunityId = values['selected_product_opportunity_id'];
+        }
+        if (!this.journeyId && active?.id) this.journeyId = active.id;
+        if (typeof values['product_name'] === 'string')
+          this.journeyProductName = values['product_name'];
+      } catch {
+        // Advanced/manual identifiers remain available when the journey is unavailable.
+      }
+    }
+    if (this.opportunityId) void this.loadDecisionBrief();
+  }
+
+  retryLoad(): void {
+    if (this.opportunityId.trim()) void this.loadDecisionBrief();
+  }
+
+  async loadDecisionBrief(): Promise<void> {
+    if (!this.opportunityId.trim()) return;
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      this.decisionBrief.set(
+        await firstValueFrom(
+          this.http.get<DecisionBriefView>(
+            `${environment.apiUrl}/intelligence/product-opportunities/${this.opportunityId.trim()}/decision-brief`,
+          ),
+        ),
+      );
+    } catch {
+      this.error.set(
+        'The decision brief is unavailable. Complete supplier verification and economics first.',
+      );
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
+  async submitDecision(action: string): Promise<void> {
+    if (!this.journeyId.trim() || !this.opportunityId.trim()) {
+      this.error.set('A journey ID is required to record a human decision.');
+      return;
+    }
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      await firstValueFrom(
+        this.http.post(
+          `${environment.apiUrl}/commerce-journeys/${this.journeyId.trim()}/decision`,
+          {
+            opportunity_id: this.opportunityId.trim(),
+            action,
+            note: this.decisionNote.trim() || null,
+            idempotency_key: `gp5-decision-${action.toLowerCase()}-${Date.now()}`,
+          },
+        ),
+      );
+      await this.loadDecisionBrief();
+    } catch {
+      this.error.set('The human decision could not be recorded. Review readiness and try again.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+
   scenarioName = 'Explicit landed-cost what-if';
   scenarioProductCost = '';
   scenarioReason = 'Test one explicit unit-cost assumption.';

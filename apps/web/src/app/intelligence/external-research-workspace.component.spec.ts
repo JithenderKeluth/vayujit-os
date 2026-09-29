@@ -73,7 +73,7 @@ describe('ExternalResearchWorkspaceComponent', () => {
     const root = fixture.nativeElement as HTMLElement;
     expect(root.querySelector('main[aria-labelledby="external-title"]')).not.toBeNull();
     expect(root.querySelector('nav[aria-label="External Research sections"]')).not.toBeNull();
-    expect(root.textContent).toContain('LIVE SEARCH ? NOT VALIDATED');
+    expect(root.textContent).toContain('LIVE SEARCH - NOT VALIDATED');
     expect(root.textContent).toContain('No searches yet.');
     expect(root.textContent).toContain('No fetch history yet.');
     expect(root.textContent).toContain('No external Evidence yet.');

@@ -41,7 +41,9 @@ describe('MarketingPlanComponent UX state matrix', () => {
     http.expectOne('/api/v1/ads/marketing/capabilities').flush({
       channels: ['meta', 'google', 'amazon', 'flipkart', 'social', 'campaign'],
     });
+
     fixture.detectChanges();
+
     return { fixture, component: fixture.componentInstance, http };
   }
 
@@ -89,6 +91,16 @@ describe('MarketingPlanComponent UX state matrix', () => {
       if (state.update) expect(text).toContain('v2');
       if (state.name.includes('Meesho')) expect(text).toContain('meesho');
     }
+    http
+      .match((request) => request.url.endsWith('/products'))
+      .forEach((request) =>
+        request.flush({ items: [], page: 1, page_size: 50, total: 0, pages: 0 }),
+      );
+    http
+      .match((request) => request.url.endsWith('/brands'))
+      .forEach((request) =>
+        request.flush({ items: [], page: 1, page_size: 50, total: 0, pages: 0 }),
+      );
     http.verify();
   });
 
@@ -106,6 +118,16 @@ describe('MarketingPlanComponent UX state matrix', () => {
     fixture.detectChanges();
     const buttons = Array.from(root.querySelectorAll<HTMLButtonElement>('button'));
     expect(buttons.some((button) => button.disabled)).toBe(true);
+    http
+      .match((request) => request.url.endsWith('/products'))
+      .forEach((request) =>
+        request.flush({ items: [], page: 1, page_size: 50, total: 0, pages: 0 }),
+      );
+    http
+      .match((request) => request.url.endsWith('/brands'))
+      .forEach((request) =>
+        request.flush({ items: [], page: 1, page_size: 50, total: 0, pages: 0 }),
+      );
     http.verify();
   });
 });

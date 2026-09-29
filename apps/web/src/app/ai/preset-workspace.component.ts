@@ -21,7 +21,7 @@ import type { AIStudioPreset } from '@vayujit/shared';
         <label>Channels <input name="channels" [(ngModel)]="channels" /></label
         ><label>Content types <input name="outputs" [(ngModel)]="outputs" /></label>
         <p role="status">
-          {{channels.split(',').filter((value) => value.trim().length > 0).length}} channels �
+          {{channels.split(',').filter((value) => value.trim().length > 0).length}} channels -
           {{outputs.split(',').filter((value) => value.trim().length > 0).length}} output types
         </p>
       </fieldset>

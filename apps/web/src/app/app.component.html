@@ -13,6 +13,19 @@
             }
           </div>
         }
+        <details class="advanced-nav" [open]="isAdvancedRoute()">
+          <summary>Advanced</summary>
+          @for (group of advancedNavigationGroups; track group.label) {
+            <div class="nav-group">
+              <span class="nav-group-label">{{ group.label }}</span>
+              @for (item of group.items; track item[1]) {
+                <a [routerLink]="item[1]" routerLinkActive="active" ariaCurrentWhenActive="page">{{
+                  item[0]
+                }}</a>
+              }
+            </div>
+          }
+        </details>
       </nav>
       <div class="account-panel">
         <div class="account-avatar" aria-hidden="true">
@@ -46,6 +59,22 @@
               }
             </div>
           }
+          <details class="advanced-nav" [open]="isAdvancedRoute()">
+            <summary>Advanced</summary>
+            @for (group of advancedNavigationGroups; track group.label) {
+              <div class="nav-group">
+                <span class="nav-group-label">{{ group.label }}</span>
+                @for (item of group.items; track item[1]) {
+                  <a
+                    [routerLink]="item[1]"
+                    routerLinkActive="active"
+                    ariaCurrentWhenActive="page"
+                    >{{ item[0] }}</a
+                  >
+                }
+              </div>
+            }
+          </details>
         </nav>
       </details>
       <header class="context-header">

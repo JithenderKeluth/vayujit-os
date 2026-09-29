@@ -40,6 +40,8 @@ export interface BusinessAgentGoal {
 export interface BusinessAgentPlanStep {
   key: string;
   capability_id: string;
+  business_label?: string;
+  business_description?: string;
   dependencies: string[];
   execution_mode: string;
   side_effect_class: string;
@@ -71,6 +73,8 @@ export interface BusinessAgentRunStep {
   id: string;
   key: string;
   capability_id: string;
+  business_label?: string;
+  business_description?: string;
   status: string;
   attempt_count: number;
   result: BusinessAgentJson;
@@ -93,6 +97,16 @@ export interface BusinessAgentFinding {
   created_at: string;
 }
 
+export interface BusinessAgentCandidate {
+  id: string;
+  name: string;
+  status: string;
+  description: string;
+  product_concept: string;
+  evidence_state: string;
+  research_state: string;
+  origin: string;
+}
 export interface BusinessAgentToolInvocation {
   id: string;
   step_id: string;
@@ -121,6 +135,7 @@ export interface BusinessAgentRun {
   artifacts: BusinessAgentArtifact[];
   findings: BusinessAgentFinding[];
   tool_invocations: BusinessAgentToolInvocation[];
+  candidates?: BusinessAgentCandidate[];
 }
 
 export interface BusinessGoalCreatePayload {
@@ -141,62 +156,87 @@ export interface BusinessRunCreatePayload {
 export class BusinessAgentService {
   private readonly http = inject(HttpClient);
   private readonly base = `${environment.apiUrl}/intelligence/business-agent`;
+  private readonly options = { withCredentials: true } as const;
 
   capabilities(): Promise<BusinessAgentCapability[]> {
-    return firstValueFrom(this.http.get<BusinessAgentCapability[]>(`${this.base}/capabilities`));
+    return firstValueFrom(
+      this.http.get<BusinessAgentCapability[]>(`${this.base}/capabilities`, this.options),
+    );
   }
 
   goals(): Promise<BusinessAgentGoal[]> {
-    return firstValueFrom(this.http.get<BusinessAgentGoal[]>(`${this.base}/goals`));
+    return firstValueFrom(this.http.get<BusinessAgentGoal[]>(`${this.base}/goals`, this.options));
   }
 
   createGoal(payload: BusinessGoalCreatePayload): Promise<BusinessAgentGoal> {
-    return firstValueFrom(this.http.post<BusinessAgentGoal>(`${this.base}/goals`, payload));
+    return firstValueFrom(
+      this.http.post<BusinessAgentGoal>(`${this.base}/goals`, payload, this.options),
+    );
   }
 
   plan(id: string): Promise<BusinessAgentPlan> {
-    return firstValueFrom(this.http.post<BusinessAgentPlan>(`${this.base}/goals/${id}/plan`, {}));
+    return firstValueFrom(
+      this.http.post<BusinessAgentPlan>(`${this.base}/goals/${id}/plan`, {}, this.options),
+    );
   }
 
   createRun(id: string, payload: BusinessRunCreatePayload): Promise<BusinessAgentRun> {
     return firstValueFrom(
-      this.http.post<BusinessAgentRun>(`${this.base}/goals/${id}/runs`, payload),
+      this.http.post<BusinessAgentRun>(`${this.base}/goals/${id}/runs`, payload, this.options),
     );
   }
 
   start(id: string): Promise<BusinessAgentRun> {
-    return firstValueFrom(this.http.post<BusinessAgentRun>(`${this.base}/runs/${id}/start`, {}));
+    return firstValueFrom(
+      this.http.post<BusinessAgentRun>(`${this.base}/runs/${id}/start`, {}, this.options),
+    );
   }
 
   run(id: string): Promise<BusinessAgentRun> {
-    return firstValueFrom(this.http.get<BusinessAgentRun>(`${this.base}/runs/${id}`));
+    return firstValueFrom(this.http.get<BusinessAgentRun>(`${this.base}/runs/${id}`, this.options));
   }
 
   pause(id: string): Promise<BusinessAgentRun> {
-    return firstValueFrom(this.http.post<BusinessAgentRun>(`${this.base}/runs/${id}/pause`, {}));
+    return firstValueFrom(
+      this.http.post<BusinessAgentRun>(`${this.base}/runs/${id}/pause`, {}, this.options),
+    );
   }
 
   resume(id: string): Promise<BusinessAgentRun> {
-    return firstValueFrom(this.http.post<BusinessAgentRun>(`${this.base}/runs/${id}/resume`, {}));
+    return firstValueFrom(
+      this.http.post<BusinessAgentRun>(`${this.base}/runs/${id}/resume`, {}, this.options),
+    );
   }
 
   cancel(id: string): Promise<BusinessAgentRun> {
-    return firstValueFrom(this.http.post<BusinessAgentRun>(`${this.base}/runs/${id}/cancel`, {}));
+    return firstValueFrom(
+      this.http.post<BusinessAgentRun>(`${this.base}/runs/${id}/cancel`, {}, this.options),
+    );
   }
 
   retry(id: string): Promise<BusinessAgentRun> {
-    return firstValueFrom(this.http.post<BusinessAgentRun>(`${this.base}/runs/${id}/retry`, {}));
+    return firstValueFrom(
+      this.http.post<BusinessAgentRun>(`${this.base}/runs/${id}/retry`, {}, this.options),
+    );
   }
 
   approve(id: string, note: string): Promise<BusinessAgentApproval> {
     return firstValueFrom(
-      this.http.post<BusinessAgentApproval>(`${this.base}/approvals/${id}/approve`, { note }),
+      this.http.post<BusinessAgentApproval>(
+        `${this.base}/approvals/${id}/approve`,
+        { note },
+        this.options,
+      ),
     );
   }
 
   reject(id: string, note: string): Promise<BusinessAgentApproval> {
     return firstValueFrom(
-      this.http.post<BusinessAgentApproval>(`${this.base}/approvals/${id}/reject`, { note }),
+      this.http.post<BusinessAgentApproval>(
+        `${this.base}/approvals/${id}/reject`,
+        { note },
+        this.options,
+      ),
     );
   }
 }
