@@ -20,7 +20,7 @@ import { AIService } from './ai.service';
       <a routerLink="/settings/ai/providers">Back to settings</a>
     </header>
     @if (loading()) {
-      <p role="status">Loading provider configuration…</p>
+      <p role="status">Loading provider configuration...</p>
     }
     @if (error()) {
       <p class="ai-error" role="alert">{{ error() }}</p>
@@ -32,16 +32,16 @@ import { AIService } from './ai.service';
       <article class="ai-card">
         <h2>Status: {{ statusLabel(saved) }}</h2>
         <p>
-          Credential: {{ saved.masked_credential || 'Not configured' }} ·
+          Credential: {{ saved.masked_credential || 'Not configured' }} -
           {{ sourceLabel(saved.credential_source) }}
         </p>
         <p>
-          Validation: {{ saved.validation_status }} ·
+          Validation: {{ saved.validation_status }} -
           {{ saved.safe_validation_message || 'Not validated' }}
         </p>
         @if (saved.last_validated_at) {
           <p>
-            Last checked {{ saved.last_validated_at }} · {{ saved.last_validation_latency_ms }} ms
+            Last checked {{ saved.last_validated_at }} - {{ saved.last_validation_latency_ms }} ms
           </p>
         }
       </article>
@@ -160,7 +160,7 @@ export class AIProviderSettingsComponent implements OnInit {
     await this.act(async () => {
       const value = await this.api.validateProvider();
       this.message.set(
-        `${value.safe_message} Correlation ${value.correlation_id || 'unavailable'} · ${value.latency_ms} ms`,
+        `${value.safe_message} Correlation ${value.correlation_id || 'unavailable'} - ${value.latency_ms} ms`,
       );
       this.apply(await this.api.providerConfiguration());
     });

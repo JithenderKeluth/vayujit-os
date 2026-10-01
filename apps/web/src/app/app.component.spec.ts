@@ -31,8 +31,11 @@ describe('AppComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Execution History');
     expect(fixture.nativeElement.textContent).toContain('Business Agent');
     expect(fixture.nativeElement.textContent).toContain('Product Opportunities');
-    expect(fixture.nativeElement.textContent).toContain('Supplier Verification');
+    expect(fixture.nativeElement.textContent).toContain('Advanced');
+    expect(fixture.nativeElement.textContent).toContain('Website Intelligence');
     expect(fixture.nativeElement.textContent).toContain('System Doctor');
+    expect(fixture.nativeElement.querySelector('details.advanced-nav')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('details.advanced-nav')?.open).toBe(false);
     expect(
       fixture.nativeElement.querySelector('a[href="/intelligence/business-agent"]'),
     ).not.toBeNull();

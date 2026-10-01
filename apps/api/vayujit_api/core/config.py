@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     api_host: str = "127.0.0.1"
     api_port: int = Field(default=8000, ge=1, le=65535)
     web_origin: str = "http://127.0.0.1:4200"
-    allowed_origins: str = "http://127.0.0.1:4200,app://vayujit"
+    allowed_origins: str = "http://localhost:4200,http://127.0.0.1:4200,app://vayujit"
     allow_missing_origin: bool = False
     trusted_proxy_ips: str = ""
     require_https: bool = False
@@ -186,6 +186,7 @@ class Settings(BaseSettings):
     intelligence_search_requests_per_minute: int = Field(default=10, ge=1, le=1000)
     intelligence_search_requests_per_hour: int = Field(default=100, ge=1, le=10000)
     intelligence_search_daily_cap: int = Field(default=500, ge=1, le=100000)
+    intelligence_product_search_max_requests: int = Field(default=3, ge=1, le=12)
     intelligence_fetch_max_bytes: int = Field(default=1_000_000, ge=1024, le=20_000_000)
     intelligence_fetch_max_redirects: int = Field(default=3, ge=0, le=10)
     intelligence_fetch_timeout_seconds: float = Field(default=15.0, ge=0.1, le=120)

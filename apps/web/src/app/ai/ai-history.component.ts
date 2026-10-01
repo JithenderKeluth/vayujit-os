@@ -55,9 +55,9 @@ import { AIService } from './ai.service';
               </td>
               <td>{{ item.request_status }}</td>
               <td>
-                {{ item.artifact_status ?? '—' }}
+                {{ item.artifact_status ?? '-' }}
                 @if (item.version_number) {
-                  · v{{ item.version_number }}
+                  - v{{ item.version_number }}
                 }
               </td>
               <td>

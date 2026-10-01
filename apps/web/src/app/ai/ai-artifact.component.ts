@@ -23,7 +23,7 @@ import { AIService } from './ai.service';
         <h1>Content review</h1>
         @if (artifact()) {
           <p class="ai-muted">
-            {{ artifact()!.brand_name }} · {{ artifact()!.product_name }} · Version
+            {{ artifact()!.brand_name }} - {{ artifact()!.product_name }} - Version
             {{ artifact()!.version_number }}
           </p>
         }
@@ -53,7 +53,7 @@ import { AIService } from './ai.service';
                     [value]="version.artifact.id"
                     [disabled]="version.artifact.id === rightId()"
                   >
-                    Version {{ version.artifact.version_number }} · {{ version.artifact.status }}
+                    Version {{ version.artifact.version_number }} - {{ version.artifact.status }}
                   </option>
                 }
               </select></label
@@ -65,7 +65,7 @@ import { AIService } from './ai.service';
                     [value]="version.artifact.id"
                     [disabled]="version.artifact.id === leftId()"
                   >
-                    Version {{ version.artifact.version_number }} · {{ version.artifact.status }}
+                    Version {{ version.artifact.version_number }} - {{ version.artifact.status }}
                   </option>
                 }
               </select></label
@@ -83,11 +83,11 @@ import { AIService } from './ai.service';
                 <h3>{{ field[0] }}</h3>
                 <div>
                   <strong>Previous</strong>
-                  <p>{{ scalar(field[1]).before || '—' }}</p>
+                  <p>{{ scalar(field[1]).before || '-' }}</p>
                 </div>
                 <div>
                   <strong>Current</strong>
-                  <p>{{ scalar(field[1]).after || '—' }}</p>
+                  <p>{{ scalar(field[1]).after || '-' }}</p>
                 </div>
               </section>
             }
@@ -106,12 +106,12 @@ import { AIService } from './ai.service';
             @for (version of [left(), right()]; track version?.artifact?.id) {
               @if (version; as selected) {
                 <p>
-                  <strong>Version {{ selected.artifact.version_number }}</strong> · generated
-                  {{ selected.artifact.created_at }} · {{ selected.artifact.status }} ·
-                  {{ selected.artifact.template_name }} v{{ selected.artifact.template_version }} ·
+                  <strong>Version {{ selected.artifact.version_number }}</strong> - generated
+                  {{ selected.artifact.created_at }} - {{ selected.artifact.status }} -
+                  {{ selected.artifact.template_name }} v{{ selected.artifact.template_version }} -
                   {{ selected.artifact.provider_key }}
                   @if (selected.workflow_id) {
-                    · <a [routerLink]="['/workflows', selected.workflow_id]">Workflow</a>
+                    - <a [routerLink]="['/workflows', selected.workflow_id]">Workflow</a>
                   }
                 </p>
               }
@@ -165,10 +165,10 @@ import { AIService } from './ai.service';
           }
         </div>
         <p class="ai-muted">
-          {{ item.content.generation_summary }} · {{ item.template_name }} v{{
+          {{ item.content.generation_summary }} - {{ item.template_name }} v{{
             item.template_version
           }}
-          · {{ item.provider_key }}
+          - {{ item.provider_key }}
         </p>
       </article>
       @if (editing()) {
@@ -225,7 +225,7 @@ import { AIService } from './ai.service';
               Reject
             </button>
           </div>
-          <a [routerLink]="['/ai/artifacts', rightId()]">Open full Artifact details</a> ·
+          <a [routerLink]="['/ai/artifacts', rightId()]">Open full Artifact details</a> -
           <a routerLink="/approvals">Return to approval queue</a>
         </article>
       }

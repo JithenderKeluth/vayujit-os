@@ -11,40 +11,51 @@ import { AuthService } from './auth.service';
       <p class="auth-kicker">VAYUJIT OS · Local owner account</p>
       <h1 id="auth-title">{{ setup() ? 'Create your owner account' : 'Welcome back' }}</h1>
       <p class="auth-intro">
-        {{ setup() ? 'Set up the private workspace for your business.' : 'Sign in to continue to your workspace.' }}
+        {{
+          setup()
+            ? 'Set up the private workspace for your business.'
+            : 'Sign in to continue to your workspace.'
+        }}
       </p>
       <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
-      @if (setup()) {
-        <label for="full-name">Full name<input id="full-name" formControlName="fullName" autocomplete="name" /></label>
-      }
-      <label for="email">Email<input id="email" type="email" formControlName="email" autocomplete="email" /></label>
-      <label
-        for="password"
-        >Password<input
-          id="password"
-          [type]="show() ? 'text' : 'password'"
-          formControlName="password"
-          [autocomplete]="setup() ? 'new-password' : 'current-password'"
-      /></label>
-      @if (setup()) {
-        <label
-          for="confirmation"
-          >Confirm password<input
-            id="confirmation"
-            [type]="show() ? 'text' : 'password'"
-            formControlName="confirmation"
-            autocomplete="new-password"
+        @if (setup()) {
+          <label for="full-name"
+            >Full name<input id="full-name" formControlName="fullName" autocomplete="name"
+          /></label>
+        }
+        <label for="email"
+          >Email<input id="email" type="email" formControlName="email" autocomplete="email"
         /></label>
-      }
-      <button class="password-toggle" type="button" (click)="show.set(!show())" [attr.aria-pressed]="show()">
-        {{ show() ? 'Hide' : 'Show' }} password
-      </button>
-      @if (auth.error()) {
-        <p role="alert">{{ auth.error() }}</p>
-      }
-      <button type="submit" [disabled]="form.invalid || busy()">
-        {{ busy() ? 'Please wait…' : setup() ? 'Create owner' : 'Sign in' }}
-      </button>
+        <label for="password"
+          >Password<input
+            id="password"
+            [type]="show() ? 'text' : 'password'"
+            formControlName="password"
+            [autocomplete]="setup() ? 'new-password' : 'current-password'"
+        /></label>
+        @if (setup()) {
+          <label for="confirmation"
+            >Confirm password<input
+              id="confirmation"
+              [type]="show() ? 'text' : 'password'"
+              formControlName="confirmation"
+              autocomplete="new-password"
+          /></label>
+        }
+        <button
+          class="password-toggle"
+          type="button"
+          (click)="show.set(!show())"
+          [attr.aria-pressed]="show()"
+        >
+          {{ show() ? 'Hide' : 'Show' }} password
+        </button>
+        @if (auth.error()) {
+          <p role="alert">{{ auth.error() }}</p>
+        }
+        <button type="submit" [disabled]="form.invalid || busy()">
+          {{ busy() ? 'Please wait…' : setup() ? 'Create owner' : 'Sign in' }}
+        </button>
       </form>
       <p class="auth-footnote">Your data stays in this local workspace.</p>
     </section>

@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface CanonicalSupplier {
   id: string;
@@ -43,9 +44,28 @@ export interface CrossMarketplaceOperations {
 @Injectable({ providedIn: 'root' })
 export class CrossMarketplaceService {
   private readonly http = inject(HttpClient);
-  private readonly base = '/api/v1/intelligence/cross-marketplace/suppliers';
+  private readonly base = `${environment.apiUrl}/intelligence/cross-marketplace/suppliers`;
   private readonly options = { withCredentials: true };
 
+  research(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${environment.apiUrl}/intelligence/suppliers/research`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+
+  researchResults(opportunityId?: string): Promise<Record<string, unknown>> {
+    const suffix = opportunityId ? `?opportunity_id=${encodeURIComponent(opportunityId)}` : '';
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>>(
+        `${environment.apiUrl}/intelligence/suppliers/research-results${suffix}`,
+        this.options,
+      ),
+    );
+  }
   list(): Promise<CanonicalSupplier[]> {
     return firstValueFrom(this.http.get<CanonicalSupplier[]>(this.base, this.options));
   }

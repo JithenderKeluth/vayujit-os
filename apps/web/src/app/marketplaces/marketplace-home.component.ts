@@ -1,5 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { ErrorStateComponent } from '../shared/state-components';
 
 import {
   MarketplaceAccount,
@@ -30,18 +32,16 @@ interface MarketplaceOverviewRow {
 
 @Component({
   selector: 'app-marketplace-home',
-  imports: [RouterLink],
+  imports: [RouterLink, PageHeaderComponent, ErrorStateComponent],
   template: `
     <section class="marketplace-page">
-      <header>
-        <h1>Marketplace overview</h1>
-        <p>
-          Shared operations for every registered marketplace channel. Currency totals are never
-          converted implicitly.
-        </p>
-      </header>
+      <app-page-header
+        eyebrow="Sell / marketplaces"
+        title="Marketplace overview"
+        description="Shared operations for every registered marketplace channel. Currency totals are never converted implicitly."
+      />
       @if (error()) {
-        <p class="marketplace-error" role="alert">{{ error() }}</p>
+        <app-error-state title="Marketplace overview is unavailable" [message]="error()" />
       }
       <div class="marketplace-grid">
         <a routerLink="/marketplaces/accounts"

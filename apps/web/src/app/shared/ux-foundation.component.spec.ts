@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 
 import { BreadcrumbsComponent } from './breadcrumbs.component';
 import {
+  BlockedStateComponent,
   EmptyStateComponent,
   ErrorStateComponent,
   LoadingStateComponent,
@@ -16,6 +17,7 @@ import { StatusBadgeComponent } from './status-badge.component';
   standalone: true,
   imports: [
     BreadcrumbsComponent,
+    BlockedStateComponent,
     EmptyStateComponent,
     ErrorStateComponent,
     EvidenceCardComponent,
@@ -27,6 +29,7 @@ import { StatusBadgeComponent } from './status-badge.component';
     <app-breadcrumbs [items]="[{ label: 'Home', url: '/dashboard' }, { label: 'Current' }]" />
     <app-page-header title="Test page" eyebrow="Test" description="Safe description" />
     <app-status-badge status="reconciliation_required" label="Review required" tone="warning" />
+    <app-status-badge status="IN_PROGRESS" />
     <app-evidence-card
       title="Observed source"
       classification="OBSERVED"
@@ -46,11 +49,18 @@ import { StatusBadgeComponent } from './status-badge.component';
       retryLabel="Retry"
       (retry)="retried = true"
     />
+    <app-blocked-state
+      title="Select a product"
+      reason="Choose a product before continuing."
+      actionLabel="Choose product"
+      (action)="blocked = true"
+    />
   `,
 })
 class UxHostComponent {
   created = false;
   retried = false;
+  blocked = false;
 }
 
 describe('UX-1 foundation components', () => {
@@ -72,6 +82,7 @@ describe('UX-1 foundation components', () => {
     expect(root.querySelector('[data-status="reconciliation_required"]')?.textContent).toContain(
       'Review required',
     );
+    expect(root.querySelector('[data-status="IN_PROGRESS"]')?.textContent).toContain('In progress');
     expect(root.querySelector('details')).not.toBeNull();
     expect(root.textContent).toContain('Untrusted source text is rendered as text.');
   });
@@ -81,8 +92,10 @@ describe('UX-1 foundation components', () => {
     expect(root.querySelector('[role="status"]')?.textContent).toContain('Loading test data');
     (root.querySelector('app-empty-state button') as HTMLButtonElement).click();
     (root.querySelector('app-error-state button') as HTMLButtonElement).click();
+    (root.querySelector('app-blocked-state button') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(fixture.componentInstance.created).toBe(true);
     expect(fixture.componentInstance.retried).toBe(true);
+    expect(fixture.componentInstance.blocked).toBe(true);
   });
 });

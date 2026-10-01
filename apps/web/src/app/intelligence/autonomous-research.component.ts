@@ -6,6 +6,7 @@ import {
   ExternalResearchPolicy,
   IntelligenceService,
 } from './intelligence.service';
+import { intelligenceErrorMessage } from './intelligence-error';
 
 @Component({
   selector: 'app-autonomous-research',
@@ -24,63 +25,120 @@ import {
       @if (error()) {
         <p class="error" role="alert">{{ error() }}</p>
       }
-      <section class="panel" aria-labelledby="policy-title">
-        <h2 id="policy-title">Safety policy</h2>
-        <p>
-          <strong>Provider:</strong>
-          {{ policy()['default_provider_mode'] || 'LOCAL_DETERMINISTIC' }}
-        </p>
-        <p>
-          <strong>External research:</strong>
-          {{
-            policy()['external_research_enabled']
-              ? 'Enabled by configuration'
-              : 'Disabled by default'
-          }}
-        </p>
-        <p class="hint">
-          Untrusted sources never execute instructions or mutate products, suppliers, campaigns, or
-          publishing.
+      <section class="panel operations-summary" aria-labelledby="operations-title">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">RESEARCH OPERATIONS</p>
+            <h2 id="operations-title">Bounded missions and reviewable outcomes</h2>
+            <p class="hint">
+              Start a mission deliberately, review its evidence, and keep consequential decisions
+              under human control.
+            </p>
+          </div>
+          <span class="status" role="status">{{
+            overview()?.ai_mode || 'LOCAL_DETERMINISTIC'
+          }}</span>
+        </div>
+        <div class="operation-grid">
+          <div>
+            <span>Active missions</span><strong>{{ overview()?.active_missions ?? 0 }}</strong>
+          </div>
+          <div>
+            <span>Attention needed</span
+            ><strong>{{ (overview()?.contradictions ?? 0) + (overview()?.recovery ?? 0) }}</strong>
+          </div>
+          <div>
+            <span>Completed outcomes</span
+            ><strong>{{ overview()?.completed_missions ?? 0 }}</strong>
+          </div>
+        </div>
+        <p class="semantic-note">
+          <strong>Next action:</strong> review the latest mission evidence before starting another
+          bounded run.
         </p>
       </section>
-      <section class="panel" aria-labelledby="external-title">
+      <section class="panel provider-status" aria-labelledby="provider-status-title">
         <div class="panel-heading">
-          <h2 id="external-title">External research</h2>
+          <h2 id="provider-status-title">Provider status</h2>
           <span class="status" role="status">{{ external()?.status || 'DISABLED' }}</span>
         </div>
-        <p>
-          Provider <strong>{{ external()?.provider || 'deterministic' }}</strong> · Mode
-          <strong>{{ external()?.mode || 'DISABLED' }}</strong>
-        </p>
-        <p class="hint">
-          Read-only, allowlisted, bounded, and untrusted by design. Search snippets are discovery
-          results, not verified evidence.
-        </p>
-        <form class="form-grid" (submit)="$event.preventDefault(); searchExternal()">
-          <label
-            >Search query
-            <input name="external-query" required maxlength="500" [(ngModel)]="externalQuery"
-          /></label>
-          <button type="submit" [disabled]="busy() || externalQuery.trim().length < 1">
-            Search approved provider
-          </button>
-        </form>
-        @if (externalResults().length) {
-          <div class="external-results" aria-label="External search results">
-            @for (result of externalResults(); track result['url']) {
-              <article class="row">
-                <div>
-                  <strong>{{ result['title'] }}</strong
-                  ><small>{{ result['domain'] }}</small>
-                </div>
-                <span>{{ result['snippet'] }}</span
-                ><span>{{ result['provider'] }} · rank {{ result['rank'] }}</span>
-                <a [href]="result['url']" target="_blank" rel="noreferrer">Open source</a>
-              </article>
-            }
+        <div class="provider-grid">
+          <div><span>Capability</span><strong>Read-only external research</strong></div>
+          <div>
+            <span>Configuration</span
+            ><strong>{{
+              policy()['external_research_enabled'] ? 'Enabled by configuration' : 'Not configured'
+            }}</strong>
           </div>
-        }
+          <div>
+            <span>Execution</span><strong>{{ external()?.status || 'DISABLED' }}</strong>
+          </div>
+        </div>
+        <p class="hint">
+          A disabled or unconfigured provider never runs implicitly; mission execution remains local
+          and deterministic.
+        </p>
       </section>
+      <details class="advanced-details" aria-label="Advanced research runtime details">
+        <summary>Advanced runtime and provider details</summary>
+        <section class="panel" aria-labelledby="policy-title">
+          <h2 id="policy-title">Safety policy</h2>
+          <p>
+            <strong>Provider:</strong>
+            {{ policy()['default_provider_mode'] || 'LOCAL_DETERMINISTIC' }}
+          </p>
+          <p>
+            <strong>External research:</strong>
+            {{
+              policy()['external_research_enabled']
+                ? 'Enabled by configuration'
+                : 'Disabled by default'
+            }}
+          </p>
+          <p class="hint">
+            Untrusted sources never execute instructions or mutate products, suppliers, campaigns,
+            or publishing.
+          </p>
+        </section>
+        <section class="panel" aria-labelledby="external-title">
+          <div class="panel-heading">
+            <h2 id="external-title">External research</h2>
+            <span class="status" role="status">{{ external()?.status || 'DISABLED' }}</span>
+          </div>
+          <p>
+            Provider <strong>{{ external()?.provider || 'deterministic' }}</strong> · Mode
+            <strong>{{ external()?.mode || 'DISABLED' }}</strong>
+          </p>
+          <p class="hint">
+            Read-only, allowlisted, bounded, and untrusted by design. Search snippets are discovery
+            results, not verified evidence.
+          </p>
+          <form class="form-grid" (submit)="$event.preventDefault(); searchExternal()">
+            <label
+              >Search query
+              <input name="external-query" required maxlength="500" [(ngModel)]="externalQuery"
+            /></label>
+            <button type="submit" [disabled]="busy() || externalQuery.trim().length < 1">
+              Search approved provider
+            </button>
+          </form>
+          @if (externalResults().length) {
+            <div class="external-results" aria-label="External search results">
+              @for (result of externalResults(); track result['url']) {
+                <article class="row">
+                  <div>
+                    <strong>{{ result['title'] }}</strong
+                    ><small>{{ result['domain'] }}</small>
+                  </div>
+                  <span>{{ result['snippet'] }}</span
+                  ><span>{{ result['provider'] }} · rank {{ result['rank'] }}</span>
+                  <a [href]="result['url']" target="_blank" rel="noreferrer">Open source</a>
+                </article>
+              }
+            </div>
+          }
+        </section>
+      </details>
       <section class="metric-grid" aria-label="Autonomous research overview">
         <article class="metric">
           <span>Active missions</span><strong>{{ overview()?.active_missions ?? 0 }}</strong>
@@ -105,10 +163,10 @@ import {
         <h2 id="mission-create-title">Start a bounded mission</h2>
         <form class="form-grid" (submit)="$event.preventDefault(); createMission()">
           <label
-            >Mission type
+            >Research purpose
             <select name="mission-type" [(ngModel)]="draft.mission_type">
               @for (type of missionTypes; track type) {
-                <option [value]="type">{{ type }}</option>
+                <option [value]="type">{{ missionLabel(type) }}</option>
               }
             </select>
           </label>
@@ -126,13 +184,26 @@ import {
           <button type="button" (click)="load()" [disabled]="busy()">Refresh</button>
         </div>
         @if (missions().length === 0) {
-          <p class="empty">No autonomous missions yet.</p>
+          <p class="empty">
+            No autonomous missions yet. No research missions have been started for this workspace.
+          </p>
         }
-        @for (mission of missions(); track mission['id']) {
+        @if (missions().length > 20) {
+          <p class="hint">
+            Showing the 20 most recent missions. Use the API history and reports views for older
+            records.
+          </p>
+        }
+        @for (mission of missionHistory(); track mission['id']) {
           <article class="row">
-            <strong>{{ mission['mission_type'] }}</strong
+            <strong>{{ missionLabel(mission['mission_type']) }}</strong
             ><span>{{ mission['goal'] }}</span
             ><span>{{ mission['status'] }}</span>
+            @if (mission['status'] === 'COMPLETED') {
+              <span class="outcome"
+                >Outcome recorded · confidence {{ mission['confidence'] ?? 'not reported' }}</span
+              >
+            }
             <button
               type="button"
               (click)="runMission(String(mission['id']))"
@@ -140,6 +211,9 @@ import {
             >
               Run local fixture
             </button>
+            <small class="advanced-label"
+              >Advanced mission type: {{ mission['mission_type'] }}</small
+            >
           </article>
         }
       </section>
@@ -189,6 +263,45 @@ import {
       display: block;
       margin-top: 0.5rem;
       font-size: 1.4rem;
+    }
+    .operations-summary {
+      background: #f2f9fa;
+    }
+    .operation-grid,
+    .provider-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 0.75rem;
+      margin-top: 1rem;
+    }
+    .operation-grid > div,
+    .provider-grid > div {
+      border: 1px solid #c9dbe0;
+      border-radius: 0.65rem;
+      padding: 0.8rem;
+      background: #fff;
+    }
+    .operation-grid span,
+    .provider-grid span {
+      display: block;
+      color: #466a75;
+    }
+    .operation-grid strong,
+    .provider-grid strong {
+      display: block;
+      margin-top: 0.35rem;
+    }
+    .advanced-details {
+      margin: 1rem 0;
+    }
+    .advanced-details summary {
+      cursor: pointer;
+      color: #145c73;
+      font-weight: 700;
+    }
+    .advanced-label {
+      grid-column: 1 / -1;
+      color: #466a75;
     }
     .form-grid {
       display: grid;
@@ -245,6 +358,10 @@ import {
         display: grid;
         grid-template-columns: 1fr;
       }
+      .operation-grid,
+      .provider-grid {
+        grid-template-columns: 1fr;
+      }
     }
   `,
 })
@@ -281,6 +398,27 @@ export class AutonomousResearchComponent {
   constructor() {
     void this.load();
   }
+  missionLabel(value: unknown): string {
+    const labels: Record<string, string> = {
+      PRODUCT_DISCOVERY: 'Product discovery',
+      PRODUCT_VALIDATION: 'Product validation',
+      TREND_RESEARCH: 'Trend research',
+      COMPETITOR_RESEARCH: 'Competitor research',
+      REVIEW_RESEARCH: 'Customer review research',
+      SUPPLIER_DISCOVERY: 'Supplier discovery',
+      SUPPLIER_VERIFICATION: 'Supplier verification',
+      PRICING_RESEARCH: 'Pricing research',
+      ECONOMICS_RESEARCH: 'Sourcing economics research',
+      RISK_RESEARCH: 'Risk research',
+      SOURCE_REFRESH: 'Source refresh',
+      FULL_OPPORTUNITY_RESEARCH: 'Full opportunity research',
+    };
+    const key = typeof value === 'string' ? value : '';
+    return labels[key] || key.replaceAll('_', ' ').toLowerCase();
+  }
+  missionHistory(): Record<string, unknown>[] {
+    return this.missions().slice(0, 20);
+  }
   async load(): Promise<void> {
     this.busy.set(true);
     this.error.set('');
@@ -304,9 +442,12 @@ export class AutonomousResearchComponent {
         approved_domains_configured: false,
         credentials_configured: false,
       });
-    } catch {
+    } catch (error: unknown) {
       this.error.set(
-        'Autonomous research data is unavailable. Check the authenticated API connection.',
+        intelligenceErrorMessage(
+          error,
+          'Autonomous research data is unavailable. Check the authenticated API connection.',
+        ),
       );
     } finally {
       this.busy.set(false);

@@ -6,6 +6,8 @@ import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
 import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
 
 import type {
   AIKeywordSuggestion,
@@ -21,24 +23,25 @@ import { AIService } from './ai.service';
   standalone: true,
   imports: [
     BreadcrumbsComponent,
+    BusinessEntitySelectorsComponent,
     CommerceJourneyNavComponent,
     CommonModule,
     ErrorStateComponent,
     FormsModule,
     LoadingStateComponent,
+    PageHeaderComponent,
     RouterLink,
   ],
   template: `
     <main class="ai-shell">
       <app-breadcrumbs [items]="breadcrumbs" />
-      <header class="ai-header">
-        <div>
-          <a routerLink="/ai/studio">AI Studio</a>
-          <h1>SEO & content intelligence</h1>
-          <p>Explainable website SEO and channel-specific marketplace search optimization.</p>
-        </div>
-        <a routerLink="/ai/studio/bulk">Bulk generation</a>
-      </header>
+      <app-page-header
+        eyebrow="Create / SEO"
+        title="SEO and content intelligence"
+        description="Explainable website SEO and channel-specific marketplace search optimization."
+      >
+        <a page-header-actions routerLink="/ai/studio/bulk">Bulk generation</a>
+      </app-page-header>
       <app-commerce-journey-nav current="seo" />
       <p class="ai-muted">
         SEO evidence describes keyword and content coverage only; it does not predict demand or
@@ -71,12 +74,14 @@ import { AIService } from './ai.service';
       }
       @if (tab() === 'overview' || tab() === 'website' || tab() === 'marketplace') {
         <section class="card controls">
-          <label>Product ID<input [(ngModel)]="productId" aria-label="Product ID" /></label
-          ><label
-            >Artifact ID (optional)<input
-              [(ngModel)]="artifactId"
-              aria-label="Artifact ID" /></label
-          ><label
+          <app-business-entity-selectors
+            [showArtifact]="true"
+            [productId]="productId"
+            [artifactId]="artifactId"
+            (productIdChange)="productId = $event"
+            (artifactIdChange)="artifactId = $event"
+          />
+          <label
             >Locale<select [(ngModel)]="locale">
               <option>en-IN</option>
               <option>hi-IN</option>
@@ -93,7 +98,7 @@ import { AIService } from './ai.service';
             </select></label
           ><label>Primary keyword<input [(ngModel)]="primaryKeyword" /></label
           ><button type="button" (click)="analyze()" [disabled]="loading()">
-            {{ loading() ? 'Analyzing…' : 'Analyze' }}
+            {{ loading() ? 'Analyzing...' : 'Analyze' }}
           </button>
         </section>
         @if (analysis(); as currentAnalysis) {
@@ -104,12 +109,12 @@ import { AIService } from './ai.service';
                   ? 'Website SEO'
                   : 'Marketplace Search Optimization'
               }}
-              · {{ currentAnalysis.channel }}
+              - {{ currentAnalysis.channel }}
             </h2>
             <p class="score">Overall {{ currentAnalysis.overall_score }}/100</p>
             <p>
-              Locale: {{ currentAnalysis.locale }} · Artifact version:
-              {{ currentAnalysis.artifact_version || 'none' }} · Intent:
+              Locale: {{ currentAnalysis.locale }} - Artifact version:
+              {{ currentAnalysis.artifact_version || 'none' }} - Intent:
               {{ currentAnalysis.intent }}
             </p>
             <div class="dimensions">
@@ -124,7 +129,7 @@ import { AIService } from './ai.service';
             <ul>
               @for (finding of currentAnalysis.findings; track finding.code + finding.field) {
                 <li>
-                  <strong>{{ finding.severity }}</strong> · {{ finding.field }} —
+                  <strong>{{ finding.severity }}</strong> - {{ finding.field }} -
                   {{ finding.explanation }}
                   @for (action of finding.actions ?? []; track action) {
                     @if (action === 'edit') {
@@ -152,7 +157,7 @@ import { AIService } from './ai.service';
               }
             </ul>
             <p>
-              Search volume unavailable · Keyword difficulty unavailable · CPC unavailable · Ranking
+              Search volume unavailable - Keyword difficulty unavailable - CPC unavailable - Ranking
               position unavailable
             </p>
           </section>
@@ -178,7 +183,7 @@ import { AIService } from './ai.service';
           <ul>
             @for (item of suggestions(); track item.keyword) {
               <li>
-                {{ item.keyword }} <small>{{ item.category }} · AI Suggested</small>
+                {{ item.keyword }} <small>{{ item.category }} - AI Suggested</small>
               </li>
             }
           </ul>
@@ -201,8 +206,8 @@ import { AIService } from './ai.service';
           <ul>
             @for (item of history(); track item.id) {
               <li>
-                v{{ item.artifact_version || '—' }} · {{ item.channel }} ·
-                {{ item.overall_score }}/100 · {{ item.status }} · {{ item.locale }}
+                v{{ item.artifact_version || '-' }} - {{ item.channel }} -
+                {{ item.overall_score }}/100 - {{ item.status }} - {{ item.locale }}
               </li>
             }
           </ul>

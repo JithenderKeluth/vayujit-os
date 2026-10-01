@@ -7,6 +7,7 @@ import { vi } from 'vitest';
 import { BrandService } from '../brands/brand.service';
 import { DashboardComponent } from './dashboard.component';
 import { OperationsService } from './operations.service';
+import { CommerceJourneyService } from '../commerce-journey.service';
 
 const metrics = {
   total_brands: 0,
@@ -35,9 +36,14 @@ describe('DashboardComponent', () => {
     loadActive: vi.fn().mockResolvedValue(null),
   };
   const operations = { dashboard: vi.fn() };
+  const journeyService = { active: vi.fn() };
 
   async function create(data: DashboardResponse | Error) {
     operations.dashboard.mockReset();
+    journeyService.active.mockClear();
+    if (!journeyService.active.getMockImplementation()) {
+      journeyService.active.mockResolvedValue(null);
+    }
     if (data instanceof Error) operations.dashboard.mockRejectedValue(data);
     else operations.dashboard.mockResolvedValue(data);
     await TestBed.configureTestingModule({
@@ -46,6 +52,7 @@ describe('DashboardComponent', () => {
         provideRouter([]),
         { provide: BrandService, useValue: brands },
         { provide: OperationsService, useValue: operations },
+        { provide: CommerceJourneyService, useValue: journeyService },
       ],
     }).compileComponents();
     const fixture = TestBed.createComponent(DashboardComponent);
@@ -59,17 +66,17 @@ describe('DashboardComponent', () => {
   it('provides a governed Ask path, quick starts, and a derived first-use state', async () => {
     const fixture = await create(response());
     const element = fixture.nativeElement as HTMLElement;
-    expect(element.querySelector('h1')?.textContent).toContain(
-      'What would you like to accomplish?',
-    );
-    expect(element.querySelector('a[href="/intelligence/business-agent"]')?.textContent).toContain(
-      'Open Business Agent',
-    );
-    expect(element.textContent).toContain('Start your first VAYUJIT research journey');
+    expect(element.querySelector('h1')?.textContent).toContain('What should you do today?');
+    expect(
+      element.querySelector('.first-use-panel a[href="/intelligence/business-agent"]')?.textContent,
+    ).toContain('Start with Business Agent');
+    expect(element.textContent).toContain('What are you trying to achieve?');
+    expect(element.textContent).toContain('Your workspace is ready');
     expect(element.querySelector('a[href="/intelligence/product-opportunities"]')).toBeTruthy();
     expect(element.querySelector('a[href="/intelligence/sourcing"]')).toBeTruthy();
     expect(element.querySelector('a[href="/campaigns"]')).toBeTruthy();
-    expect(element.querySelector('a[href="/operations"]')).toBeTruthy();
+    expect(element.querySelector('a[href="/ai/studio"]')).toBeTruthy();
+    expect(element.querySelector('a[href="/calendar"]')).toBeTruthy();
   });
 
   it('shows authoritative attention statuses and metric workspace links', async () => {
@@ -88,16 +95,60 @@ describe('DashboardComponent', () => {
     expect(element.textContent).toContain('Failed publishing executions');
     expect(element.textContent).toContain('Workflows waiting for approval');
     expect(element.textContent).toContain('Retryable publishing failures');
+    expect(element.textContent).toContain('Opportunities and findings');
     expect(element.textContent).not.toContain('Recommended');
     expect(element.querySelector('a[href="/approvals"]')).toBeTruthy();
     expect(element.querySelector('a[href="/execution-history"]')).toBeTruthy();
     expect(element.querySelector('a[href="/workflows"]')).toBeTruthy();
     expect(element.querySelector('[data-status="PENDING_REVIEW"]')).toBeTruthy();
     expect(element.querySelector('[data-status="WAITING_FOR_APPROVAL"]')).toBeTruthy();
-    expect(element.querySelector('a[href="/products"]')?.textContent).toContain('Open workspace');
+    expect(element.querySelector('article.op-card a[href="/products"]')?.textContent).toContain(
+      'Open workspace',
+    );
+  });
+
+  it('surfaces the canonical active journey and stage attention without a second NBA', async () => {
+    journeyService.active.mockResolvedValue({
+      id: 'journey-1',
+      goal_id: 'goal-1',
+      status: 'IN_PROGRESS',
+      stages: [
+        {
+          key: 'RESEARCH',
+          label: 'Research',
+          status: 'NEEDS_REVIEW',
+          route: '/intelligence/product-opportunities',
+          reason: 'Review the evidence before comparing products.',
+        },
+      ],
+      completed_stage_count: 1,
+      total_stage_count: 8,
+      next_action: {
+        code: 'REVIEW_RESEARCH',
+        title: 'Review product opportunities',
+        detail: 'Compare the strongest evidence-backed candidates.',
+        route: '/intelligence/product-opportunities',
+        human_controlled: true,
+      },
+      counts: {},
+      context: { confirmed: true, values: { category: 'home', marketplace: 'AMAZON_IN' } },
+      context_confirmation: { required: false, source: 'USER_CONFIRMED' },
+      trust: { mode: 'LOCAL_FIXTURE', label: 'Local demo data - not live market evidence' },
+      remaining_requirements: ['Research'],
+      human_controlled: true,
+    });
+    const fixture = await create(response());
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('#active-goal-title')?.textContent).toContain(
+      'Research home opportunities for AMAZON_IN',
+    );
+    expect(element.textContent).toContain('Research needs attention');
+    expect(element.textContent).toContain('Review product opportunities');
+    expect(element.textContent).toContain('Local demo data');
   });
 
   it('renders the shared retryable error state without exposing backend details', async () => {
+    journeyService.active.mockResolvedValue(null);
     const fixture = await create(new Error('backend detail should stay hidden'));
     const element = fixture.nativeElement as HTMLElement;
     expect(element.querySelector('[role="alert"]')?.textContent).toContain(

@@ -1,19 +1,37 @@
-﻿import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
 
 import { MarketplaceOrder, MarketplaceService } from './marketplace.service';
 
 @Component({
   selector: 'app-marketplace-orders',
-  imports: [FormsModule],
+  imports: [
+    PageHeaderComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+    FormsModule,
+  ],
   template: `
     <section class="marketplace-page">
-      <header>
-        <h1>Marketplace orders</h1>
-        <p>Normalized order, payment, fulfilment, cancellation, return, and refund projections.</p>
-      </header>
+      <app-page-header
+        eyebrow="Sell · marketplace"
+        title="Marketplace orders"
+        description="Normalized order, payment, fulfilment, cancellation, return, and refund projections."
+      />
       @if (error()) {
-        <p class="marketplace-error" role="alert">{{ error() }}</p>
+        <app-error-state
+          title="Marketplace orders are unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="load()"
+        />
       }
       <div class="workspace-grid-form">
         <label
@@ -29,8 +47,11 @@ import { MarketplaceOrder, MarketplaceService } from './marketplace.service';
         ><label>From<input type="date" [(ngModel)]="dateFrom" /></label
         ><label>To<input type="date" [(ngModel)]="dateTo" /></label>
       </div>
+      @if (loading()) {
+        <app-loading-state message="Loading saved marketplace data..." />
+      }
       @if (!filteredItems().length && !loading()) {
-        <p class="marketplace-empty">No orders match the filters.</p>
+        <app-empty-state title="No orders found" message="No orders match the filters." />
       }
       <div class="marketplace-table">
         <table>

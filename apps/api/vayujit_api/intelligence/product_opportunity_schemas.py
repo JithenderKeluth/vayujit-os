@@ -177,6 +177,7 @@ class OpportunityResponse(BaseModel):
     lifecycle_status: str
     research_state: str
     evidence_state: str
+    intelligence_profile: dict[str, Any]
     current_constraint_version_id: uuid.UUID | None
     current_assessment_id: uuid.UUID | None
     created_at: datetime

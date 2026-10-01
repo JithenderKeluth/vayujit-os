@@ -52,7 +52,7 @@ import { RescheduleDialogComponent } from './reschedule-dialog.component';
           <section class="panel">
             <h2>Window</h2>
             <p>
-              {{ value.start_at_utc | date: 'medium' }} – {{ value.end_at_utc | date: 'medium' }}
+              {{ value.start_at_utc | date: 'medium' }} - {{ value.end_at_utc | date: 'medium' }}
             </p>
             <p>{{ value.timezone_name }}</p>
           </section>
@@ -63,7 +63,7 @@ import { RescheduleDialogComponent } from './reschedule-dialog.component';
                 {{ state.completion_percentage }}%
               </progress>
               <p>
-                {{ state.succeeded }} succeeded · {{ state.failed }} failed ·
+                {{ state.succeeded }} succeeded - {{ state.failed }} failed -
                 {{ state.blocked }} blocked
               </p>
             </section>
@@ -146,7 +146,7 @@ import { RescheduleDialogComponent } from './reschedule-dialog.component';
                 <h3>{{ activity.name }}</h3>
                 <p>{{ activity.activity_type }}</p>
                 <p>
-                  {{ activity.scheduled_at_utc | date: 'medium' }} · {{ activity.timezone_name }}
+                  {{ activity.scheduled_at_utc | date: 'medium' }} - {{ activity.timezone_name }}
                 </p>
                 <p>Readiness: {{ activity.readiness_status }}</p>
                 @if (activity.replaces_activity_id) {
@@ -205,7 +205,7 @@ import { RescheduleDialogComponent } from './reschedule-dialog.component';
           </div>
         </section>
       } @else {
-        <p>Loading Campaign…</p>
+        <p>Loading Campaign...</p>
       }
     </section>
   `,

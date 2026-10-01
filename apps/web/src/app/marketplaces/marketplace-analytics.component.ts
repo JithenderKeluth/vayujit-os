@@ -1,16 +1,31 @@
+import { PageHeaderComponent } from '../shared/page-header.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
 import { Component, inject, signal } from '@angular/core';
 import { MarketplaceAnalytics, MarketplaceService } from './marketplace.service';
 
 @Component({
   selector: 'app-marketplace-analytics',
-  imports: [],
+  imports: [PageHeaderComponent, EmptyStateComponent, ErrorStateComponent, LoadingStateComponent],
   template: `<section class="marketplace-page">
-    <header>
-      <h1>Marketplace analytics</h1>
-      <p>A factual commerce summary from imported orders and settlements.</p>
-    </header>
+    <app-page-header
+      eyebrow="Sell / marketplaces"
+      title="Marketplace analytics"
+      description="A factual commerce summary from imported orders and settlements."
+    />
     @if (error()) {
-      <p class="marketplace-error">{{ error() }}</p>
+      <app-error-state
+        title="Marketplace analytics are unavailable"
+        [message]="error()"
+        retryLabel="Retry"
+        (retry)="load()"
+      />
+    }
+    @if (loading()) {
+      <app-loading-state message="Loading marketplace analytics..." />
     }
     @if (summary(); as value) {
       <div class="marketplace-stats">
@@ -55,7 +70,10 @@ import { MarketplaceAnalytics, MarketplaceService } from './marketplace.service'
         </table>
       </div>
     } @else if (!loading()) {
-      <p class="marketplace-empty">Analytics are not available yet.</p>
+      <app-empty-state
+        title="Analytics not available"
+        message="There is not enough imported commerce data to show analytics yet."
+      />
     }
   </section>`,
   styleUrl: './marketplaces.css',

@@ -6,13 +6,18 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { EvidenceCardComponent } from '../shared/evidence-card.component';
+import { PageHeaderComponent } from '../shared/page-header.component';
 import {
+  BlockedStateComponent,
   EmptyStateComponent,
   ErrorStateComponent,
   LoadingStateComponent,
 } from '../shared/state-components';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { environment } from '../../environments/environment';
 import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
+import { intelligenceErrorMessage } from './intelligence-error';
+import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
 import type {
   SourcingComparison,
   SourcingContextSummary,
@@ -40,6 +45,8 @@ interface AllocationInput {
   selector: 'app-sourcing-scenarios',
   standalone: true,
   imports: [
+    PageHeaderComponent,
+    BlockedStateComponent,
     BreadcrumbsComponent,
     EmptyStateComponent,
     ErrorStateComponent,
@@ -49,21 +56,23 @@ interface AllocationInput {
     LoadingStateComponent,
     RouterLink,
     SupplierJourneyNavComponent,
+    CommerceJourneyContextComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main>
       <app-breadcrumbs [items]="breadcrumbs" />
-      <header>
-        <h1>Sourcing Scenarios</h1>
-        <p>
-          Estimated costs and supplier mixes for human review. No supplier contact, orders, or
-          payments.
-        </p>
-        <a routerLink="/intelligence/supplier-shortlisting">Supplier Shortlisting</a>
-        <a routerLink="/intelligence/due-diligence">Due Diligence</a>
-      </header>
+      <app-page-header
+        title="Sourcing Scenarios"
+        description="Estimated costs and supplier mixes for human review. No supplier contact, orders, or payments."
+      >
+        <a page-header-actions routerLink="/intelligence/supplier-shortlisting"
+          >Supplier Shortlisting</a
+        >
+        <a page-header-actions routerLink="/intelligence/due-diligence">Due Diligence</a>
+      </app-page-header>
       <app-supplier-journey-nav current="scenarios" />
+      <app-commerce-journey-context />
       @if (error()) {
         <app-error-state
           title="Sourcing scenarios are unavailable"
@@ -127,13 +136,21 @@ interface AllocationInput {
         @for (c of contexts(); track c.id) {
           <button type="button" (click)="selectContext(c.id)" [disabled]="busy()">
             {{ c.settings.target_market }} / {{ c.settings.target_channel }} /
-            {{ c.settings.target_quantity }} units ? {{ c.status }}
+            {{ c.settings.target_quantity }} units - {{ c.status }}
           </button>
         } @empty {
-          <app-empty-state
-            title="No sourcing scenarios"
-            message="Create a sourcing analysis context from an authoritative shortlist to compare trade-offs."
-          />
+          @if (!shortlists().length) {
+            <app-blocked-state
+              title="Create a supplier shortlist first"
+              reason="Build or select a supplier shortlist before creating a sourcing scenario."
+            />
+            <a routerLink="/intelligence/supplier-shortlisting">Open Supplier Shortlisting</a>
+          } @else {
+            <app-empty-state
+              title="No sourcing scenarios"
+              message="Create a sourcing analysis context from an authoritative shortlist to compare trade-offs."
+            />
+          }
         }
       </section>
       @if (contextId()) {
@@ -472,7 +489,9 @@ interface AllocationInput {
 })
 export class SourcingScenariosComponent implements OnInit {
   private readonly http = inject(HttpClient);
-  readonly base = '/api/v1/intelligence/sourcing-scenarios';
+  readonly base = `${environment.apiUrl}/intelligence/sourcing-scenarios`;
+  readonly shortlistingBase = `${environment.apiUrl}/intelligence/supplier-shortlisting`;
+  readonly diligenceBase = `${environment.apiUrl}/intelligence/supplier-due-diligence`;
   readonly breadcrumbs: BreadcrumbItem[] = [
     { label: 'Intelligence', url: '/intelligence' },
     { label: 'Sourcing scenarios' },
@@ -578,9 +597,12 @@ export class SourcingScenariosComponent implements OnInit {
     this.error.set('');
     try {
       await work();
-    } catch {
+    } catch (error: unknown) {
       this.error.set(
-        'Request could not be completed. Check required inputs, current lineage, authentication, and the API connection.',
+        intelligenceErrorMessage(
+          error,
+          'Request could not be completed. Check required inputs, current lineage, authentication, and the API connection.',
+        ),
       );
     } finally {
       this.busy.set(false);
@@ -597,17 +619,15 @@ export class SourcingScenariosComponent implements OnInit {
   async initialize(): Promise<void> {
     await this.run(async () => {
       this.contexts.set(await this.get<SourcingContextSummary[]>(this.base + '/contexts'));
-      this.shortlists.set(await this.get('/api/v1/intelligence/supplier-shortlisting/contexts'));
-      this.diligence.set(await this.get('/api/v1/intelligence/supplier-due-diligence/contexts'));
+      this.shortlists.set(await this.get(this.shortlistingBase + '/contexts'));
+      this.diligence.set(await this.get(this.diligenceBase + '/contexts'));
     });
   }
   async loadShortlists(): Promise<void> {
     this.shortlistVersion = '';
     await this.run(async () => {
       this.shortlistVersions.set(
-        await this.get(
-          '/api/v1/intelligence/supplier-shortlisting/contexts/' + this.shortlistId + '/shortlists',
-        ),
+        await this.get(this.shortlistingBase + '/contexts/' + this.shortlistId + '/shortlists'),
       );
     });
   }
@@ -639,7 +659,7 @@ export class SourcingScenariosComponent implements OnInit {
     if (!version) {
       for (const shortlist of this.shortlists()) {
         const versions = await this.get<ReturnType<typeof this.shortlistVersions>>(
-          '/api/v1/intelligence/supplier-shortlisting/contexts/' + shortlist.id + '/shortlists',
+          this.shortlistingBase + '/contexts/' + shortlist.id + '/shortlists',
         );
         version = versions.find((v) => v.id === selected?.shortlist_version_id);
         if (version) break;

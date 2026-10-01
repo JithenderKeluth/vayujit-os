@@ -275,6 +275,110 @@ CAPABILITY_REGISTRY: tuple[CapabilitySpec, ...] = (
 )
 
 
+CAPABILITY_BUSINESS_COPY: dict[str, tuple[str, str]] = {
+    "product_opportunity.create": (
+        "Discover product opportunities",
+        "Find product ideas that fit the stated goal and constraints.",
+    ),
+    "demand.intelligence": (
+        "Review market activity evidence",
+        "Inspect available market activity signals without turning them into sales claims.",
+    ),
+    "competition.intelligence": (
+        "Analyze competing products",
+        "Review observable assortment and competition evidence.",
+    ),
+    "commercial.assessment": (
+        "Assess commercial considerations",
+        "Identify commercial evidence and the information still needed.",
+    ),
+    "supplier.discovery": (
+        "Research supplier options",
+        "Prepare supplier research for the product opportunities under review.",
+    ),
+    "supplier.feasibility": (
+        "Review sourcing feasibility",
+        "Check sourcing evidence available for further investigation.",
+    ),
+    "winning_product.score": (
+        "Assess product opportunities",
+        "Explain the deterministic assessment while preserving score, risk, and confidence separately.",
+    ),
+    "winning_product.rank": (
+        "Compare product opportunities",
+        "Arrange authoritative product opportunity assessments for human comparison.",
+    ),
+    "decision_brief.generate": (
+        "Prepare research findings",
+        "Assemble an evidence-backed brief for human review.",
+    ),
+    "sourcing_economics.inspect": (
+        "Review sourcing economics",
+        "Show factual cost evidence and gaps without profitability claims.",
+    ),
+    "TREND_CONTEXT_RESOLUTION": (
+        "Set up market trend research",
+        "Connect the opportunity to the appropriate trend context.",
+    ),
+    "TREND_INGESTION": (
+        "Collect trend evidence",
+        "Gather observed signal evidence from the configured trend source.",
+    ),
+    "TREND_ANALYSIS": (
+        "Analyze market trend signals",
+        "Describe observed changes in external signals over time.",
+    ),
+    "TREND_CHANGE_ANALYSIS": (
+        "Compare trend changes",
+        "Compare observed trend periods without forecasting demand or sales.",
+    ),
+    "TREND_VALIDATION": (
+        "Validate trend evidence",
+        "Check freshness, agreement, and evidence gaps in trend observations.",
+    ),
+    "TREND_WINNING_PRODUCT_PROJECTION": (
+        "Relate trend evidence to products",
+        "Keep trend evidence descriptive and separate from product-success claims.",
+    ),
+    "COMPETITOR_DISCOVERY": (
+        "Discover competing products",
+        "Collect bounded competitor observations through the existing service boundary.",
+    ),
+    "COMPETITOR_ANALYSIS": (
+        "Analyze competition",
+        "Summarize assortment, pricing, positioning, and evidence quality where available.",
+    ),
+    "COMPETITOR_CHANGE_ANALYSIS": (
+        "Review competitor changes",
+        "Compare observed competitor changes without inferring revenue or sales volume.",
+    ),
+    "REVIEW_INGESTION": (
+        "Collect customer feedback evidence",
+        "Gather review observations through the existing Review Intelligence boundary.",
+    ),
+    "REVIEW_ANALYSIS": (
+        "Understand customer feedback",
+        "Summarize recurring themes, sentiment, and customer pain points.",
+    ),
+    "REVIEW_GAP_ANALYSIS": (
+        "Identify feedback evidence gaps",
+        "Show what customer-feedback evidence is still missing.",
+    ),
+    "REVIEW_CHANGE_ANALYSIS": (
+        "Compare feedback changes",
+        "Describe changes in customer feedback over time.",
+    ),
+    "REVIEW_WINNING_PRODUCT_PROJECTION": (
+        "Relate feedback to opportunities",
+        "Connect customer pain points to product gaps without claiming product success.",
+    ),
+}
+
+
+def business_copy(capability_id: str) -> tuple[str, str]:
+    return CAPABILITY_BUSINESS_COPY.get(capability_id, (capability_id, ""))
+
+
 def capability_map() -> dict[str, CapabilitySpec]:
     return {item.id: item for item in CAPABILITY_REGISTRY}
 

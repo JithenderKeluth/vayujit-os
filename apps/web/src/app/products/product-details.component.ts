@@ -79,15 +79,15 @@ import { ProductService } from './product.service';
           <dl>
             <div>
               <dt>SKU</dt>
-              <dd>{{ product()!.sku || '—' }}</dd>
+              <dd>{{ product()!.sku || '-' }}</dd>
             </div>
             <div>
               <dt>Barcode</dt>
-              <dd>{{ product()!.barcode || '—' }}</dd>
+              <dd>{{ product()!.barcode || '-' }}</dd>
             </div>
             <div>
               <dt>Category</dt>
-              <dd>{{ product()!.category || '—' }}</dd>
+              <dd>{{ product()!.category || '-' }}</dd>
             </div>
             <div>
               <dt>Slug</dt>
@@ -122,7 +122,7 @@ import { ProductService } from './product.service';
               </div>
               <div>
                 <dt>Tax code</dt>
-                <dd>{{ product()!.tax_code || '—' }}</dd>
+                <dd>{{ product()!.tax_code || '-' }}</dd>
               </div>
             </dl>
           </section>
@@ -147,7 +147,7 @@ import { ProductService } from './product.service';
                   {{
                     product()!.weight_value
                       ? product()!.weight_value + ' ' + product()!.weight_unit
-                      : '—'
+                      : '-'
                   }}
                 </dd>
               </div>
@@ -184,7 +184,7 @@ import { ProductService } from './product.service';
           }
           @for (event of product()!.recent_audit_events; track event.occurred_at) {
             <p>
-              <strong>{{ event.action }}</strong> · {{ event.occurred_at | date: 'medium' }}
+              <strong>{{ event.action }}</strong> - {{ event.occurred_at | date: 'medium' }}
             </p>
           }
         </section>
@@ -211,7 +211,7 @@ export class ProductDetailsComponent {
   }
 
   money(amount: string | null, currency: string | null): string {
-    return amount && currency ? `${currency} ${amount}` : '—';
+    return amount && currency ? `${currency} ${amount}` : '-';
   }
 
   async load(): Promise<void> {

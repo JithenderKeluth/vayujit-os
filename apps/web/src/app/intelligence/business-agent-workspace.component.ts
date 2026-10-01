@@ -21,6 +21,7 @@ import type {
   BusinessAgentRunStep,
 } from './business-agent.service';
 import { BusinessAgentService } from './business-agent.service';
+import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
 
 const CAPABILITY_LABELS: Record<string, string> = {
   'product_opportunity.create': 'Discover product opportunities',
@@ -61,6 +62,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
     LoadingStateComponent,
     PageHeaderComponent,
     StatusBadgeComponent,
+    CommerceJourneyContextComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './business-agent-workspace.css',
@@ -78,11 +80,19 @@ const CAPABILITY_LABELS: Record<string, string> = {
           <a routerLink="/intelligence/sourcing">Supplier intelligence</a>
         </nav>
       </app-page-header>
+      <app-commerce-journey-context />
 
       <p class="agent-notice">
-        Research mode: Local deterministic. Business Agent plans and runs are owner-scoped, durable,
-        and reviewable. No external writes are performed by this workspace.
+        Your plan, evidence, and decisions stay in this workspace. External writes are off.
+        <strong>Local demo data - not live market evidence.</strong>
       </p>
+      <details class="technical-details">
+        <summary>How this workspace operates</summary>
+        <p>
+          Research uses the local deterministic provider. Plans and runs are owner-scoped, durable,
+          and reviewable.
+        </p>
+      </details>
       @if (error()) {
         <app-error-state
           [message]="error()"
@@ -91,14 +101,23 @@ const CAPABILITY_LABELS: Record<string, string> = {
         />
       }
       @if (loading()) {
-        <app-loading-state message="Loading Business Agent workspace…" />
+        <app-loading-state message="Loading Business Agent workspace..." />
       }
 
-      <section class="goal-creation" aria-labelledby="goal-title">
+      <details class="goal-creation" [open]="!goals().length">
+        <summary class="goal-creation-summary">
+          {{ goals().length ? 'Start another research goal' : 'Start with a business outcome' }}
+        </summary>
         <div class="section-heading">
           <div>
             <p class="eyebrow">Goal</p>
-            <h2 id="goal-title">Start with a business outcome</h2>
+            <h2 id="goal-title">
+              {{
+                goals().length
+                  ? 'Tell VAYUJIT what to research next'
+                  : 'Start with a business outcome'
+              }}
+            </h2>
             <p class="lede">
               Use plain language. Constraints that are supported by the runtime stay attached to the
               authoritative goal.
@@ -157,7 +176,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
             Create research goal
           </button>
         </form>
-      </section>
+      </details>
 
       <section class="history" aria-labelledby="history-title">
         <div class="section-heading">
@@ -165,8 +184,8 @@ const CAPABILITY_LABELS: Record<string, string> = {
             <p class="eyebrow">History</p>
             <h2 id="history-title">Research goals and runs</h2>
             <p class="lede">
-              Open a goal to review its authoritative plan, execution state, evidence, findings, and
-              decision brief.
+              Review the active goal first. Previous research remains available below when you need
+              it.
             </p>
           </div>
         </div>
@@ -179,7 +198,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
           </app-empty-state>
         }
         <div class="goal-list">
-          @for (goal of goals(); track goal.id) {
+          @for (goal of activeGoals(); track goal.id) {
             <article class="goal-card" [class.selected]="selectedGoalId === goal.id">
               <header class="goal-card-header">
                 <div>
@@ -198,6 +217,18 @@ const CAPABILITY_LABELS: Record<string, string> = {
                   <strong>Marketplace:</strong> {{ goal.structured_goal['marketplace'] }}
                 </p>
               }
+              <div class="constraint-summary" aria-label="Goal details">
+                <strong>Goal details</strong>
+                <ul>
+                  @for (constraint of constraintRows(goal); track constraint.label) {
+                    <li>
+                      <span>{{ constraint.label }}:</span>
+                      <strong>{{ constraint.value }}</strong>
+                      <small>{{ constraint.state }}</small>
+                    </li>
+                  }
+                </ul>
+              </div>
               @if (goal.unresolved_questions.length) {
                 <div class="callout warning">
                   <strong>What is still unknown</strong>
@@ -234,7 +265,8 @@ const CAPABILITY_LABELS: Record<string, string> = {
               </div>
 
               @if (plans()[goal.id]; as plan) {
-                <section class="plan-section" aria-labelledby="plan-title-{{ goal.id }}">
+                <details class="plan-section technical-details">
+                  <summary>Research details - plan v{{ plan.version }}</summary>
                   <div class="section-heading compact">
                     <div>
                       <p class="eyebrow">Plan</p>
@@ -256,8 +288,16 @@ const CAPABILITY_LABELS: Record<string, string> = {
                           [tone]="statusTone(step.status)"
                         />
                         <div>
-                          <strong>{{ capabilityLabel(step.capability_id) }}</strong>
-                          <small>{{ step.capability_id }}</small>
+                          <strong>{{
+                            step.business_label || capabilityLabel(step.capability_id)
+                          }}</strong>
+                          @if (step.business_description) {
+                            <small>{{ step.business_description }}</small>
+                          }
+                          <details class="technical-details compact-details">
+                            <summary>Execution detail</summary>
+                            <small>{{ step.capability_id }}</small>
+                          </details>
                           @if (step.dependencies.length) {
                             <small
                               >Waiting on: {{ dependencyLabels(step.dependencies, plan) }}</small
@@ -267,7 +307,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       </li>
                     }
                   </ol>
-                </section>
+                </details>
               }
 
               @if (runs()[goal.id]; as run) {
@@ -287,32 +327,121 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     {{ completedStepCount(run) }} of {{ run.steps.length }} steps complete ·
                     Decision: {{ displayValue(run.result['decision']) || 'Not available' }}
                   </p>
+                  <section
+                    class="business-run-summary"
+                    aria-label="Research outcome"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    <div>
+                      <p class="eyebrow">What VAYUJIT is doing</p>
+                      <p>{{ businessRunStatus(run) }}</p>
+                    </div>
+                    <div>
+                      <p class="eyebrow">What has been found</p>
+                      <p>
+                        {{ run.candidates?.length || run.findings.length || run.artifacts.length }}
+                        evidence-backed result{{
+                          (run.candidates?.length ||
+                            run.findings.length ||
+                            run.artifacts.length) === 1
+                            ? ''
+                            : 's'
+                        }}
+                        recorded.
+                      </p>
+                    </div>
+                    @if (researchGaps(run).length) {
+                      <div>
+                        <p class="eyebrow">What is still missing</p>
+                        <p>
+                          {{ researchGaps(run).length }} evidence gap{{
+                            researchGaps(run).length === 1 ? '' : 's'
+                          }}
+                          need review.
+                        </p>
+                      </div>
+                    }
+                  </section>
+                  @if (run.result['outcome'] === 'RESEARCH_COMPLETED_WITH_GAPS') {
+                    <div class="callout warning" role="status">
+                      <strong>Research completed with gaps</strong>
+                      <p>
+                        Some evidence steps need attention. Completed findings remain available, and
+                        you can resume or retry the affected steps.
+                      </p>
+                    </div>
+                  }
+                  @if (run.candidates?.length) {
+                    <section
+                      class="candidate-section"
+                      aria-labelledby="candidate-title-{{ goal.id }}"
+                    >
+                      <div class="section-heading compact">
+                        <div>
+                          <p class="eyebrow">Product candidates</p>
+                          <h4 id="candidate-title-{{ goal.id }}">What surfaced for review</h4>
+                        </div>
+                      </div>
+                      <a
+                        class="secondary-action action-link"
+                        routerLink="/intelligence/product-opportunities"
+                        >Compare products</a
+                      >
+                      <div class="candidate-list">
+                        @for (candidate of run.candidates; track candidate.id) {
+                          <article class="candidate-card">
+                            <strong>{{ candidate.name }}</strong>
+                            <span>{{ candidate.status }}</span>
+                            <p>{{ candidate.description || candidate.product_concept }}</p>
+                            <small
+                              >Evidence: {{ candidate.evidence_state }} · Research:
+                              {{ candidate.research_state }}</small
+                            >
+                          </article>
+                        }
+                      </div>
+                    </section>
+                  }
                   @if (currentStep(run); as current) {
                     <div class="current-step">
-                      <strong>Current step: {{ capabilityLabel(current.capability_id) }}</strong>
+                      <strong
+                        >Current step:
+                        {{
+                          current.business_label || capabilityLabel(current.capability_id)
+                        }}</strong
+                      >
                       <app-status-badge
                         [status]="current.status"
                         [label]="statusLabel(current.status)"
                         [tone]="statusTone(current.status)"
                       />
-                      <span>Attempt {{ current.attempt_count }}</span>
+                      <details class="technical-details compact-details">
+                        <summary>Research detail</summary>
+                        <span>Attempt {{ current.attempt_count }}</span>
+                      </details>
                     </div>
                   }
-                  <ol class="timeline" aria-label="Authoritative execution timeline">
-                    @for (step of run.steps; track step.id) {
-                      <li>
-                        <span class="timeline-marker" aria-hidden="true"></span>
-                        <div>
-                          <strong>{{ capabilityLabel(step.capability_id) }}</strong>
-                          <app-status-badge
-                            [status]="step.status"
-                            [label]="statusLabel(step.status)"
-                            [tone]="statusTone(step.status)"
-                          />
-                        </div>
-                      </li>
-                    }
-                  </ol>
+                  <details class="technical-details execution-details">
+                    <summary>Research details and execution timeline</summary>
+                    <ol class="timeline" aria-label="Authoritative execution timeline">
+                      @for (step of run.steps; track step.id) {
+                        <li>
+                          <span class="timeline-marker" aria-hidden="true"></span>
+                          <div>
+                            <strong>{{
+                              step.business_label || capabilityLabel(step.capability_id)
+                            }}</strong>
+                            <app-status-badge
+                              [status]="step.status"
+                              [label]="statusLabel(step.status)"
+                              [tone]="statusTone(step.status)"
+                            />
+                          </div>
+                        </li>
+                      }
+                    </ol>
+                  </details>
                   @if (run.failure['message']) {
                     <div class="callout danger" role="alert">
                       <strong>Research needs attention</strong>
@@ -557,6 +686,26 @@ const CAPABILITY_LABELS: Record<string, string> = {
             </article>
           }
         </div>
+        @if (previousGoals().length) {
+          <details class="previous-research technical-details">
+            <summary>Previous research ({{ previousGoals().length }})</summary>
+            <div class="previous-goal-list">
+              @for (goal of previousGoals(); track goal.id) {
+                <article class="previous-goal">
+                  <div>
+                    <strong>{{ goal.raw_goal }}</strong>
+                    <small>Created {{ goal.created_at }}</small>
+                  </div>
+                  <app-status-badge
+                    [status]="goal.status"
+                    [label]="statusLabel(goal.status)"
+                    [tone]="statusTone(goal.status)"
+                  />
+                </article>
+              }
+            </div>
+          </details>
+        }
       </section>
     </main>
   `,
@@ -713,6 +862,65 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
     }
   }
 
+  activeGoals(): BusinessAgentGoal[] {
+    return this.goals().slice(0, 1);
+  }
+
+  previousGoals(): BusinessAgentGoal[] {
+    return this.goals().slice(1);
+  }
+
+  constraintRows(goal: BusinessAgentGoal): Array<{
+    label: string;
+    value: string;
+    state: string;
+  }> {
+    const structured = goal.structured_goal;
+    const rows: Array<{ label: string; value: string; state: string }> = [];
+    const marketplace = this.displayValue(structured['marketplace']);
+    if (marketplace)
+      rows.push({ label: 'Marketplace', value: marketplace, state: 'Provided by you' });
+    const market = this.displayValue(structured['market']);
+    if (market) rows.push({ label: 'Market', value: market, state: 'Provided by you' });
+    const category = this.displayValue(structured['category']);
+    if (category) rows.push({ label: 'Category', value: category, state: 'Provided by you' });
+    if (goal.unresolved_questions.length) {
+      rows.push({
+        label: 'Open questions',
+        value: String(goal.unresolved_questions.length),
+        state: 'Needs your input',
+      });
+    }
+    if (goal.assumptions.length && !goal.unresolved_questions.length) {
+      rows.push({
+        label: 'Runtime assumptions',
+        value: String(goal.assumptions.length),
+        state: 'Proposed by VAYUJIT',
+      });
+    }
+    if (!rows.length) rows.push({ label: 'Constraints', value: 'Not specified', state: 'Unknown' });
+    return rows;
+  }
+
+  businessRunStatus(run: BusinessAgentRun): string {
+    const current = this.currentStep(run);
+    if (run.result['outcome'] === 'RESEARCH_COMPLETED_WITH_GAPS') {
+      return 'Research completed, but some important evidence is still missing.';
+    }
+    if (run.status === 'COMPLETED') return 'Research is complete and ready for review.';
+    if (run.status === 'WAITING_APPROVAL')
+      return 'Research is ready for your review before any consequential action.';
+    if (run.status === 'FAILED') return 'Research needs attention before it can continue.';
+    if (current) {
+      return (
+        'VAYUJIT is ' +
+        (current.business_label || this.capabilityLabel(current.capability_id)).toLowerCase() +
+        '.'
+      );
+    }
+    return 'VAYUJIT is preparing evidence for your goal.';
+  }
+
   capabilityLabel(id: string): string {
     if (CAPABILITY_LABELS[id]) return CAPABILITY_LABELS[id];
     return id
@@ -732,6 +940,16 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   }
 
   statusLabel(status: string): string {
+    const labels: Record<string, string> = {
+      RESEARCH_COMPLETED_WITH_GAPS: 'Research completed with gaps',
+      PROVIDER_UNAVAILABLE: 'Research source unavailable',
+      LOCAL_DETERMINISTIC: 'Local demo mode',
+      WAITING_APPROVAL: 'Needs your review',
+      REVIEW_REQUIRED: 'Needs your review',
+      IN_PROGRESS: 'In progress',
+      NOT_STARTED: 'Not started',
+    };
+    if (labels[status]) return labels[status];
     return status
       .replaceAll('_', ' ')
       .toLowerCase()

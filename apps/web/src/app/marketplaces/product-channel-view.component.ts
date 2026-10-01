@@ -1,4 +1,6 @@
 import { HttpClient } from '@angular/common/http';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { EmptyStateComponent } from '../shared/state-components';
 import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -40,17 +42,23 @@ interface VideoChannel {
 
 @Component({
   selector: 'app-product-channel-view',
-  imports: [BreadcrumbsComponent, CommerceJourneyNavComponent, ErrorStateComponent, RouterLink],
+  imports: [
+    BreadcrumbsComponent,
+    CommerceJourneyNavComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+
+    PageHeaderComponent,
+    RouterLink,
+  ],
   template: `
     <section class="marketplace-page">
       <app-breadcrumbs [items]="breadcrumbs" />
-      <header>
-        <h1>Product channel view</h1>
-        <p>
-          Canonical Product <code>{{ productId }}</code> projected independently into each
-          marketplace channel.
-        </p>
-      </header>
+      <app-page-header
+        eyebrow="Sell / product channels"
+        title="Product channel view"
+        description="Review this product across each marketplace channel without replacing the product source of truth."
+      />
       <app-commerce-journey-nav current="listings" />
       @if (error()) {
         <app-error-state title="Product Channel is unavailable" [message]="error()" />
@@ -82,19 +90,19 @@ interface VideoChannel {
               <tr>
                 <th scope="row">{{ row.marketplace }}</th>
                 <td>{{ row.listing?.status || 'Not listed' }}</td>
-                <td>{{ row.listing?.marketplace_sku || '—' }}</td>
+                <td>{{ row.listing?.marketplace_sku || '-' }}</td>
                 <td>
-                  {{ row.settlements[0]?.gross_amount || '—' }}
+                  {{ row.settlements[0]?.gross_amount || '-' }}
                   {{ row.settlements[0]?.currency || '' }}
                 </td>
-                <td>{{ row.inventory?.available_quantity ?? '—' }}</td>
+                <td>{{ row.inventory?.available_quantity ?? '-' }}</td>
                 <td>{{ row.orders.length }}</td>
                 <td>{{ fees(row) }}</td>
                 <td>{{ contribution(row) }}</td>
                 <td>{{ row.listing?.drift_state || 'none' }}</td>
-                <td>{{ row.listing?.content_artifact_version ?? '—' }}</td>
+                <td>{{ row.listing?.content_artifact_version ?? '-' }}</td>
                 <td>{{ row.intelligence?.readiness || 'Not generated' }}</td>
-                <td>{{ row.intelligence?.search_score ?? '—' }}</td>
+                <td>{{ row.intelligence?.search_score ?? '-' }}</td>
                 <td><a [routerLink]="channelPath(row.marketplace, row.listing?.id)">Open</a></td>
               </tr>
             }
@@ -113,16 +121,19 @@ interface VideoChannel {
                   Listing: <code>{{ current.listing_id }}</code>
                 </p>
                 <p>
-                  Current Video: v{{ current.video_version }} ·
+                  Current Video: v{{ current.video_version }} -
                   {{ current.remote_video_id || 'not attached' }}
                 </p>
-                <p>Remote: {{ current.attachment_state }} · {{ current.reconciliation_state }}</p>
+                <p>Remote: {{ current.attachment_state }} - {{ current.reconciliation_state }}</p>
               } @else {
-                <p class="marketplace-empty">No Video attached.</p>
+                <app-empty-state
+                  title="No video attached"
+                  message="Attach an approved video when this channel requires one."
+                />
               }
               @if (video.latest_approved_video) {
                 <p>
-                  Latest approved Video: v{{ video.latest_approved_video['video_version'] || '—' }}
+                  Latest approved Video: v{{ video.latest_approved_video['video_version'] || '-' }}
                 </p>
               }
               <p class="marketplace-status">
@@ -143,7 +154,10 @@ interface VideoChannel {
           }
         </div>
         @if (!videoChannels().length) {
-          <p class="marketplace-empty">No Product Channel Video projection is available yet.</p>
+          <app-empty-state
+            title="No channel video projection"
+            message="A channel video projection is not available yet."
+          />
         }
       </section>
     </section>

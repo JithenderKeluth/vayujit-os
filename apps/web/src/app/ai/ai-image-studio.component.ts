@@ -8,6 +8,8 @@ import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.comp
 import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
 import { StatusBadgeComponent } from '../shared/status-badge.component';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
 
 type ImageGeneration = {
   generation_id: string;
@@ -19,23 +21,27 @@ type ImageGeneration = {
   selector: 'app-ai-image-studio',
   imports: [
     BreadcrumbsComponent,
+    BusinessEntitySelectorsComponent,
     CommerceJourneyNavComponent,
     ErrorStateComponent,
     LoadingStateComponent,
+    PageHeaderComponent,
     RouterLink,
     StatusBadgeComponent,
   ],
   template: ` <section class="ai-page">
     <app-breadcrumbs [items]="breadcrumbs" />
-    <header class="ai-header">
-      <div>
-        <h1>AI Image Studio</h1>
-        <p class="ai-muted">Create safe, reviewable image variants from trusted Product media.</p>
+    <app-page-header
+      eyebrow="Create / images"
+      title="AI image studio"
+      description="Create safe, reviewable image variants from trusted product media."
+    >
+      <div page-header-actions class="actions">
+        <a class="ai-button" routerLink="/ai/images/bulk">Bulk images</a>
+        <a class="ai-button" routerLink="/ai/studio">Content studio</a>
+        <a class="ai-button" routerLink="/media">Media library</a>
       </div>
-      <a class="ai-button" routerLink="/ai/images/bulk">Bulk images</a
-      ><a class="ai-button" routerLink="/ai/studio">Content Studio</a
-      ><a class="ai-button" routerLink="/media">Media library</a>
-    </header>
+    </app-page-header>
     <app-commerce-journey-nav current="images" />
     @if (error()) {
       <app-error-state title="Image generation is unavailable" [message]="error()" />
@@ -58,27 +64,16 @@ type ImageGeneration = {
     </ol>
     <article class="ai-card">
       <h2>Generate image</h2>
-      <label
-        >Brand ID
-        <input
-          [value]="brandId()"
-          (input)="brandId.set($any($event.target).value)"
-          placeholder="Brand UUID"
-      /></label>
-      <label
-        >Product ID
-        <input
-          [value]="productId()"
-          (input)="productId.set($any($event.target).value)"
-          placeholder="Product UUID"
-      /></label>
-      <label
-        >Source Media IDs
-        <input
-          [value]="sourceMediaIds()"
-          (input)="sourceMediaIds.set($any($event.target).value)"
-          placeholder="Optional comma-separated UUIDs"
-      /></label>
+      <app-business-entity-selectors
+        [showBrand]="true"
+        [showMedia]="true"
+        [productId]="productId()"
+        [brandId]="brandId()"
+        [mediaIds]="sourceMediaIds().split(',').map((value) => value.trim()).filter((value) => !!value)"
+        (productIdChange)="productId.set($event)"
+        (brandIdChange)="brandId.set($event)"
+        (mediaIdsChange)="sourceMediaIds.set($event.join(', '))"
+      />
       <label
         >Operation
         <select [value]="operation()" (change)="operation.set($any($event.target).value)">
@@ -95,7 +90,7 @@ type ImageGeneration = {
         [disabled]="busy() || !brandId() || !productId()"
         (click)="generate()"
       >
-        {{ busy() ? 'Queueingâ€¦' : 'Queue deterministic image' }}
+        {{ busy() ? 'Queueing...' : 'Queue deterministic image' }}
       </button>
     </article>
     @if (generation()) {
@@ -152,7 +147,7 @@ export class AIImageStudioComponent {
         source_media_ids: this.sourceMediaIds()
           .split(',')
           .map((value) => value.trim())
-          .filter(Boolean),
+          .filter((value) => !!value),
         operation: this.operation(),
         channel: 'canonical',
         width: 1024,
@@ -169,7 +164,7 @@ export class AIImageStudioComponent {
       );
     } catch {
       this.error.set(
-        'The image request could not be queued safely. Check Brand, Product, and Media IDs.',
+        'The image request could not be queued safely. Check the selected Brand, Product, and media.',
       );
     } finally {
       this.busy.set(false);

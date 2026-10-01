@@ -29,31 +29,26 @@ export class AppComponent {
       ] as const,
     },
     {
-      label: 'Discover',
+      label: 'Research',
       items: [
-        ['Research', '/intelligence'],
         ['Product Opportunities', '/intelligence/product-opportunities'],
-        ['Trend Intelligence', '/intelligence/trends'],
-        ['Competitors', '/intelligence/competitors'],
-        ['Customer Reviews', '/intelligence/reviews'],
-        ['External Research', '/intelligence/external'],
-        ['Website Intelligence', '/intelligence/websites'],
-        ['Autonomous Research', '/intelligence/autonomous'],
+        ['My Research', '/intelligence'],
       ] as const,
     },
     {
       label: 'Source',
       items: [
         ['Suppliers', '/intelligence/sourcing'],
-        ['Shortlists', '/intelligence/supplier-shortlisting'],
-        ['Supplier Verification', '/intelligence/due-diligence'],
-        ['Sourcing Scenarios', '/intelligence/sourcing-scenarios'],
-        ['Portfolio & Resilience', '/intelligence/supplier-portfolios'],
-        ['Cross-marketplace Suppliers', '/intelligence/cross-marketplace'],
-        ['IndiaMART Discovery', '/intelligence/indiamart'],
-        ['Alibaba Discovery', '/intelligence/alibaba'],
-        ['TradeIndia Discovery', '/intelligence/tradeindia'],
-        ['Global Sources Discovery', '/intelligence/global-sources'],
+        ['Sourcing decisions', '/intelligence/sourcing-scenarios'],
+      ] as const,
+    },
+    {
+      label: 'Sell',
+      items: [
+        ['Products', '/products'],
+        ['Listings', '/marketplaces/listings'],
+        ['Inventory', '/marketplaces/inventory'],
+        ['Orders', '/marketplaces/orders'],
       ] as const,
     },
     {
@@ -63,9 +58,6 @@ export class AppComponent {
         ['SEO', '/ai/studio/seo'],
         ['Images', '/ai/images'],
         ['Videos', '/ai/video'],
-        ['Brand Voices', '/ai/brand-voices'],
-        ['Presets', '/ai/presets'],
-        ['Media', '/media'],
       ] as const,
     },
     {
@@ -77,34 +69,46 @@ export class AppComponent {
       ] as const,
     },
     {
-      label: 'Sell',
+      label: 'Manage',
+      items: [['Calendar', '/calendar']] as const,
+    },
+  ] as const;
+  readonly advancedNavigationGroups = [
+    {
+      label: 'Intelligence',
       items: [
-        ['Brands', '/brands'],
-        ['Products', '/products'],
-        ['Listings', '/marketplaces/listings'],
-        ['Inventory', '/marketplaces/inventory'],
-        ['Orders', '/marketplaces/orders'],
-        ['Marketplace', '/marketplaces'],
-        ['Marketplace Video', '/marketplaces/video'],
-        ['Publishing', '/publishing'],
+        ['Trend Intelligence', '/intelligence/trends'],
+        ['Competitors', '/intelligence/competitors'],
+        ['Customer Reviews', '/intelligence/reviews'],
+        ['Website Intelligence', '/intelligence/websites'],
+        ['External Research', '/intelligence/external'],
+        ['Autonomous Research', '/intelligence/autonomous'],
+        ['Cross-marketplace Suppliers', '/intelligence/cross-marketplace'],
+        ['IndiaMART Discovery', '/intelligence/indiamart'],
+        ['Alibaba Discovery', '/intelligence/alibaba'],
+        ['TradeIndia Discovery', '/intelligence/tradeindia'],
+        ['Global Sources Discovery', '/intelligence/global-sources'],
+        ['Portfolio & Resilience', '/intelligence/supplier-portfolios'],
+        ['Shortlists', '/intelligence/supplier-shortlisting'],
+        ['Supplier Verification', '/intelligence/due-diligence'],
+        ['Sourcing Economics', '/intelligence/sourcing-economics'],
       ] as const,
     },
     {
-      label: 'Operate',
+      label: 'Operations',
       items: [
-        ['Calendar', '/calendar'],
-        ['Schedules', '/publishing/schedules'],
-        ['Jobs', '/publishing/jobs'],
+        ['Operations', '/operations'],
         ['Workflows', '/workflows'],
         ['Approvals', '/approvals'],
         ['Execution History', '/execution-history'],
+        ['Jobs', '/publishing/jobs'],
+        ['Schedules', '/publishing/schedules'],
         ['Recovery', '/operations/recovery'],
         ['System Doctor', '/operations/health'],
-        ['Operations', '/operations'],
       ] as const,
     },
     {
-      label: 'System',
+      label: 'Configuration',
       items: [
         ['Integrations', '/settings/publishing/connectors'],
         ['AI Providers', '/settings/ai/providers'],
@@ -114,6 +118,33 @@ export class AppComponent {
     },
   ] as const;
   readonly maintenance = signal(false);
+  private readonly advancedPrefixes = [
+    '/intelligence/trends',
+    '/intelligence/competitors',
+    '/intelligence/reviews',
+    '/intelligence/websites',
+    '/intelligence/external',
+    '/intelligence/autonomous',
+    '/intelligence/cross-marketplace',
+    '/intelligence/indiamart',
+    '/intelligence/alibaba',
+    '/intelligence/tradeindia',
+    '/intelligence/global-sources',
+    '/intelligence/supplier-portfolios',
+    '/intelligence/supplier-shortlisting',
+    '/intelligence/due-diligence',
+    '/intelligence/sourcing-economics',
+    '/operations',
+    '/workflows',
+    '/approvals',
+    '/execution-history',
+    '/publishing',
+    '/settings',
+  ];
+
+  isAdvancedRoute(): boolean {
+    return this.advancedPrefixes.some((prefix) => this.router.url.startsWith(prefix));
+  }
   constructor() {
     effect(() => {
       if (this.auth.user()) {

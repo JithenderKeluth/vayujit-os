@@ -14,6 +14,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
+from vayujit_api.core.config import get_settings
 from vayujit_api.identity.models import User
 from vayujit_api.intelligence.business_agent_models import (
     BusinessAgentApproval,
@@ -28,9 +29,13 @@ from vayujit_api.intelligence.business_agent_models import (
     BusinessAgentToolInvocation,
     agent_now,
 )
-from vayujit_api.intelligence.business_agent_registry import capability_map
+from vayujit_api.intelligence.business_agent_registry import (
+    authorize_capability,
+    capability_map,
+)
 from vayujit_api.intelligence.economic_integration_service import (
     ECONOMICS_CAPABILITIES,
+    decision_brief_for_opportunity,
     project_economics_for_opportunity,
 )
 from vayujit_api.intelligence.competitor_agent_service import (
@@ -38,6 +43,8 @@ from vayujit_api.intelligence.competitor_agent_service import (
     execute_competitor_capability,
 )
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
+from vayujit_api.intelligence.product_discovery import discover_local_product_candidates
+from vayujit_api.intelligence.product_research import run_live_product_discovery
 from vayujit_api.intelligence.review_business_agent_service import (
     REVIEW_CAPABILITIES,
     execute_review_capability,
@@ -93,7 +100,7 @@ def _goal_projection(
     if supplied:
         structured = dict(supplied)
     else:
-        capital_match = re.search(r"(?:rs\.?|inr)\s*([\d,]+)", lower)
+        capital_match = re.search(r"\b(?:rs\.?|inr)\s*([0-9][0-9,]*)\b", lower)
         candidate_match = re.search(r"(\d+)\s+(?:winning\s+)?products?", lower)
         structured = {
             "objective": "identify and evaluate winning products",
@@ -113,6 +120,91 @@ def _goal_projection(
     if not structured.get("capital"):
         unresolved.append("available capital")
     return structured, assumptions, unresolved
+
+
+def _validate_plan_steps(steps: list[dict[str, object]]) -> None:
+    """Validate a proposed plan against the bounded capability registry before persistence."""
+    registry = capability_map()
+    keys = {str(item.get("key")) for item in steps}
+    dependencies: dict[str, list[str]] = {}
+    for item in steps:
+        key = str(item.get("key") or "")
+        capability = str(item.get("capability") or "")
+        if not key or not capability:
+            raise ValueError("Research plans require a step key and capability.")
+        spec = registry.get(capability)
+        if spec is None:
+            raise ValueError(f"Unsupported research capability: {capability}.")
+        authorize_capability(capability, {})
+        raw_dependencies = item.get("deps")
+        deps = (
+            [str(value) for value in raw_dependencies] if isinstance(raw_dependencies, list) else []
+        )
+        if key in deps or any(value not in keys for value in deps):
+            raise ValueError(f"Invalid dependency for research step: {key}.")
+        dependencies[key] = deps
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def visit(key: str) -> None:
+        if key in visiting:
+            raise ValueError("Research plan dependencies contain a cycle.")
+        if key in visited:
+            return
+        visiting.add(key)
+        for dependency in dependencies.get(key, []):
+            visit(dependency)
+        visiting.remove(key)
+        visited.add(key)
+
+    for key in dependencies:
+        visit(key)
+
+
+def _failure_classification(error: Exception) -> str:
+    if isinstance(error, PermissionError):
+        return "AUTH_FAILURE"
+    if isinstance(error, TimeoutError):
+        return "TIMEOUT"
+    if isinstance(error, ConnectionError):
+        return "PROVIDER_UNAVAILABLE"
+    if isinstance(error, (ValueError, TypeError)):
+        return "VALIDATION_FAILURE"
+    if isinstance(error, LookupError):
+        return "PREREQUISITE_MISSING"
+    return "UNEXPECTED_FAILURE"
+
+
+def _candidate_cards(db: Session, owner: User, limit: int = 20) -> list[dict[str, object]]:
+    rows = list(
+        db.scalars(
+            select(ProductOpportunity)
+            .where(
+                ProductOpportunity.owner_id == owner.id,
+                ProductOpportunity.lifecycle_status != "archived",
+            )
+            .order_by(ProductOpportunity.updated_at.desc())
+            .limit(limit)
+        )
+    )
+    return [
+        {
+            "id": str(row.id),
+            "name": row.name,
+            "status": row.lifecycle_status,
+            "description": row.description,
+            "product_concept": row.product_concept,
+            "category": row.category,
+            "subcategory": row.subcategory,
+            "target_marketplace": row.target_marketplace,
+            "target_region": row.target_region,
+            "evidence_state": row.evidence_state,
+            "research_state": row.research_state,
+            "origin": row.origin,
+            "intelligence_profile": row.intelligence_profile or {},
+        }
+        for row in rows
+    ]
 
 
 def get_goal(db: Session, owner: User, goal_id: uuid.UUID) -> BusinessAgentGoal:
@@ -359,6 +451,7 @@ def create_plan(db: Session, owner: User, goal: BusinessAgentGoal) -> BusinessAg
     if current and current.status != "SUPERSEDED":
         return current
     steps = _steps(goal)
+    _validate_plan_steps(steps)
     encoded = json.dumps(steps, sort_keys=True, separators=(",", ":"))
     plan = BusinessAgentPlan(
         owner_id=owner.id,
@@ -751,29 +844,211 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 ProductOpportunity.idempotency_key == f"business-agent:{run.id}",
             )
         )
+    live_discovery_output: dict[str, object] | None = None
     if opportunity is None:
-        opportunity = ProductOpportunity(
-            owner_id=owner.id,
-            name="Business Agent Product Opportunity",
-            description="Deterministic opportunity generated for owner review.",
-            product_concept="Candidate product evaluation",
-            category="",
-            target_marketplace=str(goal_record.structured_goal.get("marketplace", "")),
-            research_objective="Evaluate opportunity through existing 9A-9F boundaries",
-            origin="ai_research",
-            lifecycle_status="researching",
-            research_state="in_progress",
-            evidence_state="partial",
-            tags=["business-agent"],
-            notes="No external mutation performed.",
-            idempotency_key=f"business-agent:{run.id}",
-        )
-        db.add(opportunity)
-        db.flush()
-    for index, step in enumerate(steps):
+        execution_mode = get_settings().intelligence_external_provider_mode
+        if execution_mode == "LIVE_READ_ONLY":
+            try:
+                live_discovery_output = run_live_product_discovery(
+                    db,
+                    owner,
+                    raw_goal=goal_record.raw_goal,
+                    structured_goal=structured_goal,
+                    max_results=_bounded_int(structured_goal.get("candidate_count"), 5),
+                    correlation_id=f"business-agent:{run.id}:product-discovery",
+                    run_id=run.id,
+                )
+            except Exception as error:
+                live_discovery_output = {
+                    "mode": "LIVE_READ_ONLY",
+                    "status": "PROVIDER_UNAVAILABLE",
+                    "query_count": 0,
+                    "result_count": 0,
+                    "fetch_count": 0,
+                    "candidate_ids": [],
+                    "candidates": [],
+                    "failures": [{"code": "PROVIDER_UNAVAILABLE", "message": str(error)}],
+                }
+            candidate_ids = live_discovery_output.get("candidate_ids", [])
+            if isinstance(candidate_ids, list) and candidate_ids:
+                try:
+                    opportunity = db.scalar(
+                        select(ProductOpportunity).where(
+                            ProductOpportunity.id == uuid.UUID(str(candidate_ids[0])),
+                            ProductOpportunity.owner_id == owner.id,
+                        )
+                    )
+                except (TypeError, ValueError):
+                    opportunity = None
+            if opportunity is None:
+                opportunity_step = next(
+                    (item for item in steps if item.step_key == "opportunity"), None
+                )
+                live_failure: dict[str, object] = {
+                    "code": str(live_discovery_output.get("status", "PROVIDER_UNAVAILABLE")),
+                    "message": "Live product research did not produce a canonical product opportunity.",
+                    "mode": "LIVE_READ_ONLY",
+                    "details": live_discovery_output,
+                }
+                if opportunity_step is not None:
+                    opportunity_step.status = "FAILED"
+                    opportunity_step.result = live_failure
+                    opportunity_step.updated_at = agent_now()
+                    db.add(
+                        BusinessAgentCheckpoint(
+                            owner_id=owner.id,
+                            run_id=run.id,
+                            step_key=opportunity_step.step_key,
+                            state={"status": "FAILED", "failure": live_failure},
+                            created_at=agent_now(),
+                        )
+                    )
+                run.status = "PARTIAL"
+                run.failure = {
+                    "code": live_failure["code"],
+                    "message": live_failure["message"],
+                    "mode": "LIVE_READ_ONLY",
+                }
+                run.checkpoint = {"completed_steps": [], "last_step": None}
+                run.result = {
+                    "outcome": "LIVE_RESEARCH_COMPLETED_WITH_GAPS",
+                    "mode": "LIVE_READ_ONLY",
+                    "external_writes": [],
+                    "research": live_discovery_output,
+                }
+                db.commit()
+                db.refresh(run)
+                return run
+        elif execution_mode not in {"LOCAL_FIXTURE", "LOCAL_DETERMINISTIC"}:
+            config_failure: dict[str, object] = {
+                "code": "CONFIGURATION_BLOCKED",
+                "message": "Business Agent product discovery is unavailable in the configured execution mode.",
+                "mode": execution_mode,
+            }
+            opportunity_step = next(
+                (item for item in steps if item.step_key == "opportunity"), None
+            )
+            if opportunity_step is not None:
+                opportunity_step.status = "FAILED"
+                opportunity_step.result = config_failure
+                opportunity_step.updated_at = agent_now()
+                db.add(
+                    BusinessAgentCheckpoint(
+                        owner_id=owner.id,
+                        run_id=run.id,
+                        step_key=opportunity_step.step_key,
+                        state={"status": "FAILED", "failure": config_failure},
+                        created_at=agent_now(),
+                    )
+                )
+            run.status = "PARTIAL"
+            run.failure = {
+                "code": config_failure["code"],
+                "message": config_failure["message"],
+                "mode": execution_mode,
+            }
+            run.checkpoint = {"completed_steps": [], "last_step": None}
+            run.result = {
+                "outcome": "RESEARCH_BLOCKED",
+                "mode": execution_mode,
+                "external_writes": [],
+            }
+            db.commit()
+            db.refresh(run)
+            return run
+        else:
+            candidate_limit = _bounded_int(structured_goal.get("candidate_count"), 5)
+            definitions = discover_local_product_candidates(
+                goal_record.raw_goal,
+                structured_goal,
+                limit=candidate_limit,
+            )
+            discovered: list[ProductOpportunity] = []
+            for definition in definitions:
+                candidate_key = f"business-agent:{run.id}:candidate:{definition['fingerprint']}"
+                candidate = db.scalar(
+                    select(ProductOpportunity).where(
+                        ProductOpportunity.owner_id == owner.id,
+                        ProductOpportunity.idempotency_key == candidate_key,
+                    )
+                )
+                if candidate is None:
+                    profile = definition["profile"]
+                    candidate = ProductOpportunity(
+                        owner_id=owner.id,
+                        name=str(definition["name"]),
+                        description=str(definition["description"]),
+                        product_concept=str(definition["product_concept"]),
+                        category=str(definition["category"]),
+                        subcategory=str(definition["subcategory"]),
+                        target_marketplace=str(definition["target_marketplace"]),
+                        target_region=str(definition["target_region"]),
+                        customer_segment=str(definition["customer_segment"]),
+                        research_objective="Identify and evaluate distinct product concepts through authoritative research.",
+                        origin="ai_research",
+                        lifecycle_status="researching",
+                        research_state="discovered",
+                        evidence_state="partial",
+                        tags=["business-agent", "LOCAL_DETERMINISTIC_RESEARCH_FIXTURE"],
+                        notes="Local deterministic product identity only; marketplace and commercial evidence remain unknown until authoritative research runs.",
+                        intelligence_profile=profile if isinstance(profile, dict) else {},
+                        idempotency_key=candidate_key,
+                    )
+                    db.add(candidate)
+                    db.flush()
+                discovered.append(candidate)
+            if not discovered:
+                raise LookupError("No meaningful product candidates were discovered.")
+            opportunity = discovered[0]
+    steps_by_key = {step.step_key: step for step in steps}
+    ordered_steps: list[BusinessAgentStep] = []
+    visiting: set[str] = set()
+    visited: set[str] = set()
+
+    def append_dependencies(step: BusinessAgentStep) -> None:
+        if step.step_key in visited:
+            return
+        if step.step_key in visiting:
+            raise ValueError("Persisted research plan contains a dependency cycle.")
+        visiting.add(step.step_key)
+        for dependency_key in step.dependency_keys:
+            dependency = steps_by_key.get(dependency_key)
+            if dependency is not None:
+                append_dependencies(dependency)
+        visiting.remove(step.step_key)
+        visited.add(step.step_key)
+        ordered_steps.append(step)
+
+    for step in steps:
+        append_dependencies(step)
+
+    for index, step in enumerate(ordered_steps):
         if index >= max_steps:
             break
         if step.status == "COMPLETED":
+            continue
+        blocked_dependencies = [
+            key
+            for key in step.dependency_keys
+            if steps_by_key.get(key) is None or steps_by_key[key].status != "COMPLETED"
+        ]
+        if blocked_dependencies:
+            step.status = "BLOCKED"
+            step.result = {
+                "code": "PREREQUISITE_MISSING",
+                "message": "This research step is waiting for an earlier evidence step.",
+                "missing": blocked_dependencies,
+            }
+            step.updated_at = agent_now()
+            db.add(
+                BusinessAgentCheckpoint(
+                    owner_id=owner.id,
+                    run_id=run.id,
+                    step_key=step.step_key,
+                    state={"status": "BLOCKED", "missing": blocked_dependencies},
+                    created_at=agent_now(),
+                )
+            )
             continue
         step.status = "RUNNING"
         step.attempt_count += 1
@@ -788,7 +1063,20 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
         db.add(attempt)
         db.flush()
         try:
-            if step.capability_id in TREND_CAPABILITIES:
+            output: dict[str, object]
+            if step.capability_id == "product_opportunity.create":
+                output = {
+                    "capability": step.capability_id,
+                    "mode": (
+                        str(live_discovery_output.get("mode"))
+                        if live_discovery_output is not None
+                        else "LOCAL_DETERMINISTIC"
+                    ),
+                    "opportunity_id": str(opportunity.id),
+                    "research": live_discovery_output,
+                    "external_mutation": False,
+                }
+            elif step.capability_id in TREND_CAPABILITIES:
                 output = execute_trend_capability(
                     db,
                     owner,
@@ -965,8 +1253,8 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                     "opportunity_id": str(opportunity.id),
                     "external_mutation": False,
                 }
-        except Exception:
-            failure_code = (
+        except Exception as error:
+            legacy_code = (
                 "ECONOMICS_EXECUTION_FAILED"
                 if step.capability_id in ECONOMICS_CAPABILITIES
                 else (
@@ -988,39 +1276,50 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                     else (
                         "Review Intelligence execution could not be completed safely."
                         if step.capability_id in REVIEW_CAPABILITIES
-                        else "Competitor intelligence execution could not be completed safely."
+                        else "This research step could not be completed safely."
                     )
                 )
             )
+            classification = _failure_classification(error)
+            failure: dict[str, object] = {
+                "code": classification,
+                "legacy_code": legacy_code,
+                "message": safe_message,
+                "retryable": classification
+                in {"PROVIDER_UNAVAILABLE", "RATE_LIMITED", "TIMEOUT", "UNEXPECTED_FAILURE"},
+            }
             step.status = "FAILED"
-            step.result = {"code": failure_code, "message": safe_message}
+            step.result = failure
             step.updated_at = agent_now()
             attempt.status = "FAILED"
-            attempt.output = {"code": failure_code, "message": safe_message}
-            attempt.error_code = failure_code
+            attempt.output = failure
+            attempt.error_code = classification
             attempt.completed_at = agent_now()
             db.add(
                 BusinessAgentCheckpoint(
                     owner_id=owner.id,
                     run_id=run.id,
                     step_key=step.step_key,
-                    state={"status": "FAILED", "attempt": step.attempt_count},
+                    state={"status": "FAILED", "attempt": step.attempt_count, "failure": failure},
                     created_at=agent_now(),
                 )
             )
-            run.status = "PAUSED"
-            run.failure = {"code": failure_code, "message": safe_message}
+            run.status = "PARTIAL"
+            run.failure = {
+                "code": "PARTIAL_RESEARCH_FAILURE",
+                "message": "Research continued, but one or more evidence steps need attention.",
+                "last_step": step.step_key,
+                "classification": classification,
+            }
             _audit(
                 db,
                 owner,
-                "run.paused",
+                "run.partial",
                 run.id,
                 f"{run.id}:capability-failure:{step.step_key}",
                 run.failure,
             )
-            db.commit()
-            db.refresh(run)
-            return run
+            continue
         step.result = output
         step.status = "COMPLETED"
         step.updated_at = agent_now()
@@ -1060,6 +1359,27 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             None,
         ),
     }
+    failed_steps = [step for step in steps if step.status == "FAILED"]
+    blocked_steps = [step for step in steps if step.status == "BLOCKED"]
+    if failed_steps or blocked_steps:
+        run.status = "PARTIAL"
+        run.result = {
+            "outcome": "RESEARCH_COMPLETED_WITH_GAPS",
+            "completed_steps": run.checkpoint["completed_steps"],
+            "failed_steps": [
+                {"key": step.step_key, "failure": step.result} for step in failed_steps
+            ],
+            "data_gaps": [
+                {
+                    "code": "PREREQUISITE_MISSING",
+                    "step": step.step_key,
+                    "missing": step.result.get("missing", []),
+                }
+                for step in blocked_steps
+            ],
+            "external_writes": [],
+            "candidates": _candidate_cards(db, owner),
+        }
     if (
         not all(step.status == "COMPLETED" for step in steps)
         and _bounded_int(usage.get("steps"), 0) >= max_steps
@@ -1118,6 +1438,7 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 review_gaps.extend(gap for gap in raw_gaps if isinstance(gap, dict))
         run.result = {
             "opportunity_id": str(opportunity.id),
+            "candidates": _candidate_cards(db, owner),
             "decision": "REVIEW_REQUIRED",
             "evidence_gap_loops": _bounded_int(usage.get("gap_loops"), 0),
             "external_writes": [],
@@ -1215,11 +1536,17 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             }
         if economics_enabled_run:
             latest_economics = economics_outputs[-1] if economics_outputs else {}
+            decision_brief: dict[str, object] | None = None
+            try:
+                decision_brief = decision_brief_for_opportunity(db, owner, opportunity.id)
+            except HTTPException:
+                decision_brief = None
             brief_payload["sourcing_economics"] = {
                 "label": "SOURCING ECONOMICS / FACTUAL COST EVIDENCE",
                 "readiness": latest_economics.get("readiness", "NOT_EVALUATED"),
                 "status": latest_economics.get("status", "RESEARCH_GAP"),
                 "projection": latest_economics,
+                "decision_brief": decision_brief,
                 "requires_human_review": True,
                 "external_writes": [],
                 "semantic_boundary": "Cost evidence does not rank suppliers or products and is not a profitability or forecast claim.",
@@ -1294,6 +1621,7 @@ def revise_plan(db: Session, owner: User, goal: BusinessAgentGoal) -> BusinessAg
         return create_plan(db, owner, goal)
     current.status = "SUPERSEDED"
     steps = _steps(goal)
+    _validate_plan_steps(steps)
     encoded = json.dumps(steps, sort_keys=True, separators=(",", ":"))
     plan = BusinessAgentPlan(
         owner_id=owner.id,

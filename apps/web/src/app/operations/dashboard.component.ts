@@ -11,6 +11,9 @@ import {
 } from '../shared/state-components';
 import { PageHeaderComponent } from '../shared/page-header.component';
 import { StatusBadgeComponent } from '../shared/status-badge.component';
+import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
+import { CommerceJourneyService } from '../commerce-journey.service';
+import type { CommerceJourney } from '../commerce-journey.types';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,14 +25,15 @@ import { StatusBadgeComponent } from '../shared/status-badge.component';
     LoadingStateComponent,
     PageHeaderComponent,
     StatusBadgeComponent,
+    CommerceJourneyContextComponent,
   ],
   template: `<section class="op-page dashboard-page" aria-labelledby="dashboard-title">
     <app-page-header
       class="op-header"
       eyebrow="Your operating workspace"
-      title="What would you like to accomplish?"
+      title="What should you do today?"
       headingId="dashboard-title"
-      description="Research, validate, source, launch, monitor, and optimize from one owner-scoped workspace."
+      description="Start with a goal, continue your journey, or take the next useful action."
     >
       <label class="dashboard-filter" page-header-actions
         >View by brand<select [(ngModel)]="brandId" (ngModelChange)="load()">
@@ -40,60 +44,46 @@ import { StatusBadgeComponent } from '../shared/status-badge.component';
         </select></label
       >
     </app-page-header>
-    <section class="dashboard-start" aria-labelledby="start-title">
-      <div class="goal-panel">
-        <p class="eyebrow">Start with a goal</p>
-        <h2 id="start-title">Ask VAYUJIT</h2>
-        <p>
-          Describe a business goal in the existing Business Agent workspace. Plans, approvals,
-          budgets, and execution remain governed there.
-        </p>
-        <a class="op-button primary" routerLink="/intelligence/business-agent"
-          >Open Business Agent</a
-        >
-      </div>
-      <div class="quick-starts" aria-labelledby="quick-start-title">
-        <p class="eyebrow">Quick starts</p>
-        <h2 id="quick-start-title">Choose a useful next step</h2>
-        <div class="quick-start-grid">
-          <a class="quick-start" routerLink="/intelligence/product-opportunities"
-            ><span aria-hidden="true">⌕</span><strong>Find a product</strong
-            ><small>Discover opportunities worth investigating.</small></a
-          >
-          <a class="quick-start" routerLink="/intelligence/product-opportunities"
-            ><span aria-hidden="true">✓</span><strong>Research a product</strong
-            ><small>Validate an existing opportunity with evidence.</small></a
-          >
-          <a class="quick-start" routerLink="/intelligence/sourcing"
-            ><span aria-hidden="true">⇄</span><strong>Find suppliers</strong
-            ><small>Review sourcing options and landed-cost work.</small></a
-          >
-          <a class="quick-start" routerLink="/campaigns"
-            ><span aria-hidden="true">→</span><strong>Prepare a launch</strong
-            ><small>Continue into campaign and content workflows.</small></a
-          >
-          <a class="quick-start" routerLink="/operations"
-            ><span aria-hidden="true">◷</span><strong>Monitor my business</strong
-            ><small>Review operational work and issues.</small></a
-          >
-        </div>
-      </div>
-    </section>
+    <app-commerce-journey-context [showEmptyState]="false" />
     @if (loading()) {
-      <app-loading-state message="Loading your workspace…" />
+      <app-loading-state message="Loading your workspace..." />
     }
     @if (error()) {
-      <app-error-state [message]="error()" retryLabel="Try again" (retry)="load()" />
+      <app-error-state
+        title="Workspace data is unavailable"
+        [message]="error()"
+        retryLabel="Try again"
+        (retry)="load()"
+      />
     }
     @if (data(); as value) {
       @if (isFirstUse(value)) {
-        <app-empty-state
-          title="Start your first VAYUJIT research journey"
-          message="Tell VAYUJIT what you are trying to accomplish and begin an evidence-backed workflow."
-          ><a class="op-button primary" routerLink="/intelligence/business-agent"
+        <section class="goal-panel first-use-panel" aria-labelledby="start-title">
+          <p class="eyebrow">Start with a goal</p>
+          <h2 id="start-title">What are you trying to achieve?</h2>
+          <p>
+            Tell VAYUJIT what you want to achieve and keep research, sourcing, decisions, and launch
+            connected.
+          </p>
+          <a class="op-button primary" routerLink="/intelligence/business-agent"
             >Start with Business Agent</a
-          ></app-empty-state
-        >
+          >
+        </section>
+        <app-empty-state
+          title="Your workspace is ready"
+          message="Begin with a product idea, supplier question, or business goal."
+        />
+      } @else if (activeJourney(); as journey) {
+        <section class="active-goal-panel" aria-labelledby="active-goal-title">
+          <div>
+            <p class="eyebrow">Active goal</p>
+            <h2 id="active-goal-title">{{ journeyGoalSummary(journey) }}</h2>
+            <p>{{ journeyStatus(journey) }}</p>
+          </div>
+          @if (journey.trust; as trust) {
+            <p class="trust-note">{{ trust.label }}</p>
+          }
+        </section>
       }
       <section class="attention-section" aria-labelledby="attention-title">
         <div class="section-heading">
@@ -113,66 +103,117 @@ import { StatusBadgeComponent } from '../shared/status-badge.component';
                   </div>
                   <app-status-badge
                     [status]="item.status"
-                    [label]="item.status"
+                    [label]="item.statusLabel"
                     [tone]="item.tone"
                   /><a class="op-button" [routerLink]="item.route">{{ item.action }}</a>
                 </article>
               }
             </div>
           } @else {
-            <p class="op-muted">Nothing requires attention right now.</p>
+            <p class="op-muted">Nothing needs your attention right now.</p>
           }
         }
       </section>
-      <section class="at-a-glance" aria-labelledby="glance-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">At a glance</p>
-            <h2 id="glance-title">Your workspace</h2>
-          </div>
-        </div>
-
-        <div class="op-grid dashboard-metrics">
-          @for (metric of cards(value); track metric.label) {
-            <article class="op-card">
-              <h2>{{ metric.label }}</h2>
-              <p class="op-stat">{{ metric.value }}</p>
-              @if (metric.route) {
-                <a class="metric-link" [routerLink]="metric.route">Open workspace</a>
+      @if (opportunities(value); as items) {
+        @if (items.length) {
+          <section class="opportunities-section" aria-labelledby="opportunities-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Useful findings</p>
+                <h2 id="opportunities-title">Opportunities and findings</h2>
+              </div>
+            </div>
+            <div class="opportunity-grid">
+              @for (item of items; track item.label) {
+                <article class="opportunity-item">
+                  <strong>{{ item.label }}</strong>
+                  <p>{{ item.context }}</p>
+                  <a class="op-button" [routerLink]="item.route">{{ item.action }}</a>
+                </article>
               }
-            </article>
-          }
+            </div>
+          </section>
+        }
+      }
+      @if (!isFirstUse(value)) {
+        <section class="at-a-glance" aria-labelledby="glance-title">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Business activity</p>
+              <h2 id="glance-title">Your workspace</h2>
+            </div>
+          </div>
+          <div class="op-grid dashboard-metrics">
+            @for (metric of cards(value); track metric.label) {
+              <article class="op-card">
+                <h2>{{ metric.label }}</h2>
+                <p class="op-stat">{{ metric.value }}</p>
+                @if (metric.route) {
+                  <a class="metric-link" [routerLink]="metric.route">Open workspace</a>
+                }
+              </article>
+            }
+          </div>
+        </section>
+      }
+      <section class="quick-starts" aria-labelledby="quick-start-title">
+        <p class="eyebrow">Quick actions</p>
+        <h2 id="quick-start-title">Take the next useful step</h2>
+        <div class="quick-start-grid">
+          <a class="quick-start" routerLink="/intelligence/product-opportunities"
+            ><span aria-hidden="true">+</span><strong>Start product research</strong
+            ><small>Find and compare opportunities worth investigating.</small></a
+          >
+          <a class="quick-start" routerLink="/intelligence/sourcing"
+            ><span aria-hidden="true">+</span><strong>Find suppliers</strong
+            ><small>Review sourcing options for a product.</small></a
+          >
+          <a class="quick-start" routerLink="/ai/studio"
+            ><span aria-hidden="true">+</span><strong>Create content</strong
+            ><small>Prepare content for a product or launch.</small></a
+          >
+          <a class="quick-start" routerLink="/calendar"
+            ><span aria-hidden="true">+</span><strong>View calendar</strong
+            ><small>See planned work and upcoming activity.</small></a
+          >
+          <a class="quick-start" routerLink="/campaigns"
+            ><span aria-hidden="true">+</span><strong>Prepare a launch</strong
+            ><small>Continue into campaign and launch workflows.</small></a
+          >
         </div>
       </section>
-      <article class="op-card">
-        <p class="eyebrow">Execution health</p>
-        <h2>Workflow status distribution</h2>
-        @for (item of chart(value); track item.label) {
-          <div class="op-bar">
-            <span [style.width.%]="item.percent"></span
-            ><span>{{ item.label }}: {{ item.value }}</span>
-          </div>
-        }
-        @if (!chartTotal(value)) {
-          <p class="op-muted">No Workflow data yet.</p>
-        }
-      </article>
-      <article class="op-card">
-        <p class="eyebrow">Audit trail</p>
-        <h2>Recent activity</h2>
-        @if (!value.activity.length) {
-          <p class="op-muted">No recent activity.</p>
-        }
-        @for (item of value.activity; track item.id) {
-          <p>
-            <strong>{{ item.safe_summary }}</strong
-            ><br /><span class="op-muted">{{ item.timestamp }} · {{ item.category }}</span>
-            @if (item.related_url) {
-              · <a [routerLink]="item.related_url">View</a>
-            }
-          </p>
-        }
-      </article>
+      <details class="advanced-dashboard">
+        <summary>Advanced system health</summary>
+        <article class="op-card">
+          <p class="eyebrow">Technical details</p>
+          <h2>Workflow status</h2>
+          @for (item of chart(value); track item.label) {
+            <div class="op-bar">
+              <span [style.width.%]="item.percent"></span
+              ><span>{{ item.label }}: {{ item.value }}</span>
+            </div>
+          }
+          @if (!chartTotal(value)) {
+            <p class="op-muted">No workflow activity yet.</p>
+          }
+        </article>
+        <article class="op-card">
+          <p class="eyebrow">Research history</p>
+          <h2>Recent activity</h2>
+          @if (!value.activity.length) {
+            <p class="op-muted">No recent activity.</p>
+          }
+          @for (item of value.activity; track item.id) {
+            <p>
+              <strong>{{ item.safe_summary }}</strong
+              ><br /><span class="op-muted">{{ item.timestamp }} - {{ item.category }}</span>
+              @if (item.related_url) {
+                - <a [routerLink]="item.related_url">View details</a>
+              }
+            </p>
+          }
+        </article>
+      </details>
     }
   </section>`,
   styleUrl: './operations.css',
@@ -180,7 +221,9 @@ import { StatusBadgeComponent } from '../shared/status-badge.component';
 export class DashboardComponent implements OnInit {
   readonly brands = inject(BrandService);
   private readonly api = inject(OperationsService);
+  private readonly journeyService = inject(CommerceJourneyService, { optional: true });
   readonly data = signal<DashboardResponse | null>(null);
+  readonly activeJourney = signal<CommerceJourney | null>(null);
   readonly brandOptions = signal<BrandSummary[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
@@ -200,7 +243,12 @@ export class DashboardComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      this.data.set(await this.api.dashboard(this.brandId));
+      const [dashboard, journey] = await Promise.all([
+        this.api.dashboard(this.brandId),
+        this.loadJourney(),
+      ]);
+      this.data.set(dashboard);
+      this.activeJourney.set(journey);
     } catch {
       this.error.set('Some operational data could not be loaded.');
     } finally {
@@ -209,24 +257,30 @@ export class DashboardComponent implements OnInit {
   }
   isFirstUse(value: DashboardResponse): boolean {
     const m = value.metrics;
-    return Object.values(m).every((count) => count === 0) && value.activity.length === 0;
+    return (
+      this.activeJourney() === null &&
+      Object.values(m).every((count) => count === 0) &&
+      value.activity.length === 0
+    );
   }
   attentionItems(value: DashboardResponse): Array<{
     label: string;
     context: string;
     status: string;
+    statusLabel: string;
     tone: 'info' | 'warning' | 'danger';
     action: string;
     route: string;
   }> {
     const m = value.metrics;
-    return [
+    const items = [
       ...(m.pending_approvals
         ? [
             {
               label: 'Approvals awaiting review',
               context: `${m.pending_approvals} generated artifact(s) need a decision.`,
               status: 'PENDING_REVIEW',
+              statusLabel: 'Needs review',
               tone: 'warning' as const,
               action: 'Review approvals',
               route: '/approvals',
@@ -239,6 +293,7 @@ export class DashboardComponent implements OnInit {
               label: 'Failed workflows',
               context: `${m.failed_workflows} workflow(s) are marked failed.`,
               status: 'FAILED',
+              statusLabel: 'Failed',
               tone: 'danger' as const,
               action: 'Inspect workflows',
               route: '/workflows',
@@ -251,6 +306,7 @@ export class DashboardComponent implements OnInit {
               label: 'Failed publishing executions',
               context: `${m.failed_executions} publishing execution(s) are marked failed.`,
               status: 'FAILED',
+              statusLabel: 'Failed',
               tone: 'danger' as const,
               action: 'Inspect history',
               route: '/execution-history',
@@ -263,6 +319,7 @@ export class DashboardComponent implements OnInit {
               label: 'Workflows waiting for approval',
               context: `${m.waiting_workflows} workflow(s) are waiting for an approval decision.`,
               status: 'WAITING_FOR_APPROVAL',
+              statusLabel: 'In progress',
               tone: 'info' as const,
               action: 'Review workflows',
               route: '/workflows',
@@ -275,6 +332,7 @@ export class DashboardComponent implements OnInit {
               label: 'Retryable publishing failures',
               context: `${m.retryable_failures} failed execution(s) are marked retryable.`,
               status: 'RETRYABLE',
+              statusLabel: 'Ready to retry',
               tone: 'warning' as const,
               action: 'Inspect history',
               route: '/execution-history',
@@ -282,7 +340,99 @@ export class DashboardComponent implements OnInit {
           ]
         : []),
     ];
+    const reviewStage = this.activeJourney()?.stages.find((stage) =>
+      ['NEEDS_REVIEW', 'BLOCKED'].includes(stage.status),
+    );
+    if (reviewStage) {
+      items.unshift({
+        label: reviewStage.label + ' needs attention',
+        context:
+          reviewStage.reason ||
+          'Complete the ' + reviewStage.label.toLowerCase() + ' step before moving forward.',
+        status: reviewStage.status,
+        statusLabel: reviewStage.status === 'BLOCKED' ? 'Blocked' : 'Needs review',
+        tone: reviewStage.status === 'BLOCKED' ? ('danger' as const) : ('warning' as const),
+        action: 'Review ' + reviewStage.label.toLowerCase(),
+        route: reviewStage.route,
+      });
+    }
+    return items;
   }
+
+  journeyGoalSummary(journey: CommerceJourney): string {
+    const values = journey.context.values;
+    const product = this.displayContext(values['product_name']);
+    const category = this.displayContext(values['category']);
+    const market = this.displayContext(values['marketplace']);
+    if (product) return 'Research and launch ' + product;
+    if (category && market) return 'Research ' + category + ' opportunities for ' + market;
+    if (category) return 'Research ' + category + ' opportunities';
+    if (market) return 'Research product opportunities for ' + market;
+    return 'Continue your product research journey';
+  }
+
+  journeyStatus(journey: CommerceJourney): string {
+    const stage =
+      journey.stages.find((item) => item.status === 'IN_PROGRESS') ??
+      journey.stages.find((item) => item.status === 'READY');
+    return stage
+      ? stage.label + ' is the next step. ' + journey.next_action.detail
+      : journey.next_action.detail;
+  }
+
+  private async loadJourney(): Promise<CommerceJourney | null> {
+    if (!this.journeyService) return null;
+    try {
+      return await this.journeyService.active();
+    } catch {
+      return null;
+    }
+  }
+
+  private displayContext(value: unknown): string {
+    return typeof value === 'string' && value.trim() ? value.trim() : '';
+  }
+  opportunities(value: DashboardResponse): Array<{
+    label: string;
+    context: string;
+    action: string;
+    route: string;
+  }> {
+    const m = value.metrics;
+    return [
+      ...(m.total_products > 0
+        ? [
+            {
+              label: `${m.total_products} product${m.total_products === 1 ? '' : 's'} ready to review`,
+              context: 'Keep product research and launch work moving from one workspace.',
+              action: 'Review products',
+              route: '/products',
+            },
+          ]
+        : []),
+      ...(m.approved_artifacts > 0
+        ? [
+            {
+              label: `${m.approved_artifacts} content artifact${m.approved_artifacts === 1 ? '' : 's'} ready to use`,
+              context: 'Approved content can move into your product and campaign workflows.',
+              action: 'Open content history',
+              route: '/ai/history',
+            },
+          ]
+        : []),
+      ...(m.active_destinations > 0
+        ? [
+            {
+              label: `${m.active_destinations} sales channel${m.active_destinations === 1 ? '' : 's'} connected`,
+              context: 'Your products have configured destinations for the next launch step.',
+              action: 'Review channels',
+              route: '/marketplaces',
+            },
+          ]
+        : []),
+    ];
+  }
+
   cards(value: DashboardResponse): Array<{ label: string; value: number; route: string }> {
     const m = value.metrics;
     return [

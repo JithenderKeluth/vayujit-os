@@ -12,6 +12,9 @@ import {
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom, filter, Subscription } from 'rxjs';
 import { GrowthJourneyNavComponent } from '../shared/growth-journey-nav.component';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
+import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
 
 type Json = any;
 type Account = Json & {
@@ -40,25 +43,34 @@ type Capability = Json & {
 @Component({
   selector: 'app-ads-workspace',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, RouterLinkActive, GrowthJourneyNavComponent],
+  imports: [
+    BusinessEntitySelectorsComponent,
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    RouterLinkActive,
+    GrowthJourneyNavComponent,
+    PageHeaderComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="ads-shell" aria-labelledby="ads-title">
       <app-growth-journey-nav current="advertising" />
-      <header class="ads-header">
-        <div>
-          <p class="eyebrow">Ads and Marketing Automation</p>
-          <h1 id="ads-title">Operational Ads workspace</h1>
-          <p class="lede">
-            Owner-scoped social, search, and marketplace campaign operations with explicit review
-            gates.
-          </p>
+      <app-page-header
+        eyebrow="Grow / advertising"
+        title="Operational ads workspace"
+        description="Owner-scoped social, search, and marketplace campaign operations with explicit review gates."
+        headingId="ads-title"
+      >
+        <div page-header-actions class="header-actions">
+          <span class="badge"
+            >Local demo mode <small class="technical-detail">LOCAL SYNTHETIC</small></span
+          >
+          <a class="button primary" routerLink="/ads/create">Create campaign</a>
         </div>
-        <div class="header-actions">
-          <span class="badge">LOCAL SYNTHETIC</span
-          ><a class="button primary" routerLink="/ads/create">Create campaign</a>
-        </div>
-      </header>
+      </app-page-header>
       <nav class="ads-nav" aria-label="Ads workspace navigation">
         @for (item of navItems; track item.path) {
           <a
@@ -70,13 +82,16 @@ type Capability = Json & {
         }
       </nav>
       @if (error()) {
-        <div class="alert error" role="alert">{{ error() }}</div>
+        <app-error-state
+          title="Ads workspace is unavailable"
+          [message]="error() || 'Ads workspace is unavailable'"
+        />
       }
       @if (notice()) {
         <div class="alert success" role="status">{{ notice() }}</div>
       }
       @if (loading()) {
-        <p aria-live="polite" class="loading">Loading Ads workspace...</p>
+        <app-loading-state message="Loading ads workspace..." />
       }
       @if (!loading()) {
         @switch (section()) {
@@ -419,12 +434,11 @@ type Capability = Json & {
           @case (1) {
             <h3>2. Product and audience</h3>
             <div class="form-grid">
+              <app-business-entity-selectors
+                [productId]="campaignDraft.product_id"
+                (productIdChange)="campaignDraft.product_id = $event"
+              />
               <label
-                >Product UUID (optional)<input
-                  name="product_id"
-                  [(ngModel)]="campaignDraft.product_id"
-                  placeholder="Trusted product UUID" /></label
-              ><label
                 ><label
                   >Keyword set UUID (optional)<input
                     name="keyword_set_id"
@@ -469,20 +483,25 @@ type Capability = Json & {
                   <option>video</option>
                   <option>manual</option>
                 </select></label
-              ><label
-                >Approved Artifact UUID<input
-                  name="artifact_id"
-                  [(ngModel)]="creativeDraft.artifact_id" /></label
-              ><label
+              >
+              <app-business-entity-selectors
+                [showArtifact]="true"
+                [showMedia]="true"
+                [approvedOnly]="true"
+                [productId]="campaignDraft.product_id"
+                [artifactId]="creativeDraft.artifact_id"
+                [mediaIds]="creativeDraft.media_id ? [creativeDraft.media_id] : []"
+                artifactLabel="Approved creative"
+                mediaLabel="Creative media"
+                (artifactIdChange)="creativeDraft.artifact_id = $event"
+                (mediaIdsChange)="creativeDraft.media_id = $event[0] || ''"
+              />
+              <label
                 >Exact Artifact version<input
                   type="number"
                   min="1"
                   name="artifact_version"
                   [(ngModel)]="creativeDraft.artifact_version" /></label
-              ><label
-                >Image/video media UUID<input
-                  name="media_id"
-                  [(ngModel)]="creativeDraft.media_id" /></label
               ><label
                 >Exact media version<input
                   type="number"
@@ -580,7 +599,8 @@ type Capability = Json & {
                 {{ creativeDraft.artifact_version || creativeDraft.media_version || 'required' }}
               </p>
               <p>
-                <strong>Budget:</strong> {{ campaignDraft.budget.amount }} INR
+                <strong>Budget:</strong> {{ campaignDraft.budget.amount }}
+                {{ campaignDraft.budget.currency || 'Currency not established' }}
                 {{ campaignDraft.budget.budget_type }}
               </p>
               <p><strong>Destination:</strong> {{ creativeDraft.destination_url || 'Not set' }}</p>
@@ -795,7 +815,9 @@ type Capability = Json & {
                 </td>
                 <td>{{ campaign.provider }}</td>
                 <td>{{ campaign.state }}</td>
-                <td>{{ campaign.budget?.currency || 'INR' }} local baseline</td>
+                <td>
+                  {{ campaign.budget?.currency || 'Currency not established' }} local baseline
+                </td>
               </tr>
             } @empty {
               <tr>
@@ -838,7 +860,7 @@ type Capability = Json & {
                     row.campaign || row.campaign_id
                   }}</a>
                 </td>
-                <td>{{ row.provider || '—' }}</td>
+                <td>{{ row.provider || '-' }}</td>
                 <td>{{ row.start_at | date: 'medium' }}</td>
                 <td>{{ row.end_at | date: 'medium' }}</td>
                 <td>{{ row.timezone }}</td>

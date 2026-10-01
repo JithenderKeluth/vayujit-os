@@ -83,7 +83,7 @@ def _identity(
 def _fixtures() -> list[dict[str, Any]]:
     return [
         {
-            "name": "LOCAL FIXTURE Ã¢â‚¬â€ Pune Craft Labs",
+            "name": "LOCAL FIXTURE - Pune Craft Labs",
             "type": "manufacturer",
             "country_code": "IN",
             "country": "India",
@@ -101,7 +101,7 @@ def _fixtures() -> list[dict[str, Any]]:
             "claims": ["ISO 9001"],
         },
         {
-            "name": "LOCAL FIXTURE Ã¢â‚¬â€ Shenzhen Value Trader",
+            "name": "LOCAL FIXTURE - Shenzhen Value Trader",
             "type": "trader",
             "country_code": "CN",
             "country": "China",
@@ -119,7 +119,7 @@ def _fixtures() -> list[dict[str, Any]]:
             "claims": [],
         },
         {
-            "name": "LOCAL FIXTURE Ã¢â‚¬â€ Jaipur Offline Wholesale",
+            "name": "LOCAL FIXTURE - Jaipur Offline Wholesale",
             "type": "wholesaler",
             "country_code": "IN",
             "country": "India",
@@ -137,7 +137,7 @@ def _fixtures() -> list[dict[str, Any]]:
             "claims": [],
         },
         {
-            "name": "LOCAL FIXTURE Ã¢â‚¬â€ Trade Fair Components Co.",
+            "name": "LOCAL FIXTURE - Trade Fair Components Co.",
             "type": "manufacturer",
             "country_code": "IN",
             "country": "India",
@@ -155,7 +155,7 @@ def _fixtures() -> list[dict[str, Any]]:
             "claims": ["BIS"],
         },
         {
-            "name": "LOCAL FIXTURE Ã¢â‚¬â€ Referral Home Goods",
+            "name": "LOCAL FIXTURE - Referral Home Goods",
             "type": "distributor",
             "country_code": "IN",
             "country": "India",

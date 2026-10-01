@@ -131,3 +131,20 @@ def test_product_opportunity_rejects_mismatched_context(client: Any) -> None:
         headers=ORIGIN,
     )
     assert response.status_code == 409, response.text
+
+
+def test_product_opportunity_decision_brief_preserves_unknowns_and_no_writes(client: Any) -> None:
+    fixture = setup_context(client)
+    opportunity = _opportunity(client, fixture["product"]["id"], "gp5-brief-gap")
+    response = client.get(
+        f"/api/v1/intelligence/product-opportunities/{opportunity['id']}/decision-brief",
+        headers=ORIGIN,
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["decision_readiness"] == "NOT_READY"
+    assert body["budget_fit"]["status"] == "UNKNOWN"
+    assert body["economics"]["readiness"] == "NOT_EVALUATED"
+    assert body["data_gaps"]
+    assert body["external_writes"] == []
+    assert body["provenance"]["opportunity_id"] == opportunity["id"]

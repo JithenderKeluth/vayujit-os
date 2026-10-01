@@ -31,8 +31,8 @@ import {
       <section class="boundary" aria-labelledby="boundary-title">
         <h2 id="boundary-title">Provider boundary</h2>
         <p>
-          Mode: <strong>{{ preflight()?.mode || 'DISABLED' }}</strong> Â· Readiness:
-          <strong>{{ preflight()?.status || 'UNKNOWN' }}</strong> Â· Live validation:
+          Mode: <strong>{{ preflight()?.mode || 'DISABLED' }}</strong> · Readiness:
+          <strong>{{ preflight()?.status || 'UNKNOWN' }}</strong> · Live validation:
           <strong>{{ preflight()?.live_validation || 'NOT_RUN' }}</strong>
         </p>
         <p class="muted">
@@ -43,7 +43,7 @@ import {
       </section>
 
       @if (loading()) {
-        <p role="status" aria-live="polite">Loading TradeIndia discoveryâ€¦</p>
+        <p role="status" aria-live="polite">Loading TradeIndia discovery...</p>
       }
       @if (error()) {
         <p class="error" role="alert">{{ error() }}</p>
@@ -364,6 +364,6 @@ export class TradeIndiaDiscoveryComponent {
       row.lead_time_claim ? `Lead ${row.lead_time_claim}` : null,
       row.availability_claim,
     ].filter(Boolean);
-    return parts.join(' Â· ') || 'Unknown';
+    return parts.join(' · ') || 'Unknown';
   }
 }

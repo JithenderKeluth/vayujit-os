@@ -11,6 +11,9 @@ import {
 } from '../shared/state-components';
 import { StatusBadgeComponent } from '../shared/status-badge.component';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { CommerceJourneyService } from '../commerce-journey.service';
+import { intelligenceErrorMessage } from './intelligence-error';
+import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
 import {
   ReviewAnalysis,
   ReviewAnalysisDetail,
@@ -38,11 +41,13 @@ import {
     ErrorStateComponent,
     LoadingStateComponent,
     StatusBadgeComponent,
+    CommerceJourneyContextComponent,
   ],
   styleUrl: './intelligence-workspace.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-breadcrumbs [items]="breadcrumbs" />
+    <app-commerce-journey-context />
     <p class="eyebrow">Customer Reviews</p>
     @if (loading()) {
       <app-loading-state message="Loading existing customer review intelligence..." />
@@ -75,24 +80,47 @@ import {
           retryLabel="Retry"
           (retry)="refresh()"
         />
-        <p class="error" role="alert">{{ error() }}</p>
       }
       @if (loading()) {
         <p role="status" aria-live="polite">Loading review intelligence...</p>
       }
       <section class="panel">
         <h2>Review contexts</h2>
-        <form (ngSubmit)="createContext()">
-          <label>Name <input name="name" [(ngModel)]="contextName" required /></label
-          ><label
-            >Product ID
-            <input name="product" [(ngModel)]="productId" placeholder="Optional UUID" /></label
-          ><label>Marketplace <input name="marketplace" [(ngModel)]="marketplace" /></label
-          ><label>Market <input name="market" [(ngModel)]="market" /></label
-          ><button type="submit" [disabled]="loading() || !contextName.trim()">
-            Create context
-          </button>
-        </form>
+        @if (journeyContextResolved) {
+          <p class="muted">
+            The selected product context is ready. Context setup is automatic; review collection
+            remains an explicit human action.
+          </p>
+        } @else {
+          <p class="muted">Select a product before starting review research.</p>
+        }
+        <button type="button" (click)="advancedContextOpen = !advancedContextOpen">
+          Open advanced research controls
+        </button>
+        @if (advancedContextOpen) {
+          <details open>
+            <summary>Advanced / manual context</summary>
+            <form (ngSubmit)="createContext()">
+              <label>Name <input name="name" [(ngModel)]="contextName" required /></label>
+              <label
+                >Product ID
+                <input name="product" [(ngModel)]="productId" placeholder="Optional UUID"
+              /></label>
+              <label
+                >Product opportunity ID
+                <input
+                  name="opportunity"
+                  [(ngModel)]="productOpportunityId"
+                  placeholder="Optional UUID"
+              /></label>
+              <label>Marketplace <input name="marketplace" [(ngModel)]="marketplace" /></label>
+              <label>Market <input name="market" [(ngModel)]="market" /></label>
+              <button type="submit" [disabled]="loading() || !contextName.trim()">
+                Create manual context
+              </button>
+            </form>
+          </details>
+        }
         @for (context of contexts(); track context.id) {
           <button class="list-item" type="button" (click)="selectContext(context)">
             <strong>{{ context.name }}</strong
@@ -178,9 +206,9 @@ import {
           </form>
           @for (batch of ingestionBatches(); track batch.id) {
             <p class="list-item">
-              <strong>{{ batch.status }} � {{ batch.provider }}</strong
+              <strong>{{ batch.status }} - {{ batch.provider }}</strong
               ><span
-                >{{ batch.accepted_count }} accepted � {{ batch.rejected_count }} rejected �
+                >{{ batch.accepted_count }} accepted - {{ batch.rejected_count }} rejected -
                 {{ batch.duplicate_count }} duplicates</span
               >
             </p>
@@ -491,6 +519,7 @@ import {
 })
 export class ReviewIntelligenceWorkspaceComponent implements OnInit {
   private readonly service = inject(ReviewIntelligenceService);
+  private readonly journey = inject(CommerceJourneyService, { optional: true });
   readonly contexts = signal<ReviewContext[]>([]);
   readonly selectedContext = signal<ReviewContext | null>(null);
   readonly reviews = signal<ReviewRecord[]>([]);
@@ -506,8 +535,12 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
   readonly error = signal('');
   contextName = 'Product reviews';
   productId = '';
+  productOpportunityId = '';
   marketplace = 'amazon';
   market = 'IN';
+  journeyContextResolved = false;
+  advancedContextOpen = false;
+  private contextResolutionInFlight: Promise<void> | null = null;
   rating = '';
   ratingScale = '5';
   title = '';
@@ -522,6 +555,71 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
     '[{"id":"fixture-1","rating":"5","rating_scale":"5","title":"Useful","body":"Local fixture review"}]';
   ngOnInit(): void {
     void this.refresh();
+    void this.loadJourneyContext();
+  }
+  private async loadJourneyContext(): Promise<void> {
+    if (!this.journey) return;
+    try {
+      const active = await this.journey.active();
+      const values = active?.context.values ?? {};
+      if (typeof values['product_id'] === 'string') this.productId = values['product_id'];
+      const opportunityId =
+        values['selected_product_opportunity_id'] ?? values['product_opportunity_id'];
+      if (typeof opportunityId === 'string') this.productOpportunityId = opportunityId;
+      if (typeof values['marketplace'] === 'string') this.marketplace = values['marketplace'];
+      if (typeof values['market'] === 'string') this.market = values['market'];
+      await this.ensureJourneyContext();
+      if (typeof values['product_name'] === 'string')
+        this.contextName = `${values['product_name']} reviews`;
+    } catch {
+      // Advanced manual context creation remains available when no journey is active.
+    }
+  }
+  private async ensureJourneyContext(): Promise<void> {
+    if ((!this.productId && !this.productOpportunityId) || this.contextResolutionInFlight) {
+      return this.contextResolutionInFlight ?? Promise.resolve();
+    }
+    this.contextResolutionInFlight = (async () => {
+      const existing = await this.service.contexts();
+      this.contexts.set(existing);
+      const match =
+        (this.productOpportunityId
+          ? existing.find((context) => context.product_opportunity_id === this.productOpportunityId)
+          : undefined) ??
+        (this.productId
+          ? existing.find((context) => context.product_id === this.productId)
+          : undefined);
+      const context =
+        match ??
+        (await this.service.createContext({
+          name: this.contextName || 'Selected product reviews',
+          product_id: this.productId || null,
+          product_opportunity_id: this.productOpportunityId || null,
+          marketplace: this.marketplace.trim(),
+          market: this.market.trim(),
+          status: 'ACTIVE',
+          idempotency_key:
+            'ux-r11a-review-' +
+            (this.productOpportunityId || this.productId) +
+            '-' +
+            this.marketplace.trim() +
+            '-' +
+            this.market.trim(),
+        }));
+      this.contexts.update((items) =>
+        items.some((item) => item.id === context.id) ? items : [context, ...items],
+      );
+      this.journeyContextResolved = true;
+      await this.selectContext(context);
+    })()
+      .catch(() => {
+        this.journeyContextResolved = false;
+        this.error.set('The selected product review context could not be prepared.');
+      })
+      .finally(() => {
+        this.contextResolutionInFlight = null;
+      });
+    return this.contextResolutionInFlight;
   }
   async refresh(): Promise<void> {
     await this.run(async () => {
@@ -535,6 +633,7 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
       await this.service.createContext({
         name: this.contextName.trim(),
         product_id: this.productId.trim() || null,
+        product_opportunity_id: this.productOpportunityId.trim() || null,
         marketplace: this.marketplace.trim(),
         market: this.market.trim(),
         status: 'ACTIVE',
@@ -661,8 +760,8 @@ export class ReviewIntelligenceWorkspaceComponent implements OnInit {
     this.error.set('');
     try {
       await action();
-    } catch {
-      this.error.set(message);
+    } catch (error: unknown) {
+      this.error.set(intelligenceErrorMessage(error, message));
     } finally {
       this.loading.set(false);
     }

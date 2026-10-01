@@ -2,12 +2,13 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AIService } from './ai.service';
+import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
 import type { AIStudioBrandVoice } from '@vayujit/shared';
 
 @Component({
   selector: 'app-brand-voice-workspace',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [BusinessEntitySelectorsComponent, FormsModule, CommonModule],
   template: ` <section aria-labelledby="voice-title">
     <h1 id="voice-title">Brand Voices</h1>
     <p>Create a Brand Voice to keep AI-generated content consistent.</p>
@@ -36,10 +37,10 @@ import type { AIStudioBrandVoice } from '@vayujit/shared';
       </fieldset>
       <button type="submit">{{ editing ? 'Save new version' : 'Create Brand Voice' }}</button>
     </form>
-    <label
-      >Preview Product ID
-      <input name="previewProductId" [(ngModel)]="previewProductId" placeholder="Product UUID"
-    /></label>
+    <app-business-entity-selectors
+      [productId]="previewProductId"
+      (productIdChange)="previewProductId = $event"
+    />
     <p role="status">{{ message }}</p>
     <ul>
       @for (voice of voices; track voice.id) {
@@ -132,7 +133,7 @@ export class BrandVoiceWorkspaceComponent implements OnInit {
   }
   async preview(v: AIStudioBrandVoice): Promise<void> {
     if (!this.previewProductId.trim()) {
-      this.message = 'Enter a Product ID to preview this Brand Voice.';
+      this.message = 'Select a Product to preview this Brand Voice.';
       return;
     }
     try {

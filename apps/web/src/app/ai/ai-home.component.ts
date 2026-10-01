@@ -2,22 +2,22 @@ import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@ang
 import { RouterLink } from '@angular/router';
 import type { AIProviderSummary, PaginatedAIHistory } from '@vayujit/shared';
 import { AIService } from './ai.service';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { EmptyStateComponent, ErrorStateComponent } from '../shared/state-components';
 
 @Component({
   selector: 'app-ai-home',
-  imports: [RouterLink],
+  imports: [RouterLink, PageHeaderComponent, EmptyStateComponent, ErrorStateComponent],
   template: ` <section class="ai-page">
-    <header class="ai-header">
-      <div>
-        <h1>AI Content Studio</h1>
-        <p class="ai-muted">
-          Generate structured product content and review every version before use.
-        </p>
-      </div>
-      <a class="ai-button" routerLink="/ai/generate">Generate content</a>
-    </header>
+    <app-page-header
+      eyebrow="Create / content"
+      title="AI content studio"
+      description="Generate structured product content and review every version before use."
+    >
+      <a page-header-actions class="ai-button" routerLink="/ai/generate">Generate content</a>
+    </app-page-header>
     @if (error()) {
-      <p class="ai-error">{{ error() }}</p>
+      <app-error-state title="AI content is unavailable" [message]="error()" />
     }
     <div class="ai-grid">
       <article class="ai-card">
@@ -27,7 +27,7 @@ import { AIService } from './ai.service';
             <strong>{{ provider()!.name }}</strong>
           </p>
           <p class="ai-muted">
-            Local deterministic mock · {{ provider()!.available ? 'Available' : 'Unavailable' }}
+            Local deterministic mock - {{ provider()!.available ? 'Available' : 'Unavailable' }}
           </p>
         }
       </article>
@@ -35,7 +35,7 @@ import { AIService } from './ai.service';
         <h2>Generation history</h2>
         <p>{{ recent()?.total ?? 0 }} requests</p>
         <a routerLink="/ai/history">View history</a>
-        · <a routerLink="/ai/usage">View usage</a>
+        - <a routerLink="/ai/usage">View usage</a>
       </article>
       <article class="ai-card">
         <h2>Provider settings</h2>
@@ -47,13 +47,16 @@ import { AIService } from './ai.service';
     <article class="ai-card">
       <h2>Recent requests</h2>
       @if (!recent()?.items?.length) {
-        <p class="ai-muted">No content has been generated yet.</p>
+        <app-empty-state
+          title="No content generated yet"
+          message="Generate content from an approved product to begin a reviewable history."
+        />
       }
       @for (item of recent()?.items ?? []; track item.generation_id) {
         <p>
-          <strong>{{ item.product_name }}</strong> · {{ item.request_status }}
+          <strong>{{ item.product_name }}</strong> - {{ item.request_status }}
           @if (item.artifact_id) {
-            ·
+            -
             <a [routerLink]="['/ai/artifacts', item.artifact_id]"
               >Review v{{ item.version_number }}</a
             >

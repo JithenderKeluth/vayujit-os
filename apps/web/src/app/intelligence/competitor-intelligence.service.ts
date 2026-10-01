@@ -8,6 +8,8 @@ export interface CompetitorContext {
   id: string;
   subject_type: string;
   subject_reference: string;
+  product_opportunity_id?: string | null;
+  product_id?: string | null;
   marketplace: string;
   market: string;
   category: string;

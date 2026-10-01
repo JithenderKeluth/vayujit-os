@@ -23,7 +23,7 @@ import { CampaignService } from './campaign.service';
         <p class="error" role="alert">{{ error() }}</p>
       }
       @if (loading()) {
-        <p aria-live="polite">Loading Campaign Video…</p>
+        <p aria-live="polite">Loading Campaign Video...</p>
       }
       @if (overview(); as state) {
         <section class="grid" aria-label="Campaign Video summary">
@@ -50,15 +50,15 @@ import { CampaignService } from './campaign.service';
               <span class="badge">{{ activity.status }}</span>
               <h3>{{ activity.name }}</h3>
               <p>
-                {{ activity.video_channel || 'Video' }} · version
-                {{ activity.video_version || '—' }}
+                {{ activity.video_channel || 'Video' }} - version
+                {{ activity.video_version || '-' }}
               </p>
               <p>
-                Scheduled {{ activity.scheduled_at_utc | date: 'medium' }} ·
+                Scheduled {{ activity.scheduled_at_utc | date: 'medium' }} -
                 {{ activity.timezone_name }}
               </p>
               <p>Dependency: {{ activity.dependency_state || activity.readiness_status }}</p>
-              <p class="op-muted">Output: {{ activity.video_output_id || '—' }}</p>
+              <p class="op-muted">Output: {{ activity.video_output_id || '-' }}</p>
               <a class="button" [routerLink]="['/campaigns', campaignId, 'video', activity.id]"
                 >Open detail</a
               >

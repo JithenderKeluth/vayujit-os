@@ -4,6 +4,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { environment } from '../../environments/environment';
+import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
 
 type BulkChild = { id: string; video_type: string; target_channel: string; status: string };
 type BulkPlan = {
@@ -36,7 +37,7 @@ function safeError(error: unknown): string {
 }
 @Component({
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [BusinessEntitySelectorsComponent, CommonModule, FormsModule, RouterLink],
   selector: 'app-ai-video-bulk',
   template: `
     <main class="bulk-page">
@@ -45,13 +46,11 @@ function safeError(error: unknown): string {
       <p>Plan multi-product Videos, review the exact fingerprint, then queue durable child jobs.</p>
       <section class="card">
         <h2>1. Plan</h2>
-        <label
-          >Product IDs
-          <input
-            [(ngModel)]="productIds"
-            aria-label="Product IDs"
-            placeholder="UUIDs, comma separated"
-        /></label>
+        <app-business-entity-selectors
+          [multiProduct]="true"
+          [productIds]="productIds.split(',').map((value) => value.trim()).filter((value) => !!value)"
+          (productIdsChange)="productIds = $event.join(',')"
+        />
         <label>Video types <input [(ngModel)]="videoTypes" aria-label="Video types" /></label>
         <label>Targets <input [(ngModel)]="targets" aria-label="Targets" /></label>
         <label>Duration <input type="number" min="1" max="60" [(ngModel)]="duration" /></label>
@@ -61,7 +60,7 @@ function safeError(error: unknown): string {
         <section class="card">
           <h2>2. Review and confirm</h2>
           <p>
-            <strong>{{ value.total_outputs }}</strong> child outputs · {{ value.provider }}
+            <strong>{{ value.total_outputs }}</strong> child outputs - {{ value.provider }}
           </p>
           <p>
             Fingerprint: <code>{{ value.plan_fingerprint }}</code>
@@ -78,13 +77,13 @@ function safeError(error: unknown): string {
         <section class="card" aria-live="polite">
           <h2>Operation {{ item.status }}</h2>
           <p>
-            {{ item.completed_count || 0 }} / {{ item.child_count }} complete ·
+            {{ item.completed_count || 0 }} / {{ item.child_count }} complete -
             {{ item.progress_percentage }}%
           </p>
           <button type="button" (click)="refresh()">Refresh status</button>
           <ul>
             @for (child of item.children; track child.id) {
-              <li>{{ child.video_type }} · {{ child.target_channel }} · {{ child.status }}</li>
+              <li>{{ child.video_type }} - {{ child.target_channel }} - {{ child.status }}</li>
             }
           </ul>
         </section>

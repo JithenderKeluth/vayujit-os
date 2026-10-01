@@ -1,4 +1,4 @@
-﻿"""Focused Slice 9F deterministic score, safety, and owner-boundary coverage."""
+"""Focused Slice 9F deterministic score, safety, and owner-boundary coverage."""
 
 from __future__ import annotations
 
@@ -106,3 +106,37 @@ def test_human_decision_requires_a_persisted_score(
     )
     assert decision.status_code == 404
     assert "password" not in decision.text.lower()
+
+
+def test_research_results_projection_and_human_selection(
+    client: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    api, factory = client
+    product_id = _setup(api, factory)
+    opportunity_id, assessment_id = _assessment(api, product_id)
+    score_path = (
+        f"/api/v1/intelligence/product-opportunities/{opportunity_id}"
+        f"/assessments/{assessment_id}/score"
+    )
+    scored = api.post(score_path, json={}, headers=ORIGIN)
+    assert scored.status_code == 201, scored.text
+
+    results_path = "/api/v1/intelligence/product-opportunities/research-results"
+    results = api.get(results_path, headers=ORIGIN)
+    assert results.status_code == 200, results.text
+    card = next(item for item in results.json()["candidates"] if item["id"] == str(opportunity_id))
+    assert card["candidate_state"] == "INSUFFICIENT_EVIDENCE"
+    assert card["why_this_surfaced"] == ["Insufficient evidence"]
+
+    decision = api.post(
+        f"/api/v1/intelligence/product-opportunities/{opportunity_id}"
+        f"/assessments/{assessment_id}/decision",
+        json={"action": "shortlist", "rationale": "Human selected for validation."},
+        headers=ORIGIN,
+    )
+    assert decision.status_code == 201, decision.text
+    refreshed = api.get(results_path, headers=ORIGIN)
+    assert refreshed.status_code == 200
+    body = refreshed.json()
+    assert body["human_selection"]["provenance"] == "HUMAN"
+    assert str(opportunity_id) in body["selected_candidate_ids"]

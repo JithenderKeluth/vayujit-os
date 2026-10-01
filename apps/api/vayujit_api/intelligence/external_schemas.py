@@ -62,5 +62,9 @@ class ExternalSearchResponse(BaseModel):
     provider: str
     mode: str
     result_count: int
+    provider_result_count: int = 0
+    new_result_count: int = 0
+    reused_result_count: int = 0
+    duplicate_result_count: int = 0
     failure_code: str | None
     results: list[ExternalSearchResultResponse]

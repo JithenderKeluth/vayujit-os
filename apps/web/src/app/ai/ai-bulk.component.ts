@@ -112,8 +112,8 @@ import { AIService } from './ai.service';
             <strong>{{ plan.total_outputs }} outputs</strong>
           </p>
           <p>
-            Provider: {{ plan.provider_key }} · Model: {{ plan.model }} · Locale:
-            {{ plan.locale }} · Estimated cost: {{ plan.estimated_cost }}
+            Provider: {{ plan.provider_key }} - Model: {{ plan.model }} - Locale:
+            {{ plan.locale }} - Estimated cost: {{ plan.estimated_cost }}
           </p>
           @for (warning of plan.warnings; track warning) {
             <p class="ai-muted">Warning: {{ warning }}</p>
@@ -129,10 +129,10 @@ import { AIService } from './ai.service';
         @for (item of history(); track item.id) {
           <div class="ai-bulk-operation">
             <div>
-              <strong>{{ item.status }}</strong> · {{ item.total_outputs }} outputs ·
+              <strong>{{ item.status }}</strong> - {{ item.total_outputs }} outputs -
               {{ item.progress_percentage }}%
             </div>
-            <small>{{ item.created_at }} · {{ item.locale }} · {{ item.model }}</small>
+            <small>{{ item.created_at }} - {{ item.locale }} - {{ item.model }}</small>
             <div class="ai-actions">
               <button class="ai-secondary" (click)="selectOperation(item)">Open details</button
               ><button
@@ -153,7 +153,7 @@ import { AIService } from './ai.service';
         <article class="ai-card" aria-live="polite">
           <h2>Operation details</h2>
           <p>
-            <strong>{{ current.status }}</strong> · {{ current.progress_percentage }}% ·
+            <strong>{{ current.status }}</strong> - {{ current.progress_percentage }}% -
             {{ current.counts | json }}
           </p>
           <table class="ai-table">
@@ -175,7 +175,7 @@ import { AIService } from './ai.service';
                   <td>{{ output.channel }}</td>
                   <td>{{ output.content_type }}</td>
                   <td>{{ output.status }}</td>
-                  <td>{{ output.artifact_version ?? '—' }}</td>
+                  <td>{{ output.artifact_version ?? '-' }}</td>
                   <td>{{ output.attempt_count }}</td>
                   <td>
                     @if (output.artifact_id) {

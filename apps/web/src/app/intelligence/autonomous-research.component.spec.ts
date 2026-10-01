@@ -83,7 +83,9 @@ describe('AutonomousResearchComponent', () => {
     http.expectOne(`${base}/missions`).flush({}, { status: 503, statusText: 'Unavailable' });
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Autonomous research data is unavailable');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Something went wrong while loading this information. Try again.',
+    );
     expect(fixture.nativeElement.textContent.toLowerCase()).not.toContain('traceback');
     http.verify();
   });

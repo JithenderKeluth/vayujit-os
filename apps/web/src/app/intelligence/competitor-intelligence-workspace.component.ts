@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { EvidenceCardComponent } from '../shared/evidence-card.component';
+import { PageHeaderComponent } from '../shared/page-header.component';
 import {
   EmptyStateComponent,
   ErrorStateComponent,
@@ -11,6 +12,9 @@ import {
 } from '../shared/state-components';
 import { StatusBadgeComponent } from '../shared/status-badge.component';
 import type { BreadcrumbItem, StatusTone } from '../shared/ux-foundation.types';
+import { CommerceJourneyService } from '../commerce-journey.service';
+import { intelligenceErrorMessage } from './intelligence-error';
+import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
 
 import {
   CompetitorChangeEvent,
@@ -26,6 +30,7 @@ import {
   selector: 'app-competitor-intelligence-workspace',
   standalone: true,
   imports: [
+    PageHeaderComponent,
     DatePipe,
     FormsModule,
     RouterLink,
@@ -35,11 +40,13 @@ import {
     ErrorStateComponent,
     LoadingStateComponent,
     StatusBadgeComponent,
+    CommerceJourneyContextComponent,
   ],
   styleUrl: './intelligence-workspace.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-breadcrumbs [items]="breadcrumbs" />
+    <app-commerce-journey-context />
     @if (loading()) {
       <app-loading-state message="Loading observed competitor intelligence..." />
     }
@@ -50,16 +57,15 @@ import {
       />
     }
     <main class="workspace" aria-labelledby="competitor-title">
-      <header class="page-header">
-        <div>
-          <p class="eyebrow">Intelligence / Competitors</p>
-          <h1 id="competitor-title">Competitor intelligence</h1>
-          <p class="lede">
-            Deterministic, owner-scoped discovery with explainable matching and human review.
-          </p>
-        </div>
-        <a routerLink="/intelligence">Back to Intelligence</a>
-      </header>
+      <app-page-header
+        class="page-header"
+        headingId="competitor-title"
+        eyebrow="Intelligence / Competitors"
+        title="Competitor intelligence"
+        description="Deterministic, owner-scoped discovery with explainable matching and human review."
+      >
+        <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
+      </app-page-header>
 
       @if (error()) {
         <app-error-state
@@ -68,7 +74,6 @@ import {
           retryLabel="Retry"
           (retry)="refresh()"
         />
-        <p class="error" role="alert">{{ error() }}</p>
       }
       @if (loading()) {
         <p role="status" aria-live="polite">Loading competitor intelligence...</p>
@@ -79,17 +84,33 @@ import {
         <p class="muted">
           Contexts attach competitor evidence to a Product Opportunity, Product, or Brand.
         </p>
-        <form (ngSubmit)="createContext()">
-          <label
-            >Product Opportunity ID
-            <input name="subject" [(ngModel)]="subjectReference" required />
-          </label>
-          <label>Marketplace <input name="marketplace" [(ngModel)]="marketplace" /></label>
-          <label>Market <input name="market" [(ngModel)]="market" /></label>
-          <button type="submit" [disabled]="loading() || !subjectReference.trim()">
-            Create context
-          </button>
-        </form>
+        @if (journeyContextResolved) {
+          <p class="muted">
+            The selected product context is ready. Context setup is automatic; competitor discovery
+            remains an explicit human action.
+          </p>
+        } @else {
+          <p class="muted">Select a product before starting competitor research.</p>
+        }
+        <button type="button" (click)="advancedContextOpen = !advancedContextOpen">
+          Open advanced research controls
+        </button>
+        @if (advancedContextOpen) {
+          <details open>
+            <summary>Advanced / manual context</summary>
+            <form (ngSubmit)="createContext()">
+              <label
+                >Product or opportunity ID
+                <input name="subject" [(ngModel)]="subjectReference" required />
+              </label>
+              <label>Marketplace <input name="marketplace" [(ngModel)]="marketplace" /></label>
+              <label>Market <input name="market" [(ngModel)]="market" /></label>
+              <button type="submit" [disabled]="loading() || !subjectReference.trim()">
+                Create manual context
+              </button>
+            </form>
+          </details>
+        }
         @for (context of contexts(); track context.id) {
           <button class="list-item" type="button" (click)="selectContext(context)">
             <strong>{{ context.marketplace || 'Unspecified marketplace' }}</strong>
@@ -297,6 +318,7 @@ import {
 })
 export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
   private readonly service = inject(CompetitorIntelligenceService);
+  private readonly journey = inject(CommerceJourneyService, { optional: true });
   readonly contexts = signal<CompetitorContext[]>([]);
   readonly entities = signal<CompetitorEntity[]>([]);
   readonly products = signal<CompetitorProduct[]>([]);
@@ -310,8 +332,13 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
   readonly error = signal('');
   readonly entityTypes = ['UNKNOWN', 'BRAND', 'SELLER', 'MANUFACTURER', 'MERCHANT'];
   subjectReference = '';
+  productId = '';
+  productOpportunityId = '';
   marketplace = 'amazon';
   market = 'IN';
+  journeyContextResolved = false;
+  advancedContextOpen = false;
+  private contextResolutionInFlight: Promise<void> | null = null;
   entityName = '';
   canonicalName = '';
   entityType = 'UNKNOWN';
@@ -320,6 +347,72 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
 
   ngOnInit(): void {
     void this.refresh();
+    void this.loadJourneyContext();
+  }
+  private async loadJourneyContext(): Promise<void> {
+    if (!this.journey) return;
+    try {
+      const active = await this.journey.active();
+      const values = active?.context.values ?? {};
+      const opportunityId = values['selected_product_opportunity_id'];
+      const productId = values['product_id'];
+      if (typeof opportunityId === 'string') {
+        this.productOpportunityId = opportunityId;
+        this.subjectReference = opportunityId;
+      }
+      if (typeof productId === 'string') this.productId = productId;
+      if (typeof values['marketplace'] === 'string') this.marketplace = values['marketplace'];
+      if (typeof values['market'] === 'string') this.market = values['market'];
+      await this.ensureJourneyContext();
+    } catch {
+      // Advanced manual context creation remains available when no journey is active.
+    }
+  }
+  private async ensureJourneyContext(): Promise<void> {
+    if ((!this.productId && !this.productOpportunityId) || this.contextResolutionInFlight) {
+      return this.contextResolutionInFlight ?? Promise.resolve();
+    }
+    this.contextResolutionInFlight = (async () => {
+      const existing = await this.service.contexts();
+      this.contexts.set(existing);
+      const match =
+        (this.productOpportunityId
+          ? existing.find((context) => context.product_opportunity_id === this.productOpportunityId)
+          : undefined) ??
+        (this.productId
+          ? existing.find((context) => context.product_id === this.productId)
+          : undefined);
+      const subjectType = this.productOpportunityId ? 'PRODUCT_OPPORTUNITY' : 'PRODUCT';
+      const subjectReference = this.productOpportunityId || this.productId;
+      const context =
+        match ??
+        (await this.service.createContext({
+          subject_type: subjectType,
+          subject_reference: subjectReference,
+          marketplace: this.marketplace.trim(),
+          market: this.market.trim(),
+          idempotency_key:
+            'ux-r11a-competitor-' +
+            subjectReference +
+            '-' +
+            this.marketplace.trim() +
+            '-' +
+            this.market.trim(),
+        }));
+      this.contexts.update((items) =>
+        items.some((item) => item.id === context.id) ? items : [context, ...items],
+      );
+      this.journeyContextResolved = true;
+      await this.selectContext(context);
+    })()
+      .catch(() => {
+        this.journeyContextResolved = false;
+        this.error.set('The selected product competitor context could not be prepared.');
+      })
+      .finally(() => {
+        this.contextResolutionInFlight = null;
+      });
+    return this.contextResolutionInFlight;
   }
 
   async refresh(): Promise<void> {
@@ -335,8 +428,13 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
       this.entities.set(entities);
       this.doctor.set(doctor);
       if (this.selectedContext()) await this.loadProducts(this.selectedContext()!);
-    } catch {
-      this.error.set('Competitor data is unavailable. Check the authenticated API connection.');
+    } catch (error: unknown) {
+      this.error.set(
+        intelligenceErrorMessage(
+          error,
+          'Competitor data is unavailable. Check the authenticated API connection.',
+        ),
+      );
     } finally {
       this.loading.set(false);
     }
@@ -345,7 +443,7 @@ export class CompetitorIntelligenceWorkspaceComponent implements OnInit {
   async createContext(): Promise<void> {
     await this.run(async () => {
       await this.service.createContext({
-        subject_type: 'PRODUCT_OPPORTUNITY',
+        subject_type: this.productOpportunityId ? 'PRODUCT_OPPORTUNITY' : 'PRODUCT',
         subject_reference: this.subjectReference.trim(),
         marketplace: this.marketplace.trim(),
         market: this.market.trim(),

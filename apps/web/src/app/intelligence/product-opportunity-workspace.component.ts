@@ -13,6 +13,8 @@ import {
   LoadingStateComponent,
 } from '../shared/state-components';
 import type { BreadcrumbItem, EvidenceDetail, StatusTone } from '../shared/ux-foundation.types';
+import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
+import { BusinessAgentService } from './business-agent.service';
 
 import {
   CommercialOutput,
@@ -25,6 +27,9 @@ import {
   ProductOpportunityScore,
   ProductOpportunityScoreHistory,
   ProductOpportunityComparison,
+  ProductResearchResponse,
+  ResearchCandidate,
+  ResearchResults,
   SourcingFeasibilityOutput,
   RiskEvidenceSynthesisOutput,
   SourcingEconomicsProjection,
@@ -47,6 +52,7 @@ import {
     PageHeaderComponent,
     RouterLink,
     StatusBadgeComponent,
+    CommerceJourneyContextComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -71,6 +77,320 @@ import {
           <a class="secondary action-link" routerLink="/intelligence">Intelligence</a>
         </ng-container>
       </app-page-header>
+      <app-commerce-journey-context />
+      @if (!detail()) {
+        @if (researchResults(); as results) {
+          <section class="panel research-results" aria-labelledby="research-results-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Research complete</p>
+                <h2 id="research-results-title">Your product research results</h2>
+                <p>
+                  {{ results.summary.total }} meaningful products found for this goal.
+                  @if (results.historical_opportunities) {
+                    <span class="muted">
+                      {{ results.historical_opportunities }} previous opportunities are kept in
+                      history.
+                    </span>
+                  }
+                </p>
+                @if (results.goal_context; as goal) {
+                  <div class="research-goal-context">
+                    <strong>Current research goal</strong>
+                    <p>{{ goal.summary }}</p>
+                    @if (!goal.confirmed) {
+                      <span class="muted">Goal context is not confirmed yet.</span>
+                    }
+                  </div>
+                }
+                <div class="research-summary-facts" aria-label="Research summary">
+                  <div>
+                    <strong>{{ results.summary.total }}</strong
+                    ><span>Products found</span>
+                  </div>
+                  <div>
+                    <strong>{{ results.summary.ready_for_comparison }}</strong
+                    ><span>Ready to compare</span>
+                  </div>
+                  <div>
+                    <strong>{{ results.summary.needs_more_research }}</strong
+                    ><span>Need more research</span>
+                  </div>
+                  <div>
+                    <strong>{{ results.summary.insufficient_evidence || 0 }}</strong
+                    ><span>Insufficient evidence</span>
+                  </div>
+                </div>
+              </div>
+              <app-status-badge
+                [status]="results.status"
+                [label]="statusLabel(results.status)"
+                [tone]="statusTone(results.status)"
+              />
+            </div>
+            @if (isFixtureResults(results)) {
+              <p class="trust-banner" role="note">
+                Local demo data - not live market evidence. Product identities are useful for
+                exploring the workflow; prices, demand, supplier availability, and market claims
+                remain unverified until authoritative evidence is loaded.
+              </p>
+            }
+            @if (results.candidates.length === 0) {
+              <app-empty-state
+                title="No meaningful product opportunities are available yet."
+                message="Research has not produced a meaningful product identity for the current goal. Continue research or adjust the goal constraints."
+                actionLabel="Ask VAYUJIT"
+                (action)="openBusinessAgent()"
+              />
+            } @else {
+              <div class="candidate-grid" aria-label="Product candidates">
+                @for (candidate of orderedCandidates(results.candidates); track candidate.id) {
+                  <article class="candidate-card" [class.selected]="isSelected(candidate.id)">
+                    <div class="candidate-heading">
+                      <div>
+                        <p class="eyebrow">{{ candidate.category || 'Product opportunity' }}</p>
+                        <h3>{{ candidate.name }}</h3>
+                      </div>
+                      <app-status-badge
+                        [status]="candidate.candidate_state"
+                        [label]="statusLabel(candidate.candidate_state)"
+                        [tone]="statusTone(candidate.candidate_state)"
+                      />
+                    </div>
+                    @if (candidateImage(candidate); as image) {
+                      <img class="candidate-image" [src]="image" [alt]="candidate.name" />
+                    } @else {
+                      <div
+                        class="product-image-placeholder"
+                        role="img"
+                        aria-label="Product image not available"
+                      >
+                        Product image not available
+                      </div>
+                    }
+                    <p class="candidate-description">{{ candidateDescription(candidate) }}</p>
+                    <p class="candidate-category">
+                      {{ candidate.category || 'Category not established' }}
+                      @if (candidate.subcategory) {
+                        <span> → {{ candidate.subcategory }}</span>
+                      }
+                    </p>
+                    <dl class="candidate-primary-facts">
+                      <div>
+                        <dt>Readiness</dt>
+                        <dd>{{ readinessLabel(candidate) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Goal fit</dt>
+                        <dd>{{ goalFitLabel(candidate) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Trust</dt>
+                        <dd>{{ candidateTrustLabel(candidate) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Observed price</dt>
+                        <dd>{{ observedPrice(candidate) }}</dd>
+                      </div>
+                    </dl>
+                    <h4>Why this product surfaced</h4>
+                    <ul>
+                      @for (item of candidateReasons(candidate); track item) {
+                        <li>{{ item }}</li>
+                      }
+                    </ul>
+                    <p class="candidate-evidence-summary">
+                      <strong>Evidence:</strong> {{ evidenceLabel(candidate) }}.
+                      <span>{{ candidateEvidenceSummary(candidate) }}</span>
+                    </p>
+                    @if (candidate.risks.length) {
+                      <p class="candidate-risk">
+                        <strong>Risks:</strong> {{ candidate.risks.join('; ') }}
+                      </p>
+                    }
+                    @if (candidate.data_gaps.length) {
+                      <p class="candidate-gap">
+                        <strong>Data gaps:</strong> {{ candidate.data_gaps.join('; ') }}
+                      </p>
+                    }
+                    <div class="card-actions">
+                      <button
+                        type="button"
+                        class="primary"
+                        (click)="primaryCandidateAction(candidate)"
+                      >
+                        {{ primaryActionLabel(candidate) }}
+                      </button>
+                      @if (
+                        candidate.assessment_id && candidate.candidate_state === 'READY_TO_COMPARE'
+                      ) {
+                        <button
+                          type="button"
+                          class="secondary"
+                          [attr.aria-pressed]="isSelected(candidate.id)"
+                          (click)="toggleCandidate(candidate)"
+                        >
+                          {{
+                            isSelected(candidate.id)
+                              ? 'Remove from comparison'
+                              : 'Add to comparison'
+                          }}
+                        </button>
+                        <span class="selection-hint"
+                          >Select a product after comparison to unlock supplier research.</span
+                        >
+                      }
+                      @if (canRetryResearch(candidate)) {
+                        <button
+                          type="button"
+                          class="secondary"
+                          (click)="retryMissingResearch(candidate)"
+                        >
+                          Research this product
+                        </button>
+                      }
+                    </div>
+                    <details class="evidence-details">
+                      <summary>View evidence and sources</summary>
+                      @if (candidate.evidence.length) {
+                        <ul>
+                          @for (evidence of candidate.evidence; track $index) {
+                            <li>
+                              <strong>{{ displayValue(evidence['dimension']) }}</strong
+                              >: {{ displayValue(evidence['classification']) }} ·
+                              {{ displayValue(evidence['source']) }} · freshness
+                              {{ displayValue(evidence['freshness']) }}
+                            </li>
+                          }
+                        </ul>
+                      } @else {
+                        <p>Insufficient evidence.</p>
+                      }
+                    </details>
+                    <details class="technical-details">
+                      <summary>Advanced technical details</summary>
+                      <dl class="compact-facts">
+                        <div>
+                          <dt>Opportunity ID</dt>
+                          <dd>{{ candidate.id }}</dd>
+                        </div>
+                        <div>
+                          <dt>Research run</dt>
+                          <dd>{{ candidate.research_run_id || 'Not linked' }}</dd>
+                        </div>
+                        <div>
+                          <dt>Raw provenance</dt>
+                          <dd>{{ profileText(candidate, 'candidate_source') }}</dd>
+                        </div>
+                        <div>
+                          <dt>Raw evidence state</dt>
+                          <dd>{{ candidate.evidence_state || 'UNKNOWN' }}</dd>
+                        </div>
+                      </dl>
+                    </details>
+                  </article>
+                }
+              </div>
+              <div class="comparison-toolbar" aria-live="polite">
+                <span>{{ selectedCandidateIds().length }} selected (choose 2–4)</span>
+                <button
+                  type="button"
+                  class="primary"
+                  (click)="compareSelectedCandidates()"
+                  [disabled]="!canCompareCandidates()"
+                >
+                  Compare selected products
+                </button>
+              </div>
+              @if (comparison(); as result) {
+                <section class="comparison-panel" aria-labelledby="comparison-results-title">
+                  <h3 id="comparison-results-title">Evidence-backed comparison</h3>
+                  <p class="comparison-purpose">
+                    Comparison explains trade-offs; it does not choose a winner. Supplier research
+                    stays blocked until you make an explicit human selection.
+                  </p>
+                  <div class="comparison-matrix" role="table" aria-label="Product trade-offs">
+                    <div class="comparison-matrix-row comparison-matrix-header" role="row">
+                      <span role="columnheader">Dimension</span>
+                      @for (candidate of comparedCandidates(); track candidate.id) {
+                        <span role="columnheader">{{ candidate.name }}</span>
+                      }
+                    </div>
+                    @for (dimension of comparisonDimensions; track dimension.key) {
+                      <div class="comparison-matrix-row" role="row">
+                        <strong role="rowheader">{{ dimension.label }}</strong>
+                        @for (candidate of comparedCandidates(); track candidate.id) {
+                          <span role="cell">{{
+                            comparisonDimension(candidate, dimension.key)
+                          }}</span>
+                        }
+                      </div>
+                    }
+                  </div>
+                  <p>{{ result.comparability }} · {{ result.reason }}</p>
+                  @for (candidate of comparedCandidates(); track candidate.id) {
+                    <article class="tradeoff-card">
+                      <h4>{{ candidate.name }}</h4>
+                      <p>
+                        <strong>Strengths:</strong>
+                        {{
+                          candidate.strengths.length ? candidate.strengths.join('; ') : 'UNKNOWN'
+                        }}
+                      </p>
+                      <p>
+                        <strong>Risks:</strong>
+                        {{ candidate.risks.length ? candidate.risks.join('; ') : 'UNKNOWN' }}
+                      </p>
+                      <p>
+                        <strong>Data gaps:</strong>
+                        {{
+                          candidate.data_gaps.length
+                            ? candidate.data_gaps.join('; ')
+                            : 'None returned'
+                        }}
+                      </p>
+                      <p>
+                        <strong>Validate next:</strong>
+                        {{
+                          candidate.next_validation.length
+                            ? candidate.next_validation.join('; ')
+                            : 'Review authoritative evidence.'
+                        }}
+                      </p>
+                      <button
+                        type="button"
+                        class="primary"
+                        [disabled]="!candidate.assessment_id || loading()"
+                        (click)="investigateCandidate(candidate)"
+                      >
+                        Select this product for supplier research
+                      </button>
+                      @if (candidate.selected) {
+                        <span class="human-selection">Selected by you · HUMAN</span
+                        ><a
+                          class="secondary action-link"
+                          routerLink="/intelligence/cross-marketplace"
+                          [queryParams]="{
+                            opportunity_id: candidate.id,
+                            name: candidate.name,
+                            product: candidate.product_concept,
+                            category: candidate.category,
+                            marketplace: candidate.marketplace,
+                          }"
+                          >Find suppliers</a
+                        >
+                      }
+                    </article>
+                  }
+                </section>
+              }
+              @if (selectionMessage()) {
+                <p class="callout" role="status">{{ selectionMessage() }}</p>
+              }
+            }
+          </section>
+        }
+      }
 
       @if (error()) {
         <app-error-state
@@ -81,142 +401,163 @@ import {
         />
       }
       @if (loading()) {
-        <app-loading-state
-          message="Loading product opportunity dataÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬Ãƒâ€šÃ‚Â¦"
-        />
+        <app-loading-state message="Loading product opportunity data..." />
       }
 
       @if (!detail()) {
-        <section class="intro-grid" aria-label="Product opportunity overview">
-          <div class="intro-copy">
-            <p class="eyebrow">Context hub</p>
-            <h2>What are you researching?</h2>
-            <p>
-              Product Opportunities collect the current assessment, evidence strength, risks and
-              open research questions. Deep analysis remains in its dedicated workspace.
-            </p>
-            <a class="primary action-link" routerLink="/intelligence/business-agent">
-              Ask VAYUJIT
-            </a>
-          </div>
-          <div class="principle-callout">
-            <strong>Human decision support</strong>
-            <p>
-              A score is not a verdict. Confidence, risk, readiness and eligibility remain separate
-              authoritative states.
-            </p>
-          </div>
-        </section>
-
-        <section class="panel create-panel" id="create-opportunity" aria-labelledby="create-title">
-          <details>
-            <summary id="create-title">Start a product opportunity</summary>
-            <p class="muted">
-              Create the existing Product Opportunity record; assessment remains a separate governed
-              step.
-            </p>
-            <form (ngSubmit)="create()" class="create-form">
-              <label
-                >Name <input name="name" [(ngModel)]="name" required minlength="2" maxlength="200"
-              /></label>
-              <label class="wide"
-                >Product concept
-                <textarea name="concept" [(ngModel)]="concept" maxlength="10000"></textarea>
-              </label>
-              <label
-                >Category <input name="category" [(ngModel)]="category" maxlength="120"
-              /></label>
-              <label
-                >Marketplace <input name="marketplace" [(ngModel)]="marketplace" maxlength="120"
-              /></label>
-              <label>Region <input name="region" [(ngModel)]="region" maxlength="120" /></label>
-              <label
-                >Research origin
-                <select name="origin" [(ngModel)]="origin">
-                  @for (value of origins; track value) {
-                    <option [value]="value">{{ value }}</option>
-                  }
-                </select>
-              </label>
-              <button class="primary" type="submit" [disabled]="loading() || !name.trim()">
-                Create opportunity
-              </button>
-            </form>
-          </details>
-        </section>
-
-        <section class="panel" aria-labelledby="list-title">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Owner-scoped research</p>
-              <h2 id="list-title">Your opportunities</h2>
+        @if (!researchResults()) {
+          <section class="intro-grid" aria-label="Product opportunity overview">
+            <div class="intro-copy">
+              <p class="eyebrow">Context hub</p>
+              <h2>What are you researching?</h2>
+              <p>
+                Product Opportunities collect the current assessment, evidence strength, risks and
+                open research questions. Deep analysis remains in its dedicated workspace.
+              </p>
+              <a class="primary action-link" routerLink="/intelligence/business-agent">
+                Ask VAYUJIT
+              </a>
             </div>
-            <span class="muted">{{ opportunities().length }} record(s)</span>
-          </div>
-          @if (opportunities().length === 0 && !loading()) {
-            <app-empty-state
-              title="No product opportunities yet"
-              message="Start a research journey with Business Agent or create a supported Product Opportunity record."
-              actionLabel="Start Product Research"
-              (action)="focusCreate()"
-            />
-          } @else {
-            <div class="opportunity-list">
-              @for (item of opportunities(); track item.id) {
-                <article class="opportunity-card">
-                  <div class="opportunity-card-heading">
-                    <div>
-                      <p class="eyebrow">{{ item.category || 'Product opportunity' }}</p>
-                      <h3>{{ item.name }}</h3>
-                    </div>
-                    <app-status-badge
-                      [status]="item.lifecycle_status"
-                      [label]="statusLabel(item.lifecycle_status)"
-                      [tone]="statusTone(item.lifecycle_status)"
-                    />
-                  </div>
-                  <p class="card-description">
-                    {{
-                      item.description || item.product_concept || 'No concept description recorded.'
-                    }}
-                  </p>
-                  <dl class="compact-facts">
-                    <div>
-                      <dt>Marketplace</dt>
-                      <dd>{{ item.target_marketplace || 'Unknown' }}</dd>
-                    </div>
-                    <div>
-                      <dt>Region</dt>
-                      <dd>{{ item.target_region || 'Unknown' }}</dd>
-                    </div>
-                    <div>
-                      <dt>Evidence state</dt>
-                      <dd>{{ item.evidence_state || 'UNKNOWN' }}</dd>
-                    </div>
-                    <div>
-                      <dt>Assessment</dt>
-                      <dd>{{ item.current_assessment_id ? 'Available' : 'Not started' }}</dd>
-                    </div>
-                    <div>
-                      <dt>Updated</dt>
-                      <dd>{{ item.updated_at | date: 'mediumDate' }}</dd>
-                    </div>
-                  </dl>
-                  <div class="card-actions">
-                    <button type="button" class="primary" (click)="select(item.id)">
-                      Open opportunity
-                    </button>
-                    @if (item.current_assessment_id) {
-                      <span class="muted">Assessment-bound evidence can be inspected next.</span>
+            <div class="principle-callout">
+              <strong>Human decision support</strong>
+              <p>
+                A score is not a verdict. Confidence, risk, readiness and eligibility remain
+                separate authoritative states.
+              </p>
+            </div>
+          </section>
+
+          <section
+            class="panel create-panel"
+            id="create-opportunity"
+            aria-labelledby="create-title"
+          >
+            <details>
+              <summary id="create-title">Start a product opportunity</summary>
+              <p class="muted">
+                Create the existing Product Opportunity record; assessment remains a separate
+                governed step.
+              </p>
+              <form (ngSubmit)="create()" class="create-form">
+                <label
+                  >Name
+                  <input name="name" [(ngModel)]="name" required minlength="2" maxlength="200"
+                /></label>
+                <label class="wide"
+                  >Product concept
+                  <textarea name="concept" [(ngModel)]="concept" maxlength="10000"></textarea>
+                </label>
+                <label
+                  >Category <input name="category" [(ngModel)]="category" maxlength="120"
+                /></label>
+                <label
+                  >Marketplace <input name="marketplace" [(ngModel)]="marketplace" maxlength="120"
+                /></label>
+                <label>Region <input name="region" [(ngModel)]="region" maxlength="120" /></label>
+                <label
+                  >Research origin
+                  <select name="origin" [(ngModel)]="origin">
+                    @for (value of origins; track value) {
+                      <option [value]="value">{{ value }}</option>
                     }
-                  </div>
-                </article>
-              }
-            </div>
-          }
-        </section>
+                  </select>
+                </label>
+                <button class="primary" type="submit" [disabled]="loading() || !name.trim()">
+                  Create opportunity
+                </button>
+              </form>
+            </details>
+          </section>
 
-        @if (canCompare()) {
+          <section class="panel" aria-labelledby="list-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Active goal</p>
+                <h2 id="list-title">Current research</h2>
+              </div>
+              <span class="muted">{{ currentOpportunities().length }} active record(s)</span>
+            </div>
+            @if (currentOpportunities().length === 0 && !loading()) {
+              <app-empty-state
+                title="No product opportunities yet"
+                message="VAYUJIT has not created meaningful product candidates for this research goal."
+                actionLabel="Start Product Research"
+                (action)="openBusinessAgent()"
+              />
+            } @else {
+              <div class="opportunity-list">
+                @for (item of currentOpportunities(); track item.id) {
+                  <article class="opportunity-card">
+                    <div class="opportunity-card-heading">
+                      <div>
+                        <p class="eyebrow">{{ item.category || 'Product opportunity' }}</p>
+                        <h3>{{ item.name }}</h3>
+                      </div>
+                      <app-status-badge
+                        [status]="item.lifecycle_status"
+                        [label]="statusLabel(item.lifecycle_status)"
+                        [tone]="statusTone(item.lifecycle_status)"
+                      />
+                    </div>
+                    <p class="card-description">
+                      {{ item.description || item.product_concept || 'Description not confirmed.' }}
+                    </p>
+                    <dl class="compact-facts">
+                      <div>
+                        <dt>Marketplace</dt>
+                        <dd>{{ item.target_marketplace || 'Not confirmed' }}</dd>
+                      </div>
+                      <div>
+                        <dt>Evidence</dt>
+                        <dd>{{ evidenceStateLabel(item.evidence_state) }}</dd>
+                      </div>
+                      <div>
+                        <dt>Updated</dt>
+                        <dd>{{ item.updated_at | date: 'mediumDate' }}</dd>
+                      </div>
+                    </dl>
+                    <div class="card-actions">
+                      <button type="button" class="primary" (click)="select(item.id)">
+                        View research
+                      </button>
+                    </div>
+                  </article>
+                }
+              </div>
+            }
+          </section>
+        }
+
+        @if (historicalOpportunities().length) {
+          <section class="panel history-panel" aria-labelledby="history-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Secondary context</p>
+                <h2 id="history-title">Previous research</h2>
+              </div>
+              <span class="muted">{{ historicalOpportunities().length }} earlier record(s)</span>
+            </div>
+            <details>
+              <summary>View previous research</summary>
+              <div class="opportunity-list">
+                @for (item of historicalOpportunities(); track item.id) {
+                  <article class="opportunity-card historical-card">
+                    <p class="eyebrow">{{ item.category || 'Product opportunity' }}</p>
+                    <h3>{{ item.name }}</h3>
+                    <p class="card-description">
+                      {{ item.description || item.product_concept || 'Description not confirmed.' }}
+                    </p>
+                    <button type="button" class="secondary" (click)="select(item.id)">
+                      View historical research
+                    </button>
+                  </article>
+                }
+              </div>
+            </details>
+          </section>
+        }
+
+        @if (!researchResults() && canCompare()) {
           <section class="panel" aria-labelledby="comparison-title">
             <div class="section-heading">
               <div>
@@ -235,16 +576,15 @@ import {
             </button>
             @if (comparison(); as result) {
               <p class="callout" role="status">
-                {{ result.comparability }} ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â {{ result.reason }}
+                {{ result.comparability }} Not available {{ result.reason }}
               </p>
               @if (result.ranking?.length) {
                 <ol class="ranking-list">
                   @for (entry of result.ranking; track entry.assessment_id) {
                     <li>
-                      <strong>Rank {{ entry.rank }}</strong> ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-                      {{ entry.score ?? 'Unavailable' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-                      {{ entry.classification }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· confidence
-                      {{ entry.confidence }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â· readiness {{ entry.readiness }}
+                      <strong>Rank {{ entry.rank }}</strong> - {{ entry.score ?? 'Unavailable' }} -
+                      {{ entry.classification }} - confidence {{ entry.confidence }} - readiness
+                      {{ entry.readiness }}
                     </li>
                   }
                 </ol>
@@ -259,17 +599,79 @@ import {
       } @else {
         @if (detail(); as item) {
           <section class="context-header panel" aria-labelledby="context-title">
+            <div class="product-summary-hero">
+              @if (detailImage(); as image) {
+                <img
+                  class="detail-product-image product-summary-image"
+                  [src]="image"
+                  [alt]="item.name"
+                />
+              } @else {
+                <div
+                  class="product-image-placeholder product-summary-image"
+                  role="img"
+                  aria-label="Product image not available"
+                >
+                  Product image not available
+                </div>
+              }
+              <div class="product-summary-copy">
+                <p class="eyebrow">Product summary</p>
+                <h2 id="context-title" tabindex="-1">{{ item.name }}</h2>
+                <p>
+                  {{
+                    item.description ||
+                      item.product_concept ||
+                      'Product description not established.'
+                  }}
+                </p>
+                <div class="summary-pills" aria-label="Product readiness and context">
+                  <span>{{ item.category || 'Category not established' }}</span>
+                  <span>{{ item.subcategory || 'Subcategory not established' }}</span>
+                  <span>{{ detailReadinessLabel() }}</span>
+                  <span>{{ detailTrustLabel() }}</span>
+                </div>
+              </div>
+            </div>
             <div class="context-copy">
               <p class="eyebrow">Current product research context</p>
-              <h2 id="context-title">{{ item.name }}</h2>
-              <p>
-                {{ item.description || item.product_concept || 'No concept description recorded.' }}
-              </p>
+              <h3>Why VAYUJIT surfaced this product</h3>
+              <p>{{ detailWhySummary() }}</p>
+              <h3>How it relates to your goal</h3>
+              <p>{{ detailGoalFitSummary() }}</p>
             </div>
             <div class="context-actions">
-              <a class="primary action-link" routerLink="/intelligence/business-agent"
+              @if (detailSelected(item)) {
+                <p class="selected-product-confirmation" role="status">
+                  Selected for supplier research: <strong>{{ item.name }}</strong>
+                </p>
+                <a
+                  class="primary action-link"
+                  routerLink="/intelligence/cross-marketplace"
+                  [queryParams]="supplierHandoffParams(item)"
+                  >Find suppliers</a
+                >
+              } @else {
+                <button
+                  class="primary"
+                  type="button"
+                  (click)="selectDetailForSupplier(item)"
+                  [disabled]="loading() || !item.current_assessment_id"
+                >
+                  Select this product for supplier research
+                </button>
+              }
+              <a class="secondary action-link" routerLink="/intelligence/business-agent"
                 >Continue research with VAYUJIT</a
               >
+              <button
+                class="secondary"
+                type="button"
+                (click)="researchMarketEvidence(item.id)"
+                [disabled]="loading()"
+              >
+                Research market evidence
+              </button>
               <button
                 class="secondary"
                 type="button"
@@ -309,6 +711,93 @@ import {
                 <dd>{{ item.updated_at | date: 'medium' }}</dd>
               </div>
             </dl>
+          </section>
+          @if (researchMessage()) {
+            <p class="callout" role="status">{{ researchMessage() }}</p>
+          }
+
+          <section class="panel product-profile-panel" aria-labelledby="profile-title">
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Product intelligence</p>
+                <h2 id="profile-title">What this product means</h2>
+              </div>
+              <span class="muted">Truthful evidence and explicit unknowns</span>
+            </div>
+            <div class="overview-grid">
+              <div>
+                <h3>Why VAYUJIT found this</h3>
+                <ul>
+                  @for (value of detailProfileList('why_this_surfaced'); track value) {
+                    <li>{{ value }}</li>
+                  }
+                </ul>
+              </div>
+              <div>
+                <h3>Use case / customer problem</h3>
+                <p>{{ detailProfileValue('customer_problem') }}</p>
+              </div>
+              <div>
+                <h3>Key characteristics</h3>
+                <p>
+                  {{
+                    detailProfileList('key_characteristics').join('; ') || 'UNKNOWN / NOT AVAILABLE'
+                  }}
+                </p>
+              </div>
+              <div>
+                <h3>Research keywords</h3>
+                <p>
+                  {{
+                    detailProfileList('research_keywords').join(', ') || 'UNKNOWN / NOT AVAILABLE'
+                  }}
+                </p>
+              </div>
+              <div>
+                <h3>Representative image</h3>
+                @if (detailImage(); as image) {
+                  <img class="detail-product-image" [src]="image" [alt]="item.name" />
+                } @else {
+                  <p>Not available yet. This neutral state is not product evidence.</p>
+                }
+              </div>
+              <div>
+                <h3>Observed price</h3>
+                <p>{{ detailObservedPrice() }}</p>
+              </div>
+              <div>
+                <h3>Evidence gaps</h3>
+                <p>
+                  {{
+                    detailProfileList('missing_information').join('; ') || 'UNKNOWN / NOT AVAILABLE'
+                  }}
+                </p>
+              </div>
+            </div>
+            @if (detailLiveResearch(); as live) {
+              <div class="callout">
+                <strong>Market research:</strong> {{ detailLiveStatus(live) }} ·
+                {{ detailLiveCount(live, 'search_results') }} sources discovered.
+                @if (detailLiveSources(live).length) {
+                  <ul>
+                    @for (source of detailLiveSources(live); track source.url) {
+                      <li>
+                        <a [href]="source.url" target="_blank" rel="noopener noreferrer">
+                          {{ source.domain || source.url }}
+                        </a>
+                        · {{ source.evidence_classification || 'SEARCH_DISCOVERY_EVIDENCE' }}
+                      </li>
+                    }
+                  </ul>
+                }
+              </div>
+            }
+            <div class="callout">
+              <strong>Source:</strong> {{ detailProfileValue('candidate_source') }} ·
+              <strong>Freshness:</strong> {{ detailProfileValue('freshness') }} · Marketplace
+              prices, customer reviews, competitors, trends, and supplier facts remain UNKNOWN until
+              authoritative evidence exists.
+            </div>
           </section>
 
           <section class="panel" aria-labelledby="assessment-title">
@@ -374,9 +863,7 @@ import {
                         <strong>{{ dimension['dimension'] }}</strong
                         ><span>{{ dimension['normalized_score'] ?? 'Unavailable' }}</span
                         ><small
-                          >Raw input
-                          {{ dimension['raw_input'] ?? 'Unavailable' }} ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
-                          Contribution
+                          >Raw input {{ dimension['raw_input'] ?? 'Unavailable' }} - Contribution
                           {{ dimension['weighted_contribution'] ?? 'Unavailable' }}</small
                         >
                         <p>{{ dimension['explanation'] || 'No explanation returned.' }}</p>
@@ -450,7 +937,7 @@ import {
                 <h3>Customer / business context</h3>
                 <p>
                   {{ item.customer_segment || 'Customer segment not recorded.' }}
-                  ÃƒÆ’Ã¢â‚¬Å¡Ãƒâ€šÃ‚Â·
+                  -
                   {{ item.business_model || 'Business model not recorded.' }}
                 </p>
               </div>
@@ -606,7 +1093,7 @@ import {
               <article class="research-card">
                 <div class="research-heading">
                   <h3>Suppliers / sourcing</h3>
-                  <a routerLink="/intelligence/sourcing">View Suppliers</a>
+                  <a routerLink="/intelligence/cross-marketplace">View Suppliers</a>
                 </div>
                 @if (sourcingFeasibility(); as sourcing) {
                   <dl class="compact-facts">
@@ -642,15 +1129,17 @@ import {
                       >Review Due Diligence</a
                     ><a class="secondary action-link" routerLink="/intelligence/sourcing-scenarios"
                       >Compare Sourcing Scenarios</a
+                    ><a
+                      class="secondary action-link"
+                      routerLink="/intelligence/sourcing-economics"
+                      [queryParams]="{ opportunity_id: item.id }"
+                      >Review Economics &amp; Decision Brief</a
                     >
                   </div>
                   @if (sourcing.candidates.length) {
                     <h4>Candidate evidence</h4>
                     <ul class="candidate-list">
-                      @for (
-                        candidate of sourcing.candidates;
-                        track candidate.matched_product?.id || candidate.supplier?.id
-                      ) {
+                      @for (candidate of sourcing.candidates; track $index) {
                         <li>
                           <strong>{{ candidate.supplier?.name || 'UNKNOWN supplier' }}</strong>
                           <span
@@ -877,7 +1366,7 @@ import {
                 <div class="callout warning">
                   <h3>Research gaps</h3>
                   <ul>
-                    @for (gap of researchGaps(); track gap) {
+                    @for (gap of researchGaps(); track $index) {
                       <li>{{ gap }}</li>
                     }
                   </ul>
@@ -887,7 +1376,7 @@ import {
                 <div class="callout danger">
                   <h3>Conflicting evidence</h3>
                   <ul>
-                    @for (item of contradictions(); track item) {
+                    @for (item of contradictions(); track $index) {
                       <li>{{ item }}</li>
                     }
                   </ul>
@@ -1071,9 +1560,13 @@ import {
 })
 export class ProductOpportunityWorkspaceComponent implements OnInit {
   private readonly service = inject(ProductOpportunityService);
+  private readonly businessAgentService = inject(BusinessAgentService, { optional: true });
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   readonly opportunities = signal<ProductOpportunity[]>([]);
+  readonly researchResults = signal<ResearchResults | null>(null);
+  readonly selectedCandidateIds = signal<string[]>([]);
+  readonly selectionMessage = signal('');
   readonly detail = signal<OpportunityDetail | null>(null);
   readonly intelligenceOutputs = signal<IntelligenceOutput[]>([]);
   readonly competitionProjection = signal<CompetitionProjection | null>(null);
@@ -1088,6 +1581,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   readonly comparison = signal<ProductOpportunityComparison | null>(null);
   readonly decisionMessage = signal('');
   readonly handoffMessage = signal('');
+  readonly researchMessage = signal('');
   readonly loading = signal(false);
   readonly error = signal('');
   readonly listBreadcrumbs: BreadcrumbItem[] = [
@@ -1106,6 +1600,18 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     'supplier_discovery',
     'import',
   ];
+  readonly comparisonDimensions = [
+    { key: 'category', label: 'Category' },
+    { key: 'goal_fit', label: 'Goal fit' },
+    { key: 'readiness', label: 'Research readiness' },
+    { key: 'evidence', label: 'Evidence' },
+    { key: 'price', label: 'Observed price' },
+    { key: 'risk', label: 'Risk' },
+    { key: 'competition', label: 'Competition evidence' },
+    { key: 'reviews', label: 'Customer feedback' },
+    { key: 'trend', label: 'Trend evidence' },
+    { key: 'unknowns', label: 'Important unknowns' },
+  ] as const;
   name = '';
   concept = '';
   category = '';
@@ -1122,10 +1628,607 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
 
   async load(): Promise<void> {
     this.loading.set(true);
+    this.error.set('');
     try {
-      this.opportunities.set(await this.service.list());
+      const [opportunities, results] = await Promise.all([
+        this.service.list(),
+        this.service.getResearchResults(),
+      ]);
+      this.opportunities.set(opportunities);
+      this.researchResults.set(results);
+      this.selectedCandidateIds.set(
+        results.selected_candidate_ids.filter((id) =>
+          results.candidates.some((candidate) => candidate.id === id),
+        ),
+      );
     } catch {
       this.error.set('Product opportunity data is unavailable.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  isSelected(id: string): boolean {
+    return this.selectedCandidateIds().includes(id);
+  }
+
+  orderedCandidates(candidates: ResearchCandidate[]): ResearchCandidate[] {
+    const order: Record<string, number> = {
+      READY_TO_COMPARE: 0,
+      NEEDS_MORE_RESEARCH: 1,
+      INSUFFICIENT_EVIDENCE: 2,
+    };
+    return [...candidates].sort(
+      (left, right) => (order[left.candidate_state] ?? 9) - (order[right.candidate_state] ?? 9),
+    );
+  }
+
+  currentOpportunities(): ProductOpportunity[] {
+    const ids = new Set(this.researchResults()?.candidates.map((candidate) => candidate.id) ?? []);
+    return this.opportunities().filter((item) => ids.has(item.id));
+  }
+
+  historicalOpportunities(): ProductOpportunity[] {
+    const ids = new Set(this.researchResults()?.candidates.map((candidate) => candidate.id) ?? []);
+    return this.opportunities().filter((item) => !ids.has(item.id));
+  }
+
+  primaryActionLabel(candidate: ResearchCandidate): string {
+    if (candidate.candidate_state === 'INSUFFICIENT_EVIDENCE') {
+      return 'View research gaps';
+    }
+    if (candidate.candidate_state === 'NEEDS_MORE_RESEARCH') {
+      return 'Research this product';
+    }
+    return 'View product research';
+  }
+
+  primaryCandidateAction(candidate: ResearchCandidate): void {
+    if (candidate.candidate_state === 'NEEDS_MORE_RESEARCH') {
+      void this.researchMarketEvidence(candidate.id);
+      return;
+    }
+    this.viewCandidate(candidate);
+  }
+
+  readinessLabel(candidate: ResearchCandidate): string {
+    if (candidate.candidate_state === 'READY_TO_COMPARE') return 'Ready to compare';
+    if (candidate.candidate_state === 'INSUFFICIENT_EVIDENCE') return 'Insufficient evidence';
+    return 'Needs more research';
+  }
+
+  candidateDescription(candidate: ResearchCandidate): string {
+    const detailed = this.profileText(candidate, 'detailed_description');
+    return (
+      candidate.description ||
+      candidate.product_concept ||
+      (detailed !== 'UNKNOWN / NOT AVAILABLE' ? detailed : 'Product description not established.')
+    );
+  }
+
+  candidateReasons(candidate: ResearchCandidate): string[] {
+    const reasons = candidate.why_this_surfaced.filter(
+      (item) => item.trim() && item.toLowerCase() !== 'insufficient evidence',
+    );
+    return reasons.length ? reasons : ['Reason not established from current evidence.'];
+  }
+
+  goalFitLabel(candidate: ResearchCandidate): string {
+    const values = this.profileList(candidate, 'goal_fit');
+    return values.length ? 'Supported preferences matched' : 'Not established';
+  }
+
+  candidateTrustLabel(candidate: ResearchCandidate): string {
+    const provenance = candidate.intelligence_profile?.['candidate_provenance'];
+    if (provenance && typeof provenance === 'object') {
+      const mode = this.valueText((provenance as Record<string, unknown>)['mode']);
+      if (mode === 'LOCAL_DETERMINISTIC') return 'Local demo - not live evidence';
+    }
+    const source = this.profileText(candidate, 'candidate_source');
+    if (source.toUpperCase().includes('FIXTURE')) return 'Local demo - not live evidence';
+    const live = candidate.intelligence_profile?.['live_research'];
+    if (live && typeof live === 'object') {
+      const status = this.valueText((live as Record<string, unknown>)['status']);
+      if (status) return this.statusLabel(status);
+    }
+    return 'Evidence state not established';
+  }
+
+  candidateEvidenceSummary(candidate: ResearchCandidate): string {
+    const profile = candidate.intelligence_profile || {};
+    const parts = [
+      this.profileBusinessValue(candidate, 'trend_evidence') !== 'Not available yet' ? 'trend' : '',
+      this.profileBusinessValue(candidate, 'competitor_evidence') !== 'Not available yet'
+        ? 'competition'
+        : '',
+      this.profileBusinessValue(candidate, 'customer_evidence') !== 'Not available yet'
+        ? 'customer feedback'
+        : '',
+    ].filter(Boolean);
+    if (parts.length) return 'Available for ' + parts.join(', ') + '.';
+    if (profile['live_research'])
+      return 'Market evidence is available with the freshness shown in detail.';
+    return 'Supporting market, competition, trend, and review evidence is not available yet.';
+  }
+
+  isFixtureResults(results: ResearchResults): boolean {
+    return results.candidates.some((candidate) =>
+      this.candidateTrustLabel(candidate).includes('Local demo'),
+    );
+  }
+
+  evidenceStateLabel(value: string | null | undefined): string {
+    const normalized = String(value || '').toLowerCase();
+    if (normalized === 'available') return 'Available';
+    if (normalized === 'partial') return 'Partial';
+    if (normalized === 'insufficient_evidence') return 'Not enough evidence';
+    if (normalized === 'unknown') return 'Not available yet';
+    return value ? this.statusLabel(value) : 'Not available yet';
+  }
+
+  evidenceLabel(candidate: ResearchCandidate): string {
+    return this.evidenceStateLabel(candidate.score?.evidence_state || candidate.evidence_state);
+  }
+
+  valueText(value: unknown): string {
+    if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+      return String(value);
+    }
+    return '';
+  }
+
+  marketEvidenceLabel(candidate: ResearchCandidate): string {
+    const profile = candidate.intelligence_profile || {};
+    const live = profile['live_research'];
+    if (live && typeof live === 'object') {
+      const status = this.valueText((live as Record<string, unknown>)['status']).toUpperCase();
+      if (status === 'RESEARCHED_WITH_GAPS') return 'Available with gaps';
+      if (status === 'COMPLETED') return 'Available';
+    }
+    return profile['marketplace_observations'] ? 'Available' : 'Not available yet';
+  }
+
+  profileBusinessValue(candidate: ResearchCandidate, key: string): string {
+    const value = candidate.intelligence_profile?.[key];
+    if (!value) return 'Not available yet';
+    if (typeof value === 'string') return value;
+    if (Array.isArray(value)) return value.length ? 'Available' : 'Not available yet';
+    if (typeof value === 'object') {
+      const record = value as Record<string, unknown>;
+      const status = record['status'] || record['state'] || record['message'];
+      return status ? this.statusLabel(this.valueText(status)) : 'Available';
+    }
+    return 'Available';
+  }
+
+  riskLabel(candidate: ResearchCandidate): string {
+    const risk = candidate.score?.risk_level || candidate.intelligence_profile?.['risk'];
+    if (typeof risk === 'string') return this.statusLabel(risk);
+    if (risk && typeof risk === 'object') {
+      const value =
+        (risk as Record<string, unknown>)['level'] || (risk as Record<string, unknown>)['state'];
+      if (value) return this.statusLabel(this.valueText(value));
+    }
+    return 'Not available yet';
+  }
+
+  observedPrice(candidate: ResearchCandidate): string {
+    const live = candidate.intelligence_profile?.['live_research'];
+    if (live && typeof live === 'object') {
+      const approved = (live as Record<string, unknown>)['approved_fetches'];
+      if (Array.isArray(approved)) {
+        for (const entry of approved) {
+          if (!entry || typeof entry !== 'object') continue;
+          const extracted = (entry as Record<string, unknown>)['extracted'];
+          if (!extracted || typeof extracted !== 'object') continue;
+          const metadata = (extracted as Record<string, unknown>)['product_metadata'];
+          if (!metadata || typeof metadata !== 'object') continue;
+          const offers = (metadata as Record<string, unknown>)['offers'];
+          if (!offers || typeof offers !== 'object') continue;
+          const price = (offers as Record<string, unknown>)['price'];
+          const currency = (offers as Record<string, unknown>)['priceCurrency'];
+          if (price)
+            return 'Observed price: ' + this.valueText(price) + ' ' + this.valueText(currency);
+        }
+      }
+    }
+    return 'Not available yet';
+  }
+
+  candidateImage(candidate: ResearchCandidate): string | null {
+    const image = candidate.intelligence_profile?.['image'];
+    if (image && typeof image === 'object') {
+      const record = image as Record<string, unknown>;
+      if (record['available'] === false) return null;
+      if (typeof record['url'] === 'string' && record['url']) return record['url'];
+    }
+    if (typeof image === 'string' && image) return image;
+    const live = candidate.intelligence_profile?.['live_research'];
+    if (live && typeof live === 'object') {
+      const approved = (live as Record<string, unknown>)['approved_fetches'];
+      if (Array.isArray(approved)) {
+        for (const entry of approved) {
+          if (!entry || typeof entry !== 'object') continue;
+          const extracted = (entry as Record<string, unknown>)['extracted'];
+          const metadata =
+            extracted && typeof extracted === 'object'
+              ? (extracted as Record<string, unknown>)['product_metadata']
+              : null;
+          const value =
+            metadata && typeof metadata === 'object'
+              ? (metadata as Record<string, unknown>)['image']
+              : null;
+          if (typeof value === 'string' && value) return value;
+        }
+      }
+    }
+    return null;
+  }
+
+  detailImage(): string | null {
+    const image = this.detail()?.intelligence_profile?.['image'];
+    if (typeof image === 'string' && image) return image;
+    if (image && typeof image === 'object') {
+      const value = (image as Record<string, unknown>)['url'];
+      return typeof value === 'string' && value ? value : null;
+    }
+    return null;
+  }
+
+  detailObservedPrice(): string {
+    const profile = this.detail()?.intelligence_profile || {};
+    const live = profile['live_research'];
+    if (!live || typeof live !== 'object') return 'Not available yet';
+    const approved = (live as Record<string, unknown>)['approved_fetches'];
+    if (!Array.isArray(approved)) return 'Not available yet';
+    for (const entry of approved) {
+      if (!entry || typeof entry !== 'object') continue;
+      const extracted = (entry as Record<string, unknown>)['extracted'];
+      const metadata =
+        extracted && typeof extracted === 'object'
+          ? (extracted as Record<string, unknown>)['product_metadata']
+          : null;
+      const offers =
+        metadata && typeof metadata === 'object'
+          ? (metadata as Record<string, unknown>)['offers']
+          : null;
+      const price =
+        offers && typeof offers === 'object' ? (offers as Record<string, unknown>)['price'] : null;
+      const currency =
+        offers && typeof offers === 'object'
+          ? (offers as Record<string, unknown>)['priceCurrency']
+          : null;
+      if (price) return 'Observed price: ' + this.valueText(price) + ' ' + this.valueText(currency);
+    }
+    return 'Not available yet';
+  }
+
+  profileList(candidate: ResearchCandidate, key: string): string[] {
+    const value = candidate.intelligence_profile?.[key];
+    return Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === 'string')
+      : [];
+  }
+
+  profileText(candidate: ResearchCandidate, key: string): string {
+    const value = candidate.intelligence_profile?.[key];
+    return typeof value === 'string' ? value : 'UNKNOWN / NOT AVAILABLE';
+  }
+
+  detailProfile(key: string): Record<string, unknown> {
+    const value = this.detail()?.intelligence_profile;
+    return value && typeof value[key] === 'object' && value[key] !== null
+      ? (value[key] as Record<string, unknown>)
+      : {};
+  }
+
+  detailProfileValue(key: string): string {
+    const value = this.detail()?.intelligence_profile?.[key];
+    return typeof value === 'string' ? value : 'UNKNOWN / NOT AVAILABLE';
+  }
+
+  detailLiveResearch(): Record<string, unknown> {
+    const value = this.detail()?.intelligence_profile?.['live_research'];
+    return value && typeof value === 'object' ? (value as Record<string, unknown>) : {};
+  }
+
+  detailLiveStatus(live: Record<string, unknown>): string {
+    return typeof live['status'] === 'string' ? live['status'] : 'NOT_RESEARCHED';
+  }
+
+  detailLiveCount(live: Record<string, unknown>, key: string): number {
+    const value = live[key];
+    return Array.isArray(value) ? value.length : 0;
+  }
+
+  detailLiveSources(
+    live: Record<string, unknown>,
+  ): Array<{ url: string; domain: string; evidence_classification: string }> {
+    const value = live['search_results'];
+    if (!Array.isArray(value)) {
+      return [];
+    }
+    return value.flatMap((item) => {
+      if (!item || typeof item !== 'object') {
+        return [];
+      }
+      const source = item as Record<string, unknown>;
+      const url = typeof source['url'] === 'string' ? source['url'] : '';
+      if (!url) {
+        return [];
+      }
+      return [
+        {
+          url,
+          domain: typeof source['domain'] === 'string' ? source['domain'] : '',
+          evidence_classification:
+            typeof source['evidence_classification'] === 'string'
+              ? source['evidence_classification']
+              : 'SEARCH_DISCOVERY_EVIDENCE',
+        },
+      ];
+    });
+  }
+
+  detailProfileList(key: string): string[] {
+    const value = this.detail()?.intelligence_profile?.[key];
+    return Array.isArray(value)
+      ? value.filter((item): item is string => typeof item === 'string')
+      : [];
+  }
+
+  detailReadinessLabel(): string {
+    const item = this.detail();
+    if (!item) return 'Readiness not established';
+    if (
+      item.current_assessment_id &&
+      String(item.evidence_state || '').toLowerCase() === 'available'
+    ) {
+      return 'Ready to compare';
+    }
+    if (item.current_assessment_id) return 'Needs more research';
+    return 'Researching';
+  }
+
+  detailTrustLabel(): string {
+    const item = this.detail();
+    if (!item) return 'Trust not established';
+    const source = this.detailProfileValue('candidate_source');
+    if (source.toUpperCase().includes('FIXTURE')) return 'Local demo - not live evidence';
+    const live = this.detailLiveResearch();
+    if (Object.keys(live).length) return 'Live evidence with source freshness';
+    return 'Evidence state not established';
+  }
+
+  detailWhySummary(): string {
+    const reasons = this.detailProfileList('why_this_surfaced').filter(
+      (item) => item.trim() && item.toLowerCase() !== 'insufficient evidence',
+    );
+    return reasons.length
+      ? reasons.join(' ')
+      : 'This product was surfaced by the current research workflow; the specific reason is not established yet.';
+  }
+
+  detailGoalFitSummary(): string {
+    const fit = this.detailProfileList('goal_fit');
+    return fit.length
+      ? fit.join(' ')
+      : 'Product characteristics may relate to the goal, but commercial and budget viability are not established.';
+  }
+
+  detailSelected(item: OpportunityDetail): boolean {
+    return (
+      this.researchResults()?.selected_candidate_ids.includes(item.id) ||
+      Boolean(
+        this.researchResults()?.candidates.find((candidate) => candidate.id === item.id)?.selected,
+      )
+    );
+  }
+
+  supplierHandoffParams(item: OpportunityDetail): Record<string, string> {
+    const profile = item.intelligence_profile || {};
+    const keywords = Array.isArray(profile['research_keywords'])
+      ? profile['research_keywords'].filter((value): value is string => typeof value === 'string')
+      : [];
+    return {
+      opportunity_id: item.id,
+      name: item.name,
+      product: item.product_concept || item.description,
+      category: item.category,
+      subcategory: item.subcategory || '',
+      marketplace: item.target_marketplace,
+      region: item.target_region,
+      search_terms: keywords.join(', '),
+    };
+  }
+
+  canCompareCandidates(): boolean {
+    const count = this.selectedCandidateIds().length;
+    return count >= 2 && count <= 4;
+  }
+
+  toggleCandidate(candidate: ResearchCandidate): void {
+    if (!candidate.assessment_id) return;
+    const selected = this.selectedCandidateIds();
+    if (selected.includes(candidate.id)) {
+      this.selectedCandidateIds.set(selected.filter((id) => id !== candidate.id));
+      return;
+    }
+    if (selected.length >= 4) {
+      this.selectionMessage.set(
+        'Comparison is limited to four candidates. Remove one before adding another.',
+      );
+      return;
+    }
+    this.selectedCandidateIds.set([...selected, candidate.id]);
+    this.selectionMessage.set('');
+  }
+
+  viewCandidate(candidate: ResearchCandidate): void {
+    void this.select(candidate.id);
+  }
+
+  canRetryResearch(candidate: ResearchCandidate): boolean {
+    return (
+      Boolean(candidate.research_run_id) &&
+      ['failed', 'blocked', 'partial', 'incomplete'].includes(
+        candidate.research_state.toLowerCase(),
+      )
+    );
+  }
+
+  async researchMarketEvidence(opportunityId: string): Promise<void> {
+    this.loading.set(true);
+    this.error.set('');
+    this.researchMessage.set('');
+    try {
+      const result: ProductResearchResponse =
+        await this.service.researchMarketEvidence(opportunityId);
+      this.researchMessage.set(
+        `Market research ${result.research_state.replaceAll('_', ' ').toLowerCase()}: ${result.result_count} source results; ${result.fetch_count} approved fetches.`,
+      );
+      if (this.detail()) {
+        await this.loadDetail(opportunityId);
+      }
+      await this.load();
+    } catch {
+      this.error.set('Market research could not be started.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async retryMissingResearch(candidate: ResearchCandidate): Promise<void> {
+    if (
+      !candidate.research_run_id ||
+      !this.businessAgentService ||
+      !this.canRetryResearch(candidate)
+    )
+      return;
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      await this.businessAgentService.retry(candidate.research_run_id);
+      this.selectionMessage.set(
+        'Missing research retry requested. Successful research steps were preserved.',
+      );
+      await this.load();
+    } catch {
+      this.error.set('The missing research retry could not be started.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  comparedCandidates(): ResearchCandidate[] {
+    const candidates = this.researchResults()?.candidates ?? [];
+    return this.selectedCandidateIds()
+      .map((id) => candidates.find((candidate) => candidate.id === id))
+      .filter((candidate): candidate is ResearchCandidate => Boolean(candidate));
+  }
+
+  comparisonDimension(candidate: ResearchCandidate, key: string): string {
+    switch (key) {
+      case 'category':
+        return candidate.category || 'Category not established';
+      case 'goal_fit':
+        return this.goalFitLabel(candidate);
+      case 'readiness':
+        return this.readinessLabel(candidate);
+      case 'evidence':
+        return this.evidenceLabel(candidate);
+      case 'price':
+        return this.observedPrice(candidate);
+      case 'risk':
+        return this.riskLabel(candidate);
+      case 'competition':
+        return this.profileBusinessValue(candidate, 'competitor_evidence');
+      case 'reviews':
+        return this.profileBusinessValue(candidate, 'customer_evidence');
+      case 'trend':
+        return this.profileBusinessValue(candidate, 'trend_evidence');
+      case 'unknowns':
+        return candidate.data_gaps.length ? candidate.data_gaps.join('; ') : 'No gaps returned';
+      default:
+        return 'Not available yet';
+    }
+  }
+
+  supplierHandoffParamsFromCandidate(candidate: ResearchCandidate): Record<string, string> {
+    const keywords = this.profileList(candidate, 'research_keywords');
+    return {
+      opportunity_id: candidate.id,
+      name: candidate.name,
+      product: candidate.product_concept || candidate.description,
+      category: candidate.category,
+      subcategory: candidate.subcategory || '',
+      marketplace: candidate.marketplace,
+      region: candidate.region,
+      search_terms: keywords.join(', '),
+    };
+  }
+
+  async compareSelectedCandidates(): Promise<void> {
+    const candidates = this.comparedCandidates();
+    const assessmentIds = candidates
+      .map((candidate) => candidate.assessment_id)
+      .filter((id): id is string => Boolean(id));
+    if (assessmentIds.length < 2 || assessmentIds.length > 4) return;
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      this.comparison.set(await this.service.rankScores(assessmentIds));
+      document.getElementById('comparison-results-title')?.focus?.();
+    } catch {
+      this.error.set('Opportunity comparison is unavailable for these assessments.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async investigateCandidate(candidate: ResearchCandidate): Promise<void> {
+    if (!candidate.assessment_id) return;
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      await this.service.decide(candidate.id, candidate.assessment_id, {
+        action: 'shortlist',
+        rationale:
+          'Human selected this product for further investigation from the GP-3 comparison.',
+      });
+      this.selectionMessage.set(
+        `${candidate.name} selected for further investigation. Provenance: HUMAN.`,
+      );
+      await this.load();
+    } catch {
+      this.error.set('The human product selection could not be recorded.');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async selectDetailForSupplier(item: OpportunityDetail): Promise<void> {
+    if (!item.current_assessment_id) {
+      this.selectionMessage.set(
+        'This product needs an assessment before supplier research can begin.',
+      );
+      return;
+    }
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      await this.service.decide(item.id, item.current_assessment_id, {
+        action: 'shortlist',
+        rationale: 'Human selected this product for supplier research.',
+      });
+      this.selectionMessage.set(
+        item.name +
+          ' selected for supplier research. Supplier research remains read-only and human-controlled.',
+      );
+      await this.load();
+      document.getElementById('context-title')?.focus?.();
+    } catch {
+      this.error.set('The human product selection could not be recorded.');
     } finally {
       this.loading.set(false);
     }
@@ -1215,11 +2318,13 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   canCompare(): boolean {
-    return this.opportunities().filter((item) => Boolean(item.current_assessment_id)).length >= 2;
+    return (
+      this.currentOpportunities().filter((item) => Boolean(item.current_assessment_id)).length >= 2
+    );
   }
 
   async compareOpportunities(): Promise<void> {
-    const assessmentIds = this.opportunities()
+    const assessmentIds = this.currentOpportunities()
       .map((item) => item.current_assessment_id)
       .filter((id): id is string => Boolean(id))
       .slice(0, 5);
@@ -1437,7 +2542,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
         title: 'Trend projection',
         classification: trend.source_state || 'UNKNOWN',
         summary: `${trend.signal_summaries.length} signal summary(ies), ${trend.momentum_summaries.length} momentum summary(ies).`,
-        source: 'Trend ÃƒÆ’Ã‚Â¢ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â ÃƒÂ¢Ã¢â€šÂ¬Ã¢â€žÂ¢ Winning Product projection',
+        source: 'Trend - Winning Product projection',
         observedAt: trend.created_at,
         details: this.trendDetails(trend),
       });

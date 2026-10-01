@@ -133,3 +133,46 @@ export class ErrorStateComponent {
   readonly retryLabel = input('');
   readonly retry = output<void>();
 }
+
+@Component({
+  selector: 'app-blocked-state',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  template: `<section class="ux-state blocked" aria-live="polite">
+    <h2>{{ title() }}</h2>
+    <p>{{ reason() }}</p>
+    @if (actionLabel()) {
+      <button type="button" (click)="action.emit()">{{ actionLabel() }}</button>
+    }
+  </section>`,
+  styles: `
+    :host {
+      display: block;
+    }
+    .ux-state {
+      padding: var(--vj-space-5);
+      border: 1px solid var(--vj-color-warning);
+      border-radius: var(--vj-radius-md);
+      background: var(--vj-color-warning-soft);
+    }
+    h2 {
+      margin-top: 0;
+    }
+    button {
+      min-height: var(--vj-control-height);
+      padding: 0.55rem 0.9rem;
+      border: 0;
+      border-radius: var(--vj-radius-sm);
+      background: var(--vj-color-brand);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+    }
+  `,
+})
+export class BlockedStateComponent {
+  readonly title = input.required<string>();
+  readonly reason = input.required<string>();
+  readonly actionLabel = input('');
+  readonly action = output<void>();
+}

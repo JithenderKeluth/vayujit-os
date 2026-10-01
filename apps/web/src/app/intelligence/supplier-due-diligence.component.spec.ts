@@ -1,11 +1,12 @@
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { ComponentFixtureAutoDetect, TestBed } from '@angular/core/testing';
+import { environment } from '../../environments/environment';
 import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 import { SupplierDueDiligenceComponent } from './supplier-due-diligence.component';
 
-const base = '/api/v1/intelligence/supplier-due-diligence';
+const base = `${environment.apiUrl}/intelligence/supplier-due-diligence`;
 const statuses = [
   'MISSING',
   'WEAK',
@@ -84,7 +85,7 @@ describe('SupplierDueDiligenceComponent', () => {
     expect(request.request.body).toEqual({ reason: 'Reviewed by owner' });
     request.flush({ status: 'WAIVED_BY_HUMAN' });
     await action;
-    expect(component.error).toBe(false);
+    expect(component.error).toBe('');
     expect(component.semanticStatus('WAIVED_BY_HUMAN')).toBe('WAIVED BY HUMAN');
     http.verify();
   });
@@ -99,7 +100,7 @@ describe('SupplierDueDiligenceComponent', () => {
       { status: 422, statusText: 'Unprocessable Entity' },
     );
     await action;
-    expect(component.error).toBe(true);
+    expect(component.error).toContain('The verification action could not be completed.');
     expect(component.reviewedGapId).toBeNull();
     http.verify();
   });

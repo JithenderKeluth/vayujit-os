@@ -7,13 +7,16 @@ import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { EvidenceCardComponent } from '../shared/evidence-card.component';
 import { PageHeaderComponent } from '../shared/page-header.component';
 import {
-  EmptyStateComponent,
+  BlockedStateComponent,
   ErrorStateComponent,
   LoadingStateComponent,
 } from '../shared/state-components';
 import { StatusBadgeComponent } from '../shared/status-badge.component';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { environment } from '../../environments/environment';
+import { intelligenceErrorMessage } from './intelligence-error';
 import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
+import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
 
 type Gap = {
   id: string;
@@ -37,9 +40,9 @@ type Context = {
   selector: 'app-supplier-due-diligence',
   standalone: true,
   imports: [
+    BlockedStateComponent,
     BreadcrumbsComponent,
     CommonModule,
-    EmptyStateComponent,
     ErrorStateComponent,
     EvidenceCardComponent,
     LoadingStateComponent,
@@ -47,6 +50,7 @@ type Context = {
     RouterLink,
     StatusBadgeComponent,
     SupplierJourneyNavComponent,
+    CommerceJourneyContextComponent,
   ],
   template: `
     <main aria-labelledby="due-diligence-title">
@@ -59,11 +63,12 @@ type Context = {
       >
         <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
       </app-page-header>
+      <app-commerce-journey-context />
       <app-supplier-journey-nav current="verify" />
       @if (error) {
         <app-error-state
           title="Supplier verification is unavailable"
-          message="Due diligence data is unavailable. Check the authenticated API connection."
+          [message]="error"
           retryLabel="Retry"
           (retry)="ngOnInit()"
         />
@@ -77,19 +82,22 @@ type Context = {
           Review verified evidence, unresolved gaps, contradictions, and freshness before sourcing.
         </p>
         @if (!loading && !contexts.length) {
-          <app-empty-state
-            title="Verification not started"
-            message="No supplier verification contexts exist yet. Start from a shortlisted supplier."
+          <app-blocked-state
+            title="Shortlist suppliers before verification"
+            reason="No supplier is treated as verified until evidence supports that conclusion."
           />
+          <a routerLink="/intelligence/cross-marketplace#comparison">Compare suppliers</a>
         }
         @for (context of contexts; track context.id) {
           <article>
-            <h3>{{ context.supplier_id }}</h3>
+            <p class="eyebrow">Supplier under review</p>
+            <h3>{{ supplierLabel() }}</h3>
             <app-status-badge
               status="VERIFICATION_STATE"
               [label]="semanticStatus(context.status)"
               tone="info"
             />
+            <p class="verification-outcome">{{ verificationOutcome(context) }}</p>
             <p>
               Status: {{ semanticStatus(context.status) }} · Readiness:
               {{ semanticStatus(context.readiness) }}
@@ -105,6 +113,9 @@ type Context = {
               source="Supplier due-diligence projection"
             />
             <table>
+              <caption>
+                Evidence coverage and verification gaps
+              </caption>
               <thead>
                 <tr>
                   <th scope="col">Dimension</th>
@@ -186,6 +197,14 @@ type Context = {
                 </li>
               }
             </ul>
+            <details class="advanced-context">
+              <summary>Advanced context details</summary>
+              <details class="advanced-panel">
+                <summary>Advanced supplier reference</summary>
+                <p>Owner-scoped supplier reference: {{ context.supplier_id }}</p>
+              </details>
+              <p>Context reference: {{ context.id }}</p>
+            </details>
           </article>
         }
       </section>
@@ -210,6 +229,14 @@ type Context = {
       button {
         margin: 0.25rem;
       }
+      .verification-outcome {
+        padding: 0.75rem;
+        border-left: 3px solid #17617a;
+        background: #edf7f7;
+      }
+      .advanced-context {
+        margin-top: 1rem;
+      }
     `,
   ],
 })
@@ -221,7 +248,7 @@ export class SupplierDueDiligenceComponent implements OnInit {
   ];
   contexts: Context[] = [];
   loading = true;
-  error = false;
+  error = '';
   reviewedGapId: string | null = null;
 
   semanticStatus(status: string): string {
@@ -239,34 +266,53 @@ export class SupplierDueDiligenceComponent implements OnInit {
     };
     return labels[status] || status.replaceAll('_', ' ');
   }
+  supplierLabel(): string {
+    return 'Supplier selected for verification';
+  }
+  verificationOutcome(context: Context): string {
+    const gaps = context.summary?.open_gaps || 0;
+    if (context.status === 'COMPLETED' && gaps === 0)
+      return 'Verification is complete with no open evidence gaps reported.';
+    if (context.status === 'CONTRADICTORY' || context.readiness === 'CONTRADICTORY')
+      return 'Contradictory evidence needs human review before this supplier can be treated as ready.';
+    if (gaps)
+      return `${gaps} evidence gap${gaps === 1 ? '' : 's'} remain. Review the source and freshness before proceeding.`;
+    return 'Verification is incomplete; review the available evidence and remaining unknowns.';
+  }
 
   ngOnInit(): void {
     void this.loadContexts();
   }
 
   private async loadContexts(): Promise<void> {
+    this.error = '';
     try {
       this.contexts = await firstValueFrom(
-        this.http.get<Context[]>('/api/v1/intelligence/supplier-due-diligence/contexts'),
+        this.http.get<Context[]>(
+          `${environment.apiUrl}/intelligence/supplier-due-diligence/contexts`,
+        ),
       );
       await Promise.all(
         this.contexts.map(async (context) => {
           const detail = await firstValueFrom(
             this.http.get<Context>(
-              `/api/v1/intelligence/supplier-due-diligence/contexts/${context.id}`,
+              `${environment.apiUrl}/intelligence/supplier-due-diligence/contexts/${context.id}`,
             ),
           );
           context.gaps = detail.gaps || [];
           context.readiness = detail.readiness;
           context.plans = await firstValueFrom(
             this.http.get<Plan[]>(
-              `/api/v1/intelligence/supplier-due-diligence/contexts/${context.id}/plans`,
+              `${environment.apiUrl}/intelligence/supplier-due-diligence/contexts/${context.id}/plans`,
             ),
           );
         }),
       );
-    } catch {
-      this.error = true;
+    } catch (error: unknown) {
+      this.error = intelligenceErrorMessage(
+        error,
+        'Due diligence data is unavailable. Check the authenticated API connection.',
+      );
     } finally {
       this.loading = false;
     }
@@ -280,12 +326,15 @@ export class SupplierDueDiligenceComponent implements OnInit {
       }
       await firstValueFrom(
         this.http.get(
-          `/api/v1/intelligence/supplier-due-diligence/contexts/${context.id}/gaps/${gapId}`,
+          `${environment.apiUrl}/intelligence/supplier-due-diligence/contexts/${context.id}/gaps/${gapId}`,
         ),
       );
       this.reviewedGapId = gapId;
-    } catch {
-      this.error = true;
+    } catch (error: unknown) {
+      this.error = intelligenceErrorMessage(
+        error,
+        'The verification evidence could not be loaded.',
+      );
     }
   }
 
@@ -299,13 +348,19 @@ export class SupplierDueDiligenceComponent implements OnInit {
     }
     try {
       await firstValueFrom(
-        this.http.post(`/api/v1/intelligence/supplier-due-diligence/gaps/${gapId}/${action}`, {
-          reason: reason || '',
-        }),
+        this.http.post(
+          `${environment.apiUrl}/intelligence/supplier-due-diligence/gaps/${gapId}/${action}`,
+          {
+            reason: reason || '',
+          },
+        ),
       );
       this.ngOnInit();
-    } catch {
-      this.error = true;
+    } catch (error: unknown) {
+      this.error = intelligenceErrorMessage(
+        error,
+        'The verification action could not be completed.',
+      );
     }
   }
 }

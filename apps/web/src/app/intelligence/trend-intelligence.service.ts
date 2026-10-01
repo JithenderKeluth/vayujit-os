@@ -11,6 +11,7 @@ export interface TrendContext {
   status: string;
   version: number;
   product_id?: string | null;
+  product_opportunity_id?: string | null;
   brand_id?: string | null;
   created_at: string;
   updated_at: string;

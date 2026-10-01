@@ -170,6 +170,10 @@ def search_endpoint(data: ExternalSearchRequestBody, db: DB, owner: Owner) -> di
         "provider": result["provider"],
         "mode": result["mode"],
         "result_count": result["result_count"],
+        "provider_result_count": result.get("provider_result_count", result["result_count"]),
+        "new_result_count": result.get("new_result_count", 0),
+        "reused_result_count": result.get("reused_result_count", 0),
+        "duplicate_result_count": result.get("duplicate_result_count", 0),
         "failure_code": result["failure_code"],
         "results": [
             {

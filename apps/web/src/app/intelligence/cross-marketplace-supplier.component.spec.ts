@@ -1,10 +1,11 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
+import { environment } from '../../environments/environment';
 import { provideRouter } from '@angular/router';
 import { CrossMarketplaceSupplierComponent } from './cross-marketplace-supplier.component';
 
-const base = '/api/v1/intelligence/cross-marketplace/suppliers';
+const base = `${environment.apiUrl}/intelligence/cross-marketplace/suppliers`;
 
 describe('CrossMarketplaceSupplierComponent', () => {
   it('presents provider truth, observed evidence, and comparison trade-offs without a winner', async () => {
@@ -66,6 +67,9 @@ describe('CrossMarketplaceSupplierComponent', () => {
     expect(root.textContent).toContain('Observed supplier facts');
     expect(root.textContent).toContain('OBSERVED');
     expect(root.textContent).toContain('no comparison winner is inferred');
+    expect(root.querySelector('details.advanced-details')).not.toBeNull();
+    expect(root.querySelector('details.advanced-details')?.hasAttribute('open')).toBe(false);
+    expect(root.textContent).toContain('Advanced technical details');
     http.verify();
   });
 });

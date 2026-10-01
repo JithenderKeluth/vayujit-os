@@ -150,6 +150,39 @@ def _identity(value: object) -> str:
     return hashlib.sha256(str(value).encode()).hexdigest()
 
 
+def _search_reuse_payload(
+    existing: ExternalSearchRequest, results: list[ExternalSearchResult]
+) -> dict[str, object] | None:
+    """Reuse completed ledger entries while preserving their derived freshness."""
+    if existing.status != "COMPLETED":
+        return None
+    freshness = derive_freshness(existing.completed_at or existing.created_at)
+    return {
+        "id": existing.id,
+        "status": existing.status,
+        "provider": existing.provider,
+        "mode": existing.mode,
+        "result_count": existing.result_count,
+        "provider_result_count": existing.result_count,
+        "new_result_count": 0,
+        "reused_result_count": existing.result_count,
+        "duplicate_result_count": 0,
+        "failure_code": existing.failure_code,
+        "freshness": freshness.state,
+        "reuse": True,
+        "results": results,
+    }
+
+
+def _fetch_reuse_payload(existing: ExternalFetch) -> dict[str, object] | None:
+    """Reuse fetched evidence while preserving its derived freshness state."""
+    freshness = derive_freshness(existing.retrieved_at)
+    payload = dict(existing.__dict__)
+    payload["reuse"] = True
+    payload["freshness"] = freshness.state
+    return payload
+
+
 def _provider(settings: Settings) -> SearchProvider:
     if settings.intelligence_external_provider_mode in {"LOCAL_FIXTURE", "SANDBOX"}:
         return LocalFixtureSearchProvider()
@@ -214,8 +247,10 @@ def approved_fetch_preflight(settings: Settings | None = None) -> dict[str, obje
             if settings.intelligence_external_provider_mode == "DISABLED"
             else "NOT_READY"
         )
-    elif not all(checks.values()):
+    elif not all(value for key, value in checks.items() if key != "allowlist"):
         status = "BLOCKED_BY_EXTERNAL_CONFIGURATION"
+    elif not approved:
+        status = "READY_FOR_SEARCH_DISCOVERED_FETCH"
     else:
         status = "READY"
     return {
@@ -225,6 +260,7 @@ def approved_fetch_preflight(settings: Settings | None = None) -> dict[str, obje
         "blocked_domains": list(blocked),
         "review_required_domains": list(review),
         "approved_domain_count": len(approved),
+        "search_discovered_admission": True,
         "tls_required": True,
         "max_redirects": settings.intelligence_fetch_max_redirects,
         "max_response_bytes": settings.intelligence_fetch_max_bytes,
@@ -249,11 +285,6 @@ def _guard(settings: Settings, *, operation: str) -> None:
         raise HTTPException(409, "Search provider is disabled.")
     if operation == "fetch" and not settings.intelligence_web_fetch_enabled:
         raise HTTPException(403, "Approved web fetch is disabled.")
-    if (
-        settings.intelligence_external_provider_mode == "LIVE_READ_ONLY"
-        and not settings.intelligence_external_approved_domains
-    ):
-        raise HTTPException(403, "Approved external domains are required for live research.")
 
 
 def _check_quota(
@@ -328,15 +359,9 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
                 .order_by(ExternalSearchResult.rank)
             )
         )
-        return {
-            "id": existing.id,
-            "status": existing.status,
-            "provider": existing.provider,
-            "mode": existing.mode,
-            "result_count": existing.result_count,
-            "failure_code": existing.failure_code,
-            "results": results,
-        }
+        reused = _search_reuse_payload(existing, results)
+        if reused is not None:
+            return reused
     execution_key = execution_identity(
         "search",
         owner_id=owner.id,
@@ -370,15 +395,9 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
                         .order_by(ExternalSearchResult.rank)
                     )
                 )
-                return {
-                    "id": existing.id,
-                    "status": existing.status,
-                    "provider": existing.provider,
-                    "mode": existing.mode,
-                    "result_count": existing.result_count,
-                    "failure_code": existing.failure_code,
-                    "results": results,
-                }
+                reused = _search_reuse_payload(existing, results)
+                if reused is not None:
+                    return reused
         if execution.status in {"RUNNING", "QUEUED"}:
             raise HTTPException(409, "External search execution is already in progress.")
     if claimed:
@@ -409,18 +428,20 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
     try:
         _check_quota(db, owner, provider.name, settings)
     except HTTPException as exc:
-        failure_code = "search_rate_limited" if exc.status_code == 429 else "provider_disabled"
+        failure_code = "PROVIDER_QUOTA_EXHAUSTED" if exc.status_code == 429 else "provider_disabled"
         execution.status = "FAILED"
         execution.failure_code = failure_code
         execution.safe_error_message = (
-            "External search quota or provider policy rejected the request."
+            "Live search is temporarily unavailable because provider quota is exhausted."
+            if exc.status_code == 429
+            else "External search quota or provider policy rejected the request."
         )
         checkpoint(db, execution, "TERMINAL", status="FAILED")
         record_event(
             db,
             actor_id=owner.id,
             action=(
-                "external.search.rate_limited"
+                "external.search.quota_exhausted"
                 if exc.status_code == 429
                 else "external.search.provider_disabled"
             ),
@@ -502,17 +523,21 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
                 )
                 time.sleep(min(float(delay), 5))
         checkpoint(db, execution, "PROVIDER_COMPLETE")
-        rows: list[ExternalSearchResult] = []
-        seen: set[str] = set()
         result_limit = request.max_results
         if budget is not None:
             result_limit = min(result_limit, max(0, budget.max_results - budget.results_used))
-        for item in values[:result_limit]:
+        provider_items = values[:result_limit]
+        provider_result_count = len(provider_items)
+        candidate_rows: list[ExternalSearchResult] = []
+        seen: set[str] = set()
+        duplicate_result_count = 0
+        for item in provider_items:
             url = canonical_url(item.url)
             if url in seen:
+                duplicate_result_count += 1
                 continue
             seen.add(url)
-            rows.append(
+            candidate_rows.append(
                 ExternalSearchResult(
                     owner_id=owner.id,
                     search_id=request.id,
@@ -532,25 +557,56 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
                     identity_key=_identity(f"{provider.name}|{item.provider_result_id}|{url}"),
                 )
             )
-        if budget is not None and rows:
+        if budget is not None and candidate_rows:
             bounded_rows: list[ExternalSearchResult] = []
             known_domains = set(budget.domains_seen or [])
             new_domains: set[str] = set()
-            for row in rows:
+            for row in candidate_rows:
                 if row.domain not in known_domains and row.domain not in new_domains:
                     if budget.domains_used + len(new_domains) >= budget.max_domains:
                         continue
                     new_domains.add(row.domain)
                 bounded_rows.append(row)
-            rows = bounded_rows
-            consume_budget(db, budget, dimension="results", amount=len(rows))
+            candidate_rows = bounded_rows
+            consume_budget(db, budget, dimension="results", amount=len(candidate_rows))
             for _domain in new_domains:
                 consume_budget(db, budget, dimension="domains", domain_new=True, domain=_domain)
-        db.add_all(rows)
+        rows: list[ExternalSearchResult] = []
+        new_result_count = 0
+        reused_result_count = 0
+        for candidate in candidate_rows:
+            existing_result = db.scalar(
+                select(ExternalSearchResult).where(
+                    ExternalSearchResult.owner_id == owner.id,
+                    ExternalSearchResult.identity_key == candidate.identity_key,
+                )
+            )
+            if existing_result is not None:
+                rows.append(existing_result)
+                reused_result_count += 1
+                continue
+            try:
+                with db.begin_nested():
+                    db.add(candidate)
+                    db.flush()
+            except IntegrityError:
+                existing_result = db.scalar(
+                    select(ExternalSearchResult).where(
+                        ExternalSearchResult.owner_id == owner.id,
+                        ExternalSearchResult.identity_key == candidate.identity_key,
+                    )
+                )
+                if existing_result is None:
+                    raise
+                rows.append(existing_result)
+                reused_result_count += 1
+            else:
+                rows.append(candidate)
+                new_result_count += 1
         checkpoint(db, execution, "RESULTS_PERSISTED", result_ids=[str(row.id) for row in rows])
         checkpoint(db, execution, "DOWNSTREAM_COMPLETE", result_ids=[str(row.id) for row in rows])
         request.status = "COMPLETED"
-        request.result_count = len(rows)
+        request.result_count = provider_result_count
         request.completed_at = datetime.now(UTC)
         record_event(
             db,
@@ -558,7 +614,15 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
             action="external.search.completed",
             entity_type="external_search",
             entity_id=request.id,
-            metadata={"provider": provider.name, "result_count": len(rows), "mode": request.mode},
+            metadata={
+                "provider": provider.name,
+                "result_count": provider_result_count,
+                "provider_result_count": provider_result_count,
+                "new_result_count": new_result_count,
+                "reused_result_count": reused_result_count,
+                "duplicate_result_count": duplicate_result_count,
+                "mode": request.mode,
+            },
             idempotency_key=f"external-search:{request.id}:completed",
         )
         checkpoint(
@@ -572,12 +636,23 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
             "provider": request.provider,
             "mode": request.mode,
             "result_count": request.result_count,
+            "provider_result_count": provider_result_count,
+            "new_result_count": new_result_count,
+            "reused_result_count": reused_result_count,
+            "duplicate_result_count": duplicate_result_count,
             "failure_code": None,
+            "freshness": "FRESH",
+            "reuse": False,
             "results": rows,
         }
     except (RuntimeError, ValueError, BudgetExhausted) as exc:
         request.status = "FAILED"
-        request.failure_code = "budget_exhausted" if isinstance(exc, BudgetExhausted) else str(exc)
+        raw_failure = str(exc)
+        request.failure_code = (
+            "PROVIDER_QUOTA_EXHAUSTED"
+            if "quota" in raw_failure.casefold()
+            else "budget_exhausted" if isinstance(exc, BudgetExhausted) else raw_failure
+        )
         execution.status = "FAILED"
         execution.failure_code = request.failure_code
         execution.safe_error_message = "External search failed safely."
@@ -594,6 +669,7 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
         event_suffix = {
             "search_auth_failed": "auth_failed",
             "search_rate_limited": "rate_limited",
+            "PROVIDER_QUOTA_EXHAUSTED": "quota_exhausted",
             "search_provider_unavailable": "provider_unavailable",
             "search_quota_exceeded": "quota_exhausted",
             "search_blocked": "blocked",
@@ -620,9 +696,12 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
         db, owner, mission_id=data.mission_id, task_id=data.task_id, operation="fetch"
     )
     _guard(settings, operation="fetch")
-    allowed = _effective_allowed(
-        tuple(data.allowed_domains), _domains(settings.intelligence_external_approved_domains)
-    )
+    configured_allowed = _domains(settings.intelligence_external_approved_domains)
+    allowed = _effective_allowed(tuple(data.allowed_domains), configured_allowed)
+    # A caller-supplied domain is only a filter; it is not approval when no static
+    # policy exists. Search-result lineage may provide request-scoped admission below.
+    if not configured_allowed:
+        allowed = ()
     blocked = tuple(data.blocked_domains) + _domains(settings.intelligence_external_blocked_domains)
     if mission is not None:
         mission_allowed = mission.source_policy.get("allowed_domains", [])
@@ -647,8 +726,37 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
         )
         blocked += tuple(str(item).lower() for item in profile.blocked_domains)
     requested = canonical_url(data.url)
+    requested_domain = host_of(requested)
+    admission_provenance = "STATIC_APPROVED"
+    if not allowed:
+        if data.search_result_id is None:
+            raise HTTPException(
+                403,
+                "A recorded search result is required for search-discovered live fetches.",
+            )
+        discovered = db.scalar(
+            select(ExternalSearchResult)
+            .join(ExternalSearchRequest, ExternalSearchRequest.id == ExternalSearchResult.search_id)
+            .where(
+                ExternalSearchResult.id == data.search_result_id,
+                ExternalSearchResult.owner_id == owner.id,
+                ExternalSearchRequest.owner_id == owner.id,
+                ExternalSearchRequest.status == "COMPLETED",
+                ExternalSearchRequest.mode == "LIVE_READ_ONLY",
+                ExternalSearchResult.canonical_url == requested,
+            )
+        )
+        if discovered is None or discovered.domain != requested_domain:
+            raise HTTPException(
+                403,
+                "The requested URL is not an eligible URL from the recorded search result.",
+            )
+        # ApprovedWebFetcher remains authoritative for DNS/IP and redirect validation.
+        # This admission is request-scoped and tied to an owner-scoped recorded result.
+        allowed = (requested_domain,)
+        admission_provenance = "SEARCH_DISCOVERED_ELIGIBLE"
     robots_policy, terms_status = _source_policy_allowed(
-        host_of(requested), profile=profile, settings=settings
+        requested_domain, profile=profile, settings=settings
     )
     identity = _identity(f"{requested}|{data.source_profile}|{data.mission_id}|{data.task_id}")
     existing = db.scalar(
@@ -657,7 +765,9 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
         )
     )
     if existing is not None and not data.refresh:
-        return existing.__dict__
+        reused = _fetch_reuse_payload(existing)
+        if reused is not None:
+            return reused
     provider_name = settings.intelligence_search_provider
     execution_key = execution_identity(
         "fetch", owner_id=owner.id, mission_id=data.mission_id, task_id=data.task_id, value=identity
@@ -681,7 +791,9 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
                 )
             )
             if existing is not None:
-                return existing.__dict__
+                reused = _fetch_reuse_payload(existing)
+                if reused is not None:
+                    return reused
         if execution.status in {"RUNNING", "QUEUED"}:
             raise HTTPException(409, "External fetch execution is already in progress.")
     if claimed:
@@ -788,7 +900,10 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
         and existing is not None
         and str(result.get("content_hash")) == str(existing.content_hash)
     ):
-        return existing.__dict__
+        payload = dict(existing.__dict__)
+        payload["reuse"] = True
+        payload["freshness"] = str(existing.freshness or "UNKNOWN").upper()
+        return payload
     if data.refresh and existing is not None:
         identity = _identity(f"{identity}|{result.get('content_hash')}")
     row = ExternalFetch(
@@ -828,6 +943,8 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
         "refresh_due": freshness.refresh_due,
         "usable_for_verification": freshness.usable_for_verification,
         "usable_for_scoring": freshness.usable_for_scoring,
+        "admission_provenance": admission_provenance,
+        "search_result_id": str(data.search_result_id) if data.search_result_id else None,
     }
     db.add(row)
     db.flush()
@@ -927,6 +1044,7 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
     execution.completed_at = datetime.now(UTC)
     db.commit()
     payload = dict(row.__dict__)
+    payload["reuse"] = False
     if evidence_id is not None:
         payload["evidence_id"] = evidence_id
     return payload

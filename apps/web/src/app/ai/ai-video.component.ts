@@ -10,6 +10,8 @@ import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
 import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
 
 type RecordValue = Record<string, unknown>;
 
@@ -17,28 +19,27 @@ type RecordValue = Record<string, unknown>;
   selector: 'app-ai-video',
   imports: [
     BreadcrumbsComponent,
+    BusinessEntitySelectorsComponent,
     CommerceJourneyNavComponent,
     CommonModule,
     ErrorStateComponent,
     FormsModule,
     LoadingStateComponent,
+    PageHeaderComponent,
     RouterLink,
   ],
   template: `
     <main class="video-page">
       <app-breadcrumbs [items]="breadcrumbs" />
-      <header class="hero">
-        <div>
-          <p class="eyebrow">AI Studio / Video</p>
-          <h1>AI Video Studio</h1>
-          <p class="lede">
-            Create reviewable, version-pinned videos from approved product context.
-          </p>
+      <app-page-header
+        eyebrow="Create / video"
+        title="AI video studio"
+        description="Create reviewable, version-pinned videos from approved product context."
+      >
+        <div page-header-actions class="provider-badge" role="status">
+          <strong>Local demo mode</strong><span>Deterministic - network-free</span>
         </div>
-        <div class="provider-badge" role="status">
-          <strong>Local Workflow Simulation</strong><span>Deterministic ï¿½ network-free</span>
-        </div>
-      </header>
+      </app-page-header>
       <app-commerce-journey-nav current="video" />
       @if (loading()) {
         <app-loading-state message="Loading saved video projects..." />
@@ -101,15 +102,13 @@ type RecordValue = Record<string, unknown>;
           <span [style.width.%]="(step() / 14) * 100"></span>
         </div>
         <div class="wizard-grid">
-          <label
-            >Product ID<input
-              [(ngModel)]="productId"
-              aria-label="Product ID"
-              placeholder="Approved Product UUID"
-          /></label>
-          <label
-            >Brand ID<input [(ngModel)]="brandId" aria-label="Brand ID" placeholder="Brand UUID"
-          /></label>
+          <app-business-entity-selectors
+            [showBrand]="true"
+            [productId]="productId"
+            [brandId]="brandId"
+            (productIdChange)="productId = $event"
+            (brandIdChange)="brandId = $event"
+          />
           <label
             >Video type<select [(ngModel)]="videoType">
               <option>product_showcase</option>
@@ -178,7 +177,7 @@ type RecordValue = Record<string, unknown>;
             [disabled]="queueing() || !canQueue()"
             (click)="queue()"
           >
-            {{ queueing() ? 'Queueingï¿½' : 'Queue Video' }}
+            {{ queueing() ? 'Queueing-' : 'Queue Video' }}
           </button>
         </div>
         @if (message()) {
@@ -219,17 +218,17 @@ type RecordValue = Record<string, unknown>;
             <tbody>
               @for (video of filteredVideos(); track video['id']) {
                 <tr>
-                  <td>{{ video['product_id'] || 'ï¿½' }}</td>
-                  <td>{{ video['video_type'] || 'ï¿½' }}</td>
-                  <td>{{ video['target_channel'] || 'ï¿½' }}</td>
-                  <td>{{ video['duration_seconds'] || 'ï¿½' }}s</td>
+                  <td>{{ video['product_id'] || '-' }}</td>
+                  <td>{{ video['video_type'] || '-' }}</td>
+                  <td>{{ video['target_channel'] || '-' }}</td>
+                  <td>{{ video['duration_seconds'] || '-' }}s</td>
                   <td>
-                    <span class="state">{{ video['status'] || 'ï¿½' }}</span>
+                    <span class="state">{{ video['status'] || '-' }}</span>
                   </td>
                   <td>
                     {{ video['approval_state'] || video['output_status'] || 'pending_review' }}
                   </td>
-                  <td>{{ video['created_at'] || '—' }}</td>
+                  <td>{{ video['created_at'] || '-' }}</td>
                   <td><button type="button" (click)="selectVideo(video)">Open review</button></td>
                 </tr>
               } @empty {
@@ -255,8 +254,8 @@ type RecordValue = Record<string, unknown>;
             <article class="card">
               <h3>{{ script['name'] }} v{{ script['version'] }}</h3>
               <p>
-                <strong>Artifact:</strong> {{ script['id'] }} · {{ script['status'] }} ·
-                {{ script['locale'] }} · {{ script['target_duration_seconds'] }}s
+                <strong>Artifact:</strong> {{ script['id'] }} - {{ script['status'] }} -
+                {{ script['locale'] }} - {{ script['target_duration_seconds'] }}s
               </p>
               <div class="button-row">
                 <button type="button" (click)="openScript(script)">Open / edit</button
@@ -284,8 +283,8 @@ type RecordValue = Record<string, unknown>;
         <div class="cards">
           @for (board of storyboards(); track board['id']) {
             <article class="card">
-              <h3>Version {{ board['version'] || 'ï¿½' }}</h3>
-              <p>{{ board['state'] || 'draft' }} ï¿½ {{ sceneCount(board) }} scenes</p>
+              <h3>Version {{ board['version'] || '-' }}</h3>
+              <p>{{ board['state'] || 'draft' }} - {{ sceneCount(board) }} scenes</p>
               <p>Readiness: {{ board['ready'] ? 'Ready' : 'Needs review' }}</p>
               <button type="button" (click)="openStoryboard(board)">Open editor</button>
             </article>
@@ -297,13 +296,18 @@ type RecordValue = Record<string, unknown>;
           <article class="editor card" aria-labelledby="storyboard-editor-title">
             <h3 id="storyboard-editor-title">Storyboard v{{ board['version'] }} editor</h3>
             <p class="muted">
-              Exact storyboard ID: {{ board['id'] }} Â· row {{ board['row_version'] }}
+              Exact storyboard ID: {{ board['id'] }} - row {{ board['row_version'] }}
             </p>
             @for (scene of editableScenes(); track scene['stable_key']; let index = $index) {
               <fieldset class="scene-card">
-                <legend>Scene {{ scene['scene_order'] }} Â· {{ scene['stable_key'] }}</legend>
+                <legend>Scene {{ scene['scene_order'] }} - {{ scene['stable_key'] }}</legend>
                 <div class="wizard-grid">
-                  <label>Source Media ID<input [(ngModel)]="scene['source_media_id']" /></label>
+                  <details>
+                    <summary>Advanced source media reference</summary>
+                    <label
+                      >Source media reference<input [(ngModel)]="scene['source_media_id']"
+                    /></label>
+                  </details>
                   <label
                     >Duration (seconds)<input
                       type="number"
@@ -415,7 +419,7 @@ type RecordValue = Record<string, unknown>;
             <article class="card">
               <h3>Style: {{ style['name'] || style['key'] || style['id'] }}</h3>
               <p>
-                Version {{ style['version'] || '—' }} ·
+                Version {{ style['version'] || '-' }} -
                 {{ style['archived_at'] ? 'Archived' : 'Active' }}
               </p>
               <div class="button-row">
@@ -440,14 +444,13 @@ type RecordValue = Record<string, unknown>;
           }
           @for (preset of presets(); track preset['id']) {
             <article class="card">
-              <h3>{{ preset['name'] || 'Preset' }} v{{ preset['version'] || 'ï¿½' }}</h3>
-              <p>{{ preset['video_type'] || 'ï¿½' }} ï¿½ {{ preset['target_channel'] || 'ï¿½' }}</p>
+              <h3>{{ preset['name'] || 'Preset' }} v{{ preset['version'] || '-' }}</h3>
+              <p>{{ preset['video_type'] || '-' }} - {{ preset['target_channel'] || '-' }}</p>
               <p>
-                {{ preset['resolution'] || 'ï¿½' }} ï¿½
-                {{ preset['target_duration_seconds'] || 'ï¿½' }}s
+                {{ preset['resolution'] || '-' }} - {{ preset['target_duration_seconds'] || '-' }}s
               </p>
               <p>
-                Style {{ preset['style_id'] || 'server default' }} · provider/model
+                Style {{ preset['style_id'] || 'server default' }} - provider/model
                 {{ preset['provider_key'] || 'Local Workflow Simulation' }}/{{
                   preset['model'] || 'deterministic'
                 }}
@@ -552,7 +555,7 @@ type RecordValue = Record<string, unknown>;
           @for (event of history(); track event['timestamp']) {
             <p class="step-summary">
               <strong>{{ event['action'] }}</strong
-              ><span>{{ event['timestamp'] }} · {{ event['correlation_id'] }}</span>
+              ><span>{{ event['timestamp'] }} - {{ event['correlation_id'] }}</span>
             </p>
           }
         } @else {
@@ -563,7 +566,7 @@ type RecordValue = Record<string, unknown>;
             <h3>Recovery projection</h3>
             <p>{{ state['safe_message'] }}</p>
             <p>
-              Failure: {{ state['failure_code'] || 'None' }} · Retryable:
+              Failure: {{ state['failure_code'] || 'None' }} - Retryable:
               {{ state['retryable'] ? 'Yes' : 'No' }}
             </p>
             <p>Eligible actions: {{ actionSummary(state['eligible_actions']) }}</p>

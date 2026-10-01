@@ -1,15 +1,18 @@
+import { PageHeaderComponent } from '../shared/page-header.component';
+import { EmptyStateComponent, ErrorStateComponent } from '../shared/state-components';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MarketplaceAccount, MarketplaceService } from './marketplace.service';
 
 @Component({
   selector: 'app-marketplace-accounts',
-  imports: [FormsModule],
+  imports: [FormsModule, PageHeaderComponent, EmptyStateComponent, ErrorStateComponent],
   template: `<section class="marketplace-page">
-    <header>
-      <h1>Marketplace accounts</h1>
-      <p>Credentials are write-only and never returned by the API.</p>
-    </header>
+    <app-page-header
+      eyebrow="Sell / marketplaces"
+      title="Marketplace accounts"
+      description="Credentials are write-only and never returned by the API."
+    />
     <form class="marketplace-form" (ngSubmit)="add()">
       <label
         >Marketplace<select name="marketplace" [(ngModel)]="draft.marketplace">
@@ -33,10 +36,18 @@ import { MarketplaceAccount, MarketplaceService } from './marketplace.service';
       ><button type="submit">Add account</button>
     </form>
     @if (error()) {
-      <p class="marketplace-error">{{ error() }}</p>
+      <app-error-state
+        title="Marketplace accounts are unavailable"
+        [message]="error()"
+        retryLabel="Retry"
+        (retry)="load()"
+      />
     }
     @if (!accounts().length && !loading()) {
-      <p class="marketplace-empty">No marketplace accounts yet.</p>
+      <app-empty-state
+        title="No marketplace accounts yet"
+        message="Add a marketplace account when a channel is ready."
+      />
     }
     <div class="marketplace-table">
       <table>

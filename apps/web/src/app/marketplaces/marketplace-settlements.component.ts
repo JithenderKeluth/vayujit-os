@@ -1,3 +1,9 @@
+import { PageHeaderComponent } from '../shared/page-header.component';
+import {
+  EmptyStateComponent,
+  ErrorStateComponent,
+  LoadingStateComponent,
+} from '../shared/state-components';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
@@ -5,18 +11,27 @@ import { MarketplaceService, MarketplaceSettlement } from './marketplace.service
 
 @Component({
   selector: 'app-marketplace-settlements',
-  imports: [FormsModule],
+  imports: [
+    FormsModule,
+    PageHeaderComponent,
+    EmptyStateComponent,
+    ErrorStateComponent,
+    LoadingStateComponent,
+  ],
   template: `
     <section class="marketplace-page">
-      <header>
-        <h1>Marketplace settlements</h1>
-        <p>
-          Normalized settlement lines preserve gross, refunds, fees, withholding, adjustments, net,
-          and currency.
-        </p>
-      </header>
+      <app-page-header
+        eyebrow="Sell / marketplaces"
+        title="Marketplace settlements"
+        description="Normalized settlement lines preserve gross, refunds, fees, withholding, adjustments, net, and currency."
+      />
       @if (error()) {
-        <p class="marketplace-error" role="alert">{{ error() }}</p>
+        <app-error-state
+          title="Marketplace settlements are unavailable"
+          [message]="error()"
+          retryLabel="Retry"
+          (retry)="load()"
+        />
       }
       <div class="workspace-grid-form">
         <label
@@ -28,12 +43,18 @@ import { MarketplaceService, MarketplaceSettlement } from './marketplace.service
           </select></label
         ><label>Status<input [(ngModel)]="statusFilter" placeholder="Any status" /></label
         ><label
-          >Currency<input [(ngModel)]="currencyFilter" placeholder="INR" maxlength="3" /></label
+          >Currency<input
+            [(ngModel)]="currencyFilter"
+            placeholder="Currency code"
+            maxlength="3" /></label
         ><label>From<input type="date" [(ngModel)]="dateFrom" /></label
         ><label>To<input type="date" [(ngModel)]="dateTo" /></label>
       </div>
+      @if (loading()) {
+        <app-loading-state message="Loading marketplace settlements..." />
+      }
       @if (!filteredItems().length && !loading()) {
-        <p class="marketplace-empty">No settlements match the filters.</p>
+        <app-empty-state title="No settlements found" message="No settlements match the filters." />
       }
       <div class="marketplace-table">
         <table>
@@ -57,7 +78,7 @@ import { MarketplaceService, MarketplaceSettlement } from './marketplace.service
             @for (item of filteredItems(); track item.id) {
               <tr>
                 <td>{{ item.marketplace }}</td>
-                <td>{{ item.period_start }} — {{ item.period_end }}</td>
+                <td>{{ item.period_start }} - {{ item.period_end }}</td>
                 <td>{{ item.status || 'settled' }}</td>
                 <td>{{ item.gross_amount }}</td>
                 <td>{{ item.refund_amount }}</td>

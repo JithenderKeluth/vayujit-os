@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { EvidenceCardComponent } from '../shared/evidence-card.component';
 import { PageHeaderComponent } from '../shared/page-header.component';
 import { StatusBadgeComponent } from '../shared/status-badge.component';
@@ -12,6 +13,9 @@ import {
   LoadingStateComponent,
 } from '../shared/state-components';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { CommerceJourneyService } from '../commerce-journey.service';
+import { intelligenceErrorMessage } from './intelligence-error';
+import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
 import {
   TrendAnalysis,
   TrendAnalysisSeries,
@@ -39,11 +43,13 @@ import {
     EmptyStateComponent,
     ErrorStateComponent,
     LoadingStateComponent,
+    CommerceJourneyContextComponent,
   ],
   styleUrl: './intelligence-workspace.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-breadcrumbs [items]="breadcrumbs" />
+    <app-commerce-journey-context />
     @if (loading()) {
       <app-loading-state message="Loading existing trend intelligence..." />
     }
@@ -59,24 +65,49 @@ import {
       @if (!contexts().length && !loading() && !error()) {
         <app-empty-state
           title="No trend research yet"
-          message="Create a trend context to begin reviewing observed external signals."
+          message="No trend evidence has been collected for the selected product yet."
         />
       }
-      <form (ngSubmit)="create()">
-        <label>Context name <input name="name" [(ngModel)]="name" required /></label>
-        <label
-          >Subject type
-          <select name="subjectType" [(ngModel)]="subjectType">
-            <option>PRODUCT</option>
-            <option>BRAND</option>
-            <option>CATEGORY</option>
-            <option>KEYWORD</option>
-            <option>CUSTOM</option>
-          </select></label
-        >
-        <label>Subject key <input name="subjectKey" [(ngModel)]="subjectKey" required /></label>
-        <button type="submit">Create context</button>
-      </form>
+      <section class="panel" aria-labelledby="context-heading">
+        <h2 id="context-heading">Trend research context</h2>
+        @if (journeyContextResolved) {
+          <p class="muted">
+            The selected product context is ready. Context setup is automatic; evidence collection
+            remains an explicit human action.
+          </p>
+        } @else {
+          <p class="muted">Select a product before starting trend research.</p>
+        }
+        <button type="button" (click)="advancedContextOpen = !advancedContextOpen">
+          {{
+            advancedContextOpen
+              ? 'Hide advanced research controls'
+              : 'Open advanced research controls'
+          }}
+        </button>
+        @if (advancedContextOpen) {
+          <details open>
+            <summary>Advanced / manual context</summary>
+            <form (ngSubmit)="create()">
+              <label>Context name <input name="name" [(ngModel)]="name" required /></label>
+              <label
+                >Subject type
+                <select name="subjectType" [(ngModel)]="subjectType">
+                  <option>PRODUCT</option>
+                  <option>BRAND</option>
+                  <option>CATEGORY</option>
+                  <option>KEYWORD</option>
+                  <option>CUSTOM</option>
+                </select></label
+              >
+              <label
+                >Subject key <input name="subjectKey" [(ngModel)]="subjectKey" required
+              /></label>
+              <button type="submit">Create manual context</button>
+            </form>
+          </details>
+        }
+      </section>
       @if (error()) {
         <app-error-state
           title="Trend data is unavailable"
@@ -84,7 +115,6 @@ import {
           retryLabel="Retry"
           (retry)="load()"
         />
-        <p role="alert">{{ error() }}</p>
       }
       @if (contexts().length) {
         <section aria-labelledby="context-heading">
@@ -208,8 +238,8 @@ import {
           </button>
           @if (analysis()) {
             <p>
-              Readiness: {{ analysis()?.readiness }} � observations:
-              {{ analysis()?.included_observation_count }} � freshness:
+              Readiness: {{ analysis()?.readiness }} - observations:
+              {{ analysis()?.included_observation_count }} - freshness:
               {{ analysis()?.freshness_state }}
             </p>
             @if (analysis()?.limitations?.length) {
@@ -234,12 +264,12 @@ import {
                     <tr>
                       <td>{{ item.signal_definition_id }} / {{ item.source_id }}</td>
                       <td>
-                        {{ item.time_start | date: 'short' }} � {{ item.time_end | date: 'short' }}
+                        {{ item.time_start | date: 'short' }} - {{ item.time_end | date: 'short' }}
                       </td>
                       <td>{{ item.sample_size }}</td>
                       <td>
-                        {{ item.change['absolute'] ?? '�' }} ({{
-                          item.change['relative_percent'] ?? '�'
+                        {{ item.change['absolute'] ?? 'Not available' }} ({{
+                          item.change['relative_percent'] ?? 'Not available'
                         }}%)
                       </td>
                       <td>{{ item.direction }}</td>
@@ -348,6 +378,7 @@ import {
 })
 export class TrendIntelligenceWorkspaceComponent {
   private readonly service = inject(TrendIntelligenceService);
+  private readonly journey = inject(CommerceJourneyService, { optional: true });
   readonly contexts = signal<TrendContext[]>([]);
   readonly selected = signal<TrendContext | null>(null);
   readonly observations = signal<TrendObservation[]>([]);
@@ -363,18 +394,91 @@ export class TrendIntelligenceWorkspaceComponent {
   name = '';
   subjectType = 'CUSTOM';
   subjectKey = '';
+  journeyProductId = '';
+  journeyOpportunityId = '';
+  journeyContextResolved = false;
+  advancedContextOpen = false;
+  private contextResolutionInFlight: Promise<void> | null = null;
   sourceId = '';
   fixtureSignal = 'CUSTOM_INDEX';
   fixtureValue = '1';
   constructor() {
     this.load();
+    void this.loadJourneyContext();
+  }
+  private async loadJourneyContext(): Promise<void> {
+    if (!this.journey) return;
+    try {
+      const active = await this.journey.active();
+      const values = active?.context.values ?? {};
+      const productId = values['product_id'];
+      const opportunityId =
+        values['selected_product_opportunity_id'] ?? values['product_opportunity_id'];
+      if (typeof opportunityId === 'string' && opportunityId) {
+        this.journeyOpportunityId = opportunityId;
+      }
+      if (typeof productId === 'string' && productId) {
+        this.journeyProductId = productId;
+        this.subjectType = 'PRODUCT';
+        this.subjectKey = productId;
+        this.name =
+          typeof values['product_name'] === 'string'
+            ? `${values['product_name']} trends`
+            : 'Selected product trends';
+      }
+      await this.ensureJourneyContext();
+    } catch {
+      // Advanced manual context creation remains available when no journey is active.
+    }
+  }
+  private async ensureJourneyContext(): Promise<void> {
+    if ((!this.journeyProductId && !this.journeyOpportunityId) || this.contextResolutionInFlight) {
+      return this.contextResolutionInFlight ?? Promise.resolve();
+    }
+    this.contextResolutionInFlight = (async () => {
+      const existing = await firstValueFrom(this.service.contexts());
+      this.contexts.set(existing);
+      const match =
+        (this.journeyOpportunityId
+          ? existing.find((context) => context.product_opportunity_id === this.journeyOpportunityId)
+          : undefined) ??
+        (this.journeyProductId
+          ? existing.find((context) => context.product_id === this.journeyProductId)
+          : undefined);
+      const context =
+        match ??
+        (await firstValueFrom(
+          this.service.createContext({
+            name: this.name || 'Selected product trends',
+            subject_type: 'PRODUCT',
+            subject_key: this.subjectKey || this.journeyProductId,
+            product_id: this.journeyProductId || undefined,
+            product_opportunity_id: this.journeyOpportunityId || undefined,
+            idempotency_key:
+              'ux-r11a-trend-' + (this.journeyOpportunityId || this.journeyProductId),
+          }),
+        ));
+      this.contexts.update((items) =>
+        items.some((item) => item.id === context.id) ? items : [context, ...items],
+      );
+      this.journeyContextResolved = true;
+      this.select(context);
+    })()
+      .catch(() => {
+        this.journeyContextResolved = false;
+        this.error.set('The selected product trend context could not be prepared.');
+      })
+      .finally(() => {
+        this.contextResolutionInFlight = null;
+      });
+    return this.contextResolutionInFlight;
   }
   load(): void {
     this.loading.set(true);
     this.service.contexts().subscribe({
       next: (value) => this.contexts.set(value),
-      error: () => {
-        this.error.set('Trend data is unavailable.');
+      error: (error: unknown) => {
+        this.error.set(intelligenceErrorMessage(error, 'Trend data is unavailable.'));
         this.loading.set(false);
       },
       complete: () => this.loading.set(false),

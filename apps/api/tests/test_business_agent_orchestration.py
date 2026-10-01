@@ -542,4 +542,7 @@ def test_explicit_sourcing_economics_opt_in_is_factual_and_reviewable(
     ]
     assert len(briefs) == 1
     assert briefs[0]["payload"]["sourcing_economics"]["requires_human_review"] is True
+    decision_brief = briefs[0]["payload"]["sourcing_economics"]["decision_brief"]
+    assert decision_brief["decision_readiness"] in {"NOT_READY", "NEEDS_REVIEW"}
+    assert decision_brief["external_writes"] == []
     assert "ranking" not in briefs[0]["payload"]["sourcing_economics"]

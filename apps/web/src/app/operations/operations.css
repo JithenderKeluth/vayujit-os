@@ -308,6 +308,7 @@ textarea:focus {
   gap: var(--vj-space-5);
 }
 .goal-panel,
+.active-goal-panel,
 .quick-starts,
 .attention-section,
 .at-a-glance {
@@ -320,14 +321,29 @@ textarea:focus {
   box-shadow: var(--vj-shadow-sm);
 }
 .goal-panel h2,
+.active-goal-panel h2,
 .quick-starts h2,
 .attention-section h2,
 .at-a-glance h2 {
   margin: 0;
 }
 .goal-panel p,
+.active-goal-panel p,
 .quick-start p {
   margin: 0;
+}
+.active-goal-panel {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--vj-space-4);
+  align-items: flex-start;
+  border: 2px solid var(--vj-color-brand);
+  background: var(--vj-color-brand-soft);
+}
+.active-goal-panel .trust-note {
+  max-width: 22rem;
+  color: var(--vj-color-ink-soft);
+  font-size: 0.9rem;
 }
 .quick-start-grid,
 .attention-grid {
@@ -360,6 +376,46 @@ textarea:focus {
 .attention-section {
   background: var(--vj-color-surface-muted);
 }
+.opportunities-section {
+  display: grid;
+  gap: var(--vj-space-3);
+}
+.opportunity-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: var(--vj-space-3);
+}
+.opportunity-item {
+  display: grid;
+  gap: 0.45rem;
+  padding: var(--vj-space-4);
+  border: 1px solid var(--vj-color-border);
+  border-radius: var(--vj-radius-md);
+  background: var(--vj-color-surface);
+}
+.opportunity-item p {
+  margin: 0;
+  color: var(--vj-color-ink-soft);
+}
+.advanced-dashboard {
+  display: grid;
+  gap: var(--vj-space-3);
+  border: 1px solid var(--vj-color-border);
+  border-radius: var(--vj-radius-md);
+  background: var(--vj-color-surface-muted);
+}
+.advanced-dashboard summary {
+  padding: var(--vj-space-4);
+  cursor: pointer;
+  color: var(--vj-color-ink-soft);
+  font-weight: 700;
+}
+.advanced-dashboard[open] {
+  padding-bottom: var(--vj-space-4);
+}
+.advanced-dashboard[open] .op-card {
+  margin: 0 var(--vj-space-4);
+}
 .attention-item p {
   margin: 0.35rem 0 0;
   color: var(--vj-color-ink-soft);
@@ -369,6 +425,9 @@ textarea:focus {
 }
 .dashboard-metrics .op-card {
   min-height: 8rem;
+}
+.active-goal-panel .trust-note {
+  margin: 0;
 }
 .dashboard-metrics .op-card h2 {
   margin: 0;
@@ -393,5 +452,13 @@ textarea:focus {
   .quick-start-grid,
   .attention-grid {
     grid-template-columns: 1fr;
+  }
+}
+.active-goal-panel {
+  min-width: 0;
+}
+@media (max-width: 760px) {
+  .active-goal-panel {
+    display: grid;
   }
 }
