@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -44,6 +44,7 @@ from vayujit_api.intelligence.business_agent_schemas import (
 from vayujit_api.intelligence.business_agent_service import (
     create_goal,
     create_plan,
+    delete_goal,
     execute_run,
     get_goal,
     run_or_404,
@@ -151,6 +152,38 @@ def _run_payload(db: Session, run: BusinessAgentRun, owner: User) -> dict[str, o
                     BusinessAgentToolInvocation.owner_id == owner.id,
                 )
             )
+        ],
+    }
+
+
+def _plan_payload(db: Session, plan_value: BusinessAgentPlan, owner: User) -> dict[str, object]:
+    steps = list(
+        db.scalars(
+            select(BusinessAgentStep)
+            .where(
+                BusinessAgentStep.plan_id == plan_value.id,
+                BusinessAgentStep.owner_id == owner.id,
+            )
+            .order_by(BusinessAgentStep.created_at)
+        )
+    )
+    return {
+        "id": plan_value.id,
+        "goal_id": plan_value.goal_id,
+        "version": plan_value.version,
+        "status": plan_value.status,
+        "planner": plan_value.planner,
+        "plan_hash": plan_value.plan_hash,
+        "steps": [
+            {
+                "key": step.step_key,
+                "capability_id": step.capability_id,
+                "dependencies": step.dependency_keys,
+                "execution_mode": step.execution_mode,
+                "side_effect_class": step.side_effect_class,
+                "status": step.status,
+            }
+            for step in steps
         ],
     }
 
@@ -591,35 +624,16 @@ def goal_get(goal_id: uuid.UUID, db: DB, owner: Owner) -> BusinessAgentGoal:
     return get_goal(db, owner, goal_id)
 
 
+@router.delete("/goals/{goal_id}", status_code=204)
+def goal_delete(goal_id: uuid.UUID, db: DB, owner: Owner) -> Response:
+    delete_goal(db, owner, goal_id)
+    return Response(status_code=204)
+
+
 @router.post("/goals/{goal_id}/plan", response_model=PlanResponse)
 def plan(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
     value = create_plan(db, owner, get_goal(db, owner, goal_id))
-    steps = list(
-        db.scalars(
-            select(BusinessAgentStep)
-            .where(BusinessAgentStep.plan_id == value.id, BusinessAgentStep.owner_id == owner.id)
-            .order_by(BusinessAgentStep.created_at)
-        )
-    )
-    return {
-        "id": value.id,
-        "goal_id": value.goal_id,
-        "version": value.version,
-        "status": value.status,
-        "planner": value.planner,
-        "plan_hash": value.plan_hash,
-        "steps": [
-            {
-                "key": s.step_key,
-                "capability_id": s.capability_id,
-                "dependencies": s.dependency_keys,
-                "execution_mode": s.execution_mode,
-                "side_effect_class": s.side_effect_class,
-                "status": s.status,
-            }
-            for s in steps
-        ],
-    }
+    return _plan_payload(db, value, owner)
 
 
 @router.post("/goals/{goal_id}/plan/revise", response_model=PlanResponse)
@@ -655,12 +669,39 @@ def revise(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
 
 @router.get("/goals/{goal_id}/plan", response_model=PlanResponse)
 def get_plan(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
-    return plan(goal_id, db, owner)
+    goal = get_goal(db, owner, goal_id)
+    value = db.scalar(
+        select(BusinessAgentPlan)
+        .where(
+            BusinessAgentPlan.goal_id == goal.id,
+            BusinessAgentPlan.owner_id == owner.id,
+        )
+        .order_by(BusinessAgentPlan.version.desc())
+    )
+    if value is None:
+        raise HTTPException(404, "Business agent plan not found.")
+    return _plan_payload(db, value, owner)
 
 
 @router.post("/goals/{goal_id}/runs", response_model=RunResponse, status_code=201)
 def run_create(goal_id: uuid.UUID, data: RunCreate, db: DB, owner: Owner) -> dict[str, object]:
     return _run_payload(db, start_run(db, owner, get_goal(db, owner, goal_id), data), owner)
+
+
+@router.get("/goals/{goal_id}/runs/latest", response_model=RunResponse)
+def latest_run(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
+    goal = get_goal(db, owner, goal_id)
+    value = db.scalar(
+        select(BusinessAgentRun)
+        .where(
+            BusinessAgentRun.goal_id == goal.id,
+            BusinessAgentRun.owner_id == owner.id,
+        )
+        .order_by(BusinessAgentRun.updated_at.desc(), BusinessAgentRun.created_at.desc())
+    )
+    if value is None:
+        raise HTTPException(404, "Business agent run not found.")
+    return _run_payload(db, value, owner)
 
 
 @router.get("/runs/{run_id}", response_model=RunResponse)

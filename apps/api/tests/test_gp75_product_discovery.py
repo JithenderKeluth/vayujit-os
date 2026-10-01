@@ -52,3 +52,11 @@ def test_legacy_generic_opportunity_cannot_advance_journey_or_comparison() -> No
     assert _candidate_state(generic, None) == "INSUFFICIENT_EVIDENCE"
     assert _meaningful_opportunity(meaningful) is True
     assert _candidate_state(meaningful, None) == "NEEDS_MORE_RESEARCH"
+
+
+def test_category_filter_never_returns_unrelated_fixture_candidates() -> None:
+    candidates = discover_local_product_candidates(
+        "Find product opportunities in kids category.",
+        {"marketplace": "AMAZON_IN", "country_region": "IN", "category": "kids"},
+    )
+    assert candidates == []

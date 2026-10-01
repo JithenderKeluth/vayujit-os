@@ -6,6 +6,7 @@ import time
 import uuid
 from datetime import UTC, datetime
 from typing import cast
+from urllib.parse import urlparse
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -121,6 +122,7 @@ def _source_policy_allowed(
 ) -> tuple[str, str]:
     robots = str(profile.robots_policy if profile is not None else "UNKNOWN").upper()
     terms = str(profile.terms_status if profile is not None else "UNKNOWN").upper()
+    access = str(profile.access_classification if profile is not None else "UNKNOWN").upper()
     if robots == "MANUAL_REVIEW_REQUIRED":
         robots = "REVIEW_REQUIRED"
     if terms == "MANUAL_REVIEW_REQUIRED":
@@ -131,10 +133,11 @@ def _source_policy_allowed(
     if profile is not None and (
         robots in {"NOT_APPROVED", "REVIEW_REQUIRED", "MANUAL_REVIEW_REQUIRED"}
         or terms in {"NOT_APPROVED", "REVIEW_REQUIRED", "MANUAL_REVIEW_REQUIRED"}
+        or access in {"NOT_APPROVED", "REVIEW_REQUIRED", "MANUAL_REVIEW_REQUIRED"}
     ):
         raise HTTPException(403, "External source policy does not permit this fetch.")
     if settings.intelligence_external_require_source_approval and (
-        robots != "APPROVED" or terms != "APPROVED"
+        robots != "APPROVED" or terms != "APPROVED" or access != "APPROVED"
     ):
         raise HTTPException(403, "External source approval is required before fetching.")
     return robots, terms
@@ -148,6 +151,93 @@ def _effective_allowed(requested: tuple[str, ...], configured: tuple[str, ...]) 
 
 def _identity(value: object) -> str:
     return hashlib.sha256(str(value).encode()).hexdigest()
+
+
+def normalize_source_domain(value: str) -> str:
+    """Normalize one explicit public domain without approving any fetch."""
+    raw = value.strip().lower().rstrip(".")
+    if not raw or "*" in raw or "/" in raw or "?" in raw or "#" in raw or ":" in raw:
+        raise ValueError("A single public hostname is required for source admission.")
+    requested = canonical_url(f"https://{raw}")
+    parsed = urlparse(requested)
+    if parsed.hostname != raw or parsed.path not in {"", "/"} or parsed.query:
+        raise ValueError("Source admission accepts a hostname only.")
+    return raw
+
+
+def admit_source_profile(
+    db: Session,
+    owner: User,
+    *,
+    domain: str,
+    reason: str,
+    approval_authority: str = "internal_validation",
+    robots_policy: str = "APPROVED",
+    terms_status: str = "APPROVED",
+    access_classification: str = "APPROVED",
+) -> ExternalSourceProfile:
+    """Record explicit, owner-scoped approval in the canonical source-profile table."""
+    normalized = normalize_source_domain(domain)
+    if not reason.strip() or not approval_authority.strip():
+        raise ValueError("Admission reason and approval authority are required.")
+    statuses = {robots_policy.upper(), terms_status.upper(), access_classification.upper()}
+    if statuses != {"APPROVED"}:
+        raise ValueError("Only explicit APPROVED source classifications may be admitted.")
+    profile_name = f"dynamic-{hashlib.sha256(normalized.encode()).hexdigest()[:32]}"
+    profile = db.scalar(
+        select(ExternalSourceProfile).where(
+            ExternalSourceProfile.owner_id == owner.id,
+            ExternalSourceProfile.name == profile_name,
+        )
+    )
+    if profile is None:
+        profile = ExternalSourceProfile(owner_id=owner.id, name=profile_name)
+        db.add(profile)
+    profile.approved_domains = [normalized]
+    profile.blocked_domains = []
+    profile.robots_policy = "APPROVED"
+    profile.terms_status = "APPROVED"
+    profile.access_classification = "APPROVED"
+    profile.enabled = True
+    db.flush()
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="external.source.approved",
+        entity_type="external_source_profile",
+        entity_id=profile.id,
+        metadata={
+            "domain": normalized,
+            "reason": reason.strip(),
+            "approval_authority": approval_authority.strip(),
+            "robots_policy": profile.robots_policy,
+            "terms_status": profile.terms_status,
+            "access_classification": profile.access_classification,
+        },
+        idempotency_key=f"external-source-approval:{owner.id}:{normalized}:{approval_authority.strip()}",
+    )
+    return profile
+
+
+def approved_source_profiles(db: Session, owner: User) -> dict[str, str]:
+    """Return only enabled, fully approved domains for this owner."""
+    rows = db.scalars(
+        select(ExternalSourceProfile).where(
+            ExternalSourceProfile.owner_id == owner.id,
+            ExternalSourceProfile.enabled.is_(True),
+            ExternalSourceProfile.robots_policy == "APPROVED",
+            ExternalSourceProfile.terms_status == "APPROVED",
+            ExternalSourceProfile.access_classification == "APPROVED",
+        )
+    )
+    result: dict[str, str] = {}
+    for profile in rows:
+        for raw_domain in profile.approved_domains or []:
+            try:
+                result[normalize_source_domain(str(raw_domain))] = profile.name
+            except ValueError:
+                continue
+    return result
 
 
 def _search_reuse_payload(

@@ -126,7 +126,10 @@ def test_research_results_projection_and_human_selection(
     assert results.status_code == 200, results.text
     card = next(item for item in results.json()["candidates"] if item["id"] == str(opportunity_id))
     assert card["candidate_state"] == "INSUFFICIENT_EVIDENCE"
-    assert card["why_this_surfaced"] == ["Insufficient evidence"]
+    assert card["why_this_surfaced"] == [
+        "This candidate is linked to the current research goal.",
+        "Evidence-backed rationale is not available yet.",
+    ]
 
     decision = api.post(
         f"/api/v1/intelligence/product-opportunities/{opportunity_id}"

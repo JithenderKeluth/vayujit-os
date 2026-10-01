@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 import uuid
 from typing import Annotated, Any
 
@@ -88,6 +89,28 @@ def _candidate_state(opportunity: ProductOpportunity, score: ProductOpportunityS
     return "READY_TO_COMPARE"
 
 
+def _goal_category(goal: BusinessAgentGoal) -> str:
+    # The current user statement is authoritative when it explicitly names a category.
+    # Older structured values can otherwise leak a previous goal into a later goal.
+    match = re.search(
+        r"\b(?:in|for|within)\s+(?:the\s+)?([a-z][a-z0-9 &\-/]{1,80}?)\s+categor(?:y|ies)\b",
+        goal.raw_goal.casefold(),
+    )
+    if match:
+        return re.sub(r"\s+", " ", match.group(1)).strip(" .,-")
+    structured = goal.structured_goal or {}
+    value = structured.get("category")
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _matches_goal_category(row: ProductOpportunity, category: str) -> bool:
+    requested = set(re.findall(r"[a-z0-9]+", category.casefold()))
+    observed = set(
+        re.findall(r"[a-z0-9]+", f"{row.category or ''} {row.subcategory or ''}".casefold())
+    )
+    return bool(requested & observed)
+
+
 def _research_scope(
     db: Session, owner: User, goal_id: uuid.UUID | None
 ) -> tuple[list[ProductOpportunity], BusinessAgentGoal | None, list[uuid.UUID], int]:
@@ -137,6 +160,11 @@ def _research_scope(
         if (explicit_uuid is not None and row.id == explicit_uuid)
         or any(row.idempotency_key.startswith(prefix) for prefix in prefixes)
     ]
+    requested_category = _goal_category(goal)
+    if requested_category:
+        active_rows = [
+            row for row in active_rows if _matches_goal_category(row, requested_category)
+        ]
     historical_count = max(0, len(meaningful_owner_rows) - len(active_rows))
     return active_rows, goal, run_ids, historical_count
 
@@ -227,7 +255,9 @@ def research_results(
         cards.append(
             {
                 "id": str(opportunity.id),
-                "name": opportunity.name,
+                "name": str(profile.get("display_name") or opportunity.name),
+                "display_name": str(profile.get("display_name") or opportunity.name),
+                "observed_name": str(profile.get("observed_name") or opportunity.name),
                 "description": opportunity.description or opportunity.product_concept,
                 "product_concept": opportunity.product_concept,
                 "category": opportunity.category,
@@ -246,7 +276,10 @@ def research_results(
                 "score": _response(score) if score else None,
                 "why_this_surfaced": [item for item in profile_why_list if isinstance(item, str)]
                 or positive
-                or ["Insufficient evidence"],
+                or [
+                    "This candidate is linked to the current research goal.",
+                    "Evidence-backed rationale is not available yet.",
+                ],
                 "strengths": positive,
                 "risks": negative,
                 "data_gaps": gaps,
@@ -271,6 +304,13 @@ def research_results(
     insufficient_evidence = sum(
         card["candidate_state"] == "INSUFFICIENT_EVIDENCE" for card in cards
     )
+    structured_values = dict(active_goal.structured_goal or {}) if active_goal else {}
+    commerce_values = structured_values.get("commerce_context")
+    if isinstance(commerce_values, dict):
+        structured_values.update(commerce_values)
+    requested_category = _goal_category(active_goal) if active_goal else ""
+    if requested_category and not structured_values.get("category"):
+        structured_values["category"] = requested_category
     return {
         "active_goal_id": str(active_goal.id) if active_goal else None,
         "active_run_ids": [str(value) for value in active_run_ids],
@@ -280,11 +320,7 @@ def research_results(
             {
                 "summary": active_goal.raw_goal[:280],
                 "confirmed": bool((active_goal.provenance or {}).get("commerce_context_confirmed")),
-                "values": (
-                    (active_goal.structured_goal or {}).get("commerce_context", {})
-                    if active_goal
-                    else {}
-                ),
+                "values": structured_values,
             }
             if active_goal
             else None

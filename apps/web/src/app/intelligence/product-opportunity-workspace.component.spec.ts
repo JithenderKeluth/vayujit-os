@@ -460,3 +460,46 @@ describe('Product opportunity human selection', () => {
     http.verify();
   });
 });
+
+describe('PR-2 one-candidate selection UX', () => {
+  it('explains that comparison is unavailable and preserves the observed source title', () => {
+    const { fixture, component, http } = setup();
+    const item = {
+      research_run_id: null,
+      id: 'one',
+      name: 'Insulated Food Container',
+      description: 'Evidence-backed concept',
+      product_concept: 'Reusable food container',
+      category: 'Home',
+      marketplace: 'Amazon India',
+      region: 'IN',
+      research_state: 'completed',
+      evidence_state: 'partial',
+      assessment_id: null,
+      score: null,
+      candidate_state: 'NEEDS_MORE_RESEARCH',
+      selected: false,
+      why_this_surfaced: ['Matched live product evidence.'],
+      strengths: [],
+      risks: [],
+      data_gaps: ['Assessment'],
+      next_validation: ['Review evidence'],
+      evidence: [],
+    } as ResearchCandidate;
+    item.observed_name = 'Insulated Food Container - Manufacturer from Ahmedabad';
+    component.researchResults.set({
+      status: 'RESEARCH_COMPLETED_WITH_GAPS',
+      summary: { total: 1, ready_for_comparison: 0, needs_more_research: 1 },
+      candidates: [item],
+      selected_candidate_ids: [],
+      human_selection: { provenance: 'UNKNOWN', count: 0 },
+    });
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent as string;
+    expect(text).toContain('One meaningful product found');
+    expect(text).toContain('comparison is unavailable');
+    expect(text).toContain('Observed source title');
+    expect(text).toContain('Insulated Food Container - Manufacturer from Ahmedabad');
+    http.verify();
+  });
+});

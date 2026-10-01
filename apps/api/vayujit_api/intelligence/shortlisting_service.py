@@ -15,6 +15,7 @@ from vayujit_api.identity.models import User
 from vayujit_api.intelligence.cross_marketplace_models import CrossMarketplaceSupplier
 from vayujit_api.intelligence.cross_marketplace_service import compare as compare_suppliers
 from vayujit_api.intelligence.models import IntelligenceOpportunity
+from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
 from vayujit_api.intelligence.shortlisting_closure import (
     contradiction_gate,
     currency_gate,
@@ -109,8 +110,25 @@ def create_context(db: Session, owner: User, data: ShortlistContextCreate):
             "Sourcing requirement is not available in the owner scope.",
         ),
     ):
-        if value is not None:
+        if value is not None and model is not IntelligenceOpportunity:
             _owned(db, model, owner, value, message)
+    if (
+        data.opportunity_id is not None
+        and db.scalar(
+            select(IntelligenceOpportunity).where(
+                IntelligenceOpportunity.id == data.opportunity_id,
+                IntelligenceOpportunity.owner_id == owner.id,
+            )
+        )
+        is None
+    ):
+        _owned(
+            db,
+            ProductOpportunity,
+            owner,
+            data.opportunity_id,
+            "Opportunity is not available in the owner scope.",
+        )
     payload = _context_payload(data)
     row = SupplierShortlistContext(
         owner_id=owner.id,
@@ -173,8 +191,25 @@ def version_context(
             "Sourcing requirement is not available in the owner scope.",
         ),
     ):
-        if value is not None:
+        if value is not None and model is not IntelligenceOpportunity:
             _owned(db, model, owner, value, message)
+    if (
+        data.opportunity_id is not None
+        and db.scalar(
+            select(IntelligenceOpportunity).where(
+                IntelligenceOpportunity.id == data.opportunity_id,
+                IntelligenceOpportunity.owner_id == owner.id,
+            )
+        )
+        is None
+    ):
+        _owned(
+            db,
+            ProductOpportunity,
+            owner,
+            data.opportunity_id,
+            "Opportunity is not available in the owner scope.",
+        )
     payload = _context_payload(data)
     context.current_version += 1
     context.payload = payload
@@ -197,14 +232,59 @@ def _view(supplier: CrossMarketplaceSupplier) -> dict[str, Any]:
     return dict(supplier.view_json or {})
 
 
-def _list_suppliers(db: Session, owner: User) -> list[CrossMarketplaceSupplier]:
-    return list(
+def _list_suppliers(
+    db: Session, owner: User, context: SupplierShortlistContext
+) -> list[CrossMarketplaceSupplier]:
+    rows = list(
         db.scalars(
             select(CrossMarketplaceSupplier)
             .where(CrossMarketplaceSupplier.owner_id == owner.id)
             .order_by(CrossMarketplaceSupplier.display_name)
         )
     )
+    # SupplierSearch is the authoritative product-scoped discovery lineage. Keep
+    # legacy contexts usable when no scoped search exists, but never mix a known
+    # product search with unrelated owner-scoped suppliers.
+    from vayujit_api.intelligence.supplier_models import SupplierSearch
+
+    searches = list(
+        db.scalars(
+            select(SupplierSearch).where(
+                SupplierSearch.owner_id == owner.id,
+                SupplierSearch.status == "completed",
+            )
+        )
+    )
+    scoped_ids: set[uuid.UUID] = set()
+    for search in searches:
+        requirements = search.requirements or {}
+        matches_opportunity = context.opportunity_id is not None and (
+            search.opportunity_id == context.opportunity_id
+            or str(requirements.get("product_opportunity_id") or "") == str(context.opportunity_id)
+        )
+        matches_product = context.product_id is not None and search.product_id == context.product_id
+        if matches_opportunity or matches_product:
+            values = (search.summary_json or {}).get("supplier_ids", [])
+            if isinstance(values, list):
+                for value in values:
+                    try:
+                        scoped_ids.add(uuid.UUID(str(value)))
+                    except (TypeError, ValueError):
+                        continue
+    if scoped_ids:
+        filtered: list[CrossMarketplaceSupplier] = []
+        for row in rows:
+            view = row.view_json if isinstance(row.view_json, dict) else {}
+            identity = view.get("identity")
+            identity = identity if isinstance(identity, dict) else {}
+            supplier_ids = identity.get("supplier_ids")
+            supplier_ids = supplier_ids if isinstance(supplier_ids, list) else []
+            if row.id in scoped_ids or {str(item) for item in scoped_ids}.intersection(
+                str(value) for value in supplier_ids
+            ):
+                filtered.append(row)
+        rows = filtered
+    return rows
 
 
 def _classify(
@@ -281,7 +361,7 @@ def generate_shortlist(
     total = sum(weights.values()) or 1
     weights = {k: round(v * 100 / total, 4) for k, v in weights.items()}
     items: list[dict[str, object]] = []
-    for supplier in _list_suppliers(db, owner):
+    for supplier in _list_suppliers(db, owner, context):
         eligibility, reasons, confidence = _classify(context, supplier)
         dimensions = _dimensions(eligibility, confidence, weights, reasons)
         score = round(sum(float(cast(Any, x["contribution"])) for x in dimensions), 4)
@@ -396,6 +476,31 @@ def generate_shortlist(
     return result
 
 
+def _ensure_due_diligence_context(
+    db: Session,
+    owner: User,
+    context: SupplierShortlistContext,
+    supplier_id: uuid.UUID,
+    shortlist_version_id: uuid.UUID,
+) -> None:
+    from vayujit_api.intelligence.due_diligence_schemas import DueDiligenceContextCreate
+    from vayujit_api.intelligence.due_diligence_service import create_context
+
+    create_context(
+        db,
+        owner,
+        DueDiligenceContextCreate(
+            supplier_id=supplier_id,
+            product_id=context.product_id,
+            opportunity_id=context.opportunity_id,
+            shortlist_context_id=context.id,
+            shortlist_version_id=shortlist_version_id,
+            requirement_id=context.requirement_id,
+            idempotency_key=f"shortlist:{context.id}:{supplier_id}",
+        ),
+    )
+
+
 def decide(
     db: Session, owner: User, context: SupplierShortlistContext, data: ShortlistDecisionRequest
 ) -> dict[str, object]:
@@ -427,6 +532,10 @@ def decide(
         )
     )
     if existing:
+        if existing.decision in {"KEEP_UNDER_REVIEW", "APPROVE_FOR_SOURCING"}:
+            _ensure_due_diligence_context(
+                db, owner, context, existing.supplier_id, existing.shortlist_version_id
+            )
         return {"id": str(existing.id), "decision": existing.decision, "idempotent_reuse": True}
     row = SupplierShortlistDecision(
         owner_id=owner.id,
@@ -455,9 +564,15 @@ def decide(
         if existing is None:
             raise
         db.commit()
+        if existing.decision in {"KEEP_UNDER_REVIEW", "APPROVE_FOR_SOURCING"}:
+            _ensure_due_diligence_context(
+                db, owner, context, existing.supplier_id, existing.shortlist_version_id
+            )
         return {"id": str(existing.id), "decision": existing.decision, "idempotent_reuse": True}
     db.commit()
     db.refresh(row)
+    if row.decision in {"KEEP_UNDER_REVIEW", "APPROVE_FOR_SOURCING"}:
+        _ensure_due_diligence_context(db, owner, context, row.supplier_id, row.shortlist_version_id)
     return {"id": str(row.id), "decision": row.decision, "idempotent_reuse": False}
 
 

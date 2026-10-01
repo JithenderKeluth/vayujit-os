@@ -283,6 +283,13 @@ button:disabled {
   display: grid;
   gap: 0.2rem;
 }
+.previous-goal-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--vj-space-2);
+  align-items: center;
+  justify-content: flex-end;
+}
 .previous-goal small {
   color: var(--vj-color-muted);
 }
@@ -413,6 +420,23 @@ button:disabled {
 }
 .candidate-section {
   margin-top: var(--vj-space-5);
+}
+.empty-candidate-section {
+  padding: var(--vj-space-4);
+  border: 1px solid var(--vj-color-border);
+  border-left: 3px solid var(--vj-color-accent);
+  border-radius: var(--vj-radius-sm);
+  background: var(--vj-color-surface-muted);
+}
+.next-step-list {
+  margin: var(--vj-space-3) 0;
+}
+.next-step-list ol {
+  margin: var(--vj-space-2) 0 0;
+  padding-left: 1.4rem;
+}
+.next-step-copy {
+  margin-bottom: var(--vj-space-2);
 }
 .candidate-list {
   display: grid;

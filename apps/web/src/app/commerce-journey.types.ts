@@ -1,4 +1,4 @@
-﻿export type CommerceJourneyStageKey =
+export type CommerceJourneyStageKey =
   | 'GOAL'
   | 'RESEARCH'
   | 'COMPARE'
@@ -36,6 +36,24 @@ export interface CommerceNextAction {
   human_controlled: boolean;
 }
 
+export interface CommerceCommercialReadiness {
+  id: string;
+  readiness: {
+    overall: string;
+    calculations?: Record<string, { status: string; missing_inputs?: string[] }>;
+    safe_next_action?: string;
+    human_review_required?: boolean;
+    economics_calculated?: boolean;
+  };
+  known_inputs: unknown[];
+  claims: unknown[];
+  assumptions: unknown[];
+  unknown_inputs: unknown[];
+  missing_inputs: unknown[];
+  optional_gaps: unknown[];
+  contradictions: unknown[];
+  lineage: Record<string, unknown>;
+}
 export interface CommerceJourney {
   id: string;
   goal_id: string;
@@ -50,4 +68,5 @@ export interface CommerceJourney {
   trust?: { mode: string; label: string };
   remaining_requirements: string[];
   human_controlled: boolean;
+  commercial_readiness?: CommerceCommercialReadiness | null;
 }

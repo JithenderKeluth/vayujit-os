@@ -86,21 +86,16 @@ import {
           @if (researchMode === 'LOCAL_FIXTURE') {
             <p class="fixture-boundary" role="note">Local demo data — not live market evidence.</p>
           }
-          <form class="research-form" (submit)="$event.preventDefault(); startResearch()">
-            <label
-              >Research query <input name="research-query" [(ngModel)]="researchQuery"
-            /></label>
-            <label
-              >Mode
-              <select name="research-mode" [(ngModel)]="researchMode">
-                <option value="LOCAL_FIXTURE">Local deterministic</option>
-                <option value="LIVE_READ_ONLY">Live read-only (configured provider only)</option>
-              </select>
-            </label>
-            <button type="submit" [disabled]="researchBusy() || !researchQuery.trim()">
-              Start supplier research
+          <div class="research-form" aria-label="Selected product supplier research">
+            <p class="research-intent">
+              VAYUJIT will derive a bounded supplier-search intent from this selected product.
+              You do not need to enter a product ID or search string.
+            </p>
+            <p class="research-mode">Mode: <strong>LIVE_READ_ONLY</strong> · no supplier contact or external write</p>
+            <button type="button" (click)="startResearch()" [disabled]="researchBusy()">
+              {{ researchBusy() ? 'Finding suppliers...' : 'Find suppliers for this product' }}
             </button>
-          </form>
+          </div>
           @if (research(); as state) {
             <p class="research-status" role="status">
               Supplier research: <strong>{{ state['status'] || 'UNKNOWN' }}</strong> ·
@@ -469,6 +464,11 @@ import {
           <button type="button" (click)="compare()" [disabled]="comparisonSelection().size < 2">
             Compare selected ({{ comparisonSelection().size }})
           </button>
+        }
+        @if (productContext() && suppliers().length === 1 && !comparison()) {
+          <p class="comparison-note" role="status">
+            One supplier candidate is currently available. More suppliers are needed for comparison.
+          </p>
         }
         @if (comparison()) {
           <div class="comparison-grid" role="table" aria-label="Supplier trade-offs">
@@ -868,7 +868,7 @@ export class CrossMarketplaceSupplierComponent {
   readonly research = signal<Record<string, unknown> | null>(null);
   readonly researchBusy = signal(false);
   researchQuery = '';
-  researchMode: 'LOCAL_FIXTURE' | 'LIVE_READ_ONLY' = 'LOCAL_FIXTURE';
+  researchMode: 'LOCAL_FIXTURE' | 'LIVE_READ_ONLY' = 'LIVE_READ_ONLY';
   readonly error = signal('');
   comparisonIds = '';
   readonly breadcrumbs: BreadcrumbItem[] = [
@@ -1004,7 +1004,7 @@ export class CrossMarketplaceSupplierComponent {
         product_query: this.researchQuery.trim(),
         product_opportunity_id: context.opportunityId,
         category: context.category,
-        mode: this.researchMode,
+        mode: 'LIVE_READ_ONLY',
         max_candidates: 10,
         idempotency_key: `gp4-${context.opportunityId}-${this.researchQuery.trim().toLowerCase()}`,
       });

@@ -170,6 +170,7 @@ from vayujit_api.intelligence.autonomous_models import (
     AutonomousResearchSchedule,
     AutonomousResearchTask,
 )
+from vayujit_api.intelligence.commercial_readiness_models import CommercialReadinessSnapshot
 from vayujit_api.intelligence.competitor_change_models import (
     CompetitorChangeAlertEligibility,
     CompetitorChangeComparison,

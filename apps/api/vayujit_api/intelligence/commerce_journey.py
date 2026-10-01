@@ -2,21 +2,27 @@
 
 from __future__ import annotations
 
+import re
 import uuid
 from typing import Any
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
+from vayujit_api.core.config import get_settings
 from vayujit_api.identity.models import User
 from vayujit_api.intelligence.business_agent_models import (
     BusinessAgentGoal,
     BusinessAgentPlan,
     BusinessAgentRun,
 )
+from vayujit_api.intelligence.commercial_readiness_models import CommercialReadinessSnapshot
 from vayujit_api.intelligence.due_diligence_models import SupplierDueDiligenceContext
 from vayujit_api.intelligence.economic_integration_service import decision_brief_for_opportunity
-from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
+from vayujit_api.intelligence.product_opportunity_models import (
+    ProductOpportunity,
+    ProductOpportunityAssessment,
+)
 from vayujit_api.intelligence.product_opportunity_scoring_models import ProductOpportunityDecision
 from vayujit_api.intelligence.scenario_models import (
     SourcingScenario,
@@ -48,6 +54,26 @@ def _meaningful_opportunity(row: ProductOpportunity) -> bool:
     }:
         return False
     return bool(profile.get("normalized_product_concept") or (row.category and row.product_concept))
+
+
+def _goal_category(goal: BusinessAgentGoal) -> str:
+    structured = goal.structured_goal or {}
+    value = structured.get("category")
+    if isinstance(value, str) and value.strip():
+        return value.strip()
+    match = re.search(
+        r"\b(?:in|for|within)\s+(?:the\s+)?([a-z][a-z0-9 &\-/]{1,80}?)\s+categor(?:y|ies)\b",
+        goal.raw_goal.casefold(),
+    )
+    return re.sub(r"\s+", " ", match.group(1)).strip(" .,-") if match else ""
+
+
+def _matches_goal_category(row: ProductOpportunity, category: str) -> bool:
+    requested = set(re.findall(r"[a-z0-9]+", category.casefold()))
+    observed = set(
+        re.findall(r"[a-z0-9]+", f"{row.category or ''} {row.subcategory or ''}".casefold())
+    )
+    return bool(requested & observed)
 
 
 def _latest_goal(
@@ -131,6 +157,13 @@ def project_journey(
             and str(row.id) == str((goal.structured_goal or {}).get("product_opportunity_id"))
         )
     ]
+    requested_category = _goal_category(goal)
+    if requested_category:
+        meaningful_opportunities = [
+            row
+            for row in meaningful_opportunities
+            if _matches_goal_category(row, requested_category)
+        ]
     meaningful_ids = {row.id for row in meaningful_opportunities}
     opportunities = len(meaningful_opportunities)
     empty_id = uuid.UUID("00000000-0000-0000-0000-000000000000")
@@ -306,6 +339,41 @@ def project_journey(
         )
         or 0
     )
+    commercial_readiness: dict[str, Any] | None = None
+    if latest_product_selection is not None:
+        latest_assessment = db.scalar(
+            select(ProductOpportunityAssessment)
+            .where(
+                ProductOpportunityAssessment.owner_id == owner.id,
+                ProductOpportunityAssessment.opportunity_id
+                == latest_product_selection.opportunity_id,
+            )
+            .order_by(ProductOpportunityAssessment.created_at.desc())
+        )
+        if latest_assessment is not None:
+            readiness_row = db.scalar(
+                select(CommercialReadinessSnapshot)
+                .where(
+                    CommercialReadinessSnapshot.owner_id == owner.id,
+                    CommercialReadinessSnapshot.opportunity_id
+                    == latest_product_selection.opportunity_id,
+                    CommercialReadinessSnapshot.assessment_id == latest_assessment.id,
+                )
+                .order_by(CommercialReadinessSnapshot.created_at.desc())
+            )
+            if readiness_row is not None:
+                commercial_readiness = {
+                    "id": str(readiness_row.id),
+                    "readiness": readiness_row.readiness,
+                    "known_inputs": readiness_row.known_inputs,
+                    "claims": readiness_row.claims,
+                    "assumptions": readiness_row.assumptions,
+                    "unknown_inputs": readiness_row.unknown_inputs,
+                    "missing_inputs": readiness_row.missing_inputs,
+                    "optional_gaps": readiness_row.optional_gaps,
+                    "contradictions": readiness_row.contradictions,
+                    "lineage": readiness_row.lineage,
+                }
     economics_brief: dict[str, Any] | None = None
     if latest_product_selection is not None:
         try:
@@ -556,6 +624,19 @@ def project_journey(
             "Resolve supplier evidence gaps before economics.",
             "/intelligence/due-diligence",
         )
+    elif (
+        commercial_readiness and commercial_readiness.get("readiness", {}).get("overall") != "READY"
+    ):
+        next_action = _action(
+            "REVIEW_COMMERCIAL_EVIDENCE",
+            "Review commercial evidence",
+            str(
+                commercial_readiness.get("readiness", {}).get("safe_next_action")
+                or "Review known, claimed, assumed, and missing commercial inputs."
+            ),
+            "/intelligence/sourcing-economics",
+            latest_product_selection.opportunity_id if latest_product_selection else None,
+        )
     elif not scenarios and economics_brief is None:
         next_action = _action(
             "CALCULATE_COSTS",
@@ -626,7 +707,11 @@ def project_journey(
         "COMPARE": {"human_product_selections": product_selections},
         "SOURCE": {"supplier_candidates": suppliers, "shortlist_contexts": shortlists},
         "VERIFY": {"contexts": due_diligence, "ready_contexts": due_diligence_ready},
-        "ECONOMICS": {"scenarios": scenarios, "decision_brief": economics_brief is not None},
+        "ECONOMICS": {
+            "scenarios": scenarios,
+            "decision_brief": economics_brief is not None,
+            "commercial_readiness": commercial_readiness,
+        },
         "DECIDE": {"decisions": len(commerce_decisions) + decisions},
         "LAUNCH": {"proceed_decision": explicit_proceed},
     }
@@ -663,7 +748,21 @@ def project_journey(
                 or commerce_context.get("marketplace"),
             }
         )
-    data_mode = str((goal.provenance or {}).get("mode") or "UNKNOWN").upper()
+    # Preserve the mode captured with the goal when available. Older goals may
+    # not have provenance mode yet, so fall back to the current configured
+    # research mode rather than presenting an unhelpful UNKNOWN banner.
+    data_mode = str(
+        (goal.provenance or {}).get("mode")
+        or get_settings().intelligence_external_provider_mode
+        or "UNKNOWN"
+    ).upper()
+    if data_mode == "UNKNOWN":
+        for row in meaningful_opportunities:
+            profile = row.intelligence_profile or {}
+            candidate_provenance = profile.get("candidate_provenance")
+            if isinstance(candidate_provenance, dict) and candidate_provenance.get("mode"):
+                data_mode = str(candidate_provenance["mode"]).upper()
+                break
     trust_mode = (
         "LOCAL_FIXTURE"
         if data_mode in {"LOCAL_DETERMINISTIC", "LOCAL_FIXTURE"}
@@ -691,6 +790,7 @@ def project_journey(
             "selected_opportunities": product_selections,
         },
         "context": {"confirmed": confirmed, "values": commerce_context},
+        "commercial_readiness": commercial_readiness,
         "trust": {
             "mode": trust_mode,
             "label": (

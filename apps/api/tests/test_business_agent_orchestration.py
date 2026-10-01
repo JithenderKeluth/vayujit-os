@@ -179,6 +179,45 @@ def _run(api: TestClient, goal_id: str, key: str = "run", **kwargs: object) -> d
     return response.json()
 
 
+def test_previous_goal_delete_is_owner_scoped_and_keeps_active_goal(
+    client: tuple[TestClient, sessionmaker[Session]],
+) -> None:
+    api, _ = client
+    _owner(api)
+    first = api.post(
+        "/api/v1/intelligence/business-agent/goals",
+        json={"raw_goal": "Find a first product.", "idempotency_key": "delete-first"},
+        headers=ORIGIN,
+    )
+    assert first.status_code == 201, first.text
+    second = api.post(
+        "/api/v1/intelligence/business-agent/goals",
+        json={"raw_goal": "Find a second product.", "idempotency_key": "delete-second"},
+        headers=ORIGIN,
+    )
+    assert second.status_code == 201, second.text
+    removed = api.delete(
+        f"/api/v1/intelligence/business-agent/goals/{first.json()['id']}", headers=ORIGIN
+    )
+    assert removed.status_code == 204, removed.text
+    assert (
+        api.get(
+            f"/api/v1/intelligence/business-agent/goals/{first.json()['id']}", headers=ORIGIN
+        ).status_code
+        == 404
+    )
+    assert (
+        api.get(
+            f"/api/v1/intelligence/business-agent/goals/{second.json()['id']}", headers=ORIGIN
+        ).status_code
+        == 200
+    )
+    protected = api.delete(
+        f"/api/v1/intelligence/business-agent/goals/{second.json()['id']}", headers=ORIGIN
+    )
+    assert protected.status_code == 409, protected.text
+
+
 def test_hard_certification_goal_safety_and_untrusted_content(
     client: tuple[TestClient, sessionmaker[Session]],
 ) -> None:

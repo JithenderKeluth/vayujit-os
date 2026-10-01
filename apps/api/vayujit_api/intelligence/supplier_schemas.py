@@ -38,7 +38,10 @@ class SupplierSearchCreate(BaseModel):
 class SupplierResearchCreate(BaseModel):
     """Bounded provider-neutral supplier discovery request."""
 
-    product_query: str = Field(min_length=2, max_length=240)
+    # The normal seller journey derives this from the human-selected
+    # ProductOpportunity. Keep the field for backwards-compatible API
+    # callers, but allow the server to resolve it when omitted.
+    product_query: str = Field(default="", max_length=240)
     product_opportunity_id: uuid.UUID | None = None
     category: str = Field(default="", max_length=120)
     country: str = Field(default="", max_length=100)

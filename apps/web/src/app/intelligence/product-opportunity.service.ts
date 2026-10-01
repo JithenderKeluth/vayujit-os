@@ -385,6 +385,8 @@ export interface ResearchCandidate {
   research_run_id: string | null;
   id: string;
   name: string;
+  display_name?: string;
+  observed_name?: string;
   description: string;
   product_concept: string;
   category: string;

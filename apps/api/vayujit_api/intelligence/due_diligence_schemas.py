@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class DueDiligenceContextCreate(BaseModel):
     model_config = ConfigDict(extra="forbid")
     supplier_id: uuid.UUID
-    product_id: uuid.UUID
+    product_id: uuid.UUID | None = None
     opportunity_id: uuid.UUID | None = None
     shortlist_context_id: uuid.UUID | None = None
     shortlist_version_id: uuid.UUID | None = None

@@ -1,4 +1,4 @@
-﻿import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, OnInit, inject, signal } from '@angular/core';
 import { CommerceJourneyService } from './commerce-journey.service';
 import { CommerceJourneyStepperComponent } from './commerce-journey-stepper.component';
 import { CommerceJourneySummaryComponent } from './commerce-journey-summary.component';
@@ -22,11 +22,24 @@ import type { CommerceJourney } from './commerce-journey.types';
     }
     @if (journey(); as value) {
       @if (value.trust; as trust) {
-        <p class="journey-trust" role="note">{{ trust.label }}</p>
+        <p class="journey-trust" role="note">{{ trustLabel(trust) }}</p>
       }
       <app-commerce-journey-stepper [stages]="value.stages" /><app-commerce-next-action
         [action]="value.next_action"
       />
+      @if (value.commercial_readiness; as readiness) {
+        <details class="journey-readiness" open>
+          <summary>Commercial evidence readiness: {{ readiness.readiness.overall }}</summary>
+          <p>Known {{ readiness.known_inputs.length }} · claimed {{ readiness.claims.length }} · assumed {{ readiness.assumptions.length }} · unknown {{ readiness.unknown_inputs.length }}</p>
+          @if (readiness.missing_inputs.length) {
+            <p><strong>Missing for calculation:</strong> {{ readiness.missing_inputs.length }} required input group(s).</p>
+          }
+          @if (readiness.readiness.safe_next_action; as action) {
+            <p>{{ action }}</p>
+          }
+          <a href="/intelligence/sourcing-economics">Review commercial evidence</a>
+        </details>
+      }
       @if (value.context_confirmation.required) {
         <p class="journey-context-note">
           Confirm the proposed goal context in Business Agent before relying on it for consequential
@@ -48,6 +61,13 @@ import type { CommerceJourney } from './commerce-journey.types';
   </section>`,
   styles: [
     `
+      .journey-readiness {
+        margin: 0.75rem 0;
+        padding: 0.8rem;
+        border: 1px solid #bfd8dc;
+        border-radius: 0.5rem;
+        background: #f2f9fa;
+      }
       .journey-trust {
         margin: 0.5rem 0;
         padding: 0.65rem 0.8rem;
@@ -76,6 +96,17 @@ export class CommerceJourneyContextComponent implements OnInit {
     }
   }
 
+  trustLabel(trust: { mode: string; label: string }): string {
+    if (trust.label && trust.label !== 'UNKNOWN') return trust.label;
+    if (trust.mode === 'LIVE_READ_ONLY') {
+      return 'Live read-only research is configured. Review evidence before comparing products.';
+    }
+    if (trust.mode === 'LOCAL_FIXTURE' || trust.mode === 'LOCAL_DETERMINISTIC') {
+      return 'Local demo data - not live market evidence.';
+    }
+    return 'Provider mode is not recorded for this goal yet. Check the Business Agent research status before continuing.';
+  }
+
   async confirmContext(): Promise<void> {
     const current = this.journey();
     if (!this.service || !current) return;
@@ -93,4 +124,3 @@ export class CommerceJourneyContextComponent implements OnInit {
     }
   }
 }
-import { Input } from '@angular/core';
