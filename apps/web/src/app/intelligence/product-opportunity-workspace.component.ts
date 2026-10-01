@@ -87,9 +87,9 @@ import {
                 <h2 id="research-results-title">Your product research results</h2>
                 <p>
                   {{ results.summary.total }} meaningful products found for this goal.
-                  @if (results.historical_opportunities) {
+                  @if (historicalOpportunities().length) {
                     <span class="muted">
-                      {{ results.historical_opportunities }} previous opportunities are kept in
+                      {{ historicalOpportunities().length }} previous opportunities are kept in
                       history.
                     </span>
                   }
@@ -98,6 +98,9 @@ import {
                   <div class="research-goal-context">
                     <strong>Current research goal</strong>
                     <p>{{ goal.summary }}</p>
+                    @if (goalCategory(results); as category) {
+                      <p><strong>Category constraint:</strong> {{ category }}</p>
+                    }
                     @if (!goal.confirmed) {
                       <span class="muted">Goal context is not confirmed yet.</span>
                     }
@@ -128,13 +131,26 @@ import {
                 [tone]="statusTone(results.status)"
               />
             </div>
-            @if (isFixtureResults(results)) {
-              <p class="trust-banner" role="note">
-                Local demo data - not live market evidence. Product identities are useful for
-                exploring the workflow; prices, demand, supplier availability, and market claims
-                remain unverified until authoritative evidence is loaded.
-              </p>
-            }
+            <p class="trust-banner" role="note">
+              <strong>Evidence mode:</strong> {{ resultMode(results) }}.
+              @if (isFixtureResults(results)) {
+                These are local demo identities, not live market evidence. Do not use them for a
+                sourcing or investment decision.
+              } @else if (isLiveResults(results)) {
+                Products below come from bounded live search and approved read-only fetches. Unknown
+                fields remain unverified.
+              } @else {
+                Provider provenance is not established for these results. Review sources before
+                relying on them.
+              }
+            </p>
+            <div class="next-step-callout" role="status">
+              <strong>{{ nextStepTitle(results) }}</strong>
+              <p>{{ nextStepDescription(results) }}</p>
+              <a class="secondary action-link" routerLink="/intelligence/business-agent">
+                Continue in Business Agent
+              </a>
+            </div>
             @if (results.candidates.length === 0) {
               <app-empty-state
                 title="No meaningful product opportunities are available yet."
@@ -172,7 +188,7 @@ import {
                     <p class="candidate-category">
                       {{ candidate.category || 'Category not established' }}
                       @if (candidate.subcategory) {
-                        <span> → {{ candidate.subcategory }}</span>
+                        <span> â†’ {{ candidate.subcategory }}</span>
                       }
                     </p>
                     <dl class="candidate-primary-facts">
@@ -252,13 +268,17 @@ import {
                     </div>
                     <details class="evidence-details">
                       <summary>View evidence and sources</summary>
+
+                      @if (candidate.observed_name && candidate.observed_name !== candidate.name) {
+                        <p><strong>Observed source title:</strong> {{ candidate.observed_name }}</p>
+                      }
                       @if (candidate.evidence.length) {
                         <ul>
                           @for (evidence of candidate.evidence; track $index) {
                             <li>
                               <strong>{{ displayValue(evidence['dimension']) }}</strong
-                              >: {{ displayValue(evidence['classification']) }} ·
-                              {{ displayValue(evidence['source']) }} · freshness
+                              >: {{ displayValue(evidence['classification']) }} Â·
+                              {{ displayValue(evidence['source']) }} Â· freshness
                               {{ displayValue(evidence['freshness']) }}
                             </li>
                           }
@@ -291,8 +311,25 @@ import {
                   </article>
                 }
               </div>
+              @if (results.candidates.length === 1) {
+                <div class="one-candidate-callout" role="status">
+                  <strong>One meaningful product found.</strong>
+                  <p>
+                    No alternative survived the bounded research run, so comparison is unavailable.
+                    Review the evidence and select this product explicitly, or research it further.
+                  </p>
+                  <button
+                    type="button"
+                    class="primary"
+                    (click)="selectSingleCandidate(results.candidates[0])"
+                    [disabled]="loading()"
+                  >
+                    Select this product
+                  </button>
+                </div>
+              }
               <div class="comparison-toolbar" aria-live="polite">
-                <span>{{ selectedCandidateIds().length }} selected (choose 2–4)</span>
+                <span>{{ selectedCandidateIds().length }} selected (choose 2â€“4)</span>
                 <button
                   type="button"
                   class="primary"
@@ -327,7 +364,7 @@ import {
                       </div>
                     }
                   </div>
-                  <p>{{ result.comparability }} · {{ result.reason }}</p>
+                  <p>{{ result.comparability }} Â· {{ result.reason }}</p>
                   @for (candidate of comparedCandidates(); track candidate.id) {
                     <article class="tradeoff-card">
                       <h4>{{ candidate.name }}</h4>
@@ -366,7 +403,7 @@ import {
                         Select this product for supplier research
                       </button>
                       @if (candidate.selected) {
-                        <span class="human-selection">Selected by you · HUMAN</span
+                        <span class="human-selection">Selected by you Â· HUMAN</span
                         ><a
                           class="secondary action-link"
                           routerLink="/intelligence/cross-marketplace"
@@ -534,6 +571,7 @@ import {
               <div>
                 <p class="eyebrow">Secondary context</p>
                 <h2 id="history-title">Previous research</h2>
+                <p class="muted">Older non-demo records are kept here for reference only.</p>
               </div>
               <span class="muted">{{ historicalOpportunities().length }} earlier record(s)</span>
             </div>
@@ -640,47 +678,63 @@ import {
               <h3>How it relates to your goal</h3>
               <p>{{ detailGoalFitSummary() }}</p>
             </div>
-            <div class="context-actions">
-              @if (detailSelected(item)) {
-                <p class="selected-product-confirmation" role="status">
-                  Selected for supplier research: <strong>{{ item.name }}</strong>
+            @if (detailOutsideActiveGoal(item)) {
+              <div class="goal-mismatch-warning" role="alert">
+                <strong>Outside the active research goal</strong>
+                <p>
+                  This historical product is categorized as
+                  <strong>{{ item.category || 'unknown' }}</strong
+                  >, while the active goal is <strong>{{ goalCategory(researchResults()!) }}</strong
+                  >. It is reference-only and cannot be selected or sent to supplier research for
+                  the current goal.
                 </p>
-                <a
-                  class="primary action-link"
-                  routerLink="/intelligence/cross-marketplace"
-                  [queryParams]="supplierHandoffParams(item)"
-                  >Find suppliers</a
-                >
-              } @else {
-                <button
-                  class="primary"
-                  type="button"
-                  (click)="selectDetailForSupplier(item)"
-                  [disabled]="loading() || !item.current_assessment_id"
-                >
-                  Select this product for supplier research
+                <button type="button" class="secondary" (click)="backToList()">
+                  Back to current opportunities
                 </button>
-              }
-              <a class="secondary action-link" routerLink="/intelligence/business-agent"
-                >Continue research with VAYUJIT</a
-              >
-              <button
-                class="secondary"
-                type="button"
-                (click)="researchMarketEvidence(item.id)"
-                [disabled]="loading()"
-              >
-                Research market evidence
-              </button>
-              <button
-                class="secondary"
-                type="button"
-                (click)="archive(item.id)"
-                [disabled]="loading() || item.lifecycle_status === 'archived'"
-              >
-                Archive opportunity
-              </button>
-            </div>
+              </div>
+            } @else {
+              <div class="context-actions">
+                @if (detailSelected(item)) {
+                  <p class="selected-product-confirmation" role="status">
+                    Selected for supplier research: <strong>{{ item.name }}</strong>
+                  </p>
+                  <a
+                    class="primary action-link"
+                    routerLink="/intelligence/cross-marketplace"
+                    [queryParams]="supplierHandoffParams(item)"
+                    >Find suppliers</a
+                  >
+                } @else {
+                  <button
+                    class="primary"
+                    type="button"
+                    (click)="selectDetailForSupplier(item)"
+                    [disabled]="loading() || !item.current_assessment_id"
+                  >
+                    Select this product for supplier research
+                  </button>
+                }
+                <a class="secondary action-link" routerLink="/intelligence/business-agent"
+                  >Continue research with VAYUJIT</a
+                >
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="researchMarketEvidence(item.id)"
+                  [disabled]="loading()"
+                >
+                  Research market evidence
+                </button>
+                <button
+                  class="secondary"
+                  type="button"
+                  (click)="archive(item.id)"
+                  [disabled]="loading() || item.lifecycle_status === 'archived'"
+                >
+                  Archive opportunity
+                </button>
+              </div>
+            }
             <dl class="context-facts compact-facts">
               <div>
                 <dt>Marketplace</dt>
@@ -776,7 +830,7 @@ import {
             </div>
             @if (detailLiveResearch(); as live) {
               <div class="callout">
-                <strong>Market research:</strong> {{ detailLiveStatus(live) }} ·
+                <strong>Market research:</strong> {{ detailLiveStatus(live) }} Â·
                 {{ detailLiveCount(live, 'search_results') }} sources discovered.
                 @if (detailLiveSources(live).length) {
                   <ul>
@@ -785,7 +839,7 @@ import {
                         <a [href]="source.url" target="_blank" rel="noopener noreferrer">
                           {{ source.domain || source.url }}
                         </a>
-                        · {{ source.evidence_classification || 'SEARCH_DISCOVERY_EVIDENCE' }}
+                        Â· {{ source.evidence_classification || 'SEARCH_DISCOVERY_EVIDENCE' }}
                       </li>
                     }
                   </ul>
@@ -793,8 +847,8 @@ import {
               </div>
             }
             <div class="callout">
-              <strong>Source:</strong> {{ detailProfileValue('candidate_source') }} ·
-              <strong>Freshness:</strong> {{ detailProfileValue('freshness') }} · Marketplace
+              <strong>Source:</strong> {{ detailProfileValue('candidate_source') }} Â·
+              <strong>Freshness:</strong> {{ detailProfileValue('freshness') }} Â· Marketplace
               prices, customer reviews, competitors, trends, and supplier facts remain UNKNOWN until
               authoritative evidence exists.
             </div>
@@ -895,30 +949,43 @@ import {
                 </dl>
               </section>
             } @else {
-              <app-empty-state
-                title="Assessment summary not loaded"
-                message="Load the existing Winning Product assessment when you are ready. Missing intelligence is not treated as a negative score."
-              >
-                <button
-                  type="button"
-                  class="secondary"
-                  (click)="loadScore(item)"
-                  [disabled]="loading()"
+              @if (item.current_assessment_id) {
+                <app-empty-state
+                  title="Assessment summary not loaded"
+                  message="An assessment exists, but its authoritative score has not been loaded yet. Missing intelligence is not treated as a negative score."
                 >
-                  Load authoritative assessment
-                </button>
-              </app-empty-state>
+                  <button
+                    type="button"
+                    class="secondary"
+                    (click)="loadScore(item)"
+                    [disabled]="loading()"
+                  >
+                    Load authoritative assessment
+                  </button>
+                </app-empty-state>
+              } @else {
+                <app-empty-state
+                  title="Assessment has not started"
+                  message="Create an assessment before loading score or research-area evidence."
+                >
+                  @if (item.current_constraint_version_id) {
+                    <button
+                      type="button"
+                      class="primary"
+                      (click)="startAssessment(item)"
+                      [disabled]="loading()"
+                    >
+                      Start authoritative assessment
+                    </button>
+                  } @else {
+                    <button type="button" class="secondary" (click)="openBusinessAgent()">
+                      Continue in Business Agent
+                    </button>
+                  }
+                </app-empty-state>
+              }
             }
           </section>
-
-          @if (!item.current_assessment_id) {
-            <app-empty-state
-              title="Assessment has not started"
-              message="Add a supported constraint version and assessment before reviewing score or intelligence."
-              actionLabel="Continue research with VAYUJIT"
-              (action)="openBusinessAgent()"
-            />
-          }
 
           <section class="panel" aria-labelledby="overview-title">
             <div class="section-heading">
@@ -1143,9 +1210,9 @@ import {
                         <li>
                           <strong>{{ candidate.supplier?.name || 'UNKNOWN supplier' }}</strong>
                           <span
-                            >{{ candidate.country || 'UNKNOWN' }} ·
-                            {{ displayValue(candidate.due_diligence) }} ·
-                            {{ candidate.freshness || 'UNKNOWN' }} ·
+                            >{{ candidate.country || 'UNKNOWN' }} Â·
+                            {{ displayValue(candidate.due_diligence) }} Â·
+                            {{ candidate.freshness || 'UNKNOWN' }} Â·
                             {{ candidate.match_state || 'UNKNOWN' }}</span
                           >
                         </li>
@@ -1324,7 +1391,7 @@ import {
                   <h3>Sourcing economics</h3>
                   <span class="muted">Optional</span>
                 </div>
-                <p class="muted">Load existing 13A–13F cost evidence for this opportunity.</p>
+                <p class="muted">Load existing 13Aâ€“13F cost evidence for this opportunity.</p>
                 <button
                   class="secondary"
                   type="button"
@@ -1669,8 +1736,86 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   historicalOpportunities(): ProductOpportunity[] {
-    const ids = new Set(this.researchResults()?.candidates.map((candidate) => candidate.id) ?? []);
-    return this.opportunities().filter((item) => !ids.has(item.id));
+    const results = this.researchResults();
+    const ids = new Set(results?.candidates.map((candidate) => candidate.id) ?? []);
+    return this.opportunities().filter(
+      (item) =>
+        !ids.has(item.id) &&
+        !this.isFixtureOpportunity(item) &&
+        this.matchesGoalCategory(item, results),
+    );
+  }
+
+  private matchesGoalCategory(item: ProductOpportunity, results: ResearchResults | null): boolean {
+    if (!results) return true;
+    const requested = this.goalCategory(results);
+    if (!requested) return true;
+    const requestedTokens = requested
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .filter((token) => token.length > 2);
+    const itemText = `${item.category ?? ''} ${item.subcategory ?? ''}`.toLowerCase();
+    return requestedTokens.some((token) => itemText.includes(token));
+  }
+
+  detailOutsideActiveGoal(item: ProductOpportunity): boolean {
+    const results = this.researchResults();
+    return Boolean(
+      results && this.goalCategory(results) && !this.matchesGoalCategory(item, results),
+    );
+  }
+
+  private isFixtureOpportunity(item: ProductOpportunity): boolean {
+    const profile = item.intelligence_profile || {};
+    const source = this.valueText(profile['candidate_source']).toUpperCase();
+    const provenance = profile['candidate_provenance'];
+    const mode =
+      provenance && typeof provenance === 'object'
+        ? this.valueText((provenance as Record<string, unknown>)['mode']).toUpperCase()
+        : '';
+    return source.includes('FIXTURE') || mode === 'LOCAL_DETERMINISTIC';
+  }
+
+  goalCategory(results: ResearchResults): string {
+    const category = results.goal_context?.values?.['category'];
+    return typeof category === 'string' ? category : '';
+  }
+
+  isLiveResults(results: ResearchResults): boolean {
+    return results.candidates.some((candidate) => {
+      const provenance = candidate.intelligence_profile?.['candidate_provenance'];
+      const mode =
+        provenance && typeof provenance === 'object'
+          ? this.valueText((provenance as Record<string, unknown>)['mode']).toUpperCase()
+          : '';
+      return (
+        mode === 'LIVE_READ_ONLY' || Boolean(candidate.intelligence_profile?.['live_research'])
+      );
+    });
+  }
+
+  resultMode(results: ResearchResults): string {
+    if (this.isLiveResults(results)) return 'LIVE_READ_ONLY';
+    if (this.isFixtureResults(results)) return 'LOCAL_DETERMINISTIC';
+    return 'UNKNOWN';
+  }
+
+  nextStepTitle(results: ResearchResults): string {
+    if (!results.candidates.length) return 'No product has passed the identity gate yet.';
+    if (results.summary.ready_for_comparison >= 2) return 'Next step: compare products.';
+    if (results.summary.ready_for_comparison === 1)
+      return 'Next step: review the product evidence.';
+    return 'Next step: review the evidence gaps before comparing.';
+  }
+
+  nextStepDescription(results: ResearchResults): string {
+    if (!results.candidates.length) {
+      return 'Return to Business Agent, confirm the category and provider mode, then retry discovery.';
+    }
+    if (results.summary.ready_for_comparison >= 2) {
+      return 'Select two or more products below, then choose Compare selected products. Supplier research remains locked until you select one product.';
+    }
+    return 'Open View product research on a card. Confirm the source, unknowns, and goal fit before any supplier or economics step.';
   }
 
   primaryActionLabel(candidate: ResearchCandidate): string {
@@ -2186,6 +2331,16 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     }
   }
 
+  async selectSingleCandidate(candidate: ResearchCandidate): Promise<void> {
+    if (!candidate.assessment_id) {
+      this.selectionMessage.set(
+        'This product has meaningful identity evidence, but an assessment is not persisted yet. Open product research to review the evidence before selecting it.',
+      );
+      this.viewCandidate(candidate);
+      return;
+    }
+    await this.investigateCandidate(candidate);
+  }
   async investigateCandidate(candidate: ResearchCandidate): Promise<void> {
     if (!candidate.assessment_id) return;
     this.loading.set(true);
@@ -2420,8 +2575,35 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     }
   }
 
+  async startAssessment(item: OpportunityDetail): Promise<void> {
+    if (!item.current_constraint_version_id) {
+      this.openBusinessAgent();
+      return;
+    }
+    this.loading.set(true);
+    this.error.set('');
+    this.researchMessage.set('');
+    try {
+      await this.service.createAssessment(item.id, {
+        evidence_state: item.evidence_state || 'unknown',
+        input_snapshot: { source: 'product-opportunity-detail', opportunity_id: item.id },
+      });
+      await this.loadDetail(item.id);
+      const refreshed = this.detail();
+      if (refreshed?.current_assessment_id) await this.loadScore(refreshed);
+      this.researchMessage.set(
+        'Authoritative assessment created. You can now load research-area evidence and review its score.',
+      );
+    } catch {
+      this.error.set(
+        'The authoritative assessment could not be started. Continue in Business Agent to review the required constraints.',
+      );
+    } finally {
+      this.loading.set(false);
+    }
+  }
   async loadScore(item: OpportunityDetail): Promise<void> {
-    if (!item.current_assessment_id) return;
+    if (!this.requireAssessment(item, 'Authoritative assessment')) return;
     await this.readSection(
       'score',
       () => this.service.getScore(item.id, item.current_assessment_id!),
@@ -2430,7 +2612,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   async loadTrend(item: OpportunityDetail): Promise<void> {
-    if (!item.current_assessment_id) return;
+    if (!this.requireAssessment(item, 'Trend evidence')) return;
     await this.readSection(
       'Trend evidence',
       () => this.service.getTrendProjection(item.id, item.current_assessment_id!),
@@ -2439,7 +2621,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   async loadCompetition(item: OpportunityDetail): Promise<void> {
-    if (!item.current_assessment_id) return;
+    if (!this.requireAssessment(item, 'Competition evidence')) return;
     await this.readSection(
       'competition evidence',
       () => this.service.getCompetitionProjection(item.id, item.current_assessment_id!),
@@ -2448,7 +2630,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   async loadReview(item: OpportunityDetail): Promise<void> {
-    if (!item.current_assessment_id) return;
+    if (!this.requireAssessment(item, 'Customer evidence')) return;
     await this.readSection(
       'customer evidence',
       () => this.service.getReviewProjection(item.id, item.current_assessment_id!),
@@ -2457,7 +2639,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   async loadSourcing(item: OpportunityDetail): Promise<void> {
-    if (!item.current_assessment_id) return;
+    if (!this.requireAssessment(item, 'Supplier evidence')) return;
     await this.readSection(
       'supplier evidence',
       () => this.service.getSourcingFeasibility(item.id, item.current_assessment_id!),
@@ -2466,7 +2648,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   async loadCommercial(item: OpportunityDetail): Promise<void> {
-    if (!item.current_assessment_id) return;
+    if (!this.requireAssessment(item, 'Economics evidence')) return;
     await this.readSection(
       'economics',
       () => this.service.getCommercial(item.id, item.current_assessment_id!),
@@ -2486,7 +2668,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     }
   }
   async loadRiskEvidence(item: OpportunityDetail): Promise<void> {
-    if (!item.current_assessment_id) return;
+    if (!this.requireAssessment(item, 'Risk evidence')) return;
     await this.readSection(
       'risk evidence',
       () => this.service.getRiskEvidenceSynthesis(item.id, item.current_assessment_id!),
@@ -2495,7 +2677,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   async loadHistory(item: OpportunityDetail): Promise<void> {
-    if (!item.current_assessment_id) return;
+    if (!this.requireAssessment(item, 'Score history')) return;
     await this.readSection(
       'score history',
       () => this.service.getScoreHistory(item.id),
@@ -2503,6 +2685,16 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     );
   }
 
+  private requireAssessment(item: OpportunityDetail, label: string): boolean {
+    if (item.current_assessment_id) return true;
+    this.researchMessage.set(
+      `${label} cannot load yet because this product has no assessment. Continue in Business Agent to create the required constraint and assessment first.`,
+    );
+    document
+      .getElementById('assessment-title')
+      ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return false;
+  }
   private async readSection<T>(
     label: string,
     request: () => Promise<T>,

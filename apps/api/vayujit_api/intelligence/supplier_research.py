@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import re
 import uuid
 from datetime import UTC, datetime
 from typing import Any
@@ -19,10 +20,12 @@ from vayujit_api.intelligence.external_schemas import (
     ExternalFetchRequestBody,
     ExternalSearchRequestBody,
 )
+from vayujit_api.intelligence.external_service import approved_source_profiles
 from vayujit_api.intelligence.external_service import fetch as external_fetch
 from vayujit_api.intelligence.external_service import search as external_search
 from vayujit_api.intelligence.supplier_models import (
     Supplier,
+    SupplierCommercialTerm,
     SupplierEvidence,
     SupplierProduct,
     SupplierSearch,
@@ -197,6 +200,10 @@ def _materialize_supplier(
             status=source_status,
             metadata_json={
                 "fixture": source_status == "local_fixture",
+                "evidence_environment": (
+                    "DETERMINISTIC_TEST" if source_status == "local_fixture" else "LIVE_READ_ONLY"
+                ),
+                "external_live_evidence": source_status != "local_fixture",
                 "claim_semantics": "SOURCE_PROVIDED",
                 "candidate_id": str(candidate_id),
                 **(source_metadata or {}),
@@ -234,6 +241,34 @@ def _materialize_supplier(
         db.add(evidence)
         db.flush()
     products = extraction.get("products")
+    commercial_terms = extraction.get("commercial_terms")
+    commercial_terms = commercial_terms if isinstance(commercial_terms, dict) else {}
+    moq_value: float | None = None
+    moq_unit: str | None = None
+    raw_moq = str(commercial_terms.get("moq") or "")
+    moq_match = re.search(r"([\d,]+(?:\.\d+)?)\s*([A-Za-z]+)?", raw_moq)
+    if moq_match:
+        try:
+            moq_value = float(moq_match.group(1).replace(",", ""))
+        except ValueError:
+            moq_value = None
+        moq_unit = (moq_match.group(2) or "units").lower()
+    raw_price = str(commercial_terms.get("price") or "")
+    price_value: float | None = None
+    price_currency: str | None = None
+    currency_match = re.search(r"\b([A-Z]{3})\b", raw_price)
+    price_match = re.search(r"([\d,]+(?:\.\d+)?)", raw_price)
+    if currency_match and price_match:
+        try:
+            price_value = float(price_match.group(1).replace(",", ""))
+            price_currency = currency_match.group(1).upper()
+        except ValueError:
+            price_value = None
+            price_currency = None
+    raw_lead = str(commercial_terms.get("lead_time") or "")
+    lead_match = re.search(r"\d+", raw_lead)
+    lead_time_days = int(lead_match.group(0)) if lead_match else None
+    incoterm = str(commercial_terms.get("incoterm") or "").upper() or None
     if isinstance(products, list):
         for product in products[:10]:
             source_reference = str(extraction.get("source_reference") or domain)
@@ -257,8 +292,8 @@ def _materialize_supplier(
                     observed_price=None,
                     currency=None,
                     price_kind="unknown",
-                    moq=None,
-                    moq_unit=None,
+                    moq=moq_value,
+                    moq_unit=moq_unit,
                     sample_available=None,
                     sample_moq=None,
                     sample_lead_days=None,
@@ -274,14 +309,137 @@ def _materialize_supplier(
                     created_at=stamp,
                 )
             )
+    supplier_products = list(
+        db.scalars(
+            select(SupplierProduct).where(
+                SupplierProduct.owner_id == owner.id,
+                SupplierProduct.supplier_id == supplier.id,
+                SupplierProduct.source_id == source.id,
+                SupplierProduct.source_reference == source_reference,
+            )
+        )
+    )
+    for supplier_product in supplier_products:
+        if not any(
+            value is not None for value in (price_value, moq_value, lead_time_days, incoterm)
+        ):
+            continue
+        if db.scalar(
+            select(SupplierCommercialTerm).where(
+                SupplierCommercialTerm.supplier_product_id == supplier_product.id,
+                SupplierCommercialTerm.version == 1,
+            )
+        ):
+            continue
+        db.add(
+            SupplierCommercialTerm(
+                owner_id=owner.id,
+                supplier_id=supplier.id,
+                supplier_product_id=supplier_product.id,
+                version=1,
+                unit_price=price_value,
+                currency=price_currency,
+                price_tiers=[],
+                moq=moq_value,
+                sample_price=None,
+                tooling_fee=None,
+                packaging_fee=None,
+                branding_fee=None,
+                payment_terms=None,
+                deposit_percent=None,
+                balance_percent=None,
+                incoterm=incoterm,
+                valid_until=None,
+                lead_time_days=lead_time_days,
+                sample_lead_days=None,
+                production_lead_days=lead_time_days,
+                dispatch_lead_days=None,
+                is_current=True,
+                source_evidence_ids=[str(evidence.id)],
+                observed_at=stamp,
+                created_at=stamp,
+            )
+        )
     supplier.updated_at = stamp
     return supplier.id
 
 
+def derive_sourcing_concept(
+    opportunity: Any, *, goal_id: uuid.UUID | str | None = None
+) -> tuple[str, str, dict[str, object]]:
+    """Derive bounded supplier intent while preserving selected retail identity."""
+    profile = (
+        opportunity.intelligence_profile
+        if isinstance(opportunity.intelligence_profile, dict)
+        else {}
+    )
+    hypothesis = profile.get("hypothesis")
+    hypothesis = hypothesis if isinstance(hypothesis, dict) else {}
+    hypothesis_profile = hypothesis.get("profile")
+    hypothesis_profile = hypothesis_profile if isinstance(hypothesis_profile, dict) else {}
+    candidates: list[tuple[object, str]] = [
+        (hypothesis_profile.get("normalized_product_concept"), "HYPOTHESIS_NORMALIZED_CONCEPT")
+    ]
+    hypothesis_keywords = hypothesis_profile.get("research_keywords")
+    if isinstance(hypothesis_keywords, list) and hypothesis_keywords:
+        candidates.append((hypothesis_keywords[0], "HYPOTHESIS_RESEARCH_KEYWORD"))
+    profile_keywords = profile.get("research_keywords")
+    if isinstance(profile_keywords, list) and profile_keywords:
+        candidates.append((profile_keywords[0], "PROFILE_RESEARCH_KEYWORD"))
+    candidates.extend(
+        (
+            (opportunity.product_concept, "PRODUCT_CONCEPT"),
+            (opportunity.subcategory, "SUBCATEGORY"),
+            (opportunity.category, "CATEGORY"),
+            (opportunity.name, "SELECTED_PRODUCT_TITLE_FALLBACK"),
+        )
+    )
+    concept = ""
+    method = "UNKNOWN"
+    for value, candidate_method in candidates:
+        normalized = re.sub(r"\s+", " ", str(value or "")).strip()
+        if normalized:
+            concept = normalized[:240]
+            method = candidate_method
+            break
+    product_metadata = profile.get("product_metadata")
+    product_metadata = product_metadata if isinstance(product_metadata, dict) else {}
+    brand = product_metadata.get("brand")
+    brand = brand if isinstance(brand, dict) else {}
+    provenance: dict[str, object] = {
+        "product_opportunity_id": str(opportunity.id),
+        "observed_product_title": str(opportunity.name or ""),
+        "category": str(opportunity.category or ""),
+        "subcategory": str(opportunity.subcategory or ""),
+        "brand": str(brand.get("name") or "") or None,
+        "sku_model": str(product_metadata.get("sku") or product_metadata.get("model") or "")
+        or None,
+        "goal_id": str(goal_id) if goal_id else None,
+        "marketplace": str(opportunity.target_marketplace or ""),
+        "region": str(opportunity.target_region or ""),
+        "derivation_method": method,
+        "seller_supplied": False,
+    }
+    return concept, method, provenance
+
+
 def _query_plan(requirements: dict[str, object]) -> list[str]:
-    product = str(
-        requirements.get("product_query") or requirements.get("category") or "supplier"
+    sourcing = str(
+        requirements.get("sourcing_concept")
+        or requirements.get("product_concept")
+        or requirements.get("product_query")
+        or requirements.get("category")
+        or "supplier"
     ).strip()
+    descriptors = [sourcing]
+    seen_descriptors = {sourcing.casefold()}
+    for key in ("category", "subcategory"):
+        value = str(requirements.get(key) or "").strip()
+        normalized = value.casefold()
+        if value and normalized not in seen_descriptors:
+            descriptors.append(value)
+            seen_descriptors.add(normalized)
+    product = " ".join(descriptors)
     country = str(requirements.get("country") or "").strip()
     manufacturer = bool(requirements.get("manufacturer_preferred", True))
     suffix = f" {country}" if country else ""
@@ -303,6 +461,14 @@ def _configured_domains(requirements: dict[str, object]) -> tuple[str, ...]:
 def _domain_is_approved(domain: str, approved: tuple[str, ...]) -> bool:
     host = domain.lower().rstrip(".")
     return bool(approved) and any(host == item or host.endswith("." + item) for item in approved)
+
+
+def _source_profile_for_domain(domain: str, profiles: dict[str, str]) -> str | None:
+    host = domain.lower().rstrip(".")
+    for approved_domain, profile_name in profiles.items():
+        if host == approved_domain or host.endswith("." + approved_domain):
+            return profile_name
+    return None
 
 
 def _candidate_source_type(title: str, snippet: str) -> str:
@@ -336,22 +502,91 @@ def _obvious_non_supplier(url: str, title: str, snippet: str) -> bool:
     )
 
 
+def _product_relevance(
+    requirements: dict[str, object], extraction: dict[str, object]
+) -> tuple[bool, str, list[str]]:
+    """Require supplier evidence tied to the selected product, not a generic company page."""
+    identity = extraction.get("business_identity")
+    identity = identity if isinstance(identity, dict) else {}
+    raw_products = extraction.get("products")
+    products = raw_products if isinstance(raw_products, list) else []
+    product_text = " ".join(
+        str(value)
+        for value in (
+            extraction.get("product_name"),
+            extraction.get("product_concept"),
+            extraction.get("category"),
+            extraction.get("subcategory"),
+            identity.get("name"),
+            extraction.get("text"),
+            extraction.get("_page_context"),
+        )
+    ).casefold()
+    if products:
+        product_text += " " + " ".join(str(item) for item in products).casefold()
+    target_text = " ".join(
+        str(requirements.get(key) or "")
+        for key in ("sourcing_concept", "product_concept", "category", "subcategory")
+    ).casefold()
+    tokens = [
+        token
+        for token in re.findall(r"[a-z0-9]{3,}", target_text)
+        if token not in {"supplier", "manufacturer", "product", "india"}
+    ]
+    matched = sorted({token for token in tokens if token in product_text})
+    explicit = bool(
+        products
+        or extraction.get("product_name")
+        or extraction.get("product_concept")
+        or extraction.get("subcategory")
+        or (matched and extraction.get("domain"))
+    )
+    if not explicit:
+        return False, "NO_PRODUCT_SPECIFIC_EVIDENCE", matched
+    if not matched and tokens:
+        return False, "PRODUCT_RELEVANCE_INSUFFICIENT", matched
+    return True, "PRODUCT_SPECIFIC_EVIDENCE", matched
+
+
+def _page_classification(url: str, title: str, snippet: str, extraction: dict[str, object]) -> str:
+    value = f"{url} {title} {snippet}".casefold()
+    if any(marker in value for marker in ("/category", "/collections", "category page")):
+        return "CATEGORY"
+    if any(marker in value for marker in ("/blog/", "/news/", "review", "guide")):
+        return "EDITORIAL"
+    if any(marker in value for marker in ("directory", "listing", "marketplace")):
+        return "SUPPLIER_DIRECTORY"
+    if extraction.get("products") or extraction.get("product_name"):
+        if any(marker in value for marker in ("manufacturer", "factory", "oem")):
+            return "MANUFACTURER_PRODUCT"
+        return "SUPPLIER_PRODUCT"
+    if extraction.get("domain") and urlparse(url).path not in {"", "/"}:
+        return "SUPPLIER_PRODUCT"
+    if urlparse(url).path in {"", "/"}:
+        return "SUPPLIER_HOME"
+    return "UNKNOWN"
+
+
 def _live_search(
     db: Session, owner: User, search: SupplierSearch, requirements: dict[str, object], limit: int
 ) -> SupplierSearch:
     settings = get_settings()
     queries = _query_plan(requirements)
-    approved = _configured_domains(requirements)
-    if not approved:
-        configured = str(settings.intelligence_external_approved_domains or "")
-        approved = tuple(
-            sorted(
-                {item.strip().lower().lstrip(".") for item in configured.split(",") if item.strip()}
-            )
-        )
+    profile_by_domain = approved_source_profiles(db, owner)
+    approved_values = set(_configured_domains(requirements))
+    configured = str(settings.intelligence_external_approved_domains or "")
+    approved_values.update(
+        item.strip().lower().lstrip(".") for item in configured.split(",") if item.strip()
+    )
+    approved_values.update(profile_by_domain)
+    approved = tuple(sorted(approved_values))
     rows: list[object] = []
     search_ids: list[str] = []
+    query_by_search_id: dict[str, str] = {}
     failures: list[dict[str, object]] = []
+    fetch_count = 0
+    fetch_reuse_count = 0
+    provider_search_reused = 0
     try:
         for query in queries:
             result = external_search(
@@ -366,7 +601,12 @@ def _live_search(
                     correlation_id=search.correlation_id,
                 ),
             )
-            search_ids.append(str(result.get("id")))
+            search_id = str(result.get("id"))
+            search_ids.append(search_id)
+            query_by_search_id[search_id] = query
+            reused_count = result.get("reused_result_count", 0)
+            if isinstance(reused_count, int):
+                provider_search_reused += reused_count
             values = result.get("results", [])
             if isinstance(values, list):
                 rows.extend(values)
@@ -405,12 +645,35 @@ def _live_search(
         if not url or url in seen_urls:
             continue
         seen_urls.add(url)
+        page_classification = _page_classification(url, title, snippet, {})
         if _obvious_non_supplier(url, title, snippet):
-            failures.append({"url": url, "failure_code": "UNSUITABLE_SOURCE"})
+            failures.append(
+                {
+                    "url": url,
+                    "domain": domain,
+                    "query": query_by_search_id.get(
+                        str(getattr(row, "search_id", "")), queries[0] if queries else ""
+                    ),
+                    "page_classification": page_classification,
+                    "failure_code": "UNSUITABLE_SOURCE",
+                    "reason": "Non-supplier page or directory-like result.",
+                }
+            )
             continue
+        profile_name = _source_profile_for_domain(domain, profile_by_domain)
         if not _domain_is_approved(domain, approved):
             failures.append(
-                {"url": url, "domain": domain, "failure_code": "FETCH_APPROVAL_REQUIRED"}
+                {
+                    "url": url,
+                    "domain": domain,
+                    "query": query_by_search_id.get(
+                        str(getattr(row, "search_id", "")), queries[0] if queries else ""
+                    ),
+                    "page_classification": page_classification,
+                    "failure_code": "FETCH_APPROVAL_REQUIRED",
+                    "admission_state": "PENDING_REVIEW",
+                    "reason": "Domain is not in the bounded approved-domain set.",
+                }
             )
             continue
         try:
@@ -420,10 +683,13 @@ def _live_search(
                 ExternalFetchRequestBody(
                     url=url,
                     allowed_domains=[domain],
+                    source_profile=profile_name or "default",
                     search_result_id=getattr(row, "id", None),
                     correlation_id=search.correlation_id,
                 ),
             )
+            fetch_count += 1
+            fetch_reuse_count += int(bool(fetched.get("reuse", False)))
             extracted = fetched.get("extracted", {})
             content = str(extracted.get("text", "")) if isinstance(extracted, dict) else ""
             if not content:
@@ -432,6 +698,28 @@ def _live_search(
             extraction = extract_website_intelligence(
                 url=url, text=content, source_type=source_type
             )
+            extraction["_page_context"] = f"{url} {title} {snippet}"
+            page_classification = _page_classification(url, title, snippet, extraction)
+            relevant, relevance_reason, relevance_tokens = _product_relevance(
+                requirements, extraction
+            )
+            if not relevant:
+                failures.append(
+                    {
+                        "url": url,
+                        "domain": domain,
+                        "query": query_by_search_id.get(
+                            str(getattr(row, "search_id", "")), queries[0] if queries else ""
+                        ),
+                        "page_classification": page_classification,
+                        "fetch_status": str(fetched.get("status", "COMPLETED")),
+                        "http_status": fetched.get("http_status"),
+                        "failure_code": "PRODUCT_RELEVANCE_INSUFFICIENT",
+                        "reason": relevance_reason,
+                        "matched_tokens": relevance_tokens,
+                    }
+                )
+                continue
             identity = extraction.get("business_identity")
             identity = identity if isinstance(identity, dict) else {}
             key = (
@@ -458,7 +746,15 @@ def _live_search(
                     "provider": str(getattr(row, "provider", "")),
                     "provider_result_id": str(getattr(row, "provider_result_id", "")),
                     "rank": int(getattr(row, "rank", 0) or 0),
-                    "query": queries[0] if queries else "",
+                    "query": query_by_search_id.get(
+                        str(getattr(row, "search_id", "")), queries[0] if queries else ""
+                    ),
+                    "page_classification": page_classification,
+                    "relevance": {
+                        "state": "MATCH",
+                        "reason": relevance_reason,
+                        "matched_tokens": relevance_tokens,
+                    },
                     "retrieved_at": str(getattr(row, "retrieved_at", "")),
                     "source_url": url,
                 },
@@ -479,6 +775,15 @@ def _live_search(
                     "supplier_id": str(supplier_id) if supplier_id else None,
                     "status": "DUPLICATE_CANDIDATE" if duplicate_candidate else "RESEARCHED",
                     "source_type": source_type,
+                    "page_classification": page_classification,
+                    "fetch_status": str(fetched.get("status", "COMPLETED")),
+                    "http_status": fetched.get("http_status"),
+                    "final_url": fetched.get("final_url", url),
+                    "product_relevance": {
+                        "state": "MATCH",
+                        "reason": relevance_reason,
+                        "matched_tokens": relevance_tokens,
+                    },
                     "provider": str(getattr(row, "provider", "")),
                     "rank": int(getattr(row, "rank", 0) or 0),
                     "prompt_injection": bool(
@@ -490,6 +795,11 @@ def _live_search(
             failures.append(
                 {
                     "url": url,
+                    "domain": domain,
+                    "query": query_by_search_id.get(
+                        str(getattr(row, "search_id", "")), queries[0] if queries else ""
+                    ),
+                    "page_classification": page_classification,
                     "failure_code": "FETCH_OR_RESEARCH_FAILED",
                     "safe_message": "Approved fetch or website research failed safely.",
                 }
@@ -518,12 +828,35 @@ def _live_search(
         "contradictions": contradictions,
         "successes": successes,
         "failures": failures,
-        "budget": {"max_queries": len(queries), "max_candidates": limit, "max_websites": limit},
+        "budget": {
+            "max_queries": len(queries),
+            "max_candidates": limit,
+            "max_websites": limit,
+            "planned_searches": len(queries),
+            "executed_provider_searches": len(search_ids),
+            "reused_searches": provider_search_reused,
+            "avoided_searches": max(0, len(queries) - len(search_ids)),
+            "remaining": max(0, len(queries) - len(search_ids)),
+            "stop_reason": (
+                "CANDIDATE_TARGET_REACHED" if len(rows) >= limit else "SEARCH_BUDGET_EXHAUSTED"
+            ),
+        },
+        "observability": {
+            "fetch_count": fetch_count,
+            "fetch_reuse_count": fetch_reuse_count,
+            "candidate_count": len(rows),
+            "accepted_candidate_count": len(supplier_ids),
+        },
         "prompt_injection": {"detected": injection_detected, "instructions_executable": False},
         "freshness": "FRESH",
         "external_calls": bool(rows),
         "marketplace_connectors": "unchanged_and_not_called",
         "approved_domains": list(approved),
+        "source_admission": {
+            "approved_profile_count": len(profile_by_domain),
+            "approved_profile_domains": sorted(profile_by_domain),
+            "profile_names": sorted(set(profile_by_domain.values())),
+        },
     }
     search.checkpoint_state = {
         **(search.checkpoint_state or {}),

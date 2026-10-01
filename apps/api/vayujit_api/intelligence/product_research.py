@@ -21,7 +21,7 @@ from vayujit_api.intelligence.external_schemas import (
 )
 from vayujit_api.intelligence.external_service import fetch as approved_fetch
 from vayujit_api.intelligence.external_service import search as external_search
-from vayujit_api.intelligence.product_discovery import discover_local_product_candidates
+from vayujit_api.intelligence.product_discovery import generate_category_product_hypotheses
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
 
 STOP_WORDS = {
@@ -44,8 +44,70 @@ STOP_WORDS = {
 }
 
 
+def _derived_display_name(observed_name: str) -> str:
+    """Return a conservative seller-facing label without replacing evidence."""
+    value = re.sub(r"\s+", " ", observed_name).strip()
+    if not value:
+        return value
+    # Supplier/location suffixes commonly make a source title noisy. Keep the
+    # leading product phrase and preserve the exact observed title separately.
+    for separator in (" - ", " | "):
+        if separator in value:
+            prefix = value.split(separator, 1)[0].strip(" -|")
+            if len(prefix) >= 4:
+                return prefix[:200]
+    return value[:200]
+
+
+def _live_why_this_surfaced(
+    *, hypothesis: dict[str, object], category: str, subcategory: str, page_type: str
+) -> list[str]:
+    """Explain discovery from persisted goal/hypothesis/evidence, never inference."""
+    return [
+        f"Matched the live product hypothesis: {hypothesis['name']}.",
+        f"The fetched page established a product-specific {page_type.replace('_', ' ').lower()}.",
+        f"Category context was retained as {category} / {subcategory}.",
+    ]
+
+
 def _tokens(value: str) -> set[str]:
     return {item for item in re.findall(r"[a-z0-9]+", value.casefold()) if item not in STOP_WORDS}
+
+
+def _goal_category_constraint(raw_goal: str, structured_goal: dict[str, object]) -> str:
+    """Return the current seller category, preferring explicit raw-goal text."""
+    match = re.search(
+        r"\b(?:in|for|within)\s+(?:the\s+)?([a-z][a-z0-9 &\-/]{1,80}?)\s+categor(?:y|ies)\b",
+        raw_goal.casefold(),
+    )
+    if match:
+        return re.sub(r"\s+", " ", match.group(1)).strip(" .,-")
+    value = structured_goal.get("category")
+    return re.sub(r"\s+", " ", value).strip(" .,-") if isinstance(value, str) else ""
+
+
+def _category_constraint_match(
+    requested: str,
+    *,
+    name: str,
+    category: str,
+    subcategory: str,
+    description: str,
+    canonical_url: str,
+) -> tuple[bool, list[str]]:
+    """Require an explicit category to be supported by fetched product evidence."""
+    if not requested:
+        return True, []
+    requested_tokens = _tokens(requested)
+    fields = {
+        "name": name,
+        "category": category,
+        "subcategory": subcategory,
+        "description": description,
+        "canonical_url": canonical_url,
+    }
+    matched = [key for key, value in fields.items() if requested_tokens & _tokens(str(value))]
+    return bool(matched), matched
 
 
 def _meaningful(opportunity: ProductOpportunity) -> bool:
@@ -229,8 +291,29 @@ def _bounded_product_projection(extracted: dict[str, object]) -> tuple[dict[str,
     projection = _bounded_product_metadata(metadata_map.get("json_ld"))
     open_graph = extracted.get("open_graph")
     open_graph_map = open_graph if isinstance(open_graph, dict) else {}
-    is_product_page = str(open_graph_map.get("type", "")).casefold() == "product"
+    canonical_path = urlparse(str(extracted.get("canonical_url") or "")).path.casefold()
+    og_title = open_graph_map.get("title")
+    og_image = open_graph_map.get("image")
+    og_description = open_graph_map.get("description")
+    product_path = any(
+        token in canonical_path for token in (".html", "/product", "/p/", "/item/", "/dp/")
+    )
+    is_product_page = str(open_graph_map.get("type", "")).casefold() == "product" or bool(
+        isinstance(og_title, str)
+        and og_title
+        and isinstance(og_image, str)
+        and og_image
+        and isinstance(og_description, str)
+        and og_description
+        and product_path
+    )
     if is_product_page:
+        if isinstance(og_title, str) and og_title:
+            projection.setdefault("name", og_title[:2_000])
+        if isinstance(og_image, str) and og_image:
+            projection.setdefault("image", og_image[:2_000])
+        if isinstance(og_description, str) and og_description:
+            projection.setdefault("description", og_description[:2_000])
         title = open_graph_map.get("title") or extracted.get("title")
         if isinstance(title, str) and title:
             projection.setdefault("name", title[:2_000])
@@ -322,23 +405,13 @@ def _has_product_identity(
 
 
 def _live_hypotheses(raw_goal: str, structured_goal: dict[str, object]) -> list[dict[str, object]]:
-    """Reuse bounded deterministic hypotheses as seeds, never as live evidence."""
-    definitions = discover_local_product_candidates(raw_goal, structured_goal, limit=3)
-    return [
-        {
-            "name": str(item["name"]),
-            "product_concept": str(item["product_concept"]),
-            "category": str(item["category"]),
-            "subcategory": str(item["subcategory"]),
-            "source": "DETERMINISTIC_HYPOTHESIS",
-        }
-        for item in definitions[:3]
-    ]
+    """Build bounded concrete search seeds from the canonical discovery authority."""
+    return generate_category_product_hypotheses(raw_goal, structured_goal, limit=3)
 
 
 def _target_candidate_count(structured_goal: dict[str, object]) -> int:
     """Bound the number of validated products needed for one research run."""
-    raw = structured_goal.get("target_candidate_count", structured_goal.get("candidate_count", 1))
+    raw = structured_goal.get("target_candidate_count", structured_goal.get("candidate_count", 3))
     try:
         return max(1, min(int(str(raw)), 3))
     except (TypeError, ValueError):
@@ -348,7 +421,7 @@ def _target_candidate_count(structured_goal: dict[str, object]) -> int:
 def _live_product_queries(concept: str) -> list[tuple[str, str]]:
     """Return product-oriented queries; supplier discovery is a later journey stage."""
     return [
-        (f"{concept} India product", "PRIMARY_PRODUCT_QUERY"),
+        (f"{concept} product detail India", "PRIMARY_PRODUCT_QUERY"),
         (f"{concept} product specifications India", "REFINEMENT_AFTER_NO_PRODUCT_EVIDENCE"),
     ]
 
@@ -369,13 +442,37 @@ def run_live_product_discovery(
     max_results: int = 5,
     correlation_id: str = "",
     run_id: uuid.UUID | None = None,
+    goal_id: uuid.UUID | None = None,
 ) -> dict[str, Any]:
     """Run bounded adaptive discovery and materialize only validated product identities."""
     settings = get_settings()
     structured = structured_goal or {}
     market = str(structured.get("country_region") or structured.get("country") or "IN")
     marketplace = str(structured.get("marketplace") or "AMAZON_IN")
+    requested_category = _goal_category_constraint(raw_goal, structured)
     hypotheses = _live_hypotheses(raw_goal, structured)
+    hypothesis_generated_at = datetime.now(UTC).isoformat()
+    for hypothesis in hypotheses:
+        hypothesis_profile = hypothesis.get("profile")
+        hypothesis_provenance = (
+            hypothesis_profile.get("candidate_provenance", {})
+            if isinstance(hypothesis_profile, dict)
+            else {}
+        )
+        hypothesis["provenance"] = {
+            "goal_id": str(goal_id) if goal_id else None,
+            "business_agent_run_id": str(run_id) if run_id else None,
+            "requested_category": requested_category or None,
+            "marketplace": marketplace,
+            "region": market,
+            "capital": structured.get("capital"),
+            "currency": structured.get("currency"),
+            "generation_source": str(
+                hypothesis_provenance.get("source") or "CANONICAL_CANDIDATE_AUTHORITY"
+            ),
+            "generation_method": "CANONICAL_CANDIDATE_AUTHORITY_PROJECTION",
+            "generated_at": hypothesis_generated_at,
+        }
     configured_budget = max(
         1, min(int(getattr(settings, "intelligence_product_search_max_requests", 3)), 12)
     )
@@ -419,7 +516,14 @@ def run_live_product_discovery(
             },
         }
 
-    max_search_results = max(1, min(max_results, 3))
+    # A candidate target is not a search-result bound. Requesting only one
+    # result when the goal asks for one product can return a category/search
+    # page and hide the next ranked concrete product page. Keep result
+    # inspection bounded, but always inspect a small ranked window before
+    # deciding that live discovery produced no product identity.
+    max_search_results = max(
+        3, min(settings.intelligence_search_max_results, max(max_results, 3), 5)
+    )
     max_fetches = max(1, min(max_results + 3, 8))
     query_reports: list[dict[str, object]] = []
     failures: list[dict[str, str]] = []
@@ -522,8 +626,35 @@ def run_live_product_discovery(
             or extracted_map.get("meta_description")
             or "External product evidence; commercial details require verification."
         ).strip()[:4_000]
-        category = str(projection.get("category") or hypothesis["category"])
-        subcategory = str(projection.get("subcategory") or hypothesis["subcategory"])
+        observed_category = str(projection.get("category") or "")
+        observed_subcategory = str(projection.get("subcategory") or "")
+        category = observed_category or str(hypothesis["category"])
+        subcategory = observed_subcategory or str(hypothesis["subcategory"])
+        category_ok, category_matches = _category_constraint_match(
+            requested_category,
+            name=title,
+            category=observed_category,
+            subcategory=observed_subcategory,
+            description=description,
+            canonical_url=canonical,
+        )
+        if not category_ok:
+            rejected_results.append(
+                {
+                    "url": canonical,
+                    "domain": str(row.domain),
+                    "title": title,
+                    "page_type": page_type,
+                    "eligible": False,
+                    "reason": (
+                        f"Explicit category constraint '{requested_category}' was not "
+                        "established by fetched product evidence."
+                    ),
+                    "category_constraint": requested_category,
+                }
+            )
+            return False
+        display_name = _derived_display_name(title)
         field_provenance = {
             key: "OBSERVED"
             for key in (
@@ -573,7 +704,18 @@ def run_live_product_discovery(
                 notes="External product evidence for evaluation; not Amazon demand or sales data.",
                 intelligence_profile={
                     "profile_version": "live-1c-product-discovery-v1",
+                    "hypothesis": hypothesis,
                     "normalized_product_concept": title,
+                    "display_name": display_name,
+                    "display_name_provenance": "DERIVED_FROM_OBSERVED_NAME",
+                    "observed_name": title,
+                    "why_this_surfaced": _live_why_this_surfaced(
+                        hypothesis=hypothesis,
+                        category=category,
+                        subcategory=subcategory,
+                        page_type=page_type,
+                    ),
+                    "business_agent_run_id": str(run_id) if run_id else None,
                     "candidate_source": "EXTERNAL_RESEARCH",
                     "candidate_provenance": {
                         "mode": "LIVE_READ_ONLY",
@@ -583,6 +725,7 @@ def run_live_product_discovery(
                     "research_keywords": [str(hypothesis["product_concept"])],
                     "live_research": {
                         "profile_version": "live-1c-product-discovery-v1",
+                        "hypothesis": hypothesis,
                         "research_mode": settings.intelligence_external_provider_mode,
                         "status": "RESEARCHED_WITH_GAPS",
                         "queries": query_reports,
@@ -641,6 +784,12 @@ def run_live_product_discovery(
                     "category_provenance": (
                         "OBSERVED" if projection.get("category") else "DERIVED_HYPOTHESIS"
                     ),
+                    "category_constraint": {
+                        "requested": requested_category or None,
+                        "matched": category_ok,
+                        "matched_fields": category_matches,
+                        "source": "FETCHED_PRODUCT_EVIDENCE" if requested_category else "NONE",
+                    },
                 },
                 idempotency_key=idempotency_key,
             )
@@ -650,8 +799,10 @@ def run_live_product_discovery(
         return True
 
     for hypothesis in hypotheses[:max_hypotheses]:
-        useful_for_hypothesis = False
-        for query, reason in _live_product_queries(str(hypothesis["product_concept"])):
+        query_concept = str(hypothesis["product_concept"])
+        if requested_category and requested_category.casefold() not in query_concept.casefold():
+            query_concept = f"{requested_category} {query_concept}"
+        for query, reason in _live_product_queries(query_concept):
             if executed_requests >= configured_budget:
                 stop_reason = "SEARCH_BUDGET_EXHAUSTED"
                 break
@@ -708,14 +859,11 @@ def run_live_product_discovery(
             query_reports.append(report)
             for row in rows[:max_search_results]:
                 search_rows.append((hypothesis, row))
-                if materialize(hypothesis, row):
-                    useful_for_hypothesis = True
+                materialize(hypothesis, row)
                 if len(candidates) >= target_candidates:
                     stop_reason = "EARLY_STOP_TARGET_REACHED"
                     break
             if len(candidates) >= target_candidates:
-                break
-            if useful_for_hypothesis:
                 break
         if len(candidates) >= target_candidates or quota_exhausted:
             break

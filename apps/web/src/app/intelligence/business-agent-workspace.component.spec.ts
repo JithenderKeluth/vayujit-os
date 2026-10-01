@@ -9,6 +9,7 @@ import type {
   BusinessAgentRun,
 } from './business-agent.service';
 import { BusinessAgentService } from './business-agent.service';
+import { IntelligenceService } from './intelligence.service';
 
 const goal: BusinessAgentGoal = {
   id: 'goal-1',
@@ -139,10 +140,15 @@ const run: BusinessAgentRun = {
 };
 
 describe('BusinessAgentWorkspaceComponent', () => {
+  const intelligence = { externalPolicy: vi.fn() };
+
   const service = {
     goals: vi.fn(),
     capabilities: vi.fn(),
+    latestPlan: vi.fn(),
+    latestRun: vi.fn(),
     createGoal: vi.fn(),
+    deleteGoal: vi.fn(),
     plan: vi.fn(),
     createRun: vi.fn(),
     start: vi.fn(),
@@ -158,12 +164,33 @@ describe('BusinessAgentWorkspaceComponent', () => {
   async function create({ fail = false } = {}) {
     service.goals.mockReset();
     service.capabilities.mockReset();
+    service.latestPlan.mockReset();
+    service.latestRun.mockReset();
     if (fail) service.goals.mockRejectedValue(new Error('backend details'));
     else service.goals.mockResolvedValue([goal]);
     service.capabilities.mockResolvedValue([]);
+    service.latestPlan.mockRejectedValue(new Error('no plan'));
+    service.latestRun.mockRejectedValue(new Error('no run'));
+    intelligence.externalPolicy.mockReset();
+    intelligence.externalPolicy.mockResolvedValue({
+      provider: 'brave',
+      mode: 'LOCAL_FIXTURE',
+      status: 'READY',
+      search_enabled: false,
+      fetch_enabled: false,
+      kill_switch: false,
+      provider_kill_switch: false,
+      approved_domains_configured: false,
+      credentials_configured: false,
+      credential_status: 'NOT_CONFIGURED',
+    });
     await TestBed.configureTestingModule({
       imports: [BusinessAgentWorkspaceComponent],
-      providers: [provideRouter([]), { provide: BusinessAgentService, useValue: service }],
+      providers: [
+        provideRouter([]),
+        { provide: BusinessAgentService, useValue: service },
+        { provide: IntelligenceService, useValue: intelligence },
+      ],
     }).compileComponents();
     const fixture = TestBed.createComponent(BusinessAgentWorkspaceComponent);
     fixture.detectChanges();
@@ -209,6 +236,46 @@ describe('BusinessAgentWorkspaceComponent', () => {
         include_trend_intelligence: true,
       }),
     );
+  });
+  it('hydrates the persisted plan and run after a workspace reload', async () => {
+    const fixture = await create();
+    service.latestPlan.mockResolvedValue(plan);
+    service.latestRun.mockResolvedValue(run);
+    await fixture.componentInstance.refresh();
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Research progress');
+    expect(text).toContain('Research plan');
+    expect(service.latestPlan).toHaveBeenCalledWith('goal-1');
+    expect(service.latestRun).toHaveBeenCalledWith('goal-1');
+  });
+  it('surfaces a failed live discovery as the next actionable product step', async () => {
+    const fixture = await create();
+    const failedRun: BusinessAgentRun = {
+      ...run,
+      status: 'PARTIAL',
+      failure: { message: 'Live product research returned no canonical product opportunity.' },
+      approvals: [],
+      candidates: [],
+      steps: [
+        {
+          ...run.steps[0],
+          key: 'opportunity',
+          capability_id: 'product_opportunity.create',
+          business_label: 'Discover product opportunities',
+          status: 'FAILED',
+        },
+        { ...run.steps[1], status: 'QUEUED' },
+      ],
+    };
+    service.latestRun.mockResolvedValue(failedRun);
+    await fixture.componentInstance.refresh();
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
+    expect(text).toContain('Needs your review');
+    expect(text).toContain('Discover product opportunities failed');
+    expect(text).toContain('No canonical product opportunity yet');
+    expect(text).toContain('Open Product Opportunities');
   });
   it('presents the authoritative plan, dependency labels, and safe capability fallback', async () => {
     const fixture = await create();
@@ -259,6 +326,19 @@ describe('BusinessAgentWorkspaceComponent', () => {
     expect(previous.open).toBe(false);
     expect(previous.textContent).toContain('Earlier product research goal.');
     expect(element.querySelectorAll('.goal-card')).toHaveLength(1);
+  });
+
+  it('deletes a previous goal only after confirmation', async () => {
+    const fixture = await create();
+    const component = fixture.componentInstance;
+    const previous = { ...goal, id: 'goal-2', raw_goal: 'Earlier product research goal.' };
+    component.goals.set([goal, previous]);
+    service.deleteGoal.mockResolvedValue(undefined);
+    const confirmation = vi.spyOn(globalThis, 'confirm').mockReturnValue(true);
+    await component.deletePreviousGoal(previous);
+    expect(confirmation).toHaveBeenCalled();
+    expect(service.deleteGoal).toHaveBeenCalledWith('goal-2');
+    confirmation.mockRestore();
   });
 
   it('keeps completed and failed work inspectable with runtime-gated controls', async () => {

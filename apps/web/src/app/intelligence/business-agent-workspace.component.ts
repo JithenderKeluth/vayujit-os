@@ -1,3 +1,4 @@
+import { HttpErrorResponse } from '@angular/common/http';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -21,6 +22,7 @@ import type {
   BusinessAgentRunStep,
 } from './business-agent.service';
 import { BusinessAgentService } from './business-agent.service';
+import { IntelligenceService, type ExternalResearchPolicy } from './intelligence.service';
 import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
 
 const CAPABILITY_LABELS: Record<string, string> = {
@@ -84,7 +86,11 @@ const CAPABILITY_LABELS: Record<string, string> = {
 
       <p class="agent-notice">
         Your plan, evidence, and decisions stay in this workspace. External writes are off.
-        <strong>Local demo data - not live market evidence.</strong>
+        @if (externalPolicy(); as policy) {
+          <strong>{{ researchTrustLabel(policy) }}</strong>
+        } @else {
+          <strong>Research provider status is unavailable.</strong>
+        }
       </p>
       <details class="technical-details">
         <summary>How this workspace operates</summary>
@@ -207,9 +213,9 @@ const CAPABILITY_LABELS: Record<string, string> = {
                   <p class="timestamp">Created {{ goal.created_at }}</p>
                 </div>
                 <app-status-badge
-                  [status]="goal.status"
-                  [label]="statusLabel(goal.status)"
-                  [tone]="statusTone(goal.status)"
+                  [status]="displayGoalStatus(goal)"
+                  [label]="statusLabel(displayGoalStatus(goal))"
+                  [tone]="statusTone(displayGoalStatus(goal))"
                 />
               </header>
               @if (goal.structured_goal['marketplace']) {
@@ -251,16 +257,22 @@ const CAPABILITY_LABELS: Record<string, string> = {
                 </details>
               }
               <div class="goal-actions">
-                <button type="button" (click)="makePlan(goal)" [disabled]="loading()">
-                  Create versioned research plan
-                </button>
+                @if (!plans()[goal.id]) {
+                  <button type="button" (click)="makePlan(goal)" [disabled]="loading()">
+                    Create versioned research plan
+                  </button>
+                }
                 @if (plans()[goal.id]; as plan) {
                   <span class="quiet"
                     >Plan v{{ plan.version }} · {{ plan.steps.length }} authoritative steps</span
                   >
-                  <button type="button" (click)="run(goal, plan)" [disabled]="loading()">
-                    Start run
-                  </button>
+                  @if (!runs()[goal.id]) {
+                    <button type="button" (click)="run(goal, plan)" [disabled]="loading()">
+                      Start run
+                    </button>
+                  } @else {
+                    <span class="quiet">A run already exists. Use the execution controls below.</span>
+                  }
                 }
               </div>
 
@@ -273,9 +285,9 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       <h4 id="plan-title-{{ goal.id }}">Research plan</h4>
                     </div>
                     <app-status-badge
-                      [status]="plan.status"
-                      [label]="statusLabel(plan.status)"
-                      [tone]="statusTone(plan.status)"
+                      [status]="planDisplayStatus(goal.id, plan)"
+                      [label]="statusLabel(planDisplayStatus(goal.id, plan))"
+                      [tone]="statusTone(planDisplayStatus(goal.id, plan))"
                     />
                   </div>
                   <p class="quiet">Planner: {{ plan.planner }} · Version {{ plan.version }}</p>
@@ -403,6 +415,29 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       </div>
                     </section>
                   }
+                  @else {
+                    <section class="candidate-section empty-candidate-section" aria-label="Product opportunities next step">
+                      <div class="section-heading compact">
+                        <div>
+                          <p class="eyebrow">Product opportunities</p>
+                          <h4>No canonical product opportunity yet</h4>
+                        </div>
+                      </div>
+                      <p>
+                        Live discovery did not produce a product with enough identity evidence to compare safely.
+                        No product has been selected, sourced, or contacted.
+                      </p>
+                      <div class="next-step-list">
+                        <strong>Next steps</strong>
+                        <ol>
+                          <li>Review the failed discovery step and its evidence.</li>
+                          <li>Retry discovery after checking the provider response.</li>
+                          <li>Open Product Opportunities when a candidate is available.</li>
+                        </ol>
+                      </div>
+                      <a class="secondary-action action-link" routerLink="/intelligence/product-opportunities">Open Product Opportunities</a>
+                    </section>
+                  }
                   @if (currentStep(run); as current) {
                     <div class="current-step">
                       <strong
@@ -445,7 +480,9 @@ const CAPABILITY_LABELS: Record<string, string> = {
                   @if (run.failure['message']) {
                     <div class="callout danger" role="alert">
                       <strong>Research needs attention</strong>
-                      <p>{{ displayValue(run.failure['message']) }}</p>
+                      <p>{{ failureMessage(run) }}</p>
+                      <p class="next-step-copy">Review the live evidence, then retry discovery. Product opportunities will appear after a canonical product is established.</p>
+                      <a class="secondary-action action-link" routerLink="/intelligence/product-opportunities">Open Product Opportunities</a>
                     </div>
                   }
                   @if (run.checkpoint['step_key']) {
@@ -458,7 +495,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       <button type="button" (click)="pause(run)">Pause run</button>
                     }
                     @if (canResume(run)) {
-                      <button type="button" (click)="resume(run)">Resume run</button>
+                      <button type="button" (click)="resume(run)">{{ run.status === 'PARTIAL' ? 'Resume failed step' : 'Resume run' }}</button>
                     }
                     @if (canCancel(run)) {
                       <button type="button" class="danger-action" (click)="cancel(run)">
@@ -467,7 +504,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     }
                     @if (canRetry(run)) {
                       <button type="button" (click)="retry(run)">
-                        Retry through existing runtime
+                        {{ run.status === 'PARTIAL' ? 'Retry failed discovery' : 'Retry through existing runtime' }}
                       </button>
                     }
                     <button type="button" class="secondary-action" (click)="refreshRun(run)">
@@ -696,11 +733,22 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     <strong>{{ goal.raw_goal }}</strong>
                     <small>Created {{ goal.created_at }}</small>
                   </div>
-                  <app-status-badge
-                    [status]="goal.status"
-                    [label]="statusLabel(goal.status)"
-                    [tone]="statusTone(goal.status)"
-                  />
+                  <div class="previous-goal-actions">
+                    <app-status-badge
+                      [status]="goal.status"
+                      [label]="statusLabel(goal.status)"
+                      [tone]="statusTone(displayGoalStatus(goal))"
+                    />
+                    <button
+                      type="button"
+                      class="secondary-action danger-action"
+                      (click)="deletePreviousGoal(goal)"
+                      [disabled]="loading()"
+                      aria-label="Delete previous research"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </article>
               }
             </div>
@@ -712,8 +760,10 @@ const CAPABILITY_LABELS: Record<string, string> = {
 })
 export class BusinessAgentWorkspaceComponent implements OnInit {
   private readonly service = inject(BusinessAgentService);
+  private readonly intelligence = inject(IntelligenceService);
   readonly goals = signal<BusinessAgentGoal[]>([]);
   readonly capabilities = signal<BusinessAgentCapability[]>([]);
+  readonly externalPolicy = signal<ExternalResearchPolicy | null>(null);
   readonly plans = signal<Record<string, BusinessAgentPlan>>({});
   readonly runs = signal<Record<string, BusinessAgentRun>>({});
   readonly loading = signal(false);
@@ -735,12 +785,35 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
     this.loading.set(true);
     this.error.set('');
     try {
-      this.goals.set(await this.service.goals());
-      this.capabilities.set(await this.service.capabilities());
+      const [goals, capabilities] = await Promise.all([
+        this.service.goals(),
+        this.service.capabilities(),
+      ]);
+      this.goals.set(goals);
+      this.capabilities.set(capabilities);
+      try {
+        this.externalPolicy.set(await this.intelligence.externalPolicy());
+      } catch {
+        this.externalPolicy.set(null);
+      }
+      await Promise.all(goals.slice(0, 1).map((goal) => this.hydrateGoal(goal)));
     } catch {
       this.error.set('Business Agent data is unavailable. Check the authenticated API connection.');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  private async hydrateGoal(goal: BusinessAgentGoal): Promise<void> {
+    const [plan, run] = await Promise.allSettled([
+      this.service.latestPlan(goal.id),
+      this.service.latestRun(goal.id),
+    ]);
+    if (plan.status === 'fulfilled') {
+      this.plans.update((items) => ({ ...items, [goal.id]: plan.value }));
+    }
+    if (run.status === 'fulfilled') {
+      this.runs.update((items) => ({ ...items, [goal.id]: run.value }));
     }
   }
 
@@ -823,6 +896,28 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
     await this.runAction(run, (id) => this.service.cancel(id));
   }
 
+  async deletePreviousGoal(goal: BusinessAgentGoal): Promise<void> {
+    if (
+      !globalThis.confirm(
+        'Delete this previous research and its run history? Canonical product evidence remains available.'
+      )
+    )
+      return;
+    this.loading.set(true);
+    this.error.set('');
+    try {
+      await this.service.deleteGoal(goal.id);
+      await this.refresh();
+    } catch (error) {
+      this.error.set(
+        error instanceof HttpErrorResponse && error.status === 405
+          ? 'The API is still running an older version. Restart the local API, then try Delete again.'
+          : 'The previous research could not be deleted.',
+      );
+      this.loading.set(false);
+    }
+  }
+
   async approve(run: BusinessAgentRun, approval: { id: string }): Promise<void> {
     await this.decision(run, () => this.service.approve(approval.id, this.decisionNote));
   }
@@ -902,6 +997,30 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
     return rows;
   }
 
+  displayGoalStatus(goal: BusinessAgentGoal): string {
+    const run = this.runs()[goal.id];
+    if (run?.status === 'PARTIAL' || run?.status === 'BUDGET_EXHAUSTED') return 'NEEDS_REVIEW';
+    if (run?.status === 'WAITING_APPROVAL') return 'WAITING_APPROVAL';
+    if (run?.status === 'COMPLETED') return 'COMPLETED';
+    return goal.status;
+  }
+
+  planDisplayStatus(goalId: string, plan: BusinessAgentPlan): string {
+    const run = this.runs()[goalId];
+    if (run?.status === 'PARTIAL' || run?.status === 'BUDGET_EXHAUSTED') return 'NEEDS_REVIEW';
+    if (run?.status === 'WAITING_APPROVAL') return 'WAITING_APPROVAL';
+    if (run?.status === 'RUNNING' || run?.status === 'QUEUED') return run.status;
+    return plan.status;
+  }
+
+  failureMessage(run: BusinessAgentRun): string {
+    const failed = run.steps.find((step) => step.status === 'FAILED');
+    if (failed) {
+      return `${failed.business_label || this.capabilityLabel(failed.capability_id)} failed: ${this.displayValue(run.failure['message']) || 'the provider did not return enough evidence.'}`;
+    }
+    return this.displayValue(run.failure['message']) || 'Research did not complete safely.';
+  }
+
   businessRunStatus(run: BusinessAgentRun): string {
     const current = this.currentStep(run);
     if (run.result['outcome'] === 'RESEARCH_COMPLETED_WITH_GAPS') {
@@ -910,6 +1029,8 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
     if (run.status === 'COMPLETED') return 'Research is complete and ready for review.';
     if (run.status === 'WAITING_APPROVAL')
       return 'Research is ready for your review before any consequential action.';
+    if (run.status === 'PARTIAL') return 'Research found a blocker. Review the failed discovery step, then retry it.';
+    if (run.status === 'BUDGET_EXHAUSTED') return 'Research reached its safety budget. Review the evidence before retrying.';
     if (run.status === 'FAILED') return 'Research needs attention before it can continue.';
     if (current) {
       return (
@@ -946,6 +1067,8 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
       LOCAL_DETERMINISTIC: 'Local demo mode',
       WAITING_APPROVAL: 'Needs your review',
       REVIEW_REQUIRED: 'Needs your review',
+      PARTIAL: 'Needs your review',
+      BUDGET_EXHAUSTED: 'Needs your review',
       IN_PROGRESS: 'In progress',
       NOT_STARTED: 'Not started',
     };
@@ -960,14 +1083,31 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
     const normalized = status.toUpperCase();
     if (['COMPLETED', 'SUCCEEDED', 'APPROVED', 'DONE'].includes(normalized)) return 'success';
     if (['FAILED', 'CANCELLED', 'REJECTED', 'ERROR'].includes(normalized)) return 'danger';
-    if (['WAITING_APPROVAL', 'WAITING', 'PAUSED', 'RETRYABLE'].includes(normalized))
+    if (['WAITING_APPROVAL', 'WAITING', 'PAUSED', 'RETRYABLE', 'PARTIAL', 'BUDGET_EXHAUSTED'].includes(normalized))
       return 'warning';
     if (['RUNNING', 'QUEUED', 'READY', 'PENDING', 'DRAFT'].includes(normalized)) return 'info';
     return 'neutral';
   }
 
+  researchTrustLabel(policy: ExternalResearchPolicy): string {
+    if (policy.mode === 'LIVE_READ_ONLY' && policy.status === 'READY') {
+      return `Live read-only research configured (${policy.provider}). Fetched evidence still requires review.`;
+    }
+    if (policy.mode === 'LOCAL_FIXTURE' || policy.mode === 'LOCAL_DETERMINISTIC') {
+      return 'Local demo data - not live market evidence.';
+    }
+    if (policy.status === 'BLOCKED_BY_EXTERNAL_CREDENTIALS') {
+      return 'Live research is blocked until the provider credential is configured.';
+    }
+    if (policy.status === 'BLOCKED_BY_CONFIGURATION') {
+      return 'Live research is blocked by runtime configuration.';
+    }
+    return `Research mode: ${policy.mode || 'UNKNOWN'}. Evidence requires review.`;
+  }
+
   currentStep(run: BusinessAgentRun): BusinessAgentRunStep | undefined {
     return (
+      run.steps.find((step) => step.status === 'FAILED') ??
       run.steps.find((step) =>
         ['RUNNING', 'WAITING', 'WAITING_APPROVAL', 'READY'].includes(step.status),
       ) ??

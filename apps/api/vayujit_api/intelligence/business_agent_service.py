@@ -1,5 +1,6 @@
 # ruff: noqa
 """Bounded deterministic orchestration over existing 9A-9F services."""
+
 from __future__ import annotations
 
 import hashlib
@@ -7,6 +8,7 @@ import json
 import re
 import uuid
 from collections.abc import Mapping
+from decimal import Decimal, InvalidOperation
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -16,6 +18,7 @@ from sqlalchemy.orm import Session
 from vayujit_api.audit.service import record_event
 from vayujit_api.core.config import get_settings
 from vayujit_api.identity.models import User
+from vayujit_api.intelligence.commercial_readiness_models import CommercialReadinessSnapshot
 from vayujit_api.intelligence.business_agent_models import (
     BusinessAgentApproval,
     BusinessAgentArtifact,
@@ -43,6 +46,7 @@ from vayujit_api.intelligence.competitor_agent_service import (
     execute_competitor_capability,
 )
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
+from vayujit_api.intelligence.product_opportunity_scoring_models import ProductOpportunityDecision
 from vayujit_api.intelligence.product_discovery import discover_local_product_candidates
 from vayujit_api.intelligence.product_research import run_live_product_discovery
 from vayujit_api.intelligence.review_business_agent_service import (
@@ -56,7 +60,10 @@ from vayujit_api.intelligence.trend_business_agent_service import (
     execute_trend_capability,
 )
 from vayujit_api.intelligence.business_agent_schemas import BusinessGoalCreate, RunCreate
-from vayujit_api.intelligence.supplier_research import execute_provider_neutral_search
+from vayujit_api.intelligence.supplier_research import (
+    derive_sourcing_concept,
+    execute_provider_neutral_search,
+)
 from vayujit_api.intelligence.supplier_schemas import SupplierSearchCreate
 from vayujit_api.intelligence.supplier_service import create_search
 
@@ -91,6 +98,104 @@ def _bounded_int(value: object, default: int) -> int:
     return default
 
 
+def _supplier_source_policy() -> dict[str, object]:
+    """Reuse the configured supplier mode without enabling external writes."""
+    return {
+        "mode": get_settings().intelligence_external_provider_mode,
+        "external_connectors": "disabled",
+    }
+
+
+def _candidate_opportunity_ids(db: Session, owner: User, goal_id: uuid.UUID) -> list[uuid.UUID]:
+    runs = list(
+        db.scalars(
+            select(BusinessAgentRun)
+            .where(
+                BusinessAgentRun.owner_id == owner.id,
+                BusinessAgentRun.goal_id == goal_id,
+            )
+            .order_by(BusinessAgentRun.updated_at.desc())
+        )
+    )
+    ids: list[uuid.UUID] = []
+    seen: set[uuid.UUID] = set()
+    for candidate_run in runs:
+        result = candidate_run.result if isinstance(candidate_run.result, dict) else {}
+        candidates = result.get("candidates")
+        if not isinstance(candidates, list):
+            continue
+        for candidate in candidates:
+            if not isinstance(candidate, dict):
+                continue
+            try:
+                opportunity_id = uuid.UUID(str(candidate.get("id")))
+            except (TypeError, ValueError):
+                continue
+            if opportunity_id not in seen:
+                seen.add(opportunity_id)
+                ids.append(opportunity_id)
+    return ids
+
+
+def _run_has_human_product_selection(db: Session, owner: User, run: BusinessAgentRun) -> bool:
+    for opportunity_id in _candidate_opportunity_ids(db, owner, run.goal_id):
+        if db.scalar(
+            select(ProductOpportunityDecision.id).where(
+                ProductOpportunityDecision.owner_id == owner.id,
+                ProductOpportunityDecision.opportunity_id == opportunity_id,
+                ProductOpportunityDecision.action == "shortlist",
+            )
+        ):
+            return True
+    return False
+
+
+_CAPITAL_PATTERN = re.compile(
+    r"(?:\u20b9|rs\.?|inr)\s*([0-9][0-9,]*(?:\.[0-9]+)?)\s*(lakh|lakhs)?"
+    r"|([0-9][0-9,]*(?:\.[0-9]+)?)\s*(lakh|lakhs)\s*(?:rupees?|inr|\u20b9)?"
+    r"|([0-9][0-9,]{3,})\s*(?:rupees?|inr|\u20b9)",
+    re.IGNORECASE,
+)
+
+
+def _parse_capital(raw: str) -> int | None:
+    for match in _CAPITAL_PATTERN.finditer(raw):
+        amount_text = next((value for value in match.groups()[::2] if value), None)
+        scale = next((value for value in match.groups()[1::2] if value), "")
+        if amount_text is None:
+            continue
+        try:
+            amount = Decimal(amount_text.replace(",", ""))
+            if scale.casefold() in {"lakh", "lakhs"}:
+                amount *= Decimal(100_000)
+            if amount != amount.to_integral_value():
+                continue
+            value = int(amount)
+        except (InvalidOperation, ValueError):
+            continue
+        if value >= 0:
+            return value
+    return None
+
+
+def _parse_currency(raw: str) -> str | None:
+    if re.search(r"(?:\u20b9|rs\.?|inr|rupees?)", raw, re.IGNORECASE):
+        return "INR"
+    return None
+
+
+def _explicit_goal_category(raw: str) -> str | None:
+    """Extract the seller's explicit category constraint from the raw goal."""
+    category_match = re.search(
+        r"\b(?:in|for|within)\s+(?:the\s+)?([a-z][a-z0-9 &\-/]{1,80}?)\s+categor(?:y|ies)\b",
+        raw.casefold(),
+    )
+    if not category_match:
+        return None
+    category = re.sub(r"\s+", " ", category_match.group(1)).strip(" .,-")
+    return category or None
+
+
 def _goal_projection(
     raw: str, supplied: dict[str, object] | None
 ) -> tuple[dict[str, object], list[str], list[str]]:
@@ -100,12 +205,12 @@ def _goal_projection(
     if supplied:
         structured = dict(supplied)
     else:
-        capital_match = re.search(r"\b(?:rs\.?|inr)\s*([0-9][0-9,]*)\b", lower)
         candidate_match = re.search(r"(\d+)\s+(?:winning\s+)?products?", lower)
         structured = {
             "objective": "identify and evaluate winning products",
             "marketplace": "AMAZON_IN" if "amazon" in lower else "UNSPECIFIED",
-            "capital": int(capital_match.group(1).replace(",", "")) if capital_match else None,
+            "currency": _parse_currency(raw),
+            "capital": _parse_capital(raw),
             "candidate_count": int(candidate_match.group(1)) if candidate_match else 3,
         }
     assumptions = [
@@ -119,6 +224,17 @@ def _goal_projection(
         unresolved.append("target marketplace")
     if not structured.get("capital"):
         unresolved.append("available capital")
+    explicit_category = _explicit_goal_category(raw)
+    # A category explicitly stated in the seller's current goal outranks stale
+    # structured values supplied by an older client or cached form state.
+    if explicit_category:
+        structured["category"] = explicit_category
+    if "target_candidate_count" not in structured and not re.search(
+        r"\b\d+\s+(?:winning\s+)?products?\b", lower
+    ):
+        current_count = _bounded_int(structured.get("candidate_count"), 3)
+        if current_count < 2:
+            structured["candidate_count"] = 3
     return structured, assumptions, unresolved
 
 
@@ -216,6 +332,23 @@ def get_goal(db: Session, owner: User, goal_id: uuid.UUID) -> BusinessAgentGoal:
     if value is None:
         raise HTTPException(404, "Business goal not found.")
     return value
+
+
+def delete_goal(db: Session, owner: User, goal_id: uuid.UUID) -> None:
+    """Delete an owner-scoped historical goal and its durable run history."""
+    goal = get_goal(db, owner, goal_id)
+    latest = db.scalar(
+        select(BusinessAgentGoal)
+        .where(BusinessAgentGoal.owner_id == owner.id)
+        .order_by(BusinessAgentGoal.updated_at.desc(), BusinessAgentGoal.created_at.desc())
+    )
+    if latest is not None and latest.id == goal.id:
+        raise HTTPException(
+            409, "The active research goal cannot be deleted. Start another goal first."
+        )
+    _audit(db, owner, "goal.deleted", goal.id, str(goal.id))
+    db.delete(goal)
+    db.commit()
 
 
 def create_goal(db: Session, owner: User, data: BusinessGoalCreate) -> BusinessAgentGoal:
@@ -808,7 +941,9 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
     if locked_run is None:
         raise HTTPException(404, "Business agent run not found.")
     run = locked_run
-    if run.status in {"CANCELLED", "COMPLETED", "WAITING_APPROVAL", "PAUSED", "BUDGET_EXHAUSTED"}:
+    if run.status in {"CANCELLED", "COMPLETED", "PAUSED", "BUDGET_EXHAUSTED"}:
+        return run
+    if run.status == "WAITING_APPROVAL" and not _run_has_human_product_selection(db, owner, run):
         return run
     run.status = "RUNNING"
     run.started_at = run.started_at or agent_now()
@@ -824,7 +959,20 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
     goal_record = db.get(BusinessAgentGoal, run.goal_id)
     if goal_record is None:
         raise HTTPException(404, "Business goal not found.")
-    structured_goal = goal_record.structured_goal or {}
+    structured_goal = dict(goal_record.structured_goal or {})
+    projected_goal, _assumptions, _unresolved = _goal_projection(
+        goal_record.raw_goal, structured_goal
+    )
+    if projected_goal != structured_goal:
+        goal_record.structured_goal = projected_goal
+        structured_goal = projected_goal
+        db.flush()
+    execution_mode = get_settings().intelligence_external_provider_mode
+    goal_provenance = dict(goal_record.provenance or {})
+    if goal_provenance.get("mode") != execution_mode:
+        goal_provenance["mode"] = execution_mode
+        goal_record.provenance = goal_provenance
+        db.flush()
     explicit_opportunity_id = structured_goal.get("product_opportunity_id")
     opportunity = None
     if explicit_opportunity_id:
@@ -844,9 +992,47 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 ProductOpportunity.idempotency_key == f"business-agent:{run.id}",
             )
         )
+    if opportunity is None:
+        opportunity_step = next(
+            (item for item in steps if item.step_key == "opportunity"),
+            None,
+        )
+        prior_result = (
+            opportunity_step.result
+            if opportunity_step is not None and isinstance(opportunity_step.result, dict)
+            else {}
+        )
+        prior_opportunity_id = prior_result.get("opportunity_id")
+        if prior_opportunity_id:
+            try:
+                opportunity = db.scalar(
+                    select(ProductOpportunity).where(
+                        ProductOpportunity.id == uuid.UUID(str(prior_opportunity_id)),
+                        ProductOpportunity.owner_id == owner.id,
+                    )
+                )
+            except (TypeError, ValueError):
+                opportunity = None
+    if opportunity is None:
+        for selected_opportunity_id in _candidate_opportunity_ids(db, owner, run.goal_id):
+            if not db.scalar(
+                select(ProductOpportunityDecision.id).where(
+                    ProductOpportunityDecision.owner_id == owner.id,
+                    ProductOpportunityDecision.opportunity_id == selected_opportunity_id,
+                    ProductOpportunityDecision.action == "shortlist",
+                )
+            ):
+                continue
+            opportunity = db.scalar(
+                select(ProductOpportunity).where(
+                    ProductOpportunity.id == selected_opportunity_id,
+                    ProductOpportunity.owner_id == owner.id,
+                )
+            )
+            if opportunity is not None:
+                break
     live_discovery_output: dict[str, object] | None = None
     if opportunity is None:
-        execution_mode = get_settings().intelligence_external_provider_mode
         if execution_mode == "LIVE_READ_ONLY":
             try:
                 live_discovery_output = run_live_product_discovery(
@@ -857,6 +1043,7 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                     max_results=_bounded_int(structured_goal.get("candidate_count"), 5),
                     correlation_id=f"business-agent:{run.id}:product-discovery",
                     run_id=run.id,
+                    goal_id=run.goal_id,
                 )
             except Exception as error:
                 live_discovery_output = {
@@ -884,9 +1071,17 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 opportunity_step = next(
                     (item for item in steps if item.step_key == "opportunity"), None
                 )
+                live_failure_code = str(live_discovery_output.get("status", "PROVIDER_UNAVAILABLE"))
+                live_failure_message = (
+                    "Brave search quota is exhausted or unavailable. Check the configured "
+                    "Brave credential/quota, then retry discovery."
+                    if live_failure_code == "PROVIDER_QUOTA_EXHAUSTED"
+                    else "Live product research returned no canonical product opportunity. "
+                    "Review the evidence and retry discovery before comparing products."
+                )
                 live_failure: dict[str, object] = {
-                    "code": str(live_discovery_output.get("status", "PROVIDER_UNAVAILABLE")),
-                    "message": "Live product research did not produce a canonical product opportunity.",
+                    "code": live_failure_code,
+                    "message": live_failure_message,
                     "mode": "LIVE_READ_ONLY",
                     "details": live_discovery_output,
                 }
@@ -910,44 +1105,6 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                     "mode": "LIVE_READ_ONLY",
                 }
                 run.checkpoint = {"completed_steps": [], "last_step": None}
-                run.result = {
-                    "outcome": "LIVE_RESEARCH_COMPLETED_WITH_GAPS",
-                    "mode": "LIVE_READ_ONLY",
-                    "external_writes": [],
-                    "research": live_discovery_output,
-                }
-                db.commit()
-                db.refresh(run)
-                return run
-        elif execution_mode not in {"LOCAL_FIXTURE", "LOCAL_DETERMINISTIC"}:
-            config_failure: dict[str, object] = {
-                "code": "CONFIGURATION_BLOCKED",
-                "message": "Business Agent product discovery is unavailable in the configured execution mode.",
-                "mode": execution_mode,
-            }
-            opportunity_step = next(
-                (item for item in steps if item.step_key == "opportunity"), None
-            )
-            if opportunity_step is not None:
-                opportunity_step.status = "FAILED"
-                opportunity_step.result = config_failure
-                opportunity_step.updated_at = agent_now()
-                db.add(
-                    BusinessAgentCheckpoint(
-                        owner_id=owner.id,
-                        run_id=run.id,
-                        step_key=opportunity_step.step_key,
-                        state={"status": "FAILED", "failure": config_failure},
-                        created_at=agent_now(),
-                    )
-                )
-            run.status = "PARTIAL"
-            run.failure = {
-                "code": config_failure["code"],
-                "message": config_failure["message"],
-                "mode": execution_mode,
-            }
-            run.checkpoint = {"completed_steps": [], "last_step": None}
             run.result = {
                 "outcome": "RESEARCH_BLOCKED",
                 "mode": execution_mode,
@@ -1032,6 +1189,20 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             for key in step.dependency_keys
             if steps_by_key.get(key) is None or steps_by_key[key].status != "COMPLETED"
         ]
+        if (
+            step.capability_id == "supplier.discovery"
+            and execution_mode == "LIVE_READ_ONLY"
+            and structured_goal.get("category")
+        ):
+            human_selection = db.scalar(
+                select(ProductOpportunityDecision.id).where(
+                    ProductOpportunityDecision.owner_id == owner.id,
+                    ProductOpportunityDecision.opportunity_id == opportunity.id,
+                    ProductOpportunityDecision.action == "shortlist",
+                )
+            )
+            if human_selection is None:
+                blocked_dependencies.append("human_product_selection")
         if blocked_dependencies:
             step.status = "BLOCKED"
             step.result = {
@@ -1198,40 +1369,68 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                     {"capability": step.capability_id, "opportunity_id": str(opportunity.id)},
                 )
             elif step.capability_id == "supplier.discovery":
-                query = str(
-                    structured_goal.get("product_query")
-                    or structured_goal.get("product_concept")
-                    or goal_record.raw_goal
+                selected_product_name = str(opportunity.name or "").strip()
+                (
+                    sourcing_concept,
+                    sourcing_method,
+                    sourcing_provenance,
+                ) = derive_sourcing_concept(opportunity, goal_id=run.goal_id)
+                product_query = (
+                    sourcing_concept
+                    or str(opportunity.product_concept or "").strip()
+                    or str(opportunity.category or "").strip()
                 )[:240]
+                sourcing_provenance["goal_id"] = str(run.goal_id)
+                supplier_requirements = {
+                    "product_query": product_query,
+                    "product_opportunity_id": str(opportunity.id),
+                    "product_name": selected_product_name,
+                    "retail_product_identity": selected_product_name,
+                    "retail_product_concept": str(opportunity.product_concept or ""),
+                    "product_concept": sourcing_concept,
+                    "sourcing_concept": sourcing_concept,
+                    "sourcing_concept_method": sourcing_method,
+                    "sourcing_concept_provenance": sourcing_provenance,
+                    "category": str(opportunity.category or ""),
+                    "subcategory": str(opportunity.subcategory or ""),
+                    "country": str(
+                        opportunity.target_region or structured_goal.get("country") or ""
+                    ),
+                    "region": str(opportunity.target_region or structured_goal.get("region") or ""),
+                    "marketplace": str(
+                        opportunity.target_marketplace or structured_goal.get("marketplace") or ""
+                    ),
+                    "manufacturer_preferred": True,
+                    "max_candidates": min(_bounded_int(run.budget.get("max_candidates"), 10), 20),
+                }
                 supplier_search = create_search(
                     db,
                     owner,
                     SupplierSearchCreate(
-                        requirements={
-                            "product_query": query,
-                            "product_opportunity_id": str(opportunity.id),
-                            "category": str(opportunity.category or ""),
-                            "country": str(structured_goal.get("country") or ""),
-                            "manufacturer_preferred": True,
-                            "max_candidates": min(
-                                _bounded_int(run.budget.get("max_candidates"), 10), 20
-                            ),
-                        },
-                        source_policy={
-                            "mode": "PROVIDER_NEUTRAL",
-                            "external_connectors": "disabled",
-                        },
+                        opportunity_id=None,
+                        product_id=opportunity.product_id,
+                        requirements=supplier_requirements,
+                        source_policy=_supplier_source_policy(),
                         ruleset_version="supplier-research-14f-v1",
                         idempotency_key=f"business-agent:{run.id}:supplier-discovery",
                     ),
                 )
                 execute_provider_neutral_search(db, owner, supplier_search)
+                supplier_summary = supplier_search.summary_json or {}
+                supplier_next_action = (
+                    "Review supplier candidates"
+                    if _bounded_int(supplier_summary.get("accepted_candidate_count"), 0) > 0
+                    else "Review supplier research gaps"
+                )
+                supplier_summary["next_action"] = supplier_next_action
                 output = {
                     "capability": step.capability_id,
-                    "mode": "LOCAL_DETERMINISTIC",
+                    "mode": str(
+                        supplier_summary.get("mode") or supplier_search.source_policy.get("mode")
+                    ),
                     "opportunity_id": str(opportunity.id),
                     "research_request_id": str(supplier_search.id),
-                    "result": supplier_search.summary_json,
+                    "result": supplier_summary,
                     "external_writes": [],
                     "external_mutation": False,
                 }
@@ -1244,6 +1443,8 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                     {
                         "capability": step.capability_id,
                         "research_request_id": str(supplier_search.id),
+                        "mode": output["mode"],
+                        "product_opportunity_id": str(opportunity.id),
                     },
                 )
             else:
@@ -1363,6 +1564,28 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
     blocked_steps = [step for step in steps if step.status == "BLOCKED"]
     if failed_steps or blocked_steps:
         run.status = "PARTIAL"
+        failed_commercial_readiness_payload: dict[str, object] | None = None
+        readiness_row = db.scalar(
+            select(CommercialReadinessSnapshot)
+            .where(
+                CommercialReadinessSnapshot.owner_id == owner.id,
+                CommercialReadinessSnapshot.opportunity_id == opportunity.id,
+            )
+            .order_by(CommercialReadinessSnapshot.created_at.desc())
+        )
+        if readiness_row is not None:
+            failed_commercial_readiness_payload = {
+                "id": str(readiness_row.id),
+                "readiness": readiness_row.readiness,
+                "known_inputs": readiness_row.known_inputs,
+                "claims": readiness_row.claims,
+                "assumptions": readiness_row.assumptions,
+                "unknown_inputs": readiness_row.unknown_inputs,
+                "missing_inputs": readiness_row.missing_inputs,
+                "optional_gaps": readiness_row.optional_gaps,
+                "contradictions": readiness_row.contradictions,
+                "lineage": readiness_row.lineage,
+            }
         run.result = {
             "outcome": "RESEARCH_COMPLETED_WITH_GAPS",
             "completed_steps": run.checkpoint["completed_steps"],
@@ -1379,6 +1602,7 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             ],
             "external_writes": [],
             "candidates": _candidate_cards(db, owner),
+            "commercial_readiness": failed_commercial_readiness_payload,
         }
     if (
         not all(step.status == "COMPLETED" for step in steps)
@@ -1436,6 +1660,28 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             raw_gaps = output.get("evidence_gaps") or output.get("research_gaps") or []
             if isinstance(raw_gaps, list):
                 review_gaps.extend(gap for gap in raw_gaps if isinstance(gap, dict))
+        commercial_readiness_payload: dict[str, object] | None = None
+        readiness_row = db.scalar(
+            select(CommercialReadinessSnapshot)
+            .where(
+                CommercialReadinessSnapshot.owner_id == owner.id,
+                CommercialReadinessSnapshot.opportunity_id == opportunity.id,
+            )
+            .order_by(CommercialReadinessSnapshot.created_at.desc())
+        )
+        if readiness_row is not None:
+            commercial_readiness_payload = {
+                "id": str(readiness_row.id),
+                "readiness": readiness_row.readiness,
+                "known_inputs": readiness_row.known_inputs,
+                "claims": readiness_row.claims,
+                "assumptions": readiness_row.assumptions,
+                "unknown_inputs": readiness_row.unknown_inputs,
+                "missing_inputs": readiness_row.missing_inputs,
+                "optional_gaps": readiness_row.optional_gaps,
+                "contradictions": readiness_row.contradictions,
+                "lineage": readiness_row.lineage,
+            }
         run.result = {
             "opportunity_id": str(opportunity.id),
             "candidates": _candidate_cards(db, owner),
@@ -1456,6 +1702,7 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             "economics_enabled": economics_enabled_run,
             "economics_capabilities": [step.capability_id for step in economics_steps],
             "economics_projection": economics_outputs[-1] if economics_outputs else None,
+            "commercial_readiness": commercial_readiness_payload,
             "external_writes": [],
         }
         brief_payload: dict[str, object] = {
@@ -1463,6 +1710,7 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             "opportunity_id": str(opportunity.id),
             "assumptions": goal_record.assumptions,
             "unresolved_questions": goal_record.unresolved_questions,
+            "commercial_readiness": commercial_readiness_payload,
         }
         if competitor_enabled:
             brief_payload["competitor_intelligence"] = competitor_decision_brief(

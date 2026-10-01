@@ -4,7 +4,7 @@ from __future__ import annotations
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -12,11 +12,16 @@ from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.intelligence.commerce_journey import project_journey
 from vayujit_api.intelligence.cross_marketplace_service import list_canonical
 from vayujit_api.intelligence.external_service import provider_preflight
 from vayujit_api.intelligence.models import IntelligenceOpportunity
+from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
 from vayujit_api.intelligence.supplier_models import SUPPLIER_ACCESS_MODES, SUPPLIER_SOURCE_TYPES
-from vayujit_api.intelligence.supplier_research import execute_provider_neutral_search
+from vayujit_api.intelligence.supplier_research import (
+    derive_sourcing_concept,
+    execute_provider_neutral_search,
+)
 from vayujit_api.intelligence.supplier_schemas import (
     SupplierCertificationClaimCreate,
     SupplierCommercialTermCreate,
@@ -204,23 +209,23 @@ def research_results(
     owner: Owner,
     opportunity_id: uuid.UUID | None = Query(default=None),
 ) -> dict[str, object]:
-    """Bounded supplier-research projection for the selected product journey.
-
-    This composes the existing 14F search ledger with the 8A canonical supplier
-    projection. It never starts research, contacts a provider, or performs an
-    external write.
-    """
-    opportunity: IntelligenceOpportunity | None = None
+    """Project supplier research for the canonical, human-selected product."""
+    opportunity: ProductOpportunity | IntelligenceOpportunity | None = None
     if opportunity_id is not None:
         opportunity = db.scalar(
-            select(IntelligenceOpportunity).where(
-                IntelligenceOpportunity.id == opportunity_id,
-                IntelligenceOpportunity.owner_id == owner.id,
+            select(ProductOpportunity).where(
+                ProductOpportunity.id == opportunity_id,
+                ProductOpportunity.owner_id == owner.id,
             )
         )
         if opportunity is None:
-            from fastapi import HTTPException
-
+            opportunity = db.scalar(
+                select(IntelligenceOpportunity).where(
+                    IntelligenceOpportunity.id == opportunity_id,
+                    IntelligenceOpportunity.owner_id == owner.id,
+                )
+            )
+        if opportunity is None:
             raise HTTPException(404, "Product opportunity not found.")
 
     from vayujit_api.intelligence.supplier_models import SupplierSearch
@@ -259,6 +264,29 @@ def research_results(
                 str(value) for value in (row.get("identity", {}) or {}).get("supplier_ids", [])
             )
         ]
+
+    if isinstance(opportunity, ProductOpportunity):
+        product_context = {
+            "opportunity_id": str(opportunity.id),
+            "product": opportunity.name,
+            "description": opportunity.description,
+            "category": opportunity.category,
+            "subcategory": opportunity.subcategory,
+            "marketplace": opportunity.target_marketplace,
+            "region": opportunity.target_region,
+            "lifecycle_status": opportunity.lifecycle_status,
+        }
+    elif opportunity is not None:
+        product_context = {
+            "opportunity_id": str(opportunity.id),
+            "product": opportunity.title,
+            "category": opportunity.category,
+            "marketplace": opportunity.market,
+            "status": opportunity.status,
+        }
+    else:
+        product_context = None
+
     status = str(summary.get("status") or (search.status if search else "NOT_STARTED"))
     next_action = (
         "Review supplier candidates"
@@ -266,17 +294,7 @@ def research_results(
         else "Start supplier research" if search is None else "Review supplier research gaps"
     )
     return {
-        "product_context": (
-            {
-                "opportunity_id": str(opportunity.id),
-                "product": opportunity.title,
-                "category": opportunity.category,
-                "marketplace": opportunity.market,
-                "status": opportunity.status,
-            }
-            if opportunity is not None
-            else None
-        ),
+        "product_context": product_context,
         "research": {
             "status": status,
             "mode": summary.get("mode")
@@ -304,25 +322,71 @@ def add_search(data: SupplierSearchCreate, db: DB, owner: Owner) -> object:
 
 @router.post("/research")
 def research_suppliers(data: SupplierResearchCreate, db: DB, owner: Owner) -> dict[str, object]:
-    """Run bounded provider-neutral discovery using the existing SupplierSearch ledger."""
+    """Run bounded supplier discovery scoped to the selected product when available."""
+    selected: ProductOpportunity | None = None
+    selected_id = data.product_opportunity_id
+    if selected_id is None:
+        journey = project_journey(db, owner)
+        values = (journey or {}).get("values", {}) if isinstance(journey, dict) else {}
+        raw_selected_id = values.get("selected_product_opportunity_id")
+        if raw_selected_id:
+            try:
+                selected_id = uuid.UUID(str(raw_selected_id))
+            except ValueError:
+                selected_id = None
+    if selected_id is not None:
+        selected = db.scalar(
+            select(ProductOpportunity).where(
+                ProductOpportunity.id == selected_id,
+                ProductOpportunity.owner_id == owner.id,
+            )
+        )
+        if selected is None:
+            raise HTTPException(404, "Selected product opportunity not found.")
+
+    sourcing_concept = ""
+    sourcing_method = ""
+    sourcing_provenance: dict[str, object] = {}
+    if selected is not None:
+        sourcing_concept, sourcing_method, sourcing_provenance = derive_sourcing_concept(selected)
+    product_query = (
+        sourcing_concept
+        or data.product_query
+        or (selected.category if selected is not None else "")
+    ).strip()
+    if not product_query:
+        raise HTTPException(409, "Select a product before starting supplier research.")
+
+    category = (data.category or (selected.category if selected is not None else "")).strip()
+    country = (data.country or (selected.target_region if selected is not None else "")).strip()
+    requirements: dict[str, object] = {
+        "product_query": product_query,
+        "product_opportunity_id": str(selected.id) if selected is not None else None,
+        "product_name": selected.name if selected is not None else product_query,
+        "retail_product_identity": selected.name if selected is not None else product_query,
+        "retail_product_concept": selected.product_concept if selected is not None else "",
+        "product_concept": sourcing_concept
+        or (selected.product_concept if selected is not None else ""),
+        "sourcing_concept": sourcing_concept or product_query,
+        "sourcing_concept_method": sourcing_method or "API_INPUT",
+        "sourcing_concept_provenance": sourcing_provenance,
+        "category": category,
+        "subcategory": selected.subcategory if selected is not None else "",
+        "country": country,
+        "marketplace": selected.target_marketplace if selected is not None else "",
+        "region": selected.target_region if selected is not None else "",
+        "supplier_type": data.supplier_type,
+        "manufacturer_preferred": data.manufacturer_preferred,
+        "keywords": data.keywords,
+        "excluded_terms": data.excluded_terms,
+        "max_candidates": data.max_candidates,
+        "research_depth": data.research_depth,
+        "approved_domains": data.approved_domains,
+    }
     search_data = SupplierSearchCreate(
         opportunity_id=None,
-        requirements={
-            "product_query": data.product_query,
-            "product_opportunity_id": (
-                str(data.product_opportunity_id) if data.product_opportunity_id else None
-            ),
-            "category": data.category,
-            "country": data.country,
-            "region": data.region,
-            "supplier_type": data.supplier_type,
-            "manufacturer_preferred": data.manufacturer_preferred,
-            "keywords": data.keywords,
-            "excluded_terms": data.excluded_terms,
-            "max_candidates": data.max_candidates,
-            "research_depth": data.research_depth,
-            "approved_domains": data.approved_domains,
-        },
+        product_id=selected.product_id if selected is not None else None,
+        requirements=requirements,
         source_policy={"mode": data.mode, "external_connectors": "disabled"},
         ruleset_version="supplier-research-14f-v1",
         idempotency_key=data.idempotency_key,
@@ -335,6 +399,18 @@ def research_suppliers(data: SupplierResearchCreate, db: DB, owner: Owner) -> di
         "request": _row(search),
         "result": search.summary_json,
         "status": search.status,
+        "selected_product": (
+            {
+                "id": str(selected.id),
+                "name": selected.name,
+                "category": selected.category,
+                "subcategory": selected.subcategory,
+                "marketplace": selected.target_marketplace,
+                "region": selected.target_region,
+            }
+            if selected is not None
+            else None
+        ),
         "live_discovery": (
             "LIVE_READY"
             if data.mode == "LIVE_READ_ONLY" and search.status == "completed"

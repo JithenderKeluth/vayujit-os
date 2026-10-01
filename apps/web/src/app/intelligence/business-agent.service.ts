@@ -168,6 +168,24 @@ export class BusinessAgentService {
     return firstValueFrom(this.http.get<BusinessAgentGoal[]>(`${this.base}/goals`, this.options));
   }
 
+  latestPlan(goalId: string): Promise<BusinessAgentPlan> {
+    return firstValueFrom(
+      this.http.get<BusinessAgentPlan>(`${this.base}/goals/${goalId}/plan`, this.options),
+    );
+  }
+
+  latestRun(goalId: string): Promise<BusinessAgentRun> {
+    return firstValueFrom(
+      this.http.get<BusinessAgentRun>(`${this.base}/goals/${goalId}/runs/latest`, this.options),
+    );
+  }
+
+  deleteGoal(goalId: string): Promise<void> {
+    return firstValueFrom(
+      this.http.delete<void>(`${this.base}/goals/${goalId}`, this.options),
+    );
+  }
+
   createGoal(payload: BusinessGoalCreatePayload): Promise<BusinessAgentGoal> {
     return firstValueFrom(
       this.http.post<BusinessAgentGoal>(`${this.base}/goals`, payload, this.options),

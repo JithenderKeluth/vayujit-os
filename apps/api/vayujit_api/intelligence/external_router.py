@@ -32,6 +32,7 @@ from vayujit_api.intelligence.external_models import (
     ExternalResearchBudget,
     ExternalSearchRequest,
     ExternalSearchResult,
+    ExternalSourceProfile,
 )
 from vayujit_api.intelligence.external_projection import (
     alerts_projection,
@@ -45,9 +46,11 @@ from vayujit_api.intelligence.external_provider import classify_prompt_injection
 from vayujit_api.intelligence.external_schemas import (
     ExternalFetchRequestBody,
     ExternalSearchRequestBody,
+    ExternalSourceAdmissionCreate,
 )
 from vayujit_api.intelligence.external_service import (
     ALLOWED_MODES,
+    admit_source_profile,
     approved_fetch_preflight,
     fetch,
     provider_preflight,
@@ -193,6 +196,70 @@ def search_endpoint(data: ExternalSearchRequestBody, db: DB, owner: Owner) -> di
             }
             for row in cast(list[Any], result["results"])
         ],
+    }
+
+
+@router.get("/source-profiles")
+def source_profiles(db: DB, owner: Owner) -> list[dict[str, object]]:
+    rows = list(
+        db.scalars(
+            select(ExternalSourceProfile)
+            .where(ExternalSourceProfile.owner_id == owner.id)
+            .order_by(ExternalSourceProfile.name)
+        )
+    )
+    return [
+        {
+            "id": row.id,
+            "name": row.name,
+            "approved_domains": list(row.approved_domains or []),
+            "blocked_domains": list(row.blocked_domains or []),
+            "robots_policy": row.robots_policy,
+            "terms_status": row.terms_status,
+            "access_classification": row.access_classification,
+            "enabled": row.enabled,
+        }
+        for row in rows
+    ]
+
+
+@router.post("/source-profiles/admit")
+def source_profile_admit(
+    data: ExternalSourceAdmissionCreate, db: DB, owner: Owner
+) -> dict[str, object]:
+    try:
+        profile = admit_source_profile(
+            db,
+            owner,
+            domain=data.domain,
+            reason=data.reason,
+            approval_authority=data.approval_authority,
+            robots_policy=data.robots_policy,
+            terms_status=data.terms_status,
+            access_classification=data.access_classification,
+        )
+        db.commit()
+        db.refresh(profile)
+    except (ValueError, HTTPException) as exc:
+        db.rollback()
+        if isinstance(exc, HTTPException):
+            raise
+        raise HTTPException(422, str(exc)) from exc
+    return {
+        "id": profile.id,
+        "name": profile.name,
+        "approved_domains": list(profile.approved_domains or []),
+        "blocked_domains": list(profile.blocked_domains or []),
+        "robots_policy": profile.robots_policy,
+        "terms_status": profile.terms_status,
+        "access_classification": profile.access_classification,
+        "enabled": profile.enabled,
+        "approval": {
+            "domain": data.domain.strip().lower().rstrip("."),
+            "reason": data.reason,
+            "approval_authority": data.approval_authority,
+            "external_write": False,
+        },
     }
 
 

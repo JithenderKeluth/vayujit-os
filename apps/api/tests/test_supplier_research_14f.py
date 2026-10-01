@@ -109,7 +109,9 @@ def test_provider_neutral_supplier_research_live_mode_uses_existing_boundaries(
             "extracted": {
                 "text": (
                     "Company Name: Acme Bottle Works. Address: Pune, India. "
-                    "Manufacturer of stainless steel insulated water bottles. OEM capability."
+                    "Product: stainless steel insulated water bottles. "
+                    "Manufacturer of stainless steel insulated water bottles. "
+                    "OEM capability."
                 ),
                 "prompt_injection": {"instructions_executable": False},
             }
@@ -242,3 +244,112 @@ def test_supplier_research_results_projection_is_bounded_and_read_only(client: A
     assert body["external_write"] is False
     assert len(body["suppliers"]) <= 20
     assert body["next_action"] in {"Review supplier candidates", "Review supplier research gaps"}
+
+
+def test_supplier_query_prefers_sourcing_concept_over_retail_identity() -> None:
+    queries = supplier_research._query_plan(
+        {
+            "product_query": "Madhura’s Recipe Stainless Steel Lunch Box for Kids & Family",
+            "sourcing_concept": "reusable insulated food container",
+            "category": "Kids",
+            "country": "IN",
+            "manufacturer_preferred": True,
+        }
+    )
+    assert len(queries) == 3
+    assert "madhura" not in queries[0].casefold()
+    assert "reusable insulated food container" in queries[0]
+    assert "kids" in queries[0].casefold()
+    assert "kids kids" not in queries[0].casefold()
+
+
+def test_source_admission_is_explicit_owner_scoped_and_reaches_approved_fetch(
+    client: Any, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    setup_context(client)
+    admission = client.post(
+        "/api/v1/intelligence/external/source-profiles/admit",
+        json={
+            "domain": "example.org",
+            "reason": "Bounded validation of an independently discovered supplier domain.",
+            "approval_authority": "PR-3.6-validation",
+        },
+        headers=ORIGIN,
+    )
+    assert admission.status_code == 200, admission.text
+    profile = admission.json()
+    assert profile["approved_domains"] == ["example.org"]
+    assert profile["robots_policy"] == "APPROVED"
+    assert profile["terms_status"] == "APPROVED"
+    assert profile["access_classification"] == "APPROVED"
+    assert profile["approval"]["external_write"] is False
+
+    listed = client.get("/api/v1/intelligence/external/source-profiles", headers=ORIGIN)
+    assert listed.status_code == 200, listed.text
+    assert any(item["approved_domains"] == ["example.org"] for item in listed.json())
+
+    row = SimpleNamespace(
+        id=uuid.uuid4(),
+        canonical_url="https://example.org/suppliers/acme",
+        url="https://example.org/suppliers/acme",
+        domain="example.org",
+        title="Acme insulated container manufacturer",
+        snippet="Manufacturer of reusable insulated food containers in India.",
+        provider="brave",
+        provider_result_id="brave-pr36-acme-1",
+        rank=1,
+        retrieved_at=datetime.now(UTC),
+    )
+
+    monkeypatch.setattr(
+        supplier_research,
+        "external_search",
+        lambda *_args, **_kwargs: {"id": uuid.uuid4(), "results": [row]},
+    )
+
+    def fake_fetch(_db: Any, _owner: Any, request: Any) -> dict[str, object]:
+        assert request.source_profile.startswith("dynamic-")
+        assert request.allowed_domains == ["example.org"]
+        return {
+            "status": "COMPLETED",
+            "http_status": 200,
+            "final_url": row.canonical_url,
+            "extracted": {
+                "text": (
+                    "Company Name: Acme Container Works. Address: Pune, India. "
+                    "Product: reusable insulated food containers. "
+                    "Manufacturer and OEM supplier for insulated food containers."
+                ),
+                "prompt_injection": {"instructions_executable": False},
+            },
+        }
+
+    monkeypatch.setattr(supplier_research, "external_fetch", fake_fetch)
+    response = client.post(
+        "/api/v1/intelligence/suppliers/research",
+        json={
+            "product_query": "reusable insulated food container",
+            "sourcing_concept": "reusable insulated food container",
+            "country": "IN",
+            "mode": "LIVE_READ_ONLY",
+            "max_candidates": 2,
+            "idempotency_key": "pr36-dynamic-admission-1",
+        },
+        headers=ORIGIN,
+    )
+    assert response.status_code == 200, response.text
+    result = response.json()["result"]
+    assert result["accepted_candidate_count"] == 1
+    assert result["source_admission"]["approved_profile_count"] == 1
+    assert result["observability"]["fetch_count"] == 1
+
+
+def test_source_admission_rejects_wildcard_and_path(client: Any) -> None:
+    setup_context(client)
+    for domain in ("*.example.org", "example.org/path"):
+        response = client.post(
+            "/api/v1/intelligence/external/source-profiles/admit",
+            json={"domain": domain, "reason": "invalid bounded test"},
+            headers=ORIGIN,
+        )
+        assert response.status_code == 422, response.text

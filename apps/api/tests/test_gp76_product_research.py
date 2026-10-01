@@ -6,10 +6,14 @@ from fastapi import HTTPException
 
 from vayujit_api.intelligence.external_provider import _SafeHTMLParser
 from vayujit_api.intelligence.product_research import (
+    _category_constraint_match,
     _classify_live_page,
+    _derived_display_name,
     _has_product_identity,
     _jsonld_product,
+    _live_hypotheses,
     _live_product_queries,
+    _live_why_this_surfaced,
     _normalize_live_search_failure,
     _target_candidate_count,
     classify_result,
@@ -97,6 +101,43 @@ def test_product_projection_promotes_bounded_open_graph_product_metadata() -> No
     assert projection["description"] == "Food-grade stainless steel tiffin box."
 
 
+def test_product_projection_accepts_product_og_without_explicit_og_type() -> None:
+    from vayujit_api.intelligence.product_research import _bounded_product_projection
+
+    projection, is_product_page = _bounded_product_projection(
+        {
+            "canonical_url": "https://gelidicepacks.com/insulated-food-container.html",
+            "open_graph": {
+                "title": "Insulated Food Container - Insulated PUF Box",
+                "image": "https://cdn.example/insulated-puf-box.png",
+                "description": "Manufacturer of an insulated food container.",
+            },
+            "product_metadata": {"json_ld": {"@type": "LocalBusiness"}},
+        }
+    )
+    assert is_product_page is True
+    assert projection["name"].startswith("Insulated Food Container")
+    assert projection["image"].endswith("insulated-puf-box.png")
+    assert projection["description"].startswith("Manufacturer of an insulated food container.")
+
+
+def test_supplier_listing_og_without_product_proof_is_not_promoted() -> None:
+    from vayujit_api.intelligence.product_research import _bounded_product_projection
+
+    projection, is_product_page = _bounded_product_projection(
+        {
+            "canonical_url": "https://www.indiamart.com/example/product-listing.html",
+            "open_graph": {
+                "title": "Insulated Food Storage Containers Manufacturer from Ambala",
+                "description": "Manufacturer listing with multiple container variants.",
+            },
+            "product_metadata": {"json_ld": {"@type": "Organization"}},
+        }
+    )
+    assert is_product_page is False
+    assert projection == {}
+
+
 def test_live_page_classification_rejects_editorial_and_shipping_pages() -> None:
     empty: dict[str, object] = {}
     assert (
@@ -170,3 +211,75 @@ def test_live_target_candidate_count_is_bounded() -> None:
     assert _target_candidate_count({"target_candidate_count": 9}) == 3
     assert _target_candidate_count({"target_candidate_count": 0}) == 1
     assert _target_candidate_count({"target_candidate_count": "invalid"}) == 1
+
+
+def test_live_identity_keeps_observed_title_and_derives_conservative_display_name() -> None:
+    observed = "Insulated Food Container - Insulated PUF Box Manufacturer from Ahmedabad"
+    assert _derived_display_name(observed) == "Insulated Food Container"
+    assert _derived_display_name(observed) != observed
+
+
+def test_live_rationale_is_grounded_in_hypothesis_and_page_evidence() -> None:
+    reasons = _live_why_this_surfaced(
+        hypothesis={"name": "Insulated Lunch Container"},
+        category="Home & Kitchen",
+        subcategory="Food Storage",
+        page_type="PRODUCT_DETAIL",
+    )
+    assert any("live product hypothesis" in item for item in reasons)
+    assert any("product-specific product detail" in item for item in reasons)
+    assert all(
+        "sales" not in item.casefold() and "profit" not in item.casefold() for item in reasons
+    )
+
+
+def test_category_constraint_rejects_cached_unrelated_product_evidence() -> None:
+    eligible, fields = _category_constraint_match(
+        "kids",
+        name="Insulated Food Container",
+        category="Home & Kitchen",
+        subcategory="Food Storage",
+        description="Insulated PUF box manufacturer product.",
+        canonical_url="https://example.org/product/insulated-food-container",
+    )
+    assert eligible is False
+    assert fields == []
+
+
+def test_category_constraint_accepts_observed_product_discriminator() -> None:
+    eligible, fields = _category_constraint_match(
+        "kids",
+        name="Kids magnetic building tiles",
+        category="Toys",
+        subcategory="Building Sets",
+        description="Product-specific set for children.",
+        canonical_url="https://example.org/product/kids-magnetic-tiles",
+    )
+    assert eligible is True
+    assert "name" in fields
+
+
+def test_category_generates_bounded_concrete_hypotheses_from_authority() -> None:
+    hypotheses = _live_hypotheses(
+        (
+            "I have INR 300000 and want to start selling on Amazon India. "
+            "Help me find a product in kids category."
+        ),
+        {"category": "kids", "marketplace": "AMAZON_IN", "currency": "INR", "capital": 300000},
+    )
+    assert 1 <= len(hypotheses) <= 3
+    assert all(item["product_concept"] != "kids products" for item in hypotheses)
+    assert all(len(str(item["product_concept"]).split()) >= 3 for item in hypotheses)
+    assert all(item["category"] == "Kids" for item in hypotheses)
+    assert all(
+        item["profile"]["candidate_provenance"]["method"]
+        == "CANONICAL_CANDIDATE_AUTHORITY_PROJECTION"
+        for item in hypotheses
+    )
+
+
+def test_category_queries_are_product_specific_not_generic_category_searches() -> None:
+    queries = _live_product_queries("kids reusable insulated food container")
+    assert queries[0][0] == "kids reusable insulated food container product detail India"
+    assert queries[1][0] == "kids reusable insulated food container product specifications India"
+    assert all(query != "kids products India product" for query, _reason in queries)

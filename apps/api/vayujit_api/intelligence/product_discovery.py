@@ -284,8 +284,18 @@ def discover_local_product_candidates(
     bounded = max(1, min(limit, len(LOCAL_PRODUCT_CANDIDATES)))
     marketplace = str(goal.get("marketplace") or "AMAZON_IN")
     region = str(goal.get("country_region") or goal.get("country") or "IN")
+    requested_category = str(goal.get("category") or "").strip()
+    candidates = list(LOCAL_PRODUCT_CANDIDATES)
+    if requested_category:
+        requested_tokens = set(_normalize(requested_category).split())
+        candidates = [
+            candidate
+            for candidate in candidates
+            if requested_tokens
+            & set(_normalize(f"{candidate.category} {candidate.subcategory}").split())
+        ]
     results: list[dict[str, object]] = []
-    for candidate in LOCAL_PRODUCT_CANDIDATES[:bounded]:
+    for candidate in candidates[:bounded]:
         fit = _goal_fit(raw_goal, goal)
         profile: dict[str, object] = {
             "profile_version": "gp7.5-local-product-intelligence-v1",
@@ -396,8 +406,58 @@ def discover_local_product_candidates(
     return results
 
 
+def generate_category_product_hypotheses(
+    raw_goal: str,
+    structured_goal: dict[str, Any] | None = None,
+    *,
+    limit: int = 3,
+) -> list[dict[str, object]]:
+    """Generate bounded concrete hypotheses from the canonical candidate authority.
+
+    Exact category candidates are preferred. When the authority has no exact
+    taxonomy match, its existing product concepts are projected into the
+    seller-requested category as system-generated hypotheses. They are search
+    seeds only; fetched evidence must still establish category compatibility.
+    """
+    goal = dict(structured_goal or {})
+    requested_category = str(goal.get("category") or "").strip()
+    exact = discover_local_product_candidates(raw_goal, goal, limit=limit)
+    if exact or not requested_category:
+        return exact
+
+    seed_goal = dict(goal)
+    seed_goal.pop("category", None)
+    seeds = discover_local_product_candidates(raw_goal, seed_goal, limit=limit)
+    label = re.sub(r"\s+", " ", requested_category).strip(" .,-")
+    projected: list[dict[str, object]] = []
+    for item in seeds[: max(1, min(limit, 3))]:
+        seed_profile = item.get("profile")
+        profile = dict(seed_profile) if isinstance(seed_profile, dict) else {}
+        concept = f"{label} {item['product_concept']}"
+        projected.append(
+            {
+                **item,
+                "name": f"{label.title()} {item['name']}",
+                "product_concept": concept,
+                "category": label.title(),
+                "subcategory": label.title(),
+                "profile": {
+                    **profile,
+                    "candidate_source": "CATEGORY_CONSTRAINED_HYPOTHESIS",
+                    "candidate_provenance": {
+                        "source": "CATEGORY_CONSTRAINED_HYPOTHESIS",
+                        "method": "CANONICAL_CANDIDATE_AUTHORITY_PROJECTION",
+                        "authoritative": False,
+                    },
+                },
+            }
+        )
+    return projected
+
+
 __all__ = [
     "ProductCandidateDefinition",
     "LOCAL_PRODUCT_CANDIDATES",
     "discover_local_product_candidates",
+    "generate_category_product_hypotheses",
 ]

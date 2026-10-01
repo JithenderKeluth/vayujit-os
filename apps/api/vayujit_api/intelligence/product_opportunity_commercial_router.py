@@ -14,6 +14,14 @@ from vayujit_api.audit.service import record_event
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
+from vayujit_api.intelligence.commercial_readiness_schemas import (
+    CommercialReadinessCreate,
+    CommercialReadinessResponse,
+)
+from vayujit_api.intelligence.commercial_readiness_service import (
+    latest_readiness,
+    project_readiness,
+)
 from vayujit_api.intelligence.product_opportunity_commercial_models import (
     CALCULATION_VERSION,
     ProductOpportunityCommercialOutput,
@@ -121,6 +129,34 @@ def get_commercial(
     opportunity_id: uuid.UUID, assessment_id: uuid.UUID, db: DB, owner: Owner
 ) -> ProductOpportunityCommercialOutput:
     return _output_or_404(db, owner, opportunity_id, assessment_id)
+
+
+@router.post(
+    "/{opportunity_id}/assessments/{assessment_id}/commercial-readiness",
+    response_model=CommercialReadinessResponse,
+    status_code=201,
+)
+def create_commercial_readiness(
+    opportunity_id: uuid.UUID,
+    assessment_id: uuid.UUID,
+    data: CommercialReadinessCreate,
+    db: DB,
+    owner: Owner,
+) -> object:
+    return project_readiness(db, owner, opportunity_id, assessment_id, data)[0]
+
+
+@router.get(
+    "/{opportunity_id}/assessments/{assessment_id}/commercial-readiness",
+    response_model=CommercialReadinessResponse,
+)
+def get_commercial_readiness(
+    opportunity_id: uuid.UUID, assessment_id: uuid.UUID, db: DB, owner: Owner
+) -> object:
+    row = latest_readiness(db, owner, opportunity_id, assessment_id)
+    if row is None:
+        raise HTTPException(404, "Commercial evidence readiness has not been projected.")
+    return row
 
 
 @router.get("/{opportunity_id}/assessments/{assessment_id}/commercial/unit-economics")

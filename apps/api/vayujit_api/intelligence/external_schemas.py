@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -38,6 +39,24 @@ class ExternalFetchRequestBody(BaseModel):
     search_result_id: uuid.UUID | None = None
     correlation_id: str = Field(default="", max_length=80)
     refresh: bool = False
+
+
+class ExternalSourceAdmissionCreate(BaseModel):
+    """Explicit owner-scoped approval for one discovered external domain."""
+
+    domain: str = Field(min_length=1, max_length=255)
+    reason: str = Field(min_length=1, max_length=500)
+    approval_authority: str = Field(default="internal_validation", max_length=120)
+    robots_policy: Literal["APPROVED"] = "APPROVED"
+    terms_status: Literal["APPROVED"] = "APPROVED"
+    access_classification: Literal["APPROVED"] = "APPROVED"
+
+    @field_validator("domain", "reason", "approval_authority")
+    @classmethod
+    def clean_admission_text(cls, value: str) -> str:
+        if any(ord(char) < 32 and char not in "\t" for char in value):
+            raise ValueError("control characters are not allowed")
+        return value.strip()
 
 
 class ExternalSearchResultResponse(BaseModel):

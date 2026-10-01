@@ -1,0 +1,1190 @@
+{
+  "owner_status": 201,
+  "goal_status": 201,
+  "goal": {
+    "id": "6d86edc2-c057-4a5c-9883-dbe3d4801175",
+    "raw_goal": "I have INR 300000 and want to start selling on Amazon India. Help me find a product in kids category.",
+    "structured_goal": {
+      "capital": 300000,
+      "category": "kids",
+      "currency": "INR",
+      "objective": "identify and evaluate winning products",
+      "marketplace": "AMAZON_IN",
+      "candidate_count": 3
+    },
+    "provenance": {
+      "source": "owner_input",
+      "validation": "PR-3.3-GOLDEN"
+    },
+    "assumptions": [
+      "Only owner-scoped internal evidence and deterministic local capabilities are used."
+    ],
+    "unresolved_questions": [],
+    "extraction_version": "business-goal-v1",
+    "status": "DRAFT",
+    "idempotency_key": "pr33-golden-goal-1",
+    "created_at": "2026-10-01T06:45:18.259618Z",
+    "updated_at": "2026-10-01T06:45:18.259618Z"
+  },
+  "plan_status": 200,
+  "plan": {
+    "id": "14de91db-a8b5-4eac-aad0-73e034bced39",
+    "goal_id": "6d86edc2-c057-4a5c-9883-dbe3d4801175",
+    "version": 1,
+    "status": "READY",
+    "planner": "deterministic-local",
+    "plan_hash": "a13a2a41ebc8694a60a2880f7e252dcb8c1210bd21cac3eaa2f7006177271b39",
+    "steps": [
+      {
+        "key": "opportunity",
+        "capability_id": "product_opportunity.create",
+        "dependencies": [],
+        "execution_mode": "deterministic",
+        "side_effect_class": "NONE",
+        "status": "QUEUED"
+      },
+      {
+        "key": "demand",
+        "capability_id": "demand.intelligence",
+        "dependencies": [
+          "opportunity"
+        ],
+        "execution_mode": "autonomous_research",
+        "side_effect_class": "NONE",
+        "status": "QUEUED"
+      },
+      {
+        "key": "competition",
+        "capability_id": "competition.intelligence",
+        "dependencies": [
+          "opportunity"
+        ],
+        "execution_mode": "autonomous_research",
+        "side_effect_class": "NONE",
+        "status": "QUEUED"
+      },
+      {
+        "key": "commercial",
+        "capability_id": "commercial.assessment",
+        "dependencies": [
+          "opportunity"
+        ],
+        "execution_mode": "product_opportunity",
+        "side_effect_class": "NONE",
+        "status": "QUEUED"
+      },
+      {
+        "key": "supplier",
+        "capability_id": "supplier.discovery",
+        "dependencies": [
+          "opportunity"
+        ],
+        "execution_mode": "autonomous_research",
+        "side_effect_class": "NONE",
+        "status": "QUEUED"
+      },
+      {
+        "key": "feasibility",
+        "capability_id": "supplier.feasibility",
+        "dependencies": [
+          "supplier"
+        ],
+        "execution_mode": "product_opportunity",
+        "side_effect_class": "NONE",
+        "status": "QUEUED"
+      },
+      {
+        "key": "score",
+        "capability_id": "winning_product.score",
+        "dependencies": [
+          "demand",
+          "competition",
+          "commercial",
+          "feasibility"
+        ],
+        "execution_mode": "product_opportunity",
+        "side_effect_class": "NONE",
+        "status": "QUEUED"
+      },
+      {
+        "key": "rank",
+        "capability_id": "winning_product.rank",
+        "dependencies": [
+          "score"
+        ],
+        "execution_mode": "deterministic",
+        "side_effect_class": "NONE",
+        "status": "QUEUED"
+      },
+      {
+        "key": "brief",
+        "capability_id": "decision_brief.generate",
+        "dependencies": [
+          "rank"
+        ],
+        "execution_mode": "deterministic",
+        "side_effect_class": "NONE",
+        "status": "QUEUED"
+      }
+    ]
+  },
+  "run_create_status": 201,
+  "run_created": {
+    "id": "81555697-6de8-42ac-b805-c70c7ac70503",
+    "goal_id": "6d86edc2-c057-4a5c-9883-dbe3d4801175",
+    "plan_id": "14de91db-a8b5-4eac-aad0-73e034bced39",
+    "status": "QUEUED",
+    "idempotency_key": "pr33-golden-run-1",
+    "correlation_id": "9881680ae70185875a1c2211d57c3142",
+    "budget": {
+      "max_steps": 9,
+      "max_gap_loops": 2,
+      "max_provider_calls": 20,
+      "max_elapsed_seconds": 300
+    },
+    "usage": {
+      "steps": 0,
+      "gap_loops": 0,
+      "provider_calls": 0
+    },
+    "result": {},
+    "failure": {},
+    "checkpoint": {},
+    "approvals": [],
+    "steps": [
+      {
+        "id": "09e6c4cf-76fa-4ebe-89c2-b62f3bc2fb60",
+        "key": "opportunity",
+        "capability_id": "product_opportunity.create",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "678bf8d9-bdbc-41d0-9e9f-3c3faca2dd49",
+        "key": "demand",
+        "capability_id": "demand.intelligence",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "de9e7586-927c-485f-9a53-455df24a62c0",
+        "key": "competition",
+        "capability_id": "competition.intelligence",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "15119231-e025-49c8-ae7d-72e9c1699ff9",
+        "key": "commercial",
+        "capability_id": "commercial.assessment",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "bacc4c82-f73a-4fb7-a239-5d6752ce80c7",
+        "key": "supplier",
+        "capability_id": "supplier.discovery",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "3a7f1cf6-3495-4084-9bfc-eadf698d1606",
+        "key": "feasibility",
+        "capability_id": "supplier.feasibility",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "c8b9aa3d-9583-4c9e-8be7-c22e1a3bf2e9",
+        "key": "score",
+        "capability_id": "winning_product.score",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "75ac076e-7a67-42c2-bb5a-5e9c40e6e96b",
+        "key": "rank",
+        "capability_id": "winning_product.rank",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "d8bb8ea0-fa3e-48e3-9d0c-80be9ab06f63",
+        "key": "brief",
+        "capability_id": "decision_brief.generate",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      }
+    ],
+    "artifacts": [],
+    "findings": [],
+    "tool_invocations": []
+  },
+  "run_start_status": 200,
+  "run": {
+    "id": "81555697-6de8-42ac-b805-c70c7ac70503",
+    "goal_id": "6d86edc2-c057-4a5c-9883-dbe3d4801175",
+    "plan_id": "14de91db-a8b5-4eac-aad0-73e034bced39",
+    "status": "PARTIAL",
+    "idempotency_key": "pr33-golden-run-1",
+    "correlation_id": "9881680ae70185875a1c2211d57c3142",
+    "budget": {
+      "max_steps": 9,
+      "max_gap_loops": 2,
+      "max_provider_calls": 20,
+      "max_elapsed_seconds": 300
+    },
+    "usage": {
+      "steps": 0,
+      "gap_loops": 0,
+      "provider_calls": 0
+    },
+    "result": {
+      "mode": "LIVE_READ_ONLY",
+      "outcome": "LIVE_RESEARCH_COMPLETED_WITH_GAPS",
+      "research": {
+        "mode": "LIVE_READ_ONLY",
+        "status": "NO_USEFUL_PRODUCT_CANDIDATES",
+        "fetches": [
+          {
+            "url": "https://www.firstcry.com/",
+            "domain": "www.firstcry.com",
+            "reused": false,
+            "status": "COMPLETED",
+            "eligible": false,
+            "freshness": "FRESH",
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.amazon.in/Toys-Games/b?ie=UTF8&node=1350380031",
+            "domain": "www.amazon.in",
+            "reused": false,
+            "status": "FAILED",
+            "failure": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.shumee.in/",
+            "domain": "www.shumee.in",
+            "reused": false,
+            "status": "COMPLETED",
+            "eligible": false,
+            "freshness": "FRESH",
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.firstcry.com/baby-kids-toys-store",
+            "domain": "www.firstcry.com",
+            "reused": false,
+            "status": "FAILED",
+            "failure": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.amazon.in/kids-specs/s?k=kids+specs",
+            "domain": "www.amazon.in",
+            "reused": false,
+            "status": "FAILED",
+            "failure": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.flipkart.com/toys-online-store",
+            "domain": "www.flipkart.com",
+            "reused": false,
+            "status": "COMPLETED",
+            "eligible": false,
+            "freshness": "FRESH",
+            "page_type": "CATEGORY"
+          }
+        ],
+        "queries": [
+          {
+            "query": "kids products India product",
+            "stage": "PRODUCT_SPECIFIC_SEARCH",
+            "market": "IN",
+            "reason": "PRIMARY_PRODUCT_QUERY",
+            "source": "DETERMINISTIC_HYPOTHESIS",
+            "status": "COMPLETED",
+            "freshness": "FRESH",
+            "objective": "PRODUCT_DISCOVERY",
+            "hypothesis": "Kids product opportunity",
+            "marketplace": "AMAZON_IN",
+            "result_count": 3,
+            "provider_mode": "LIVE_PROVIDER"
+          },
+          {
+            "query": "kids products product specifications India",
+            "stage": "PRODUCT_SPECIFIC_SEARCH",
+            "market": "IN",
+            "reason": "REFINEMENT_AFTER_NO_PRODUCT_EVIDENCE",
+            "source": "DETERMINISTIC_HYPOTHESIS",
+            "status": "COMPLETED",
+            "freshness": "FRESH",
+            "objective": "PRODUCT_DISCOVERY",
+            "hypothesis": "Kids product opportunity",
+            "marketplace": "AMAZON_IN",
+            "result_count": 3,
+            "provider_mode": "LIVE_PROVIDER"
+          }
+        ],
+        "failures": [],
+        "candidates": [],
+        "hypotheses": [
+          {
+            "name": "Kids product opportunity",
+            "source": "GOAL_CATEGORY_HYPOTHESIS",
+            "category": "Kids",
+            "subcategory": "Kids",
+            "product_concept": "kids products"
+          }
+        ],
+        "fetch_count": 3,
+        "query_count": 2,
+        "result_count": 6,
+        "candidate_ids": [],
+        "observability": {
+          "stop_reason": "SEARCH_EXHAUSTED_WITHOUT_TARGET",
+          "urls_fetched": 6,
+          "fetches_reused": 0,
+          "results_returned": 6,
+          "candidates_survived": 0,
+          "avoided_provider_calls": 0,
+          "reused_search_requests": 0,
+          "planned_search_requests": 2,
+          "executed_search_requests": 2
+        },
+        "search_budget": {
+          "reused": 0,
+          "avoided": 0,
+          "planned": 2,
+          "executed": 2,
+          "remaining": 1,
+          "configured": 3,
+          "stop_reason": "SEARCH_EXHAUSTED_WITHOUT_TARGET",
+          "target_candidates": 3
+        },
+        "rejected_results": [
+          {
+            "url": "https://www.firstcry.com/",
+            "title": "Baby Products Online India: Newborn Baby Products & Kids Online Shopping at FirstCry.com",
+            "domain": "www.firstcry.com",
+            "reason": "No product-specific page evidence was established.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.amazon.in/Toys-Games/b?ie=UTF8&node=1350380031",
+            "domain": "www.amazon.in",
+            "reason": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.shumee.in/",
+            "title": "Wooden Toys-Buy Toys For Kids Online in India,Educational Toys| Shumee",
+            "domain": "www.shumee.in",
+            "reason": "No product-specific page evidence was established.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.firstcry.com/baby-kids-toys-store",
+            "domain": "www.firstcry.com",
+            "reason": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.amazon.in/kids-specs/s?k=kids+specs",
+            "domain": "www.amazon.in",
+            "reason": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.flipkart.com/toys-online-store",
+            "title": "Toys for Kids: Buy Online at Best Prices | Flipkart",
+            "domain": "www.flipkart.com",
+            "reason": "The page is category or editorial discovery evidence.",
+            "eligible": false,
+            "page_type": "CATEGORY"
+          }
+        ]
+      },
+      "external_writes": []
+    },
+    "failure": {
+      "code": "NO_USEFUL_PRODUCT_CANDIDATES",
+      "mode": "LIVE_READ_ONLY",
+      "message": "Live product research returned no canonical product opportunity. Review the evidence and retry discovery before comparing products."
+    },
+    "checkpoint": {
+      "last_step": null,
+      "completed_steps": []
+    },
+    "approvals": [],
+    "steps": [
+      {
+        "id": "09e6c4cf-76fa-4ebe-89c2-b62f3bc2fb60",
+        "key": "opportunity",
+        "capability_id": "product_opportunity.create",
+        "status": "FAILED",
+        "attempt_count": 0,
+        "result": {
+          "code": "NO_USEFUL_PRODUCT_CANDIDATES",
+          "mode": "LIVE_READ_ONLY",
+          "details": {
+            "mode": "LIVE_READ_ONLY",
+            "status": "NO_USEFUL_PRODUCT_CANDIDATES",
+            "fetches": [
+              {
+                "url": "https://www.firstcry.com/",
+                "domain": "www.firstcry.com",
+                "reused": false,
+                "status": "COMPLETED",
+                "eligible": false,
+                "freshness": "FRESH",
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.amazon.in/Toys-Games/b?ie=UTF8&node=1350380031",
+                "domain": "www.amazon.in",
+                "reused": false,
+                "status": "FAILED",
+                "failure": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.shumee.in/",
+                "domain": "www.shumee.in",
+                "reused": false,
+                "status": "COMPLETED",
+                "eligible": false,
+                "freshness": "FRESH",
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.firstcry.com/baby-kids-toys-store",
+                "domain": "www.firstcry.com",
+                "reused": false,
+                "status": "FAILED",
+                "failure": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.amazon.in/kids-specs/s?k=kids+specs",
+                "domain": "www.amazon.in",
+                "reused": false,
+                "status": "FAILED",
+                "failure": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.flipkart.com/toys-online-store",
+                "domain": "www.flipkart.com",
+                "reused": false,
+                "status": "COMPLETED",
+                "eligible": false,
+                "freshness": "FRESH",
+                "page_type": "CATEGORY"
+              }
+            ],
+            "queries": [
+              {
+                "query": "kids products India product",
+                "stage": "PRODUCT_SPECIFIC_SEARCH",
+                "market": "IN",
+                "reason": "PRIMARY_PRODUCT_QUERY",
+                "source": "DETERMINISTIC_HYPOTHESIS",
+                "status": "COMPLETED",
+                "freshness": "FRESH",
+                "objective": "PRODUCT_DISCOVERY",
+                "hypothesis": "Kids product opportunity",
+                "marketplace": "AMAZON_IN",
+                "result_count": 3,
+                "provider_mode": "LIVE_PROVIDER"
+              },
+              {
+                "query": "kids products product specifications India",
+                "stage": "PRODUCT_SPECIFIC_SEARCH",
+                "market": "IN",
+                "reason": "REFINEMENT_AFTER_NO_PRODUCT_EVIDENCE",
+                "source": "DETERMINISTIC_HYPOTHESIS",
+                "status": "COMPLETED",
+                "freshness": "FRESH",
+                "objective": "PRODUCT_DISCOVERY",
+                "hypothesis": "Kids product opportunity",
+                "marketplace": "AMAZON_IN",
+                "result_count": 3,
+                "provider_mode": "LIVE_PROVIDER"
+              }
+            ],
+            "failures": [],
+            "candidates": [],
+            "hypotheses": [
+              {
+                "name": "Kids product opportunity",
+                "source": "GOAL_CATEGORY_HYPOTHESIS",
+                "category": "Kids",
+                "subcategory": "Kids",
+                "product_concept": "kids products"
+              }
+            ],
+            "fetch_count": 3,
+            "query_count": 2,
+            "result_count": 6,
+            "candidate_ids": [],
+            "observability": {
+              "stop_reason": "SEARCH_EXHAUSTED_WITHOUT_TARGET",
+              "urls_fetched": 6,
+              "fetches_reused": 0,
+              "results_returned": 6,
+              "candidates_survived": 0,
+              "avoided_provider_calls": 0,
+              "reused_search_requests": 0,
+              "planned_search_requests": 2,
+              "executed_search_requests": 2
+            },
+            "search_budget": {
+              "reused": 0,
+              "avoided": 0,
+              "planned": 2,
+              "executed": 2,
+              "remaining": 1,
+              "configured": 3,
+              "stop_reason": "SEARCH_EXHAUSTED_WITHOUT_TARGET",
+              "target_candidates": 3
+            },
+            "rejected_results": [
+              {
+                "url": "https://www.firstcry.com/",
+                "title": "Baby Products Online India: Newborn Baby Products & Kids Online Shopping at FirstCry.com",
+                "domain": "www.firstcry.com",
+                "reason": "No product-specific page evidence was established.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.amazon.in/Toys-Games/b?ie=UTF8&node=1350380031",
+                "domain": "www.amazon.in",
+                "reason": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.shumee.in/",
+                "title": "Wooden Toys-Buy Toys For Kids Online in India,Educational Toys| Shumee",
+                "domain": "www.shumee.in",
+                "reason": "No product-specific page evidence was established.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.firstcry.com/baby-kids-toys-store",
+                "domain": "www.firstcry.com",
+                "reason": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.amazon.in/kids-specs/s?k=kids+specs",
+                "domain": "www.amazon.in",
+                "reason": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.flipkart.com/toys-online-store",
+                "title": "Toys for Kids: Buy Online at Best Prices | Flipkart",
+                "domain": "www.flipkart.com",
+                "reason": "The page is category or editorial discovery evidence.",
+                "eligible": false,
+                "page_type": "CATEGORY"
+              }
+            ]
+          },
+          "message": "Live product research returned no canonical product opportunity. Review the evidence and retry discovery before comparing products."
+        }
+      },
+      {
+        "id": "678bf8d9-bdbc-41d0-9e9f-3c3faca2dd49",
+        "key": "demand",
+        "capability_id": "demand.intelligence",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "de9e7586-927c-485f-9a53-455df24a62c0",
+        "key": "competition",
+        "capability_id": "competition.intelligence",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "15119231-e025-49c8-ae7d-72e9c1699ff9",
+        "key": "commercial",
+        "capability_id": "commercial.assessment",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "bacc4c82-f73a-4fb7-a239-5d6752ce80c7",
+        "key": "supplier",
+        "capability_id": "supplier.discovery",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "3a7f1cf6-3495-4084-9bfc-eadf698d1606",
+        "key": "feasibility",
+        "capability_id": "supplier.feasibility",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "c8b9aa3d-9583-4c9e-8be7-c22e1a3bf2e9",
+        "key": "score",
+        "capability_id": "winning_product.score",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "75ac076e-7a67-42c2-bb5a-5e9c40e6e96b",
+        "key": "rank",
+        "capability_id": "winning_product.rank",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "d8bb8ea0-fa3e-48e3-9d0c-80be9ab06f63",
+        "key": "brief",
+        "capability_id": "decision_brief.generate",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      }
+    ],
+    "artifacts": [],
+    "findings": [],
+    "tool_invocations": []
+  },
+  "run_get_status": 200,
+  "run_get": {
+    "id": "81555697-6de8-42ac-b805-c70c7ac70503",
+    "goal_id": "6d86edc2-c057-4a5c-9883-dbe3d4801175",
+    "plan_id": "14de91db-a8b5-4eac-aad0-73e034bced39",
+    "status": "PARTIAL",
+    "idempotency_key": "pr33-golden-run-1",
+    "correlation_id": "9881680ae70185875a1c2211d57c3142",
+    "budget": {
+      "max_steps": 9,
+      "max_gap_loops": 2,
+      "max_provider_calls": 20,
+      "max_elapsed_seconds": 300
+    },
+    "usage": {
+      "steps": 0,
+      "gap_loops": 0,
+      "provider_calls": 0
+    },
+    "result": {
+      "mode": "LIVE_READ_ONLY",
+      "outcome": "LIVE_RESEARCH_COMPLETED_WITH_GAPS",
+      "research": {
+        "mode": "LIVE_READ_ONLY",
+        "status": "NO_USEFUL_PRODUCT_CANDIDATES",
+        "fetches": [
+          {
+            "url": "https://www.firstcry.com/",
+            "domain": "www.firstcry.com",
+            "reused": false,
+            "status": "COMPLETED",
+            "eligible": false,
+            "freshness": "FRESH",
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.amazon.in/Toys-Games/b?ie=UTF8&node=1350380031",
+            "domain": "www.amazon.in",
+            "reused": false,
+            "status": "FAILED",
+            "failure": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.shumee.in/",
+            "domain": "www.shumee.in",
+            "reused": false,
+            "status": "COMPLETED",
+            "eligible": false,
+            "freshness": "FRESH",
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.firstcry.com/baby-kids-toys-store",
+            "domain": "www.firstcry.com",
+            "reused": false,
+            "status": "FAILED",
+            "failure": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.amazon.in/kids-specs/s?k=kids+specs",
+            "domain": "www.amazon.in",
+            "reused": false,
+            "status": "FAILED",
+            "failure": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.flipkart.com/toys-online-store",
+            "domain": "www.flipkart.com",
+            "reused": false,
+            "status": "COMPLETED",
+            "eligible": false,
+            "freshness": "FRESH",
+            "page_type": "CATEGORY"
+          }
+        ],
+        "queries": [
+          {
+            "query": "kids products India product",
+            "stage": "PRODUCT_SPECIFIC_SEARCH",
+            "market": "IN",
+            "reason": "PRIMARY_PRODUCT_QUERY",
+            "source": "DETERMINISTIC_HYPOTHESIS",
+            "status": "COMPLETED",
+            "freshness": "FRESH",
+            "objective": "PRODUCT_DISCOVERY",
+            "hypothesis": "Kids product opportunity",
+            "marketplace": "AMAZON_IN",
+            "result_count": 3,
+            "provider_mode": "LIVE_PROVIDER"
+          },
+          {
+            "query": "kids products product specifications India",
+            "stage": "PRODUCT_SPECIFIC_SEARCH",
+            "market": "IN",
+            "reason": "REFINEMENT_AFTER_NO_PRODUCT_EVIDENCE",
+            "source": "DETERMINISTIC_HYPOTHESIS",
+            "status": "COMPLETED",
+            "freshness": "FRESH",
+            "objective": "PRODUCT_DISCOVERY",
+            "hypothesis": "Kids product opportunity",
+            "marketplace": "AMAZON_IN",
+            "result_count": 3,
+            "provider_mode": "LIVE_PROVIDER"
+          }
+        ],
+        "failures": [],
+        "candidates": [],
+        "hypotheses": [
+          {
+            "name": "Kids product opportunity",
+            "source": "GOAL_CATEGORY_HYPOTHESIS",
+            "category": "Kids",
+            "subcategory": "Kids",
+            "product_concept": "kids products"
+          }
+        ],
+        "fetch_count": 3,
+        "query_count": 2,
+        "result_count": 6,
+        "candidate_ids": [],
+        "observability": {
+          "stop_reason": "SEARCH_EXHAUSTED_WITHOUT_TARGET",
+          "urls_fetched": 6,
+          "fetches_reused": 0,
+          "results_returned": 6,
+          "candidates_survived": 0,
+          "avoided_provider_calls": 0,
+          "reused_search_requests": 0,
+          "planned_search_requests": 2,
+          "executed_search_requests": 2
+        },
+        "search_budget": {
+          "reused": 0,
+          "avoided": 0,
+          "planned": 2,
+          "executed": 2,
+          "remaining": 1,
+          "configured": 3,
+          "stop_reason": "SEARCH_EXHAUSTED_WITHOUT_TARGET",
+          "target_candidates": 3
+        },
+        "rejected_results": [
+          {
+            "url": "https://www.firstcry.com/",
+            "title": "Baby Products Online India: Newborn Baby Products & Kids Online Shopping at FirstCry.com",
+            "domain": "www.firstcry.com",
+            "reason": "No product-specific page evidence was established.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.amazon.in/Toys-Games/b?ie=UTF8&node=1350380031",
+            "domain": "www.amazon.in",
+            "reason": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.shumee.in/",
+            "title": "Wooden Toys-Buy Toys For Kids Online in India,Educational Toys| Shumee",
+            "domain": "www.shumee.in",
+            "reason": "No product-specific page evidence was established.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.firstcry.com/baby-kids-toys-store",
+            "domain": "www.firstcry.com",
+            "reason": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.amazon.in/kids-specs/s?k=kids+specs",
+            "domain": "www.amazon.in",
+            "reason": "Approved fetch failed safely.",
+            "eligible": false,
+            "page_type": "UNKNOWN"
+          },
+          {
+            "url": "https://www.flipkart.com/toys-online-store",
+            "title": "Toys for Kids: Buy Online at Best Prices | Flipkart",
+            "domain": "www.flipkart.com",
+            "reason": "The page is category or editorial discovery evidence.",
+            "eligible": false,
+            "page_type": "CATEGORY"
+          }
+        ]
+      },
+      "external_writes": []
+    },
+    "failure": {
+      "code": "NO_USEFUL_PRODUCT_CANDIDATES",
+      "mode": "LIVE_READ_ONLY",
+      "message": "Live product research returned no canonical product opportunity. Review the evidence and retry discovery before comparing products."
+    },
+    "checkpoint": {
+      "last_step": null,
+      "completed_steps": []
+    },
+    "approvals": [],
+    "steps": [
+      {
+        "id": "09e6c4cf-76fa-4ebe-89c2-b62f3bc2fb60",
+        "key": "opportunity",
+        "capability_id": "product_opportunity.create",
+        "status": "FAILED",
+        "attempt_count": 0,
+        "result": {
+          "code": "NO_USEFUL_PRODUCT_CANDIDATES",
+          "mode": "LIVE_READ_ONLY",
+          "details": {
+            "mode": "LIVE_READ_ONLY",
+            "status": "NO_USEFUL_PRODUCT_CANDIDATES",
+            "fetches": [
+              {
+                "url": "https://www.firstcry.com/",
+                "domain": "www.firstcry.com",
+                "reused": false,
+                "status": "COMPLETED",
+                "eligible": false,
+                "freshness": "FRESH",
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.amazon.in/Toys-Games/b?ie=UTF8&node=1350380031",
+                "domain": "www.amazon.in",
+                "reused": false,
+                "status": "FAILED",
+                "failure": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.shumee.in/",
+                "domain": "www.shumee.in",
+                "reused": false,
+                "status": "COMPLETED",
+                "eligible": false,
+                "freshness": "FRESH",
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.firstcry.com/baby-kids-toys-store",
+                "domain": "www.firstcry.com",
+                "reused": false,
+                "status": "FAILED",
+                "failure": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.amazon.in/kids-specs/s?k=kids+specs",
+                "domain": "www.amazon.in",
+                "reused": false,
+                "status": "FAILED",
+                "failure": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.flipkart.com/toys-online-store",
+                "domain": "www.flipkart.com",
+                "reused": false,
+                "status": "COMPLETED",
+                "eligible": false,
+                "freshness": "FRESH",
+                "page_type": "CATEGORY"
+              }
+            ],
+            "queries": [
+              {
+                "query": "kids products India product",
+                "stage": "PRODUCT_SPECIFIC_SEARCH",
+                "market": "IN",
+                "reason": "PRIMARY_PRODUCT_QUERY",
+                "source": "DETERMINISTIC_HYPOTHESIS",
+                "status": "COMPLETED",
+                "freshness": "FRESH",
+                "objective": "PRODUCT_DISCOVERY",
+                "hypothesis": "Kids product opportunity",
+                "marketplace": "AMAZON_IN",
+                "result_count": 3,
+                "provider_mode": "LIVE_PROVIDER"
+              },
+              {
+                "query": "kids products product specifications India",
+                "stage": "PRODUCT_SPECIFIC_SEARCH",
+                "market": "IN",
+                "reason": "REFINEMENT_AFTER_NO_PRODUCT_EVIDENCE",
+                "source": "DETERMINISTIC_HYPOTHESIS",
+                "status": "COMPLETED",
+                "freshness": "FRESH",
+                "objective": "PRODUCT_DISCOVERY",
+                "hypothesis": "Kids product opportunity",
+                "marketplace": "AMAZON_IN",
+                "result_count": 3,
+                "provider_mode": "LIVE_PROVIDER"
+              }
+            ],
+            "failures": [],
+            "candidates": [],
+            "hypotheses": [
+              {
+                "name": "Kids product opportunity",
+                "source": "GOAL_CATEGORY_HYPOTHESIS",
+                "category": "Kids",
+                "subcategory": "Kids",
+                "product_concept": "kids products"
+              }
+            ],
+            "fetch_count": 3,
+            "query_count": 2,
+            "result_count": 6,
+            "candidate_ids": [],
+            "observability": {
+              "stop_reason": "SEARCH_EXHAUSTED_WITHOUT_TARGET",
+              "urls_fetched": 6,
+              "fetches_reused": 0,
+              "results_returned": 6,
+              "candidates_survived": 0,
+              "avoided_provider_calls": 0,
+              "reused_search_requests": 0,
+              "planned_search_requests": 2,
+              "executed_search_requests": 2
+            },
+            "search_budget": {
+              "reused": 0,
+              "avoided": 0,
+              "planned": 2,
+              "executed": 2,
+              "remaining": 1,
+              "configured": 3,
+              "stop_reason": "SEARCH_EXHAUSTED_WITHOUT_TARGET",
+              "target_candidates": 3
+            },
+            "rejected_results": [
+              {
+                "url": "https://www.firstcry.com/",
+                "title": "Baby Products Online India: Newborn Baby Products & Kids Online Shopping at FirstCry.com",
+                "domain": "www.firstcry.com",
+                "reason": "No product-specific page evidence was established.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.amazon.in/Toys-Games/b?ie=UTF8&node=1350380031",
+                "domain": "www.amazon.in",
+                "reason": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.shumee.in/",
+                "title": "Wooden Toys-Buy Toys For Kids Online in India,Educational Toys| Shumee",
+                "domain": "www.shumee.in",
+                "reason": "No product-specific page evidence was established.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.firstcry.com/baby-kids-toys-store",
+                "domain": "www.firstcry.com",
+                "reason": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.amazon.in/kids-specs/s?k=kids+specs",
+                "domain": "www.amazon.in",
+                "reason": "Approved fetch failed safely.",
+                "eligible": false,
+                "page_type": "UNKNOWN"
+              },
+              {
+                "url": "https://www.flipkart.com/toys-online-store",
+                "title": "Toys for Kids: Buy Online at Best Prices | Flipkart",
+                "domain": "www.flipkart.com",
+                "reason": "The page is category or editorial discovery evidence.",
+                "eligible": false,
+                "page_type": "CATEGORY"
+              }
+            ]
+          },
+          "message": "Live product research returned no canonical product opportunity. Review the evidence and retry discovery before comparing products."
+        }
+      },
+      {
+        "id": "678bf8d9-bdbc-41d0-9e9f-3c3faca2dd49",
+        "key": "demand",
+        "capability_id": "demand.intelligence",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "de9e7586-927c-485f-9a53-455df24a62c0",
+        "key": "competition",
+        "capability_id": "competition.intelligence",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "15119231-e025-49c8-ae7d-72e9c1699ff9",
+        "key": "commercial",
+        "capability_id": "commercial.assessment",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "bacc4c82-f73a-4fb7-a239-5d6752ce80c7",
+        "key": "supplier",
+        "capability_id": "supplier.discovery",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "3a7f1cf6-3495-4084-9bfc-eadf698d1606",
+        "key": "feasibility",
+        "capability_id": "supplier.feasibility",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "c8b9aa3d-9583-4c9e-8be7-c22e1a3bf2e9",
+        "key": "score",
+        "capability_id": "winning_product.score",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "75ac076e-7a67-42c2-bb5a-5e9c40e6e96b",
+        "key": "rank",
+        "capability_id": "winning_product.rank",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      },
+      {
+        "id": "d8bb8ea0-fa3e-48e3-9d0c-80be9ab06f63",
+        "key": "brief",
+        "capability_id": "decision_brief.generate",
+        "status": "QUEUED",
+        "attempt_count": 0,
+        "result": {}
+      }
+    ],
+    "artifacts": [],
+    "findings": [],
+    "tool_invocations": []
+  },
+  "research_results_status": 200,
+  "research_results": {
+    "active_goal_id": "6d86edc2-c057-4a5c-9883-dbe3d4801175",
+    "active_run_ids": [
+      "81555697-6de8-42ac-b805-c70c7ac70503"
+    ],
+    "total_owner_opportunities": 0,
+    "historical_opportunities": 0,
+    "goal_context": {
+      "summary": "I have INR 300000 and want to start selling on Amazon India. Help me find a product in kids category.",
+      "confirmed": false,
+      "values": {
+        "capital": 300000,
+        "category": "kids",
+        "currency": "INR",
+        "objective": "identify and evaluate winning products",
+        "marketplace": "AMAZON_IN",
+        "candidate_count": 3
+      }
+    },
+    "status": "NO_RESULTS",
+    "summary": {
+      "total": 0,
+      "ready_for_comparison": 0,
+      "needs_more_research": 0,
+      "insufficient_evidence": 0
+    },
+    "candidates": [],
+    "selected_candidate_ids": [],
+    "human_selection": {
+      "provenance": "UNKNOWN",
+      "count": 0
+    }
+  }
+}
