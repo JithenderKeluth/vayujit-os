@@ -1,0 +1,28 @@
+# Portable Linux/VPS API image. Build from the repository root:
+#   docker build -f infrastructure/Dockerfile.api -t vayujit-api:local .
+FROM python:3.12-slim AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONPATH=/app
+WORKDIR /app
+
+COPY apps/api/pyproject.toml ./
+COPY apps/api/vayujit_api ./vayujit_api
+COPY apps/api/alembic ./alembic
+COPY apps/api/alembic.ini ./alembic.ini
+
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir .
+
+RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin vayujit \
+    && mkdir -p /var/lib/vayujit/media /var/lib/vayujit/backups \
+    && chown -R vayujit:vayujit /app /var/lib/vayujit
+USER vayujit
+
+EXPOSE 8000
+HEALTHCHECK --interval=10s --timeout=5s --start-period=20s --retries=6 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/live', timeout=3)"
+
+ENTRYPOINT ["sh", "-c"]
+CMD ["alembic upgrade head && exec uvicorn vayujit_api.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips='*' --no-server-header"]

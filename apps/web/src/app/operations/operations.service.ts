@@ -114,6 +114,33 @@ export class OperationsService {
       this.http.get<{ enabled: boolean }>(`${this.base}/system/maintenance`, this.options),
     );
   }
+  productionReadiness(): Promise<{
+    environment: string;
+    configuration: Record<string, unknown>;
+    database: string;
+    migration: string;
+    storage: string;
+    encryption: string;
+    live_mutations: Record<string, boolean>;
+    ads_spend_enabled: boolean;
+    backup_directory_configured: boolean;
+    monitoring_provider: string;
+  }> {
+    return firstValueFrom(
+      this.http.get<{
+        environment: string;
+        configuration: Record<string, unknown>;
+        database: string;
+        migration: string;
+        storage: string;
+        encryption: string;
+        live_mutations: Record<string, boolean>;
+        ads_spend_enabled: boolean;
+        backup_directory_configured: boolean;
+        monitoring_provider: string;
+      }>(`${this.base}/system/production-readiness`, this.options),
+    );
+  }
   recovery(filters: Record<string, string | number | undefined> = {}): Promise<RecoveryPage> {
     return firstValueFrom(
       this.http.get<RecoveryPage>(`${this.base}/operations/recovery`, {

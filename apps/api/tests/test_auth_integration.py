@@ -114,6 +114,25 @@ def test_invalid_login_is_generic_and_throttled(client: TestClient) -> None:
     assert throttled.status_code == 429
 
 
+def test_auth_bootstrap_reads_survive_deep_link_refreshes(client: TestClient) -> None:
+    """Read-only browser bootstrap checks must not consume the login budget."""
+
+    payload = {
+        "full_name": "Refresh Owner",
+        "email": "refresh-owner@example.com",
+        "password": "correct horse battery staple",
+        "password_confirmation": "correct horse battery staple",
+    }
+    assert client.post("/api/v1/auth/setup-owner", json=payload, headers=ORIGIN).status_code == 201
+
+    # The authenticated SPA performs these reads after every deep-link reload.
+    # More than the credential budget must remain safe and deterministic.
+    for _ in range(12):
+        assert client.get("/api/v1/auth/setup-status").status_code == 200
+        assert client.get("/api/v1/auth/me").status_code == 200
+    assert client.post("/api/v1/auth/logout", headers=ORIGIN).status_code == 204
+
+
 def test_expired_session_and_disabled_owner_are_rejected(client: TestClient) -> None:
     payload = {
         "full_name": "Local Owner",

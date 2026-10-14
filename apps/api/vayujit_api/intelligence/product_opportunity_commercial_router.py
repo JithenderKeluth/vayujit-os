@@ -22,6 +22,11 @@ from vayujit_api.intelligence.commercial_readiness_service import (
     latest_readiness,
     project_readiness,
 )
+from vayujit_api.intelligence.landed_cost_schemas import LandedCostCalculateRequest
+from vayujit_api.intelligence.landed_cost_service import (
+    calculate_landed_cost,
+    get_landed_cost,
+)
 from vayujit_api.intelligence.product_opportunity_commercial_models import (
     CALCULATION_VERSION,
     ProductOpportunityCommercialOutput,
@@ -34,6 +39,14 @@ from vayujit_api.intelligence.product_opportunity_commercial_service import calc
 from vayujit_api.intelligence.product_opportunity_models import (
     ProductOpportunity,
     ProductOpportunityAssessment,
+)
+from vayujit_api.intelligence.product_opportunity_unit_economics_schemas import (
+    UnitEconomicsCalculateRequest,
+)
+from vayujit_api.intelligence.product_opportunity_unit_economics_service import (
+    calculate_unit_economics,
+    latest_unit_economics,
+    unit_economics_history,
 )
 
 router = APIRouter(
@@ -159,11 +172,65 @@ def get_commercial_readiness(
     return row
 
 
+@router.post("/{opportunity_id}/assessments/{assessment_id}/landed-cost")
+def calculate_landed_cost_route(
+    opportunity_id: uuid.UUID,
+    assessment_id: uuid.UUID,
+    data: LandedCostCalculateRequest,
+    db: DB,
+    owner: Owner,
+) -> dict[str, object]:
+    return calculate_landed_cost(db, owner, opportunity_id, assessment_id, data)
+
+
+@router.get("/{opportunity_id}/assessments/{assessment_id}/landed-cost")
+def get_landed_cost_route(
+    opportunity_id: uuid.UUID,
+    assessment_id: uuid.UUID,
+    db: DB,
+    owner: Owner,
+) -> dict[str, object]:
+    return get_landed_cost(db, owner, opportunity_id, assessment_id)
+
+
 @router.get("/{opportunity_id}/assessments/{assessment_id}/commercial/unit-economics")
 def unit_economics(
     opportunity_id: uuid.UUID, assessment_id: uuid.UUID, db: DB, owner: Owner
 ) -> dict[str, object]:
-    return _output_or_404(db, owner, opportunity_id, assessment_id).economics
+    latest = latest_unit_economics(db, owner, opportunity_id, assessment_id)
+    if latest is not None:
+        return latest
+    try:
+        legacy = _output_or_404(db, owner, opportunity_id, assessment_id).economics
+    except HTTPException as exc:
+        if exc.status_code != 404:
+            raise
+        legacy = None
+    return {
+        "status": "NOT_EVALUATED",
+        "calculable": False,
+        "economics": legacy,
+        "external_writes": [],
+    }
+
+
+@router.post("/{opportunity_id}/assessments/{assessment_id}/commercial/unit-economics")
+def calculate_unit_economics_route(
+    opportunity_id: uuid.UUID,
+    assessment_id: uuid.UUID,
+    data: UnitEconomicsCalculateRequest,
+    db: DB,
+    owner: Owner,
+) -> dict[str, object]:
+    return calculate_unit_economics(db, owner, opportunity_id, assessment_id, data)
+
+
+@router.get("/{opportunity_id}/assessments/{assessment_id}/commercial/unit-economics/history")
+def unit_economics_history_route(
+    opportunity_id: uuid.UUID, assessment_id: uuid.UUID, db: DB, owner: Owner
+) -> list[dict[str, object]]:
+    _assessment_or_404(db, owner, opportunity_id, assessment_id)
+    return unit_economics_history(db, owner, opportunity_id, assessment_id)
 
 
 @router.get("/{opportunity_id}/assessments/{assessment_id}/commercial/capital")

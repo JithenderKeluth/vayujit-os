@@ -27,9 +27,15 @@ from vayujit_api.intelligence.economic_scenario_models import (
     EconomicSensitivityRun,
 )
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
+from vayujit_api.intelligence.product_opportunity_unit_economics_service import (
+    latest_unit_economics,
+)
 
 ECONOMICS_CAPABILITIES = {"sourcing_economics.inspect"}
 DECISION_ACTIONS = (
+    "PROCEED",
+    "KEEP_UNDER_REVIEW",
+    "DO_NOT_PROCEED",
     "PROCEED_TO_LAUNCH_PREPARATION",
     "RESEARCH_FURTHER",
     "RECONSIDER_SUPPLIERS",
@@ -41,7 +47,7 @@ def _json(value: object) -> object:
     if isinstance(value, (Decimal, uuid.UUID)):
         return str(value)
     if hasattr(value, "isoformat"):
-        return value.isoformat()  # type: ignore[no-any-return]
+        return value.isoformat()
     if isinstance(value, dict):
         return {str(key): _json(item) for key, item in value.items()}
     if isinstance(value, (list, tuple)):
@@ -161,6 +167,16 @@ def project_economics_for_opportunity(
     if opportunity is None:
         raise HTTPException(404, "Product opportunity not found.")
 
+    linked_calculation = None
+    if economic_context_id is None:
+        linked_calculation = db.scalar(
+            select(EconomicCalculation)
+            .where(
+                EconomicCalculation.owner_id == owner.id,
+                EconomicCalculation.product_opportunity_id == opportunity_id,
+            )
+            .order_by(EconomicCalculation.created_at.desc())
+        )
     if economic_context_id is not None:
         context = db.scalar(
             select(EconomicContext).where(
@@ -176,6 +192,17 @@ def project_economics_for_opportunity(
             and context.product_id != opportunity.product_id
         ):
             raise HTTPException(409, "Economic context does not match the product opportunity.")
+    elif linked_calculation is not None:
+        context = db.scalar(
+            select(EconomicContext).where(
+                EconomicContext.id == linked_calculation.context_id,
+                EconomicContext.owner_id == owner.id,
+            )
+        )
+        if context is None:
+            raise HTTPException(
+                409, "Linked landed-cost context is not available in the owner scope."
+            )
     else:
         query = select(EconomicContext).where(EconomicContext.owner_id == owner.id)
         if opportunity.product_id is not None:
@@ -202,7 +229,7 @@ def project_economics_for_opportunity(
             )
         context = contexts[0]
 
-    calculation = db.scalar(
+    calculation = linked_calculation or db.scalar(
         select(EconomicCalculation)
         .where(
             EconomicCalculation.owner_id == owner.id,
@@ -213,7 +240,24 @@ def project_economics_for_opportunity(
     lineage = {
         "economic_context_id": str(context.id),
         "product_id": str(context.product_id) if context.product_id else None,
-        "supplier_id": str(context.supplier_id) if context.supplier_id else None,
+        "product_opportunity_id": (
+            str(calculation.product_opportunity_id)
+            if calculation and calculation.product_opportunity_id
+            else None
+        ),
+        "assessment_id": (
+            str(calculation.assessment_id) if calculation and calculation.assessment_id else None
+        ),
+        "commercial_readiness_snapshot_id": (
+            str(calculation.commercial_readiness_snapshot_id)
+            if calculation and calculation.commercial_readiness_snapshot_id
+            else None
+        ),
+        "supplier_id": (
+            str(context.supplier_id)
+            if context.supplier_id
+            else (str(calculation.supplier_id) if calculation and calculation.supplier_id else None)
+        ),
         "sourcing_scenario_id": str(context.scenario_id) if context.scenario_id else None,
         "source_marketplace": context.source_marketplace,
         "target_channel": context.target_channel,
@@ -232,6 +276,12 @@ def project_economics_for_opportunity(
             "research_gaps": [_gap("No landed-cost calculation is available for this context.")],
             "external_writes": [],
         }
+
+    unit_economics = (
+        latest_unit_economics(db, owner, opportunity_id, calculation.assessment_id)
+        if calculation.assessment_id is not None
+        else None
+    )
 
     scenario_rows = list(
         db.execute(
@@ -268,6 +318,7 @@ def project_economics_for_opportunity(
         "readiness": _readiness(calculation.status),
         **lineage,
         "calculation": _calculation_view(db, owner, calculation),
+        "unit_economics": unit_economics,
         "scenario_comparisons": [
             _scenario_view(result, scenario) for result, scenario in scenario_rows
         ],
@@ -337,13 +388,20 @@ def _selected_supplier_view(
 
 
 def _budget_fit(
-    db: Session, owner: User, calculation: dict[str, object] | None
+    db: Session,
+    owner: User,
+    calculation: dict[str, object] | None,
+    *,
+    goal_id: uuid.UUID | None = None,
 ) -> dict[str, object]:
-    goal = db.scalar(
-        select(BusinessAgentGoal)
-        .where(BusinessAgentGoal.owner_id == owner.id)
-        .order_by(BusinessAgentGoal.updated_at.desc(), BusinessAgentGoal.created_at.desc())
-    )
+    statement = select(BusinessAgentGoal).where(BusinessAgentGoal.owner_id == owner.id)
+    if goal_id is not None:
+        statement = statement.where(BusinessAgentGoal.id == goal_id)
+    else:
+        statement = statement.order_by(
+            BusinessAgentGoal.updated_at.desc(), BusinessAgentGoal.created_at.desc()
+        )
+    goal = db.scalar(statement)
     context = (goal.structured_goal or {}).get("commerce_context", {}) if goal else {}
     confirmed = bool((goal.provenance or {}).get("commerce_context_confirmed")) if goal else False
     amount = context.get("budget_amount") if isinstance(context, dict) else None
@@ -381,6 +439,8 @@ def decision_brief_for_opportunity(
     owner: User,
     opportunity_id: uuid.UUID,
     economic_context_id: uuid.UUID | None = None,
+    *,
+    goal_id: uuid.UUID | None = None,
 ) -> dict[str, object]:
     """Compose a human-readable brief from existing owner-scoped authorities."""
     opportunity = db.scalar(
@@ -433,15 +493,53 @@ def decision_brief_for_opportunity(
         readiness = "NEEDS_REVIEW"
     else:
         readiness = "NOT_READY"
-    budget_fit = _budget_fit(db, owner, calculation if isinstance(calculation, dict) else None)
+    budget_fit = _budget_fit(
+        db,
+        owner,
+        calculation if isinstance(calculation, dict) else None,
+        goal_id=goal_id,
+    )
     risk = (
         "HIGH" if gaps or (isinstance(calculation, dict) and calculation.get("warnings")) else "LOW"
     )
-    goal = db.scalar(
-        select(BusinessAgentGoal)
-        .where(BusinessAgentGoal.owner_id == owner.id)
-        .order_by(BusinessAgentGoal.updated_at.desc(), BusinessAgentGoal.created_at.desc())
+    from vayujit_api.intelligence.decision_readiness_service import project_decision_readiness
+    from vayujit_api.intelligence.decision_recommendation_service import (
+        project_recommendation_and_decision,
     )
+    from vayujit_api.intelligence.decision_synthesis_service import (
+        create_synthesis,
+        serialize_synthesis,
+    )
+    from vayujit_api.intelligence.engagement_service import (
+        latest_engagement_for_opportunity,
+    )
+
+    decision_evidence = project_decision_readiness(
+        db, owner, opportunity_id, target="COMMERCIAL_ASSESSMENT", goal_id=goal_id
+    )
+    decision_synthesis = create_synthesis(
+        db,
+        owner,
+        opportunity_id,
+        target=decision_evidence["decision_target"],
+        goal_id=goal_id,
+    )
+    controlled_decision = project_recommendation_and_decision(
+        db,
+        owner,
+        opportunity_id,
+        decision_evidence["decision_target"],
+        goal_id=goal_id,
+    )
+    engagement = latest_engagement_for_opportunity(db, owner, opportunity_id)
+    goal_statement = select(BusinessAgentGoal).where(BusinessAgentGoal.owner_id == owner.id)
+    if goal_id is not None:
+        goal_statement = goal_statement.where(BusinessAgentGoal.id == goal_id)
+    else:
+        goal_statement = goal_statement.order_by(
+            BusinessAgentGoal.updated_at.desc(), BusinessAgentGoal.created_at.desc()
+        )
+    goal = db.scalar(goal_statement)
     return {
         "opportunity_id": str(opportunity.id),
         "goal": {
@@ -460,6 +558,24 @@ def decision_brief_for_opportunity(
         "risk": risk,
         "evidence_completeness": "COMPLETE" if not gaps else "PARTIAL",
         "decision_readiness": readiness,
+        "decision_target": decision_evidence["decision_target"],
+        "decision_readiness_state": decision_evidence["readiness_state"],
+        "decision_evidence": decision_evidence,
+        "decision_synthesis": serialize_synthesis(decision_synthesis),
+        "recommendation": controlled_decision["recommendation"],
+        "human_decision": controlled_decision["human_decision"],
+        "engagement": engagement,
+        "engagement_eligibility": {
+            "state": (engagement["status"] if engagement is not None else "NOT_CREATED"),
+            "can_send": False,
+            "send_status": "NOT_EXECUTED",
+            "safe_next_action": (
+                engagement.get("safe_next_action")
+                if engagement is not None
+                else "Create a scoped engagement only after HUMAN PROCEED and contact review."
+            ),
+        },
+        "human_review_required": True,
         "key_risks": [gap["message"] for gap in gaps],
         "data_gaps": gaps,
         "next_options": [
@@ -500,7 +616,41 @@ def record_journey_decision(
     )
     if goal is None:
         raise HTTPException(404, "Commerce journey not found.")
-    brief = decision_brief_for_opportunity(db, owner, opportunity_id, economic_context_id)
+    brief = decision_brief_for_opportunity(
+        db, owner, opportunity_id, economic_context_id, goal_id=journey_id
+    )
+    if action in {"PROCEED", "KEEP_UNDER_REVIEW", "DO_NOT_PROCEED"}:
+        from vayujit_api.intelligence.decision_recommendation_service import (
+            create_human_decision,
+            create_recommendation,
+            serialize_human_decision,
+            serialize_recommendation,
+        )
+
+        recommendation = create_recommendation(
+            db,
+            owner,
+            opportunity_id,
+            target="COMMERCIAL_ASSESSMENT",
+            goal_id=journey_id,
+        )
+        human_decision = create_human_decision(
+            db,
+            owner,
+            opportunity_id,
+            target="COMMERCIAL_ASSESSMENT",
+            decision=action,
+            recommendation_id=recommendation.id,
+            goal_id=journey_id,
+            reason=note or "Explicit human decision recorded from the commerce journey.",
+            idempotency_key=idempotency_key,
+        )
+        return {
+            "decision": serialize_human_decision(human_decision),
+            "recommendation": serialize_recommendation(recommendation),
+            "brief": brief,
+            "external_writes": [],
+        }
     if (
         action == "PROCEED_TO_LAUNCH_PREPARATION"
         and brief["decision_readiness"] != "READY_FOR_HUMAN_DECISION"

@@ -17,8 +17,10 @@ permissions, rate limits, and seller capabilities have not been verified here.
 4. Create a Flipkart draft listing with a seller SKU and category.
 5. Save variants, ordered Media mappings, and INR pricing.
 6. Run the server readiness preview and resolve all blocking issues.
-7. Submit with a durable idempotency key, then reconcile the asynchronous
-   processing state.
+7. Review the exact ready payload as an authenticated HUMAN, issue a single-use
+   execution authorization, submit with a durable idempotency key, then
+   reconcile the asynchronous processing state. Submission without a current
+   review and unconsumed authorization is rejected.
 8. Import orders and financial events as often as needed; repeated imports are
    idempotent. Review profitability only when COGS inputs are available.
 9. Use listing drift review before any keep-remote or local-overwrite action.
@@ -30,20 +32,28 @@ values. Drift is classified for review, keep-remote, or explicitly confirmed
 local overwrite. Connector credentials are encrypted, write-only, removable, and
 never included in logs, Audit events, diagnostics, or browser responses.
 
+The review and execution boundary uses the shared
+`MarketplaceListingReview` and `MarketplaceListingExecutionAuthorization`
+authorities introduced for non-Amazon channels. They preserve owner, account,
+listing, artifact version, payload fingerprint, expiry, revocation, replay, and
+emergency-stop checks; they are not a Flipkart-specific weaker approval path.
+
 ## Architecture
 
 `flipkart.py` owns the typed transport boundary, auth strategy, host policy,
 fake transport, category/attribute mapping, readiness policies, idempotency,
 and safe issue classification. `flipkart_router.py` owns owner-scoped API
 projection and delegates persistence to the shared Marketplace Core models.
-No parallel Flipkart tables or queue are introduced.
+No second catalog or execution queue is introduced; the shared review and
+authorization tables are marketplace-scoped.
 
 The shared Marketplace Overview, Product Channel View, Inventory, Orders, Settlements, Analytics, and profitability surfaces consume these normalized records. The variant matrix reuses the deterministic Amazon-compatible matrix utility and caps generated combinations at 100 while preserving matching row values.
 
 ## Classification
 
 - IMPLEMENTED + FAKE-CERTIFIED: account lifecycle, categories, typed attributes,
-  listing draft/preview/submit/reconcile, SKU and variant validation, media and
+  listing draft/preview/readiness, HUMAN review, single-use authorization,
+  local fake submit/reconcile, SKU and variant validation, media and
   pricing persistence, explicit inventory, order/fulfilment/cancellation/return/
   refund projections, settlement and fee normalization, profitability availability
   semantics, drift actions, safe diagnostics, Audit events, and Angular workspace

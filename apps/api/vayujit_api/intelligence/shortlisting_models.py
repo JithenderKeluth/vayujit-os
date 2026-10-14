@@ -147,6 +147,12 @@ class SupplierShortlistDecision(Base):
         ForeignKey("intelligence_cross_marketplace_suppliers.id", ondelete="CASCADE"),
         index=True,
     )
+    comparison_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_supplier_comparison_snapshots.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
     decision: Mapped[str] = mapped_column(String(40))
     reason: Mapped[str] = mapped_column(Text, default="")
     evidence_ids: Mapped[list[object]] = mapped_column(JSONB, default=list)

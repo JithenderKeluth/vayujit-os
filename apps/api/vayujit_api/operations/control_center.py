@@ -1050,7 +1050,7 @@ def release_readiness(db: DatabaseSession, user: CurrentUser) -> dict[str, objec
     checks = {
         "configuration": not _configuration_status()["errors"],
         "database": bool(db.scalar(text("select 1"))),
-        "migrations": _migration_revision(db) == "20260913_0062",
+        "migrations": _migration_revision(db) == settings.expected_migration_revision,
         "storage": storage_root().is_dir(),
         "workers": settings.publishing_worker_enabled,
         "scheduler": settings.publishing_worker_enabled,

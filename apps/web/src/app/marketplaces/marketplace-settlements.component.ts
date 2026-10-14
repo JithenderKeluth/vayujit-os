@@ -56,7 +56,7 @@ import { MarketplaceService, MarketplaceSettlement } from './marketplace.service
       @if (!filteredItems().length && !loading()) {
         <app-empty-state title="No settlements found" message="No settlements match the filters." />
       }
-      <div class="marketplace-table">
+      <div class="marketplace-table" role="region" tabindex="0" aria-label="Marketplace settlements">
         <table>
           <caption>
             Unified marketplace settlements

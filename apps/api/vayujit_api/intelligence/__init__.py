@@ -1,5 +1,10 @@
 """Product Research and Supplier Intelligence bounded context."""
 
+from vayujit_api.intelligence.decision_evidence_models import DecisionEvidenceSnapshot
+from vayujit_api.intelligence.decision_recommendation_models import (
+    HumanDecision,
+    RecommendationAssessment,
+)
 from vayujit_api.intelligence.economic_calculation_models import (
     EconomicCalculation,
     EconomicCalculationBreakdown,
@@ -17,6 +22,29 @@ from vayujit_api.intelligence.economic_freight_models import (
     LogisticsContext,
 )
 from vayujit_api.intelligence.economic_fx_models import FXObservation, FXRateSnapshot
+from vayujit_api.intelligence.email_delivery_models import (
+    RfqDeliveryAttempt,
+    RfqSendAuthorization,
+    RfqSendCommand,
+    RfqSendOutbox,
+    SupplierDeliveryAttempt,
+    SupplierSendAuthorization,
+    SupplierSendCommand,
+    SupplierSendOutbox,
+)
+from vayujit_api.intelligence.engagement_models import (
+    SupplierEngagement,
+    SupplierEngagementApproval,
+    SupplierEngagementDraft,
+    SupplierEngagementEvent,
+)
+from vayujit_api.intelligence.live_supplier_certification_models import (
+    LiveSupplierCertificationExecution,
+    LiveSupplierCertificationRun,
+    LiveSupplierEvidenceReview,
+    LiveSupplierExecutionAuthorization,
+    LiveSupplierSourceApproval,
+)
 from vayujit_api.intelligence.models import (
     IntelligenceClaim,
     IntelligenceEvidence,
@@ -59,8 +87,29 @@ from vayujit_api.intelligence.supplier_models import (
     SupplierSource,
     SupplierVerification,
 )
+from vayujit_api.intelligence.supplier_response_models import (
+    SupplierInboundResponse,
+    SupplierResponseExtraction,
+    SupplierResponsePromotion,
+    SupplierResponseReview,
+)
 
 __all__ = [
+    "DecisionEvidenceSnapshot",
+    "RecommendationAssessment",
+    "HumanDecision",
+    "SupplierEngagement",
+    "SupplierEngagementDraft",
+    "SupplierEngagementApproval",
+    "SupplierEngagementEvent",
+    "RfqSendAuthorization",
+    "RfqSendCommand",
+    "RfqSendOutbox",
+    "RfqDeliveryAttempt",
+    "SupplierSendAuthorization",
+    "SupplierSendCommand",
+    "SupplierSendOutbox",
+    "SupplierDeliveryAttempt",
     "PortfolioScopeType",
     "PortfolioStatus",
     "SupplierPortfolioContext",
@@ -97,6 +146,15 @@ __all__ = [
     "SupplierDocumentReference",
     "SupplierHistoryEvent",
     "SupplierRecoveryRecord",
+    "SupplierInboundResponse",
+    "SupplierResponseExtraction",
+    "SupplierResponseReview",
+    "SupplierResponsePromotion",
+    "LiveSupplierSourceApproval",
+    "LiveSupplierCertificationRun",
+    "LiveSupplierCertificationExecution",
+    "LiveSupplierExecutionAuthorization",
+    "LiveSupplierEvidenceReview",
     "SourcingRequirement",
     "SourcingRequirementVersion",
     "RequestForQuote",
@@ -171,6 +229,10 @@ from vayujit_api.intelligence.autonomous_models import (
     AutonomousResearchTask,
 )
 from vayujit_api.intelligence.commercial_readiness_models import CommercialReadinessSnapshot
+from vayujit_api.intelligence.commercial_reassessment_models import (
+    CommercialReassessment,
+    CommercialReassessmentReview,
+)
 from vayujit_api.intelligence.competitor_change_models import (
     CompetitorChangeAlertEligibility,
     CompetitorChangeComparison,
@@ -217,6 +279,10 @@ from vayujit_api.intelligence.marketplace_runtime import (
     execute_marketplace_lifecycle,
     execute_marketplace_recovery,
 )
+from vayujit_api.intelligence.procurement_readiness_models import (
+    SupplierProcurementReadinessAcknowledgement,
+    SupplierProcurementReadinessAssessment,
+)
 from vayujit_api.intelligence.product_opportunity_commercial_models import (
     ProductOpportunityCommercialOutput,
 )
@@ -238,6 +304,9 @@ from vayujit_api.intelligence.product_opportunity_scoring_models import (
 )
 from vayujit_api.intelligence.product_opportunity_synthesis_models import (
     ProductOpportunityRiskEvidenceSynthesis,
+)
+from vayujit_api.intelligence.product_opportunity_unit_economics_models import (
+    ProductOpportunityUnitEconomics,
 )
 from vayujit_api.intelligence.resilience_models import (
     SupplierPortfolioConfidenceProjection,
@@ -282,6 +351,7 @@ from vayujit_api.intelligence.sourcing_models import (
     SupplierQuoteLine,
     SupplierQuoteVersion,
 )
+from vayujit_api.intelligence.supplier_comparison_models import SupplierComparisonSnapshot
 from vayujit_api.intelligence.trend_winning_product_models import TrendWinningProductProjection
 from vayujit_api.intelligence.website_models import (
     ManufacturerCandidate,
@@ -302,12 +372,19 @@ __all__ += [
     "PortfolioSimulationLifecycle",
     "PortfolioSimulation",
     "PortfolioSimulationResult",
+    "CommercialReadinessSnapshot",
+    "CommercialReassessment",
+    "CommercialReassessmentReview",
+    "SupplierComparisonSnapshot",
+    "SupplierProcurementReadinessAssessment",
+    "SupplierProcurementReadinessAcknowledgement",
     "ProductOpportunity",
     "ProductOpportunityConstraintVersion",
     "ProductOpportunityInputSnapshot",
     "ProductOpportunityAssessment",
     "ProductOpportunityIntelligenceOutput",
     "ProductOpportunityCommercialOutput",
+    "ProductOpportunityUnitEconomics",
     "ProductOpportunitySourcingFeasibilityOutput",
     "ProductOpportunityRiskEvidenceSynthesis",
     "ProductOpportunityScore",

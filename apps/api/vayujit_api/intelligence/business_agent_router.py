@@ -99,9 +99,11 @@ def _run_payload(db: Session, run: BusinessAgentRun, owner: User) -> dict[str, o
                 "result": s.result,
             }
             for s in db.scalars(
-                select(BusinessAgentStep).where(
+                select(BusinessAgentStep)
+                .where(
                     BusinessAgentStep.plan_id == run.plan_id, BusinessAgentStep.owner_id == owner.id
                 )
+                .order_by(BusinessAgentStep.step_key)
             )
         ],
         "artifacts": [
@@ -164,7 +166,7 @@ def _plan_payload(db: Session, plan_value: BusinessAgentPlan, owner: User) -> di
                 BusinessAgentStep.plan_id == plan_value.id,
                 BusinessAgentStep.owner_id == owner.id,
             )
-            .order_by(BusinessAgentStep.created_at)
+            .order_by(BusinessAgentStep.step_key)
         )
     )
     return {
@@ -643,7 +645,7 @@ def revise(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
         db.scalars(
             select(BusinessAgentStep)
             .where(BusinessAgentStep.plan_id == value.id, BusinessAgentStep.owner_id == owner.id)
-            .order_by(BusinessAgentStep.created_at)
+            .order_by(BusinessAgentStep.step_key)
         )
     )
     return {
@@ -711,7 +713,12 @@ def run_get(run_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
 
 @router.post("/runs/{run_id}/start", response_model=RunResponse)
 def run_start(run_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
-    return _run_payload(db, execute_run(db, owner, run_or_404(db, owner, run_id)), owner)
+    # Acquire the canonical run row lock before loading the execution service;
+    # concurrent starts must replay the committed run instead of interleaving
+    # step attempts.
+    return _run_payload(
+        db, execute_run(db, owner, run_or_404(db, owner, run_id, for_update=True)), owner
+    )
 
 
 @router.post("/runs/{run_id}/pause", response_model=RunResponse)

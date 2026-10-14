@@ -53,6 +53,7 @@ class ShortlistDecisionRequest(ShortlistingModel):
     reason: str = Field(default="", max_length=2000)
     evidence_ids: list[str] = Field(default_factory=list, max_length=50)
     decision_key: str = Field(min_length=3, max_length=180)
+    comparison_snapshot_id: uuid.UUID | None = None
 
 
 class SourcingHandoffRequest(ShortlistingModel):

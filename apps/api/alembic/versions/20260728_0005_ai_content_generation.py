@@ -4,8 +4,8 @@ Revision ID: 20260728_0005
 Revises: 20260727_0004
 """
 
+import json
 import uuid
-from datetime import UTC, datetime
 
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
@@ -154,49 +154,48 @@ def upgrade() -> None:
     for column in ("owner_id", "brand_id", "product_id", "status"):
         op.create_index(f"ix_generated_artifacts_{column}", "generated_artifacts", [column])
 
-    timestamp = datetime.now(UTC)
-    prompt_templates = sa.table(
-        "prompt_templates",
-        sa.column("id", postgresql.UUID(as_uuid=True)),
-        sa.column("key", sa.String()),
-        sa.column("name", sa.String()),
-        sa.column("description", sa.String()),
-        sa.column("version", sa.Integer()),
-        sa.column("template_type", sa.String()),
-        sa.column("system_instructions", sa.Text()),
-        sa.column("user_template", sa.Text()),
-        sa.column("output_schema", postgresql.JSONB()),
-        sa.column("status", sa.String()),
-        sa.column("is_default", sa.Boolean()),
-        sa.column("created_at", sa.DateTime(timezone=True)),
-        sa.column("updated_at", sa.DateTime(timezone=True)),
-    )
-    op.bulk_insert(
-        prompt_templates,
-        [
-            {
-                "id": DEFAULT_TEMPLATE_ID,
-                "key": "product-content",
-                "name": "Product content",
-                "description": "Generates reviewable product marketing content.",
-                "version": 1,
-                "template_type": "product_content",
-                "system_instructions": "Return structured product content only.",
-                "user_template": "Generate content for the supplied brand and product context.",
-                "output_schema": {
-                    "title": "string",
-                    "short_description": "string",
-                    "long_description": "string",
-                    "seo_title": "string",
-                    "seo_description": "string",
-                    "keywords": ["string"],
-                },
-                "status": "enabled",
-                "is_default": True,
-                "created_at": timestamp,
-                "updated_at": timestamp,
-            }
-        ],
+    # Use explicit SQL for the immutable seed row instead of ``op.bulk_insert``.
+    # Alembic's offline compiler cannot render a Python dict literal for JSONB,
+    # although the same insert succeeds online.  The values are migration-owned
+    # constants, and CURRENT_TIMESTAMP preserves the original UTC-aware timestamp
+    # semantics while remaining valid in both online and offline modes.
+    output_schema = json.dumps(
+        {
+            "title": "string",
+            "short_description": "string",
+            "long_description": "string",
+            "seo_title": "string",
+            "seo_description": "string",
+            "keywords": ["string"],
+        },
+        separators=(",", ":"),
+    ).replace("'", "''")
+    op.execute(
+        sa.text(
+            """
+            INSERT INTO prompt_templates (
+                id, key, name, description, version, template_type,
+                system_instructions, user_template, output_schema, status,
+                is_default, created_at, updated_at
+            ) VALUES (
+                'a1000000-0000-4000-8000-000000000001'::uuid,
+                'product-content',
+                'Product content',
+                'Generates reviewable product marketing content.',
+                1,
+                'product_content',
+                'Return structured product content only.',
+                'Generate content for the supplied brand and product context.',
+                :output_schema::jsonb,
+                'enabled',
+                TRUE,
+                CURRENT_TIMESTAMP,
+                CURRENT_TIMESTAMP
+            )
+            """.replace(
+                ":output_schema::jsonb", f"'{output_schema}'::jsonb"
+            )
+        )
     )
 
 

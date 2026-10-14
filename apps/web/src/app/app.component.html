@@ -2,31 +2,7 @@
   <div class="app-shell">
     <aside>
       <a class="brand" routerLink="/dashboard">VAYUJIT OS</a>
-      <nav aria-label="Primary navigation">
-        @for (group of navigationGroups; track group.label) {
-          <div class="nav-group">
-            <span class="nav-group-label">{{ group.label }}</span>
-            @for (item of group.items; track item[1]) {
-              <a [routerLink]="item[1]" routerLinkActive="active" ariaCurrentWhenActive="page">{{
-                item[0]
-              }}</a>
-            }
-          </div>
-        }
-        <details class="advanced-nav" [open]="isAdvancedRoute()">
-          <summary>Advanced</summary>
-          @for (group of advancedNavigationGroups; track group.label) {
-            <div class="nav-group">
-              <span class="nav-group-label">{{ group.label }}</span>
-              @for (item of group.items; track item[1]) {
-                <a [routerLink]="item[1]" routerLinkActive="active" ariaCurrentWhenActive="page">{{
-                  item[0]
-                }}</a>
-              }
-            </div>
-          }
-        </details>
-      </nav>
+      <app-seller-navigation />
       <div class="account-panel">
         <div class="account-avatar" aria-hidden="true">
           {{ auth.user()?.fullName?.charAt(0)?.toUpperCase() || 'O' }}
@@ -39,51 +15,26 @@
       </div>
       <button class="logout-button" type="button" (click)="logout()">Log out</button>
     </aside>
-    <main>
-      <a class="skip-link" href="#main-content">Skip to main content</a>
+    <div class="app-main">
+      <nav class="skip-navigation" aria-label="Skip navigation">
+        <a class="skip-link" href="#main-content" (click)="focusMainContent($event)">Skip to main content</a>
+      </nav>
       @if (maintenance()) {
         <div class="maintenance-banner" role="alert">
           Maintenance mode is enabled. State-changing business operations are temporarily blocked.
         </div>
       }
-      <details class="mobile-menu">
+      <details #mobileMenu class="mobile-menu" (keydown.escape)="closeMobileMenu($event, mobileMenu)">
         <summary>Application menu</summary>
-        <nav aria-label="Mobile primary navigation">
-          @for (group of navigationGroups; track group.label) {
-            <div class="nav-group">
-              <span class="nav-group-label">{{ group.label }}</span>
-              @for (item of group.items; track item[1]) {
-                <a [routerLink]="item[1]" routerLinkActive="active" ariaCurrentWhenActive="page">{{
-                  item[0]
-                }}</a>
-              }
-            </div>
-          }
-          <details class="advanced-nav" [open]="isAdvancedRoute()">
-            <summary>Advanced</summary>
-            @for (group of advancedNavigationGroups; track group.label) {
-              <div class="nav-group">
-                <span class="nav-group-label">{{ group.label }}</span>
-                @for (item of group.items; track item[1]) {
-                  <a
-                    [routerLink]="item[1]"
-                    routerLinkActive="active"
-                    ariaCurrentWhenActive="page"
-                    >{{ item[0] }}</a
-                  >
-                }
-              </div>
-            }
-          </details>
-        </nav>
+        <app-seller-navigation label="Mobile primary navigation" />
       </details>
       <header class="context-header">
         <span>Active brand</span>
         <strong>{{ brands.activeBrand()?.name || 'No active brand' }}</strong>
       </header>
-      <app-breadcrumbs [items]="breadcrumbs.items()" />
-      <div id="main-content" tabindex="-1"><router-outlet /></div>
-    </main>
+      <app-breadcrumbs [items]="breadcrumbs.items()" ariaLabel="Site breadcrumb" />
+      <main id="main-content" tabindex="-1"><router-outlet /></main>
+    </div>
   </div>
 } @else {
   <router-outlet />

@@ -33,6 +33,11 @@ class CommercialReadinessAssumption(BaseModel):
 class CommercialReadinessCreate(BaseModel):
     idempotency_key: str = Field(min_length=3, max_length=220)
     supplier_id: uuid.UUID | None = None
+    # Optional product-level scope used by reassessment and other explicit
+    # commercial workflows.  The historical projection remains unchanged when
+    # this is omitted; when supplied it prevents a supplier's first product
+    # from being selected implicitly.
+    supplier_product_id: uuid.UUID | None = None
     scenario_key: str = Field(default="source-evidence", min_length=1, max_length=120)
     assumptions: list[CommercialReadinessAssumption] = Field(default_factory=list, max_length=30)
 

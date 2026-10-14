@@ -125,6 +125,20 @@ def reset_test_schema(engine: Engine, metadata: MetaData, *, database_url: str) 
     if terminated:
         print(f"Terminated {terminated} stale disposable test-database session(s).")
     with engine.begin() as connection:
+        # Keep the fast reset path safe when a newly added mapped table has
+        # not yet been applied to a disposable database.  This is intentionally
+        # additive only: migration-owned tables remain untouched, while the
+        # mapped table is created from the canonical SQLAlchemy metadata and
+        # then included in the same FK-aware truncate.
+        if os.environ.get("VAYUJIT_FAST_TEST_RESET") == "1":
+            inspector = inspect(connection)
+            missing = [
+                table
+                for table in metadata.sorted_tables
+                if not inspector.has_table(table.name)
+            ]
+            if missing:
+                metadata.create_all(connection, tables=missing)
         if os.environ.get("VAYUJIT_FAST_TEST_RESET") == "1":
             # Certification runs opt into a fast, equivalent reset after the
             # same fail-closed target validation above. Truncating every

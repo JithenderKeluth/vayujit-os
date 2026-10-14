@@ -10,7 +10,6 @@ import type { StatusTone } from './ux-foundation.types';
     class="ux-status vj-status-badge"
     [class]="'ux-status vj-status-badge tone-' + tone()"
     [attr.data-status]="status()"
-    [attr.aria-label]="displayLabel()"
     [title]="tooltip()"
     >{{ displayLabel() }}</span
   >`,

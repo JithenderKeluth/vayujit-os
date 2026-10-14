@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { EvidenceCardComponent } from '../shared/evidence-card.component';
 import { PageHeaderComponent } from '../shared/page-header.component';
@@ -91,17 +91,18 @@ import {
               VAYUJIT will derive a bounded supplier-search intent from this selected product.
               You do not need to enter a product ID or search string.
             </p>
-            <p class="research-mode">Mode: <strong>LIVE_READ_ONLY</strong> · no supplier contact or external write</p>
+            <p class="research-mode">Mode: <strong>{{ researchMode }}</strong> · no supplier contact or external write</p>
             <button type="button" (click)="startResearch()" [disabled]="researchBusy()">
               {{ researchBusy() ? 'Finding suppliers...' : 'Find suppliers for this product' }}
             </button>
           </div>
           @if (research(); as state) {
-            <p class="research-status" role="status">
+            <div class="research-status" role="status" aria-live="polite">
               Supplier research: <strong>{{ state['status'] || 'UNKNOWN' }}</strong> ·
               {{ state['researched_count'] || 0 }} websites researched ·
               {{ state['candidate_count'] || 0 }} candidates found
-            </p>
+              <p>{{ researchStatusMessage() }}</p>
+            </div>
           }
         </section>
       } @else {
@@ -306,7 +307,12 @@ import {
       </section>
 
       @if (selected()) {
-        <section id="supplier-detail" class="panel" aria-labelledby="detail-title">
+        <section
+          id="supplier-detail"
+          class="panel"
+          aria-labelledby="detail-title"
+          tabindex="-1"
+        >
           <p class="eyebrow">Supplier detail</p>
           <h2 id="detail-title">{{ selected()?.display_name }}</h2>
           <p class="detail-lede">
@@ -597,7 +603,16 @@ import {
         gap: 0.3rem;
       }
       .research-status {
-        margin-bottom: 0;
+        margin: 1rem 0 0;
+        padding: 0.75rem;
+        border-left: 3px solid #17617a;
+        background: #f5fbfb;
+        display: grid;
+        gap: 0.25rem;
+      }
+      .research-status p {
+        margin: 0;
+        color: #486581;
       }
       .card-actions {
         white-space: normal;
@@ -816,6 +831,7 @@ import {
 export class CrossMarketplaceSupplierComponent {
   private readonly service = inject(CrossMarketplaceService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly journey = inject(CommerceJourneyService, { optional: true });
   readonly tabs = [
     'Overview',
@@ -871,6 +887,7 @@ export class CrossMarketplaceSupplierComponent {
   researchMode: 'LOCAL_FIXTURE' | 'LIVE_READ_ONLY' = 'LIVE_READ_ONLY';
   readonly error = signal('');
   comparisonIds = '';
+  private requestedSupplierId = '';
   readonly breadcrumbs: BreadcrumbItem[] = [
     { label: 'Intelligence', url: '/intelligence' },
     { label: 'Supplier discovery' },
@@ -878,6 +895,21 @@ export class CrossMarketplaceSupplierComponent {
 
   constructor() {
     const params = this.route.snapshot.queryParamMap;
+    this.requestedSupplierId =
+      params.get('supplier_id') || params.get('canonical_supplier_id') || '';
+    this.route.queryParamMap.subscribe((queryParams) => {
+      const nextSupplierId =
+        queryParams.get('supplier_id') || queryParams.get('canonical_supplier_id') || '';
+      if (nextSupplierId === this.requestedSupplierId) return;
+      this.requestedSupplierId = nextSupplierId;
+      if (!nextSupplierId) {
+        this.selected.set(null);
+        this.error.set('');
+        return;
+      }
+      const rows = this.suppliers();
+      if (rows.length) void this.restoreRequestedSupplier(rows);
+    });
     const opportunityId = params.get('opportunity_id');
     if (opportunityId) {
       const context = {
@@ -967,7 +999,31 @@ export class CrossMarketplaceSupplierComponent {
   private async loadResearchResults(opportunityId: string): Promise<void> {
     try {
       const result = await this.service.researchResults(opportunityId);
-      this.research.set((result['research'] as Record<string, unknown>) || null);
+      const projectedResearch = (result['research'] as Record<string, unknown>) || null;
+      const projectedSummary = projectedResearch?.['summary'];
+      const summaryRecord =
+        projectedSummary && typeof projectedSummary === 'object'
+          ? (projectedSummary as Record<string, unknown>)
+          : {};
+      this.research.set(
+        projectedResearch
+          ? {
+              ...projectedResearch,
+              researched_count:
+                typeof projectedResearch['researched_count'] === 'number'
+                  ? projectedResearch['researched_count']
+                  : summaryRecord['researched_count'],
+              candidate_count:
+                typeof projectedResearch['candidate_count'] === 'number'
+                  ? projectedResearch['candidate_count']
+                  : summaryRecord['candidate_count'],
+            }
+          : null,
+      );
+      const projectedMode = projectedResearch?.['mode'];
+      if (projectedMode === 'LOCAL_FIXTURE' || projectedMode === 'LIVE_READ_ONLY') {
+        this.researchMode = projectedMode;
+      }
       const context = result['product_context'] as Record<string, unknown> | null;
       if (context) {
         this.productContext.set({
@@ -986,7 +1042,11 @@ export class CrossMarketplaceSupplierComponent {
         });
       }
       const scoped = result['suppliers'];
-      if (Array.isArray(scoped)) this.suppliers.set(scoped as CanonicalSupplier[]);
+      if (Array.isArray(scoped)) {
+        const rows = scoped as CanonicalSupplier[];
+        this.suppliers.set(rows);
+        await this.restoreRequestedSupplier(rows);
+      }
       this.unscopedSuppliers.set([]);
       this.comparisonSelection.set(new Set());
     } catch {
@@ -1071,6 +1131,55 @@ export class CrossMarketplaceSupplierComponent {
   }
   select(row: CanonicalSupplier): void {
     this.selected.set(row);
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { supplier_id: row.id },
+      queryParamsHandling: 'merge',
+    });
+    // The detail section is created by the next Angular render pass; defer focus
+    // until it exists so keyboard users land on the newly selected supplier.
+    setTimeout(() => document.getElementById('supplier-detail')?.focus?.(), 0);
+  }
+  private async restoreRequestedSupplier(rows: CanonicalSupplier[]): Promise<void> {
+    if (!this.requestedSupplierId) return;
+    const row = rows.find((candidate) => candidate.id === this.requestedSupplierId);
+    if (!row) {
+      this.selected.set(null);
+      this.error.set(
+        'This supplier is not available in the selected product and owner context. Return to the supplier list and choose an available candidate.',
+      );
+      return;
+    }
+    try {
+      this.selected.set(await this.service.detail(row.id));
+    } catch {
+      // The scoped list is already canonical; keep it usable if the optional detail projection is unavailable.
+      this.selected.set(row);
+    }
+    this.error.set('');
+    setTimeout(() => document.getElementById('supplier-detail')?.focus?.(), 0);
+  }
+  researchStatusLabel(): string {
+    return this.researchStatus().replaceAll('_', ' ');
+  }
+  researchStatusMessage(): string {
+    const status = this.researchStatus();
+    const messages: Record<string, string> = {
+      NOT_STARTED: 'Supplier research has not started for this selected product.',
+      RUNNING: 'Bounded supplier research is running. Results remain read-only until you review them.',
+      COMPLETED: 'Research completed. Review evidence, freshness, risks, and unknown commercial fields before comparing.',
+      NO_CANDIDATES: 'No canonical supplier candidate survived the evidence and relevance gates for this product.',
+      PROVIDER_UNAVAILABLE: 'The configured provider is unavailable. No supplier contact or external write was attempted.',
+      APPROVAL_REQUIRED: 'Human approval is required before this research can continue.',
+      BLOCKED: 'Research is blocked by a canonical safety or context gate. Review the selected product and the error above.',
+      FAILED: 'Research failed before a canonical supplier projection was produced. Retry only after reviewing the error.',
+      STALE: 'The available supplier evidence is stale and needs human review before it is used.',
+    };
+    return messages[status] || 'Review the canonical result and its evidence before taking the next step.';
+  }
+  private researchStatus(): string {
+    const value = this.research()?.['status'];
+    return typeof value === 'string' && value.trim() ? value.toUpperCase() : 'NOT_STARTED';
   }
   providerMode(): string {
     const mode = this.operations()?.['provider_mode'] ?? this.selected()?.['provider_mode'];

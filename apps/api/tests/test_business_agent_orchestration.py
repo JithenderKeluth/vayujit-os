@@ -119,6 +119,25 @@ def test_business_agent_goal_plan_run_is_bounded_owner_scoped_and_idempotent(
     assert body["result"]["external_writes"] == []
     assert body["usage"]["steps"] == 9
     assert body["result"]["decision"] == "REVIEW_REQUIRED"
+    supplier_step = next(
+        step for step in body["steps"] if step["capability_id"] == "supplier.discovery"
+    )
+    supplier_projection = body["result"]["supplier_intelligence"]
+    assert supplier_projection["opportunity_id"] == body["result"]["opportunity_id"]
+    assert supplier_projection["external_writes"] == []
+    assert supplier_projection["requires_human_review"] is True
+    assert supplier_projection["mode"] in {"LOCAL_FIXTURE", "LIVE_READ_ONLY"}
+    assert supplier_step["result"]["result"]["supplier_ids"] == supplier_projection["supplier_ids"]
+    brief = next(
+        artifact
+        for artifact in body["artifacts"]
+        if artifact["artifact_type"] == "BUSINESS_DECISION_BRIEF"
+    )
+    assert (
+        brief["payload"]["supplier_intelligence"]["opportunity_id"]
+        == body["result"]["opportunity_id"]
+    )
+    assert "semantic_boundary" in brief["payload"]["supplier_intelligence"]
     pending = api.get(
         f"/api/v1/intelligence/business-agent/runs/{run.json()['id']}/approvals", headers=ORIGIN
     )

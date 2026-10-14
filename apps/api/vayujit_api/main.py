@@ -19,10 +19,15 @@ from vayujit_api.brands.router import router as brands_router
 from vayujit_api.campaigns.campaign_video import router as campaign_video_router
 from vayujit_api.campaigns.router import router as campaigns_router
 from vayujit_api.campaigns.workflow_service import restore_campaign_waits
+from vayujit_api.catalog.router import router as catalog_router
 from vayujit_api.commerce.amazon_router import router as amazon_router
+from vayujit_api.commerce.connectivity_router import router as connectivity_router
+from vayujit_api.commerce.financial_router import router as financial_router
 from vayujit_api.commerce.flipkart_router import router as flipkart_router
+from vayujit_api.commerce.inventory_router import router as inventory_router
 from vayujit_api.commerce.marketplace_video import router as marketplace_video_router
 from vayujit_api.commerce.meesho_router import router as meesho_router
+from vayujit_api.commerce.orders_router import router as orders_router
 from vayujit_api.commerce.router import router as commerce_router
 from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import SessionFactory, get_session
@@ -40,6 +45,9 @@ from vayujit_api.intelligence.business_agent_router import (
 from vayujit_api.intelligence.commerce_journey_router import (
     router as intelligence_commerce_journey_router,
 )
+from vayujit_api.intelligence.commercial_reassessment_router import (
+    router as intelligence_commercial_reassessment_router,
+)
 from vayujit_api.intelligence.competitor_change_router import (
     router as intelligence_competitor_change_router,
 )
@@ -53,6 +61,15 @@ from vayujit_api.intelligence.competitor_router import router as intelligence_co
 from vayujit_api.intelligence.cross_marketplace_router import (
     router as intelligence_cross_marketplace_router,
 )
+from vayujit_api.intelligence.decision_readiness_router import (
+    router as intelligence_decision_readiness_router,
+)
+from vayujit_api.intelligence.decision_recommendation_router import (
+    router as intelligence_decision_recommendation_router,
+)
+from vayujit_api.intelligence.decision_synthesis_router import (
+    router as intelligence_decision_synthesis_router,
+)
 from vayujit_api.intelligence.due_diligence_router import (
     router as intelligence_due_diligence_router,
 )
@@ -63,11 +80,15 @@ from vayujit_api.intelligence.economic_router import router as intelligence_econ
 from vayujit_api.intelligence.economic_scenario_router import (
     router as intelligence_economic_scenario_router,
 )
+from vayujit_api.intelligence.engagement_router import router as intelligence_engagement_router
 from vayujit_api.intelligence.external_router import router as intelligence_external_router
 from vayujit_api.intelligence.global_sources_router import (
     router as intelligence_global_sources_router,
 )
 from vayujit_api.intelligence.indiamart_router import router as intelligence_indiamart_router
+from vayujit_api.intelligence.live_supplier_certification_router import (
+    router as intelligence_live_supplier_certification_router,
+)
 from vayujit_api.intelligence.operations import (
     diagnostics_router as intelligence_diagnostics_router,
 )
@@ -78,6 +99,9 @@ from vayujit_api.intelligence.portfolio_integration_router import (
     router as intelligence_portfolio_integration_router,
 )
 from vayujit_api.intelligence.portfolio_router import router as intelligence_portfolio_router
+from vayujit_api.intelligence.procurement_readiness_router import (
+    router as intelligence_procurement_readiness_router,
+)
 from vayujit_api.intelligence.product_opportunity_commercial_router import (
     router as intelligence_product_opportunity_commercial_router,
 )
@@ -103,12 +127,19 @@ from vayujit_api.intelligence.scenario_router import router as intelligence_scen
 from vayujit_api.intelligence.shortlisting_router import router as intelligence_shortlisting_router
 from vayujit_api.intelligence.simulation_router import router as intelligence_simulation_router
 from vayujit_api.intelligence.sourcing_router import router as intelligence_sourcing_router
+from vayujit_api.intelligence.supplier_comparison_router import (
+    router as intelligence_supplier_comparison_router,
+)
+from vayujit_api.intelligence.supplier_response_router import (
+    router as intelligence_supplier_response_router,
+)
 from vayujit_api.intelligence.supplier_router import router as intelligence_supplier_router
 from vayujit_api.intelligence.tradeindia_router import router as intelligence_tradeindia_router
 from vayujit_api.intelligence.trend_router import router as intelligence_trend_router
 from vayujit_api.intelligence.website_router import router as intelligence_website_router
 from vayujit_api.media.router import router as media_router
 from vayujit_api.operations.control_center import router as operations_control_router
+from vayujit_api.operations.action_center_router import router as action_center_router
 from vayujit_api.operations.hardening import health_details
 from vayujit_api.operations.hardening import router as hardening_router
 from vayujit_api.operations.hardening import system_router as hardening_system_router
@@ -179,11 +210,16 @@ def create_app() -> FastAPI:
     application.include_router(campaigns_router)
     application.include_router(campaign_video_router)
     application.include_router(commerce_router)
+    application.include_router(financial_router)
+    application.include_router(inventory_router)
+    application.include_router(orders_router)
     application.include_router(amazon_router)
+    application.include_router(connectivity_router)
     application.include_router(flipkart_router)
     application.include_router(meesho_router)
     application.include_router(marketplace_video_router)
     application.include_router(products_router)
+    application.include_router(catalog_router)
     application.include_router(providers_router)
     application.include_router(ai_router)
     application.include_router(ai_studio_router)
@@ -198,6 +234,7 @@ def create_app() -> FastAPI:
     application.include_router(dashboard_router)
     application.include_router(approval_router)
     application.include_router(operations_router)
+    application.include_router(action_center_router)
     application.include_router(operations_control_router)
     application.include_router(hardening_router)
     application.include_router(settings_router)
@@ -212,12 +249,15 @@ def create_app() -> FastAPI:
     application.include_router(intelligence_autonomous_router)
     application.include_router(intelligence_business_agent_router)
     application.include_router(intelligence_commerce_journey_router)
+    application.include_router(intelligence_commercial_reassessment_router)
     application.include_router(intelligence_external_router)
     application.include_router(intelligence_economic_router)
     application.include_router(intelligence_economic_integration_router)
     application.include_router(intelligence_economic_scenario_router)
     application.include_router(intelligence_supplier_router)
+    application.include_router(intelligence_supplier_response_router)
     application.include_router(intelligence_website_router)
+    application.include_router(intelligence_live_supplier_certification_router)
     application.include_router(intelligence_indiamart_router)
     application.include_router(intelligence_alibaba_router)
     application.include_router(intelligence_tradeindia_router)
@@ -229,7 +269,13 @@ def create_app() -> FastAPI:
     application.include_router(intelligence_competitor_change_router)
     application.include_router(intelligence_sourcing_router)
     application.include_router(intelligence_shortlisting_router)
+    application.include_router(intelligence_supplier_comparison_router)
+    application.include_router(intelligence_procurement_readiness_router)
     application.include_router(intelligence_due_diligence_router)
+    application.include_router(intelligence_decision_readiness_router)
+    application.include_router(intelligence_decision_recommendation_router)
+    application.include_router(intelligence_decision_synthesis_router)
+    application.include_router(intelligence_engagement_router)
     application.include_router(intelligence_scenario_router)
     application.include_router(intelligence_portfolio_integration_router)
     application.include_router(intelligence_portfolio_router)

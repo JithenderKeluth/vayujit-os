@@ -33,6 +33,16 @@
             "development": {
               "optimization": false,
               "sourceMap": true
+            },
+            "certification": {
+              "optimization": false,
+              "sourceMap": true,
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.certification.ts"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
@@ -41,7 +51,8 @@
           "builder": "@angular/build:dev-server",
           "configurations": {
             "production": { "buildTarget": "web:build:production" },
-            "development": { "buildTarget": "web:build:development" }
+            "development": { "buildTarget": "web:build:development" },
+            "certification": { "buildTarget": "web:build:certification" }
           },
           "defaultConfiguration": "development"
         },

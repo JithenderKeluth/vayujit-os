@@ -100,6 +100,25 @@ describe('OperationsService', () => {
     expect((await recovery).items).toEqual([]);
   });
 
+  it('loads canonical production-readiness switches for the launch projection', async () => {
+    const result = service.productionReadiness();
+    const request = http.expectOne('http://127.0.0.1:8000/api/v1/system/production-readiness');
+    expect(request.request.withCredentials).toBe(true);
+    request.flush({
+      environment: 'production',
+      configuration: { emergency_stop_active: true },
+      database: 'healthy',
+      migration: 'head',
+      storage: 'configured',
+      encryption: 'configured',
+      live_mutations: { marketplace: false },
+      ads_spend_enabled: false,
+      backup_directory_configured: true,
+      monitoring_provider: 'not_configured',
+    });
+    expect((await result).configuration['emergency_stop_active']).toBe(true);
+  });
+
   it('uses bounded backup create, verify, and restore-preflight endpoints', async () => {
     const create = service.createBackup();
     const createRequest = http.expectOne('http://127.0.0.1:8000/api/v1/operations/backups');

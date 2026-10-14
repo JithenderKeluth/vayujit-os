@@ -15,3 +15,32 @@
 | PR-10 | Full milestone certification | Golden journey, security, performance, recovery and live evidence certification. |
 
 Each phase must reuse existing authorities and close as a vertical business slice.
+
+## Seller OS PR-SOS-08 status
+
+PR-SOS-08 adds a shared, read-only Amazon India/Flipkart connectivity ledger and
+reconciliation projection. The local transport is deterministic synthetic data;
+external seller-account authorization, official contract verification, sandbox
+access, and live provider calls remain explicit deployment gates. No marketplace
+write, order acknowledgement, fulfilment, refund, payment, supplier action, or
+credential disclosure is enabled by this phase.
+
+PR-SOS-08.1 adds the Connection Center capability cards, explicit synthetic
+transport labels, refresh/loading feedback, and accessible import controls.
+The PostgreSQL/API, Angular, static, migration, and adjacent PR-SOS regression
+gates pass; authenticated browser/CDP and axe scans remain pending because the
+local browser harness could not initialize. See
+[`../seller-os/pr-sos-08-1-validation.md`](../seller-os/pr-sos-08-1-validation.md).
+
+> PR-SOS-09.1 local witness: production-like Compose startup, durable worker
+> heartbeat, encrypted backup/restore reconstruction, and 36 authenticated
+> launch checks are recorded in `docs/seller-os/pr-sos-09-1-validation.md`.
+> Public production go-live remains uncertified pending the documented browser
+> warning-state, accessibility-matrix, fresh-profile, and strict-mypy gates.
+
+> PR-SOS-09.2 update: the launch-readiness warning projection and final local
+> browser witness are now recorded in `docs/seller-os/pr-sos-09-2-validation.md`.
+> 29/29 authenticated checks and all 12 axe states passed, but dedicated
+> marker-fixture coverage, fresh-profile/proxy validation, and repository
+> Python tooling remain pending; PR-SOS-09 is still **IMPLEMENTED / LOCAL
+> CERTIFICATION PENDING**. No production or provider action is authorized.

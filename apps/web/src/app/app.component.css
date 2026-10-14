@@ -23,84 +23,12 @@ aside {
   box-shadow: 8px 0 24px rgb(18 43 51 / 8%);
 }
 
-nav {
-  display: grid;
-  gap: var(--vj-space-1);
-}
-
-a {
-  color: var(--vj-color-brand-strong);
-  padding: 0.65rem 0.75rem;
-  border-radius: var(--vj-radius-sm);
-  text-decoration: none;
-}
-
 .brand {
   color: #fff;
   padding: 0.5rem 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   font-size: 0.95rem;
-}
-
-aside nav a {
-  color: #c9ddda;
-  font-size: 0.92rem;
-}
-
-.nav-group {
-  display: grid;
-  gap: var(--vj-space-1);
-}
-
-.nav-group + .nav-group {
-  margin-top: var(--vj-space-3);
-}
-
-.nav-group-label {
-  padding: 0.35rem 0.75rem;
-  color: #7fa5a6;
-  font-size: 0.68rem;
-  font-weight: 750;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.advanced-nav {
-  margin-top: var(--vj-space-3);
-  border-top: 1px solid rgb(255 255 255 / 13%);
-  padding-top: var(--vj-space-3);
-}
-
-.advanced-nav summary {
-  padding: 0.55rem 0.75rem;
-  color: #d9e9e6;
-  cursor: pointer;
-  font-size: 0.82rem;
-  font-weight: 750;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  list-style-position: inside;
-}
-
-.advanced-nav summary:focus-visible {
-  outline: 3px solid #74b9d4;
-  outline-offset: 2px;
-}
-
-.advanced-nav[open] summary {
-  color: #fff;
-}
-
-aside nav a:hover {
-  background: rgb(255 255 255 / 8%);
-  color: #fff;
-}
-
-.active {
-  background: var(--vj-color-brand);
-  color: #fff;
-  box-shadow: inset 3px 0 #f0b16f;
 }
 
 .account-panel {
@@ -177,12 +105,12 @@ aside nav a:hover {
   color: #fff;
 }
 
-main {
+.app-main {
   min-width: 0;
   padding: var(--vj-space-6) clamp(1rem, 4vw, var(--vj-space-7));
 }
 
-main > * {
+.app-main > * {
   width: min(100%, var(--vj-content-width-wide));
   margin-inline: auto;
 }
@@ -224,7 +152,7 @@ main > * {
   aside {
     display: none;
   }
-  main {
+  .app-main {
     padding: var(--vj-space-4);
   }
   .mobile-menu {
@@ -237,9 +165,6 @@ main > * {
   .context-header {
     justify-content: flex-start;
     margin-top: var(--vj-space-4);
-  }
-  .mobile-menu nav {
-    margin-top: var(--vj-space-3);
   }
 }
 

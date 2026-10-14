@@ -3,11 +3,47 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { TestBed } from '@angular/core/testing';
 import { environment } from '../../environments/environment';
 import { provideRouter } from '@angular/router';
+import { Router } from '@angular/router';
+import { vi } from 'vitest';
 import { CrossMarketplaceSupplierComponent } from './cross-marketplace-supplier.component';
 
 const base = `${environment.apiUrl}/intelligence/cross-marketplace/suppliers`;
 
 describe('CrossMarketplaceSupplierComponent', () => {
+  it('keeps supplier selection in browser history for back and forward navigation', () => {
+    TestBed.configureTestingModule({
+      imports: [CrossMarketplaceSupplierComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(CrossMarketplaceSupplierComponent);
+    const router = TestBed.inject(Router);
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
+    const row = { id: 'supplier-1', display_name: 'Fixture supplier' } as never;
+
+    fixture.componentInstance.select(row);
+
+    expect(navigate).toHaveBeenCalledWith(
+      [],
+      expect.objectContaining({
+        queryParams: { supplier_id: 'supplier-1' },
+        queryParamsHandling: 'merge',
+      }),
+    );
+    expect(navigate.mock.calls.at(-1)?.[1]).not.toHaveProperty('replaceUrl');
+  });
+
+  it('explains provider and evidence states without implying supplier readiness', () => {
+    TestBed.configureTestingModule({
+      imports: [CrossMarketplaceSupplierComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    });
+    const fixture = TestBed.createComponent(CrossMarketplaceSupplierComponent);
+    const component = fixture.componentInstance;
+    component.research.set({ status: 'NO_CANDIDATES', researched_count: 3, candidate_count: 0 });
+    expect(component.researchStatusLabel()).toBe('NO CANDIDATES');
+    expect(component.researchStatusMessage()).toContain('No canonical supplier candidate');
+  });
+
   it('presents provider truth, observed evidence, and comparison trade-offs without a winner', async () => {
     TestBed.configureTestingModule({
       imports: [CrossMarketplaceSupplierComponent],

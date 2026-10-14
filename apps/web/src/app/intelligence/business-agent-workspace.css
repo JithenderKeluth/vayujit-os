@@ -2,7 +2,13 @@
   display: grid;
   gap: var(--vj-space-5);
   width: min(100%, var(--vj-content-width));
+  min-width: 0;
   margin: 0 auto;
+}
+
+.agent-page > * {
+  min-width: 0;
+  max-width: 100%;
 }
 .workspace-nav {
   display: flex;
@@ -99,6 +105,19 @@
 .quiet,
 .timestamp {
   color: var(--vj-color-muted);
+}
+.field-error,
+.field-success {
+  margin: 0;
+  padding: var(--vj-space-3);
+  border-left: 4px solid var(--vj-color-error);
+  background: #fff1f1;
+  color: #812020;
+}
+.field-success {
+  border-left-color: var(--vj-color-success);
+  background: var(--vj-color-surface-muted);
+  color: var(--vj-color-ink);
 }
 .goal-form {
   display: grid;

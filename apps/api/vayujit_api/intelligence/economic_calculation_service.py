@@ -32,6 +32,8 @@ FX_CALCULATION_VERSION = "landed-cost-v2"
 FX_POLICY_VERSION = "known-cost-fx-v1"
 FREIGHT_CALCULATION_VERSION = "landed-cost-v3"
 FREIGHT_POLICY_VERSION = "known-cost-freight-v1"
+PR5B_CALCULATION_VERSION = "landed-cost-v5"
+PR5B_POLICY_VERSION = "readiness-gated-landed-cost-v1"
 CUSTOMS_CALCULATION_VERSION = "landed-cost-v4"
 CUSTOMS_POLICY_VERSION = "known-cost-customs-tax-v1"
 SUPPORTED_BASES = {"PER_UNIT", "PER_SHIPMENT", "ONE_TIME"}
@@ -523,6 +525,7 @@ def calculate_from_snapshot(
     owner: User,
     snapshot_id: uuid.UUID,
     request: EconomicCalculationRequest,
+    scope: dict[str, object] | None = None,
 ) -> tuple[EconomicCalculation, bool]:
     snapshot = db.scalar(
         select(EconomicInputSnapshot).where(
@@ -601,16 +604,28 @@ def calculate_from_snapshot(
             raise HTTPException(404, "FX snapshot is not available in the owner scope.")
         fx_snapshots = [fx]
         if freight_snapshot is None and (
-            request.calculation_version != FX_CALCULATION_VERSION
-            or request.policy_version != FX_POLICY_VERSION
+            (
+                request.calculation_version != FX_CALCULATION_VERSION
+                or request.policy_version != FX_POLICY_VERSION
+            )
+            and (
+                request.calculation_version != PR5B_CALCULATION_VERSION
+                or request.policy_version != PR5B_POLICY_VERSION
+            )
         ):
             raise HTTPException(422, "FX calculations require landed-cost-v2 and known-cost-fx-v1.")
     elif (
         freight_snapshot is None
         and customs_snapshot is None
         and (
-            request.calculation_version != CALCULATION_VERSION
-            or request.policy_version != POLICY_VERSION
+            (
+                request.calculation_version != CALCULATION_VERSION
+                or request.policy_version != POLICY_VERSION
+            )
+            and (
+                request.calculation_version != PR5B_CALCULATION_VERSION
+                or request.policy_version != PR5B_POLICY_VERSION
+            )
         )
     ):
         raise HTTPException(422, "Unsupported calculation version or policy.")
@@ -624,6 +639,7 @@ def calculate_from_snapshot(
             "freight_snapshot_id": str(freight_snapshot.id) if freight_snapshot else None,
             "customs_tax_snapshot_id": str(customs_snapshot.id) if customs_snapshot else None,
             "options": request.options,
+            "scope": _json(scope or {}),
         }
     )
     existing = db.scalar(
@@ -640,6 +656,11 @@ def calculate_from_snapshot(
         owner_id=owner.id,
         context_id=snapshot.context_id,
         snapshot_id=snapshot.id,
+        product_opportunity_id=(scope or {}).get("product_opportunity_id"),
+        assessment_id=(scope or {}).get("assessment_id"),
+        commercial_readiness_snapshot_id=(scope or {}).get("commercial_readiness_snapshot_id"),
+        supplier_id=(scope or {}).get("supplier_id"),
+        scenario_key=(scope or {}).get("scenario_key"),
         fx_snapshot_id=fx_snapshots[0].id if fx_snapshots else None,
         freight_snapshot_id=freight_snapshot.id if freight_snapshot else None,
         customs_tax_snapshot_id=customs_snapshot.id if customs_snapshot else None,

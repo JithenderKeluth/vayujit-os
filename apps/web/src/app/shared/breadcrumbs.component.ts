@@ -10,7 +10,7 @@ import type { BreadcrumbItem } from './ux-foundation.types';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (items().length) {
-      <nav class="ux-breadcrumbs" aria-label="Breadcrumb">
+      <nav class="ux-breadcrumbs" [attr.aria-label]="ariaLabel()">
         <ol>
           @for (item of items(); track item.label + (item.url || '')) {
             <li>
@@ -61,4 +61,5 @@ import type { BreadcrumbItem } from './ux-foundation.types';
 })
 export class BreadcrumbsComponent {
   readonly items = input.required<BreadcrumbItem[]>();
+  readonly ariaLabel = input('Breadcrumb');
 }

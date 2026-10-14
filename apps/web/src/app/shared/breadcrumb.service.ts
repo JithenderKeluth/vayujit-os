@@ -38,6 +38,7 @@ const LABELS: Record<string, string> = {
   settings: 'Settings',
   social: 'Social',
   sourcing: 'Sourcing',
+  'supplier-engagement': 'Supplier Engagement',
   trends: 'Trend Intelligence',
   video: 'Videos',
   workflows: 'Workflows',

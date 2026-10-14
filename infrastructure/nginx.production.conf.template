@@ -1,0 +1,34 @@
+# HTTPS reverse proxy template. The nginx entrypoint expands the public domain.
+upstream vayujit_api { server api:8000; }
+upstream vayujit_web { server web:8080; }
+
+server {
+  listen 80;
+  server_name ${VAYUJIT_PUBLIC_WEB_DOMAIN};
+  return 301 https://$host$request_uri;
+}
+
+server {
+  listen 443 ssl;
+  http2 on;
+  server_name ${VAYUJIT_PUBLIC_WEB_DOMAIN};
+
+  ssl_certificate /etc/nginx/certs/fullchain.pem;
+  ssl_certificate_key /etc/nginx/certs/privkey.pem;
+  ssl_protocols TLSv1.2 TLSv1.3;
+  add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+  client_max_body_size 12m;
+  location /api/ {
+    proxy_pass http://vayujit_api;
+    proxy_http_version 1.1;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_read_timeout 60s;
+  }
+  location /health/live { proxy_pass http://vayujit_api; }
+  location /health/ready { proxy_pass http://vayujit_api; }
+  location / { proxy_pass http://vayujit_web; proxy_set_header Host $host; }
+}

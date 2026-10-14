@@ -44,3 +44,11 @@ var/certification/
 
 # Runtime/generated media
 var/media/
+
+# Local browser validation artifacts
+tmp/
+tmp_*.txt
+tmp-*.txt
+
+# Generated documentation exports
+output/pdf/

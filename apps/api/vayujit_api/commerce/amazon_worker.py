@@ -11,7 +11,11 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from vayujit_api.commerce.amazon import AmazonCommerceConnector, AmazonOperationResult
-from vayujit_api.commerce.models import MarketplaceAccount, MarketplaceInventory, MarketplaceListing
+from vayujit_api.commerce.models import (
+    MarketplaceAccount,
+    MarketplaceInventory,
+    MarketplaceListing,
+)
 from vayujit_api.identity.service import now
 from vayujit_api.publishing.models import PublishingJob
 
@@ -112,6 +116,18 @@ def execute_amazon_job(
             "failed",
             error_code="amazon_listing_missing",
             safe_message="Amazon listing was not found.",
+        )
+    if job.requested_action in {"publish", "create_draft"}:
+        # Listing publication is intentionally owned by the HTTP boundary,
+        # which binds a HUMAN review and single-use execution authorization.
+        # A generic publishing job has no authorization identity to consume,
+        # so fail closed instead of creating a bypass around that authority.
+        return AmazonJobResult(
+            "failed",
+            error_code="amazon_human_execution_authorization_required",
+            safe_message=(
+                "Use the controlled Amazon listing submission flow after HUMAN authorization."
+            ),
         )
     sku = listing.marketplace_sku or f"VJ-{listing.id.hex[:10]}"
     operation = (

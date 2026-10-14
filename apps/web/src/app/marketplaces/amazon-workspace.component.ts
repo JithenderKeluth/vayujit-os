@@ -53,6 +53,26 @@ interface AmazonReadiness {
   informational: Array<{ code: string; message: string }>;
   artifact_version: number | null;
 }
+interface AmazonListingReview {
+  id: string;
+  listing_id: string;
+  artifact_id: string;
+  artifact_version: number;
+  product_type: string;
+  attributes: Record<string, unknown>;
+  status: string;
+  reviewed_at: string;
+}
+interface AmazonExecutionAuthorization {
+  id: string;
+  listing_id: string;
+  review_id: string;
+  operation: string;
+  idempotency_key: string;
+  status: string;
+  expires_at: string;
+  idempotent_reuse?: boolean;
+}
 interface AmazonOrder {
   amazon_order_id: string;
   purchase_date: string;
@@ -143,6 +163,7 @@ interface AmazonProfitability {
               name="sellerId"
               [(ngModel)]="sellerId"
               required
+              autocomplete="username"
           /></label>
           <label for="amazon-credential"
             >Credential (write only)<input
@@ -247,10 +268,32 @@ interface AmazonProfitability {
         }
         <div class="marketplace-actions">
           <button type="button" (click)="preview()">Preview readiness</button
-          ><button type="button" (click)="submitListing()">Submit approved listing</button
+          ><button type="button" (click)="reviewListing()" [disabled]="!listingId || !readiness()?.ready"
+            >Approve listing for controlled submission</button
+          ><button type="button" (click)="issueAuthorization()" [disabled]="!review() || authorization()?.status === 'issued'"
+            >Issue one-time execution authorization</button
+          ><button type="button" (click)="submitListing()" [disabled]="authorization()?.status !== 'issued'"
+            >Submit approved listing</button
           ><button type="button" (click)="reconcileListing()">Reconcile remote status</button
           ><button type="button" (click)="submitPrice()">Confirm price update</button
           ><button type="button" (click)="updateInventory()">Confirm inventory update</button>
+        </div>
+        <div class="marketplace-approval" aria-live="polite">
+          <p><strong>Safety boundary:</strong> content approval and execution authorization are separate HUMAN actions.</p>
+          <p>Provider mode: <strong>LOCAL_FAKE</strong>. Live Amazon mutations are disabled.</p>
+          @if (review(); as currentReview) {
+            <p>Listing review: <strong>{{ currentReview.status }}</strong> (Artifact v{{ currentReview.artifact_version }})</p>
+          } @else {
+            <p>Listing review required before authorization.</p>
+          }
+          @if (authorization(); as currentAuthorization) {
+            <p>Execution authorization: <strong>{{ currentAuthorization.status }}</strong> · expires {{ currentAuthorization.expires_at }}</p>
+            @if (currentAuthorization.status === 'issued') {
+              <button type="button" (click)="revokeAuthorization()">Revoke authorization</button>
+            }
+          } @else {
+            <p>Issue a single-use authorization after reviewing the exact payload.</p>
+          }
         </div>
       </section>
 
@@ -261,6 +304,13 @@ interface AmazonProfitability {
             <span class="marketplace-status">{{ ready.ready ? 'Ready' : 'Blocked' }}</span>
           </h2>
           <p>Exact approved Artifact version: {{ ready.artifact_version ?? 'none' }}</p>
+          @if (ready.blocking.length > 0) {
+            <p class="readiness-next-action" role="status">
+              <strong>Next action:</strong> complete the blocking items above, then select
+              <strong>Preview readiness</strong>. HUMAN review and execution authorization
+              remain unavailable until the server reports Ready.
+            </p>
+          }
           <div class="readiness-grid">
             <div>
               <h3>Blocking</h3>
@@ -309,7 +359,7 @@ interface AmazonProfitability {
           ><button type="button" (click)="addVariant()">Add variant</button
           ><button type="button" (click)="saveVariants()">Save variants</button>
         </div>
-        <div class="marketplace-table">
+        <div class="marketplace-table" role="region" tabindex="0" aria-label="Stable variant combinations">
           <table>
             <caption>
               Stable variant combinations
@@ -333,6 +383,7 @@ interface AmazonProfitability {
                       [id]="'variant-key-' + index"
                       [name]="'variant-key-' + index"
                       [(ngModel)]="variant.stable_variant_key"
+                      [attr.aria-label]="'Variant key ' + (index + 1)"
                     />
                   </td>
                   <td>{{ formatJson(variant.options) }}</td>
@@ -341,6 +392,7 @@ interface AmazonProfitability {
                       [id]="'variant-sku-' + index"
                       [name]="'variant-sku-' + index"
                       [(ngModel)]="variant.sku"
+                      [attr.aria-label]="'Variant SKU ' + (index + 1)"
                     />
                   </td>
                   <td>
@@ -348,6 +400,7 @@ interface AmazonProfitability {
                       [id]="'variant-theme-' + index"
                       [name]="'variant-theme-' + index"
                       [(ngModel)]="variant.variation_theme"
+                      [attr.aria-label]="'Variant theme ' + (index + 1)"
                     />
                   </td>
                   <td>
@@ -357,6 +410,7 @@ interface AmazonProfitability {
                       [name]="'variant-price-' + index"
                       [(ngModel)]="variant.price"
                       min="0"
+                      [attr.aria-label]="'Variant price ' + (index + 1)"
                     />
                   </td>
                   <td>
@@ -364,6 +418,7 @@ interface AmazonProfitability {
                       [id]="'variant-barcode-' + index"
                       [name]="'variant-barcode-' + index"
                       [(ngModel)]="variant.barcode"
+                      [attr.aria-label]="'Variant barcode ' + (index + 1)"
                     />
                   </td>
                   <td>
@@ -397,7 +452,7 @@ interface AmazonProfitability {
           ><button type="button" (click)="addMedia()">Add media</button
           ><button type="button" (click)="saveMedia()">Save ordered media</button>
         </div>
-        <div class="marketplace-table">
+        <div class="marketplace-table" role="region" tabindex="0" aria-label="Ordered gallery">
           <table>
             <caption>
               Ordered gallery
@@ -417,7 +472,7 @@ interface AmazonProfitability {
                   <td>
                     {{ item.position }}
                     @if (index === 0) {
-                      <span aria-label="Main image">(main)</span>
+                      <span>(main)</span>
                     }
                   </td>
                   <td>{{ item.media_id }}</td>
@@ -426,6 +481,7 @@ interface AmazonProfitability {
                       [id]="'media-alt-' + index"
                       [name]="'media-alt-' + index"
                       [(ngModel)]="item.alt_text"
+                      [attr.aria-label]="'Media alt text ' + (index + 1)"
                     />
                   </td>
                   <td>{{ item.status || 'local' }}</td>
@@ -454,7 +510,7 @@ interface AmazonProfitability {
       <section class="marketplace-card">
         <h2>Orders and fulfilment</h2>
         <button type="button" (click)="importOrders()">Import orders</button>
-        <div class="marketplace-table">
+        <div class="marketplace-table" role="region" tabindex="0" aria-label="Normalized orders">
           <table>
             <caption>
               Normalized orders
@@ -513,7 +569,7 @@ interface AmazonProfitability {
       <section class="marketplace-card">
         <h2>Returns and refunds</h2>
         <button type="button" (click)="importReturns()">Import return records</button>
-        <div class="marketplace-table">
+        <div class="marketplace-table" role="region" tabindex="0" aria-label="Read-only returns and refunds">
           <table>
             <caption>
               Read-only returns and refunds
@@ -558,7 +614,7 @@ interface AmazonProfitability {
       <section class="marketplace-card">
         <h2>Settlement and profitability</h2>
         <button type="button" (click)="importFinancials()">Import settlements and fees</button>
-        <div class="marketplace-table">
+        <div class="marketplace-table" role="region" tabindex="0" aria-label="Settlement periods">
           <table>
             <caption>
               Settlement periods
@@ -624,7 +680,7 @@ interface AmazonProfitability {
             State: {{ currentDrift.drift_state }} - Classification:
             {{ currentDrift.classification }}
           </p>
-          <div class="marketplace-table">
+          <div class="marketplace-table" role="region" tabindex="0" aria-label="Local versus remote drift">
             <table>
               <caption>
                 Local versus remote
@@ -670,6 +726,8 @@ export class AmazonWorkspaceComponent {
   readonly variants = signal<AmazonVariant[]>([]);
   readonly media = signal<AmazonMedia[]>([]);
   readonly readiness = signal<AmazonReadiness | null>(null);
+  readonly review = signal<AmazonListingReview | null>(null);
+  readonly authorization = signal<AmazonExecutionAuthorization | null>(null);
   readonly orders = signal<AmazonOrder[]>([]);
   readonly settlements = signal<AmazonSettlement[]>([]);
   readonly returns = signal<AmazonReturn[]>([]);
@@ -828,6 +886,8 @@ export class AmazonWorkspaceComponent {
     if (!this.listingId) return;
     await Promise.all([
       this.loadReadiness(),
+      this.loadReview(),
+      this.loadAuthorization(),
       this.loadVariants(),
       this.loadMedia(),
       this.loadDrift(),
@@ -843,6 +903,24 @@ export class AmazonWorkspaceComponent {
       );
       if (value) this.readiness.set(value);
     }
+  }
+  async loadReview(): Promise<void> {
+    if (!this.listingId) return;
+    const value = await this.request<AmazonListingReview | { status: string }>(() =>
+      this.http.get<AmazonListingReview | { status: string }>(
+        this.baseUrl + '/listings/' + this.listingId + '/review', this.options,
+      ),
+    );
+    if (value && 'id' in value) this.review.set(value);
+  }
+  async loadAuthorization(): Promise<void> {
+    if (!this.listingId) return;
+    const value = await this.request<AmazonExecutionAuthorization | { status: string }>(() =>
+      this.http.get<AmazonExecutionAuthorization | { status: string }>(
+        this.baseUrl + '/listings/' + this.listingId + '/execution-authorizations/latest', this.options,
+      ),
+    );
+    if (value && 'id' in value) this.authorization.set(value);
   }
   async loadVariants(): Promise<void> {
     if (this.listingId) {
@@ -896,7 +974,10 @@ export class AmazonWorkspaceComponent {
     await this.loadReadiness();
   }
   async submitListing(): Promise<void> {
-    if (!this.listingId) return;
+    if (!this.listingId || this.authorization()?.status !== 'issued') {
+      this.error.set('Review the listing and issue a one-time execution authorization first.');
+      return;
+    }
     await this.request(
       () =>
         this.http.post(
@@ -905,11 +986,54 @@ export class AmazonWorkspaceComponent {
             product_type: this.productType,
             attributes: this.attributeValues,
             idempotency_key: 'amazon-ui-submit-' + this.listingId,
+            authorization_id: this.authorization()?.id,
           },
           this.options,
         ),
       'Amazon listing submission recorded.',
     );
+    await this.loadAuthorization();
+  }
+  async reviewListing(): Promise<void> {
+    if (!this.listingId) return;
+    const value = await this.request<AmazonListingReview>(() =>
+      this.http.post<AmazonListingReview>(
+        this.baseUrl + '/listings/' + this.listingId + '/review',
+        { product_type: this.productType, attributes: this.attributeValues, confirm: true },
+        this.options,
+      ),
+      'Listing payload approved for controlled submission.',
+    );
+    if (value) this.review.set(value);
+  }
+  async issueAuthorization(): Promise<void> {
+    if (!this.listingId || !this.review()) return;
+    const value = await this.request<AmazonExecutionAuthorization>(() =>
+      this.http.post<AmazonExecutionAuthorization>(
+        this.baseUrl + '/listings/' + this.listingId + '/execution-authorizations',
+        {
+          review_id: this.review()?.id,
+          idempotency_key: 'amazon-ui-submit-' + this.listingId,
+          expires_seconds: 600,
+          confirm: true,
+        },
+        this.options,
+      ),
+      'One-time listing execution authorization issued.',
+    );
+    if (value) this.authorization.set(value);
+  }
+  async revokeAuthorization(): Promise<void> {
+    if (!this.listingId || !this.authorization()) return;
+    const value = await this.request<AmazonExecutionAuthorization>(() =>
+      this.http.post<AmazonExecutionAuthorization>(
+        this.baseUrl + '/listings/' + this.listingId + '/execution-authorizations/' + this.authorization()?.id + '/revoke',
+        { confirm: true },
+        this.options,
+      ),
+      'Execution authorization revoked.',
+    );
+    if (value) this.authorization.set(value);
   }
   async reconcileListing(): Promise<void> {
     if (this.listingId)

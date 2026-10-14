@@ -11,6 +11,7 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from vayujit_api.audit.service import record_event
 from vayujit_api.identity.models import User
 from vayujit_api.intelligence.cross_marketplace_models import CrossMarketplaceSupplier
 from vayujit_api.intelligence.cross_marketplace_service import compare as compare_suppliers
@@ -546,6 +547,7 @@ def decide(
         reason=data.reason,
         evidence_ids=data.evidence_ids,
         decision_key=data.decision_key,
+        comparison_snapshot_id=data.comparison_snapshot_id,
         created_at=now(),
     )
     try:
@@ -569,6 +571,22 @@ def decide(
                 db, owner, context, existing.supplier_id, existing.shortlist_version_id
             )
         return {"id": str(existing.id), "decision": existing.decision, "idempotent_reuse": True}
+    record_event(
+        db,
+        actor_id=owner.id,
+        action="intelligence.supplier_shortlist_decision_created",
+        entity_type="supplier_shortlist_decision",
+        entity_id=row.id,
+        metadata={
+            "provenance": "HUMAN",
+            "context_id": str(context.id),
+            "supplier_id": str(row.supplier_id),
+            "comparison_snapshot_id": (
+                str(row.comparison_snapshot_id) if row.comparison_snapshot_id else None
+            ),
+        },
+        idempotency_key=f"shortlist:decision:{row.id}",
+    )
     db.commit()
     db.refresh(row)
     if row.decision in {"KEEP_UNDER_REVIEW", "APPROVE_FOR_SOURCING"}:
@@ -1217,6 +1235,9 @@ def history(db: Session, owner: User, context: SupplierShortlistContext) -> dict
                 "decision": item.decision,
                 "reason": item.reason,
                 "evidence_ids": item.evidence_ids,
+                "comparison_snapshot_id": (
+                    str(item.comparison_snapshot_id) if item.comparison_snapshot_id else None
+                ),
             }
             for item in decisions
         ],
