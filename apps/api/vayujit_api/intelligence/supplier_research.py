@@ -10,7 +10,7 @@ from typing import Any
 from urllib.parse import urlparse
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
@@ -43,6 +43,19 @@ LIVE_DISCOVERY_FAILURE = "DISCOVERY_PROVIDER_UNAVAILABLE"
 
 def _now() -> datetime:
     return datetime.now(UTC)
+
+
+def _supplier_identity_lock(db: Session, owner_id: uuid.UUID, identity: str) -> None:
+    """Serialize equivalent supplier materialization in the owner scope.
+
+    The unique constraint remains the canonical authority.  The transaction
+    advisory lock only prevents two equivalent provider results from both
+    observing an empty identity slot before either transaction commits.
+    """
+
+    lock_value = hashlib.sha256(f"supplier:{owner_id}:{identity}".encode()).digest()
+    lock_key = int.from_bytes(lock_value[:8], "big") & ((1 << 63) - 1)
+    db.execute(select(func.pg_advisory_xact_lock(lock_key)))
 
 
 def _fixture_candidates(query: str, limit: int) -> list[dict[str, Any]]:
@@ -149,6 +162,7 @@ def _materialize_supplier(
     name = str(identity.get("name") or extraction.get("domain") or "Unknown supplier")
     domain = str(extraction.get("domain") or "")
     normalized = normalize_identity(name, domain)
+    _supplier_identity_lock(db, owner.id, normalized)
     supplier = db.scalar(
         select(Supplier).where(
             Supplier.owner_id == owner.id, Supplier.normalized_identity == normalized

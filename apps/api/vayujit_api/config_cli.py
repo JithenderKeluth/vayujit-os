@@ -6,7 +6,6 @@ import sys
 from pydantic import ValidationError
 
 from vayujit_api.core.config import Settings
-from vayujit_api.operations.staging import staging_configuration_errors
 
 
 def main() -> int:
@@ -19,9 +18,16 @@ def main() -> int:
         ]
         print(json.dumps({"valid": False, "errors": errors}, sort_keys=True))
         return 1
-    staging_errors = (
-        staging_configuration_errors(settings) if settings.environment == "staging" else []
-    )
+    # Import the staging projection only after Settings has validated.  The
+    # staging module imports the database model graph, which eagerly constructs
+    # Settings; importing it at module load bypassed this CLI's safe JSON
+    # validation boundary and printed a traceback for invalid production
+    # configuration.
+    staging_errors: list[str] = []
+    if settings.environment == "staging":
+        from vayujit_api.operations.staging import staging_configuration_errors
+
+        staging_errors = staging_configuration_errors(settings)
     if staging_errors:
         print(json.dumps({"valid": False, "errors": staging_errors}, sort_keys=True))
         return 1

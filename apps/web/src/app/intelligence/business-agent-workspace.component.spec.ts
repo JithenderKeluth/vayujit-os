@@ -111,6 +111,15 @@ const run: BusinessAgentRun = {
           freshness: 'FRESH',
           agreement: 'ALIGNED',
         },
+        supplier_intelligence: {
+          status: 'COMPLETED',
+          mode: 'LOCAL_FIXTURE',
+          accepted_candidate_count: 2,
+          contradictions: 1,
+          freshness: 'FRESH',
+          next_action: 'Review supplier candidates',
+          opportunity_id: 'opportunity-1',
+        },
       },
       provenance: { source: 'business-agent', provider: 'LOCAL_DETERMINISTIC' },
       created_at: '2026-01-01T00:00:00Z',
@@ -164,6 +173,7 @@ describe('BusinessAgentWorkspaceComponent', () => {
   async function create({ fail = false } = {}) {
     service.goals.mockReset();
     service.capabilities.mockReset();
+    service.createGoal.mockClear();
     service.latestPlan.mockReset();
     service.latestRun.mockReset();
     if (fail) service.goals.mockRejectedValue(new Error('backend details'));
@@ -237,6 +247,35 @@ describe('BusinessAgentWorkspaceComponent', () => {
       }),
     );
   });
+
+  it('shows inline validation and does not call the goal authority for an underspecified goal', async () => {
+    const fixture = await create();
+    const component = fixture.componentInstance;
+    component.rawGoal = 'no';
+
+    await component.create();
+    fixture.detectChanges();
+
+    expect(service.createGoal).not.toHaveBeenCalled();
+    expect(component.goalFormMessage()).toContain('at least five characters');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain(
+      'Enter at least five characters',
+    );
+  });
+
+  it('confirms goal creation and keeps the next action explicit', async () => {
+    const fixture = await create();
+    const component = fixture.componentInstance;
+    service.createGoal.mockResolvedValue(goal);
+    component.rawGoal = 'Find a product for Amazon India.';
+
+    await component.create();
+
+    expect(service.createGoal).toHaveBeenCalledWith(
+      expect.objectContaining({ raw_goal: 'Find a product for Amazon India.' }),
+    );
+    expect(component.goalCreatedMessage()).toContain('Goal created');
+  });
   it('hydrates the persisted plan and run after a workspace reload', async () => {
     const fixture = await create();
     service.latestPlan.mockResolvedValue(plan);
@@ -308,6 +347,9 @@ describe('BusinessAgentWorkspaceComponent', () => {
     expect(text).toContain('Confidence');
     expect(text).toContain('Historical coverage is limited.');
     expect(text).toContain('Signals disagree on direction.');
+    expect(text).toContain('Supplier intelligence continuation');
+    expect(text).toContain('Review supplier candidates');
+    expect(element.querySelector('a[href^="/intelligence/cross-marketplace"]')).toBeTruthy();
     expect(element.querySelector('[data-status="WAITING_APPROVAL"]')).toBeTruthy();
     expect(element.querySelector('app-evidence-card')).toBeTruthy();
   });

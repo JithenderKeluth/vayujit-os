@@ -378,7 +378,7 @@ def project_journey(
     if latest_product_selection is not None:
         try:
             economics_brief = decision_brief_for_opportunity(
-                db, owner, latest_product_selection.opportunity_id
+                db, owner, latest_product_selection.opportunity_id, goal_id=goal.id
             )
         except Exception:
             economics_brief = None
@@ -389,10 +389,40 @@ def project_journey(
         else []
     )
     latest_commerce_decision = commerce_decisions[-1] if commerce_decisions else None
+    controlled_recommendation: dict[str, Any] | None = None
+    controlled_human_decision: dict[str, Any] | None = None
+    if latest_product_selection is not None:
+        from vayujit_api.intelligence.decision_recommendation_service import (
+            latest_human_decision,
+            latest_recommendation,
+            serialize_human_decision,
+            serialize_recommendation,
+        )
+
+        recommendation_row = latest_recommendation(
+            db,
+            owner,
+            latest_product_selection.opportunity_id,
+            "COMMERCIAL_ASSESSMENT",
+            goal_id=goal.id,
+        )
+        decision_row = latest_human_decision(
+            db,
+            owner,
+            latest_product_selection.opportunity_id,
+            "COMMERCIAL_ASSESSMENT",
+            goal_id=goal.id,
+        )
+        controlled_recommendation = (
+            serialize_recommendation(recommendation_row) if recommendation_row else None
+        )
+        controlled_human_decision = serialize_human_decision(decision_row) if decision_row else None
+        if decision_row is not None:
+            decisions += 1
     explicit_proceed = bool(
         latest_commerce_decision
         and latest_commerce_decision.get("action") == "PROCEED_TO_LAUNCH_PREPARATION"
-    )
+    ) or bool(controlled_human_decision and controlled_human_decision.get("decision") == "PROCEED")
     run = db.scalar(
         select(BusinessAgentRun)
         .where(BusinessAgentRun.owner_id == owner.id, BusinessAgentRun.goal_id == goal.id)
@@ -712,7 +742,11 @@ def project_journey(
             "decision_brief": economics_brief is not None,
             "commercial_readiness": commercial_readiness,
         },
-        "DECIDE": {"decisions": len(commerce_decisions) + decisions},
+        "DECIDE": {
+            "decisions": len(commerce_decisions) + decisions,
+            "recommendation": controlled_recommendation,
+            "human_decision": controlled_human_decision,
+        },
         "LAUNCH": {"proceed_decision": explicit_proceed},
     }
     for stage in stages:
@@ -791,6 +825,27 @@ def project_journey(
         },
         "context": {"confirmed": confirmed, "values": commerce_context},
         "commercial_readiness": commercial_readiness,
+        "recommendation": controlled_recommendation,
+        "human_decision": controlled_human_decision,
+        "engagement": (
+            economics_brief.get("engagement") if isinstance(economics_brief, dict) else None
+        ),
+        "engagement_eligibility": (
+            economics_brief.get("engagement_eligibility")
+            if isinstance(economics_brief, dict)
+            else {
+                "state": "NOT_CREATED",
+                "can_send": False,
+                "send_status": "NOT_EXECUTED",
+                "safe_next_action": (
+                    "Create a scoped engagement only after HUMAN PROCEED and contact review."
+                ),
+            }
+        ),
+        "decision_history": {
+            "legacy_count": len(commerce_decisions),
+            "controlled_count": decisions,
+        },
         "trust": {
             "mode": trust_mode,
             "label": (

@@ -34,4 +34,38 @@ describe('SourcingEconomicsWorkspaceComponent', () => {
     expect(fixture.nativeElement.querySelector('[aria-label="Breadcrumb"]')).not.toBeNull();
     expect(fixture.nativeElement.innerHTML).not.toContain('<script');
   });
+
+  it('uses a stable HUMAN decision idempotency key for the current journey context', async () => {
+    await TestBed.configureTestingModule({
+      imports: [SourcingEconomicsWorkspaceComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(SourcingEconomicsWorkspaceComponent);
+    const component = fixture.componentInstance;
+    component.journeyId = 'journey-1';
+    component.opportunityId = 'opportunity-1';
+
+    expect(component.decisionIdempotencyKey('keep_under_review')).toBe(
+      'pr6c-ui-decision-journey-1-opportunity-1-KEEP_UNDER_REVIEW',
+    );
+    expect(component.decisionIdempotencyKey('keep_under_review')).toBe(
+      component.decisionIdempotencyKey('keep_under_review'),
+    );
+    expect(component.decisionIdempotencyKey('proceed')).not.toBe(
+      component.decisionIdempotencyKey('do_not_proceed'),
+    );
+  });
+
+  it('does not present launch preparation as available while the canonical brief is blocked', async () => {
+    await TestBed.configureTestingModule({
+      imports: [SourcingEconomicsWorkspaceComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(SourcingEconomicsWorkspaceComponent);
+    const component = fixture.componentInstance;
+    component.decisionBrief.set({ decision_readiness: 'NEEDS_REVIEW' } as never);
+
+    expect(component.decisionActionAvailable('PROCEED_TO_LAUNCH_PREPARATION')).toBe(false);
+    expect(component.decisionActionAvailable('RESEARCH_FURTHER')).toBe(true);
+  });
 });

@@ -550,6 +550,7 @@ dd {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
+  min-width: 0;
 }
 .candidate-card,
 .tradeoff-card {
@@ -557,6 +558,8 @@ dd {
   border-radius: 14px;
   padding: 1rem;
   background: #fff;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 .candidate-card.selected {
   border-color: #147d8c;
@@ -785,7 +788,7 @@ dd {
   }
   .candidate-grid,
   .opportunity-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
   .research-summary-facts {
     grid-template-columns: repeat(2, minmax(0, 1fr));

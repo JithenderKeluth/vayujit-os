@@ -144,6 +144,122 @@ export interface PaginatedProductResponse {
   pages: number;
 }
 
+export type CatalogChannel = 'amazon_in' | 'flipkart';
+export type CatalogListingStatus =
+  | 'draft'
+  | 'incomplete'
+  | 'needs_review'
+  | 'approved_for_future_submission'
+  | 'blocked'
+  | 'archived';
+
+export interface CatalogLineage {
+  source_kind: 'manual' | 'opportunity';
+  opportunity_id: string | null;
+  goal_id: string | null;
+  assessment_id: string | null;
+  provenance_json: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CatalogVariant {
+  id: string;
+  product_id: string;
+  variant_key: string;
+  title: string;
+  sku: string | null;
+  option_values: Record<string, unknown>;
+  attributes: Record<string, unknown>;
+  image_refs: unknown[];
+  price_amount: MoneyAmount | null;
+  currency: string | null;
+  status: ProductStatus;
+  version: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CatalogProductImage {
+  id: string;
+  product_id: string;
+  media_id: string;
+  alt_text: string | null;
+  position: number;
+  is_primary: boolean;
+  version: number;
+  preview_url: string;
+  mime_type: string;
+  size_bytes: number;
+  width: number;
+  height: number;
+  status: 'ready' | 'archived';
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CatalogSupplierAssociation {
+  id: string;
+  product_id: string;
+  supplier_id: string;
+  opportunity_id: string | null;
+  status: 'candidate' | 'review_required' | 'accepted' | 'archived';
+  provenance_json: Record<string, unknown>;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CatalogListingDraft {
+  id: string;
+  product_id: string;
+  channel: CatalogChannel;
+  title: string;
+  description: string;
+  bullets: unknown[];
+  category: string | null;
+  attributes: Record<string, unknown>;
+  image_refs: unknown[];
+  intended_price_amount: MoneyAmount | null;
+  intended_currency: string | null;
+  compliance: Record<string, unknown>;
+  missing_fields: string[];
+  validation_state: string;
+  readiness_state: string;
+  human_review_state: 'not_reviewed' | 'needs_review' | 'approved';
+  status: CatalogListingStatus;
+  provenance_json: Record<string, unknown>;
+  version: number;
+  created_at: string;
+  updated_at: string;
+  archived_at: string | null;
+}
+
+export interface CatalogProductDetails {
+  product: ProductDetails;
+  lineage: CatalogLineage | null;
+  variants: CatalogVariant[];
+  images: CatalogProductImage[];
+  supplier_associations: CatalogSupplierAssociation[];
+  listing_drafts: CatalogListingDraft[];
+}
+
+export interface CatalogEconomics {
+  product_id: string;
+  available: boolean;
+  opportunity_id: string | null;
+  assessment_id: string | null;
+  projection: Record<string, unknown> | null;
+  reason: string | null;
+}
+
+export interface CatalogReadiness {
+  product_id: string;
+  readiness: 'BLOCKED' | 'READY_FOR_FUTURE_SUBMISSION';
+  blockers: string[];
+  next_actions: string[];
+  external_publication: 'DISABLED_IN_PR_SOS_01';
+}
+
 export type ProductSortField =
   | 'name'
   | 'created_at'

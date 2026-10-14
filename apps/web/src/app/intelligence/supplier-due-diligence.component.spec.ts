@@ -68,7 +68,9 @@ describe('SupplierDueDiligenceComponent', () => {
       );
     }
     const review = component.reviewEvidence('gap-1');
-    http.expectOne(`${base}/contexts/context-1/gaps/gap-1`).flush({ id: 'gap-1' });
+    const reviewRequest = http.expectOne(`${base}/contexts/context-1/gaps/gap-1`);
+    expect(reviewRequest.request.withCredentials).toBe(true);
+    reviewRequest.flush({ id: 'gap-1' });
     await review;
     expect(component.reviewedGapId).toBe('gap-1');
     http.verify();
@@ -82,6 +84,7 @@ describe('SupplierDueDiligenceComponent', () => {
     prompt.mockReturnValue('Reviewed by owner');
     const action = component.act('gap-1', 'waive_gap');
     const request = http.expectOne(`${base}/gaps/gap-1/waive_gap`);
+    expect(request.request.withCredentials).toBe(true);
     expect(request.request.body).toEqual({ reason: 'Reviewed by owner' });
     request.flush({ status: 'WAIVED_BY_HUMAN' });
     await action;

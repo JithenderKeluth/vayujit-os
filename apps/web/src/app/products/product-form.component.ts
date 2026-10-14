@@ -22,7 +22,7 @@ import { ProductService } from './product.service';
     RouterLink,
   ],
   template: `
-    <section class="page narrow">
+    <main class="page narrow">
       <app-page-header
         eyebrow="Product management"
         [title]="editing() ? 'Edit product' : 'Create product'"
@@ -158,7 +158,7 @@ import { ProductService } from './product.service';
           </div>
         </form>
       }
-    </section>
+    </main>
   `,
   styleUrl: './products.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

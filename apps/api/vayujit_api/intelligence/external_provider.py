@@ -158,6 +158,30 @@ def _resolved_addresses(host: str) -> list[Any]:
             raise UnsafeURL("Unable to resolve external source host safely.") from exc
 
 
+def _resolution_snapshot(host: str) -> tuple[str, ...]:
+    """Return a stable public-address snapshot for a request boundary."""
+    addresses = _resolved_addresses(host)
+    if not addresses:
+        raise UnsafeURL("External source host did not resolve safely.")
+    if any(
+        address.is_private
+        or address.is_loopback
+        or address.is_link_local
+        or address.is_reserved
+        or address.is_unspecified
+        for address in addresses
+    ):
+        raise UnsafeURL("Private or non-public address resolution is not allowed.")
+    return tuple(sorted(str(address) for address in addresses))
+
+
+def _assert_resolution_stable(host: str, expected: tuple[str, ...]) -> None:
+    """Fail closed if DNS changes between URL validation and transport use."""
+    current = _resolution_snapshot(host)
+    if current != expected:
+        raise UnsafeURL("DNS resolution changed before the approved request boundary.")
+
+
 def validate_external_url(
     value: str, *, allowed_domains: tuple[str, ...] = (), blocked_domains: tuple[str, ...] = ()
 ) -> str:
@@ -572,6 +596,12 @@ class ApprovedWebFetcher:
             url, allowed_domains=allowed_domains, blocked_domains=blocked_domains
         )
         current = requested
+        current_host = host_of(current)
+        try:
+            current_resolution = _resolution_snapshot(current_host)
+        except UnsafeURL as exc:
+            raise RuntimeError("dns_rebinding_blocked") from exc
+        redirect_chain = [requested]
         redirect_count = 0
         started = datetime.now(UTC)
         try:
@@ -581,14 +611,19 @@ class ApprovedWebFetcher:
             )
             with httpx.Client(timeout=timeout, follow_redirects=False) as client:
                 while True:
-                    response = client.get(
-                        current,
-                        headers={
-                            "Accept": "text/html,text/plain,application/json",
-                            "User-Agent": self.settings.intelligence_external_fetch_user_agent
-                            or DEFAULT_USER_AGENT,
-                        },
-                    )
+                    try:
+                        _assert_resolution_stable(current_host, current_resolution)
+                        response = client.get(
+                            current,
+                            headers={
+                                "Accept": "text/html,text/plain,application/json",
+                                "User-Agent": self.settings.intelligence_external_fetch_user_agent
+                                or DEFAULT_USER_AGENT,
+                            },
+                        )
+                        _assert_resolution_stable(current_host, current_resolution)
+                    except UnsafeURL as exc:
+                        raise RuntimeError("dns_rebinding_blocked") from exc
                     if response.status_code in {301, 302, 303, 307, 308}:
                         location = response.headers.get("location")
                         if (
@@ -606,6 +641,9 @@ class ApprovedWebFetcher:
                         except UnsafeURL as exc:
                             raise RuntimeError("redirect_blocked") from exc
                         redirect_count += 1
+                        redirect_chain.append(current)
+                        current_host = host_of(current)
+                        current_resolution = _resolution_snapshot(current_host)
                         continue
                     break
 
@@ -678,6 +716,7 @@ class ApprovedWebFetcher:
                 "content_length": len(raw),
                 "content_hash": digest,
                 "redirect_count": redirect_count,
+                "redirect_chain": redirect_chain,
                 "latency_ms": max(0, int((datetime.now(UTC) - started).total_seconds() * 1000)),
                 "user_agent": self.settings.intelligence_external_fetch_user_agent
                 or DEFAULT_USER_AGENT,

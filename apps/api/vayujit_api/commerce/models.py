@@ -330,6 +330,170 @@ class MarketplaceInventory(CommerceBase):
     last_synchronized_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class InventoryItem(CommerceBase):
+    """Canonical local stock balance for one sellable catalog SKU/location."""
+
+    __tablename__ = "inventory_items"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "internal_sku", "location_code", name="uq_inventory_item_sku_location"
+        ),
+        CheckConstraint("on_hand_quantity >= 0", name="ck_inventory_on_hand_nonnegative"),
+        CheckConstraint("reserved_quantity >= 0", name="ck_inventory_reserved_nonnegative"),
+        CheckConstraint("damaged_quantity >= 0", name="ck_inventory_damaged_nonnegative"),
+        CheckConstraint(
+            "reserved_quantity + damaged_quantity <= on_hand_quantity",
+            name="ck_inventory_reserved_within_on_hand",
+        ),
+        CheckConstraint("low_stock_threshold >= 0", name="ck_inventory_low_stock_threshold"),
+        Index("ix_inventory_item_owner_product", "owner_id", "product_id"),
+    )
+
+    product_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("products.id", ondelete="CASCADE"), index=True
+    )
+    variant_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("catalog_product_variants.id", ondelete="SET NULL"),
+        index=True,
+    )
+    internal_sku: Mapped[str] = mapped_column(String(100))
+    location_code: Mapped[str] = mapped_column(String(80), default="default")
+    unit: Mapped[str] = mapped_column(String(24), default="each")
+    on_hand_quantity: Mapped[int] = mapped_column(Integer, default=0)
+    reserved_quantity: Mapped[int] = mapped_column(Integer, default=0)
+    damaged_quantity: Mapped[int] = mapped_column(Integer, default=0)
+    low_stock_threshold: Mapped[int] = mapped_column(Integer, default=0)
+    version: Mapped[int] = mapped_column(Integer, default=1)
+    last_reconciled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class InventoryMovement(CommerceBase):
+    """Append-only stock movement; balances are reconstructed from its lineage."""
+
+    __tablename__ = "inventory_movements"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "inventory_item_id", "idempotency_key", name="uq_inventory_movement_key"
+        ),
+        CheckConstraint(
+            "movement_type IN ("
+            "'opening_balance','receipt','adjustment','reservation','reservation_release',"
+            "'shipment','return_receipt','damage','reconciliation')",
+            name="ck_inventory_movement_type",
+        ),
+        CheckConstraint(
+            "actor_type IN ('HUMAN','SYSTEM')", name="ck_inventory_movement_actor_type"
+        ),
+        Index("ix_inventory_movement_item_time", "inventory_item_id", "created_at"),
+    )
+
+    inventory_item_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("inventory_items.id", ondelete="CASCADE"), index=True
+    )
+    location_code: Mapped[str] = mapped_column(String(80))
+    quantity: Mapped[int] = mapped_column(Integer)
+    movement_type: Mapped[str] = mapped_column(String(32))
+    source_reference: Mapped[str | None] = mapped_column(String(240))
+    actor_type: Mapped[str] = mapped_column(String(12), default="HUMAN")
+    actor_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL")
+    )
+    idempotency_key: Mapped[str] = mapped_column(String(220))
+    reason: Mapped[str] = mapped_column(String(500), default="")
+    before_on_hand: Mapped[int] = mapped_column(Integer)
+    after_on_hand: Mapped[int] = mapped_column(Integer)
+    before_reserved: Mapped[int] = mapped_column(Integer)
+    after_reserved: Mapped[int] = mapped_column(Integer)
+    provenance_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+
+
+class InventoryReservation(CommerceBase):
+    __tablename__ = "inventory_reservations"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "inventory_item_id", "order_line_key", name="uq_inventory_reservation_line"
+        ),
+        UniqueConstraint(
+            "owner_id", "inventory_item_id", "idempotency_key", name="uq_inventory_reservation_key"
+        ),
+        CheckConstraint("quantity > 0", name="ck_inventory_reservation_quantity"),
+        CheckConstraint(
+            "state IN ('active','released','consumed','failed')",
+            name="ck_inventory_reservation_state",
+        ),
+    )
+
+    inventory_item_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("inventory_items.id", ondelete="CASCADE"), index=True
+    )
+    order_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_orders.id", ondelete="SET NULL"), index=True
+    )
+    order_line_key: Mapped[str] = mapped_column(String(240))
+    quantity: Mapped[int] = mapped_column(Integer)
+    state: Mapped[str] = mapped_column(String(16), default="active", index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(220))
+    source_event_id: Mapped[str | None] = mapped_column(String(240))
+    released_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    provenance_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+
+
+class ChannelSkuMapping(CommerceBase):
+    __tablename__ = "channel_sku_mappings"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "account_id", "external_sku", name="uq_channel_sku_account_external"
+        ),
+        UniqueConstraint(
+            "owner_id", "account_id", "inventory_item_id", name="uq_channel_sku_account_item"
+        ),
+        CheckConstraint(
+            "status IN ('active','archived','conflict')", name="ck_channel_sku_mapping_status"
+        ),
+    )
+
+    inventory_item_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("inventory_items.id", ondelete="CASCADE"), index=True
+    )
+    account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_accounts.id", ondelete="CASCADE"), index=True
+    )
+    marketplace: Mapped[str] = mapped_column(String(30), index=True)
+    external_sku: Mapped[str] = mapped_column(String(160))
+    listing_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_listings.id", ondelete="SET NULL")
+    )
+    status: Mapped[str] = mapped_column(String(16), default="active", index=True)
+    effective_version: Mapped[int] = mapped_column(Integer, default=1)
+    provenance_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+
+
+class MarketplaceOrderEvent(CommerceBase):
+    __tablename__ = "marketplace_order_events"
+    __table_args__ = (
+        UniqueConstraint("owner_id", "account_id", "event_id", name="uq_marketplace_order_event"),
+        CheckConstraint(
+            "status IN ('received','applied','duplicate','rejected','reconciliation_required')",
+            name="ck_marketplace_order_event_status",
+        ),
+    )
+
+    account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_accounts.id", ondelete="CASCADE"), index=True
+    )
+    marketplace: Mapped[str] = mapped_column(String(30), index=True)
+    event_id: Mapped[str] = mapped_column(String(240))
+    remote_order_id: Mapped[str] = mapped_column(String(200), index=True)
+    event_type: Mapped[str] = mapped_column(String(40))
+    event_version: Mapped[int] = mapped_column(Integer, default=1)
+    payload_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    status: Mapped[str] = mapped_column(String(32), default="received", index=True)
+    error_message: Mapped[str | None] = mapped_column(String(500))
+    observed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+
+
 class MarketplaceOrder(CommerceBase):
     __tablename__ = "marketplace_orders"
     __table_args__ = (
@@ -547,6 +711,232 @@ class MarketplaceIdempotencyKey(CommerceBase):
     idempotency_key: Mapped[str] = mapped_column(String(200))
     resource_type: Mapped[str] = mapped_column(String(60))
     resource_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+
+
+class MarketplaceImportJob(CommerceBase):
+    """Durable, owner-scoped read-only marketplace import execution.
+
+    This is deliberately an execution ledger, not a second catalog/order or
+    financial authority.  ``summary_json`` carries safe provider evidence and
+    checkpoints while canonical records continue to be owned by the existing
+    commerce projections.  Production providers are never contacted by this
+    local certification path: only ``SYNTHETIC`` jobs may complete here.
+    """
+
+    __tablename__ = "marketplace_import_jobs"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id",
+            "account_id",
+            "operation",
+            "idempotency_key",
+            name="uq_marketplace_import_job_idempotency",
+        ),
+        CheckConstraint(
+            "operation IN ('catalog','orders','inventory','financial')",
+            name="ck_marketplace_import_job_operation",
+        ),
+        CheckConstraint(
+            "mode IN ('SYNTHETIC','SANDBOX','LIVE_READ_ONLY')",
+            name="ck_marketplace_import_job_mode",
+        ),
+        CheckConstraint(
+            "status IN ('PENDING','RUNNING','PARTIAL','SUCCEEDED','FAILED','CANCELLED')",
+            name="ck_marketplace_import_job_status",
+        ),
+        Index(
+            "ix_marketplace_import_job_owner_account_time",
+            "owner_id",
+            "account_id",
+            "created_at",
+        ),
+    )
+
+    account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_accounts.id", ondelete="CASCADE"), index=True
+    )
+    marketplace: Mapped[str] = mapped_column(String(30), index=True)
+    operation: Mapped[str] = mapped_column(String(30), index=True)
+    mode: Mapped[str] = mapped_column(String(30), default="SYNTHETIC")
+    status: Mapped[str] = mapped_column(String(20), default="PENDING", index=True)
+    idempotency_key: Mapped[str] = mapped_column(String(240))
+    correlation_id: Mapped[str] = mapped_column(String(120), index=True)
+    checkpoint_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    summary_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    provenance_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    pages_fetched: Mapped[int] = mapped_column(Integer, default=0)
+    records_seen: Mapped[int] = mapped_column(Integer, default=0)
+    records_imported: Mapped[int] = mapped_column(Integer, default=0)
+    records_reused: Mapped[int] = mapped_column(Integer, default=0)
+    error_code: Mapped[str | None] = mapped_column(String(80))
+    error_message: Mapped[str | None] = mapped_column(String(500))
+    started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    last_successful_sync: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    stale_after: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AmazonListingReview(CommerceBase):
+    """Immutable HUMAN review of the exact Amazon listing payload.
+
+    This is deliberately separate from content-artifact approval: an approved
+    artifact proves content review, while this row records the seller's
+    explicit decision to prepare this listing for controlled execution.
+    """
+
+    __tablename__ = "amazon_listing_reviews"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id", "listing_id", "payload_fingerprint", name="uq_amazon_listing_review_payload"
+        ),
+        CheckConstraint("status IN ('approved','revoked')", name="ck_amazon_listing_review_status"),
+    )
+
+    account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_accounts.id", ondelete="CASCADE"), index=True
+    )
+    listing_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_listings.id", ondelete="CASCADE"), index=True
+    )
+    artifact_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="RESTRICT"), index=True
+    )
+    artifact_version: Mapped[int] = mapped_column(Integer)
+    product_type: Mapped[str] = mapped_column(String(100))
+    attributes_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    payload_fingerprint: Mapped[str] = mapped_column(String(64), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="approved", index=True)
+    reviewed_by: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT")
+    )
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class AmazonListingExecutionAuthorization(CommerceBase):
+    """Single-use HUMAN authorization for a specific reviewed payload."""
+
+    __tablename__ = "amazon_listing_execution_authorizations"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id",
+            "listing_id",
+            "operation",
+            "idempotency_key",
+            name="uq_amazon_listing_execution_auth_idempotency",
+        ),
+        CheckConstraint(
+            "status IN ('issued','consumed','revoked','expired')",
+            name="ck_amazon_listing_execution_auth_status",
+        ),
+    )
+
+    account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_accounts.id", ondelete="CASCADE"), index=True
+    )
+    listing_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_listings.id", ondelete="CASCADE"), index=True
+    )
+    review_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("amazon_listing_reviews.id", ondelete="RESTRICT"), index=True
+    )
+    operation: Mapped[str] = mapped_column(String(40), default="listing_submit")
+    idempotency_key: Mapped[str] = mapped_column(String(200))
+    payload_fingerprint: Mapped[str] = mapped_column(String(64), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="issued", index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    result_json: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    issued_by: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT")
+    )
+
+
+class MarketplaceListingReview(CommerceBase):
+    """HUMAN review of an exact listing payload for any supported marketplace.
+
+    Amazon's original controls remain backwards-compatible, while new
+    marketplaces use this shared authority instead of creating weaker,
+    marketplace-specific approval tables.
+    """
+
+    __tablename__ = "marketplace_listing_reviews"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id",
+            "listing_id",
+            "payload_fingerprint",
+            name="uq_marketplace_listing_review_payload",
+        ),
+        CheckConstraint(
+            "status IN ('approved','revoked')",
+            name="ck_marketplace_listing_review_status",
+        ),
+    )
+
+    marketplace: Mapped[str] = mapped_column(String(30), index=True)
+    account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_accounts.id", ondelete="CASCADE"), index=True
+    )
+    listing_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_listings.id", ondelete="CASCADE"), index=True
+    )
+    artifact_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("generated_artifacts.id", ondelete="RESTRICT"), index=True
+    )
+    artifact_version: Mapped[int] = mapped_column(Integer)
+    payload_json: Mapped[dict[str, object]] = mapped_column(JSONB, default=dict)
+    payload_fingerprint: Mapped[str] = mapped_column(String(64), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="approved", index=True)
+    reviewed_by: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT")
+    )
+    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+
+class MarketplaceListingExecutionAuthorization(CommerceBase):
+    """Durable, single-use HUMAN authorization for a reviewed payload."""
+
+    __tablename__ = "marketplace_listing_execution_authorizations"
+    __table_args__ = (
+        UniqueConstraint(
+            "owner_id",
+            "listing_id",
+            "operation",
+            "idempotency_key",
+            name="uq_marketplace_listing_execution_auth_idempotency",
+        ),
+        CheckConstraint(
+            "status IN ('issued','consumed','revoked','expired')",
+            name="ck_marketplace_listing_execution_auth_status",
+        ),
+    )
+
+    marketplace: Mapped[str] = mapped_column(String(30), index=True)
+    account_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_accounts.id", ondelete="CASCADE"), index=True
+    )
+    listing_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("marketplace_listings.id", ondelete="CASCADE"), index=True
+    )
+    review_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("marketplace_listing_reviews.id", ondelete="RESTRICT"),
+        index=True,
+    )
+    operation: Mapped[str] = mapped_column(String(40), default="listing_submit")
+    idempotency_key: Mapped[str] = mapped_column(String(200))
+    payload_fingerprint: Mapped[str] = mapped_column(String(64), index=True)
+    status: Mapped[str] = mapped_column(String(20), default="issued", index=True)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    consumed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    result_json: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    issued_by: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="RESTRICT")
+    )
 
 
 class MarketplaceMediaMapping(CommerceBase):

@@ -1,7 +1,8 @@
 :root {
   --vj-color-ink: #122b33;
   --vj-color-ink-soft: #42616a;
-  --vj-color-muted: #6b8288;
+  /* Muted text still meets WCAG AA on the default workspace background. */
+  --vj-color-muted: #506b74;
   --vj-color-brand: #0c6b78;
   --vj-color-brand-strong: #075462;
   --vj-color-brand-soft: #e5f3f3;

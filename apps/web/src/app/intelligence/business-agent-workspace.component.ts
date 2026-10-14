@@ -130,21 +130,26 @@ const CAPABILITY_LABELS: Record<string, string> = {
             </p>
           </div>
         </div>
-        <form class="goal-form" (ngSubmit)="create()">
+        <form class="goal-form" (ngSubmit)="create()" novalidate>
           <label class="goal-field">
             <span>What are you trying to accomplish?</span>
             <textarea
               name="goal"
               [(ngModel)]="rawGoal"
+              (ngModelChange)="goalFormMessage.set('')"
               required
               minlength="5"
               rows="4"
+              aria-describedby="goal-help goal-validation"
               placeholder="Example: Find products I could launch on Amazon India within my budget and risk preferences."
             ></textarea>
           </label>
-          <p class="field-help">
+          <p class="field-help" id="goal-help">
             Examples are guidance only; nothing runs until you create a goal and review its plan.
           </p>
+          @if (goalFormMessage()) {
+            <p class="field-error" id="goal-validation" role="alert">{{ goalFormMessage() }}</p>
+          }
           <details class="advanced-options">
             <summary>Advanced research options</summary>
             <div class="advanced-grid">
@@ -181,6 +186,9 @@ const CAPABILITY_LABELS: Record<string, string> = {
           <button class="primary-action" type="submit" [disabled]="loading() || !rawGoal.trim()">
             Create research goal
           </button>
+          @if (goalCreatedMessage()) {
+            <p class="field-success" role="status">{{ goalCreatedMessage() }}</p>
+          }
         </form>
       </details>
 
@@ -271,7 +279,9 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       Start run
                     </button>
                   } @else {
-                    <span class="quiet">A run already exists. Use the execution controls below.</span>
+                    <span class="quiet"
+                      >A run already exists. Use the execution controls below.</span
+                    >
                   }
                 }
               </div>
@@ -414,9 +424,11 @@ const CAPABILITY_LABELS: Record<string, string> = {
                         }
                       </div>
                     </section>
-                  }
-                  @else {
-                    <section class="candidate-section empty-candidate-section" aria-label="Product opportunities next step">
+                  } @else {
+                    <section
+                      class="candidate-section empty-candidate-section"
+                      aria-label="Product opportunities next step"
+                    >
                       <div class="section-heading compact">
                         <div>
                           <p class="eyebrow">Product opportunities</p>
@@ -424,8 +436,8 @@ const CAPABILITY_LABELS: Record<string, string> = {
                         </div>
                       </div>
                       <p>
-                        Live discovery did not produce a product with enough identity evidence to compare safely.
-                        No product has been selected, sourced, or contacted.
+                        Live discovery did not produce a product with enough identity evidence to
+                        compare safely. No product has been selected, sourced, or contacted.
                       </p>
                       <div class="next-step-list">
                         <strong>Next steps</strong>
@@ -435,7 +447,11 @@ const CAPABILITY_LABELS: Record<string, string> = {
                           <li>Open Product Opportunities when a candidate is available.</li>
                         </ol>
                       </div>
-                      <a class="secondary-action action-link" routerLink="/intelligence/product-opportunities">Open Product Opportunities</a>
+                      <a
+                        class="secondary-action action-link"
+                        routerLink="/intelligence/product-opportunities"
+                        >Open Product Opportunities</a
+                      >
                     </section>
                   }
                   @if (currentStep(run); as current) {
@@ -481,8 +497,15 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     <div class="callout danger" role="alert">
                       <strong>Research needs attention</strong>
                       <p>{{ failureMessage(run) }}</p>
-                      <p class="next-step-copy">Review the live evidence, then retry discovery. Product opportunities will appear after a canonical product is established.</p>
-                      <a class="secondary-action action-link" routerLink="/intelligence/product-opportunities">Open Product Opportunities</a>
+                      <p class="next-step-copy">
+                        Review the live evidence, then retry discovery. Product opportunities will
+                        appear after a canonical product is established.
+                      </p>
+                      <a
+                        class="secondary-action action-link"
+                        routerLink="/intelligence/product-opportunities"
+                        >Open Product Opportunities</a
+                      >
                     </div>
                   }
                   @if (run.checkpoint['step_key']) {
@@ -495,7 +518,9 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       <button type="button" (click)="pause(run)">Pause run</button>
                     }
                     @if (canResume(run)) {
-                      <button type="button" (click)="resume(run)">{{ run.status === 'PARTIAL' ? 'Resume failed step' : 'Resume run' }}</button>
+                      <button type="button" (click)="resume(run)">
+                        {{ run.status === 'PARTIAL' ? 'Resume failed step' : 'Resume run' }}
+                      </button>
                     }
                     @if (canCancel(run)) {
                       <button type="button" class="danger-action" (click)="cancel(run)">
@@ -504,7 +529,11 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     }
                     @if (canRetry(run)) {
                       <button type="button" (click)="retry(run)">
-                        {{ run.status === 'PARTIAL' ? 'Retry failed discovery' : 'Retry through existing runtime' }}
+                        {{
+                          run.status === 'PARTIAL'
+                            ? 'Retry failed discovery'
+                            : 'Retry through existing runtime'
+                        }}
                       </button>
                     }
                     <button type="button" class="secondary-action" (click)="refreshRun(run)">
@@ -633,6 +662,61 @@ const CAPABILITY_LABELS: Record<string, string> = {
                             </div>
                           }
                         </dl>
+                      </div>
+                    }
+                    @if (brief.payload['supplier_intelligence']; as supplier) {
+                      <div class="intelligence-summary" aria-labelledby="supplier-intelligence-{{ goal.id }}">
+                        <h5 id="supplier-intelligence-{{ goal.id }}">Supplier intelligence continuation</h5>
+                        <p>
+                          Supplier observations remain source-backed and require HUMAN review. They
+                          are not supplier certification or procurement authorization.
+                        </p>
+                        <dl>
+                          @if (objectValue(supplier, 'status'); as value) {
+                            <div>
+                              <dt>Status</dt>
+                              <dd>{{ displayValue(value) }}</dd>
+                            </div>
+                          }
+                          @if (objectValue(supplier, 'mode'); as value) {
+                            <div>
+                              <dt>Research mode</dt>
+                              <dd>{{ displayValue(value) }}</dd>
+                            </div>
+                          }
+                          @if (objectValue(supplier, 'accepted_candidate_count'); as value) {
+                            <div>
+                              <dt>Accepted supplier candidates</dt>
+                              <dd>{{ displayValue(value) }}</dd>
+                            </div>
+                          }
+                          @if (objectValue(supplier, 'contradictions'); as value) {
+                            <div>
+                              <dt>Contradictions</dt>
+                              <dd>{{ displayValue(value) }}</dd>
+                            </div>
+                          }
+                          @if (objectValue(supplier, 'freshness'); as value) {
+                            <div>
+                              <dt>Evidence freshness</dt>
+                              <dd>{{ displayValue(value) }}</dd>
+                            </div>
+                          }
+                          @if (objectValue(supplier, 'next_action'); as value) {
+                            <div>
+                              <dt>Next action</dt>
+                              <dd>{{ displayValue(value) }}</dd>
+                            </div>
+                          }
+                        </dl>
+                        @if (objectValue(supplier, 'opportunity_id'); as opportunityId) {
+                          <a
+                            class="secondary-action action-link"
+                            routerLink="/intelligence/cross-marketplace"
+                            [queryParams]="{ opportunity_id: opportunityId }"
+                            >Review supplier intelligence</a
+                          >
+                        }
                       </div>
                     }
                     <p class="quiet">
@@ -768,6 +852,8 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   readonly runs = signal<Record<string, BusinessAgentRun>>({});
   readonly loading = signal(false);
   readonly error = signal('');
+  readonly goalFormMessage = signal('');
+  readonly goalCreatedMessage = signal('');
   rawGoal = '';
   marketplaceContext = '';
   idempotencyKey = `business-goal-${Date.now()}`;
@@ -818,6 +904,13 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   }
 
   async create(): Promise<void> {
+    const goalText = this.rawGoal.trim();
+    this.goalFormMessage.set('');
+    this.goalCreatedMessage.set('');
+    if (goalText.length < 5) {
+      this.goalFormMessage.set('Enter at least five characters describing the outcome you want.');
+      return;
+    }
     this.loading.set(true);
     this.error.set('');
     const structured: Record<string, unknown> = {};
@@ -826,13 +919,16 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
     if (this.includeReviewIntelligence) structured['include_review_intelligence'] = true;
     try {
       const goal = await this.service.createGoal({
-        raw_goal: this.rawGoal,
+        raw_goal: goalText,
         idempotency_key: this.idempotencyKey,
         ...(Object.keys(structured).length ? { structured_goal: structured } : {}),
         ...(this.includeTrendIntelligence ? { include_trend_intelligence: true } : {}),
       });
       this.selectedGoalId = goal.id;
       this.idempotencyKey = `business-goal-${Date.now()}`;
+      this.goalCreatedMessage.set(
+        'Goal created. Review the goal details, then create its research plan.',
+      );
       await this.refresh();
     } catch {
       this.error.set('The business goal could not be created.');
@@ -899,7 +995,7 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   async deletePreviousGoal(goal: BusinessAgentGoal): Promise<void> {
     if (
       !globalThis.confirm(
-        'Delete this previous research and its run history? Canonical product evidence remains available.'
+        'Delete this previous research and its run history? Canonical product evidence remains available.',
       )
     )
       return;
@@ -1029,8 +1125,10 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
     if (run.status === 'COMPLETED') return 'Research is complete and ready for review.';
     if (run.status === 'WAITING_APPROVAL')
       return 'Research is ready for your review before any consequential action.';
-    if (run.status === 'PARTIAL') return 'Research found a blocker. Review the failed discovery step, then retry it.';
-    if (run.status === 'BUDGET_EXHAUSTED') return 'Research reached its safety budget. Review the evidence before retrying.';
+    if (run.status === 'PARTIAL')
+      return 'Research found a blocker. Review the failed discovery step, then retry it.';
+    if (run.status === 'BUDGET_EXHAUSTED')
+      return 'Research reached its safety budget. Review the evidence before retrying.';
     if (run.status === 'FAILED') return 'Research needs attention before it can continue.';
     if (current) {
       return (
@@ -1083,7 +1181,16 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
     const normalized = status.toUpperCase();
     if (['COMPLETED', 'SUCCEEDED', 'APPROVED', 'DONE'].includes(normalized)) return 'success';
     if (['FAILED', 'CANCELLED', 'REJECTED', 'ERROR'].includes(normalized)) return 'danger';
-    if (['WAITING_APPROVAL', 'WAITING', 'PAUSED', 'RETRYABLE', 'PARTIAL', 'BUDGET_EXHAUSTED'].includes(normalized))
+    if (
+      [
+        'WAITING_APPROVAL',
+        'WAITING',
+        'PAUSED',
+        'RETRYABLE',
+        'PARTIAL',
+        'BUDGET_EXHAUSTED',
+      ].includes(normalized)
+    )
       return 'warning';
     if (['RUNNING', 'QUEUED', 'READY', 'PENDING', 'DRAFT'].includes(normalized)) return 'info';
     return 'neutral';

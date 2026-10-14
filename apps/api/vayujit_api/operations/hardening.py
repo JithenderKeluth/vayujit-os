@@ -170,6 +170,7 @@ def revision(db: Session) -> str:
 
 def health_details(db: Session) -> SystemHealth:
     checked = datetime.now(UTC)
+    expected_migration = get_settings().expected_migration_revision
     components: list[ComponentHealth] = []
     try:
         db.execute(text("select 1"))
@@ -369,10 +370,10 @@ def health_details(db: Session) -> SystemHealth:
                 component="Migration",
                 status=(
                     "healthy"
-                    if current in {"20260812_0022", "unmanaged-test-schema"}
+                    if current in {expected_migration, "unmanaged-test-schema"}
                     else "degraded"
                 ),
-                message=f"Current {current}; expected 20260812_0022.",
+                message=f"Current {current}; expected {expected_migration}.",
                 checked_at=checked,
             ),
             ComponentHealth(
@@ -445,7 +446,7 @@ def health_details(db: Session) -> SystemHealth:
         status=overall,
         components=components,
         current_migration=current,
-        expected_migration="20260812_0022",
+        expected_migration=get_settings().expected_migration_revision,
         application_version=__version__,
         build_identifier=get_settings().build_identifier,
     )

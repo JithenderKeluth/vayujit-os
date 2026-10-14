@@ -45,7 +45,8 @@ import { ProductService } from './product.service';
         >
           <div page-header-actions>
             <a class="button" routerLink="/products">Back</a>
-            <a class="button primary" [routerLink]="['/products', product()!.id, 'edit']">Edit</a>
+            <a class="button primary" [routerLink]="['/catalog', product()!.id]">Open catalog workspace</a>
+            <a class="button" [routerLink]="['/products', product()!.id, 'edit']">Edit</a>
           </div>
         </app-page-header>
         <app-commerce-journey-nav current="product" />

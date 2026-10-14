@@ -14,6 +14,15 @@ India is first class: marketplace ID A21TJRUUN4KGV, INR, en-IN, eu-west-1. US an
 
 Listings require an approved Artifact, stable seller SKU, product type, typed attributes, valid media, variants, and price readiness before submission. The fake boundary models draft/ready/submitting/processing/active and rejected/error outcomes. Submission is asynchronous and reconciliation is required before active status.
 
+PR-SOS-02 adds a second, explicit HUMAN boundary for listing operations. The
+seller must approve the exact title/SKU/product-type/attribute payload and then
+issue a short-lived, single-use execution authorization. Authorization is
+owner-scoped, idempotent, revocable, expiry-bound, fingerprinted to the
+approved Artifact version, and consumed under a row lock. A changed listing or
+Artifact invalidates the authorization. Local results are labelled
+`LOCAL_FAKE`; enabling the live-mutation flag without a real transport fails
+closed.
+
 Stable idempotency keys and seller-SKU lookup protect against duplicate submissions. Ambiguous results are reconciled before retrying. Remote drift is reported as typed fields and is never overwritten automatically.
 
 ## Media, variants, pricing, and inventory

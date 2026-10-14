@@ -231,13 +231,24 @@ def _input(
 ) -> dict[str, object]:
     refs = _source_refs(evidence, evidence_ids)
     effective_provenance = provenance if value is not None else "UNKNOWN"
+    price_basis = supplier.price_kind
+    if key == "supplier_unit_price":
+        # PR-7C keeps the extracted quote basis in product specifications while
+        # retaining the historical ``price_kind`` label.  Prefer the explicit
+        # canonical basis whenever it is available, without rewriting history.
+        specifications = (
+            supplier.specifications if isinstance(supplier.specifications, dict) else {}
+        )
+        explicit_basis = specifications.get("price_basis")
+        if explicit_basis not in (None, "", "UNKNOWN"):
+            price_basis = str(explicit_basis)
     return {
         "key": key,
         "value": _json(value),
         "unit": unit,
         "currency": currency,
         "quantity_basis": unit,
-        "price_basis": supplier.price_kind if key == "supplier_unit_price" else None,
+        "price_basis": price_basis if key == "supplier_unit_price" else None,
         "source": (
             "SupplierCommercialTerm" if effective_provenance != "UNKNOWN" else "SupplierProduct"
         ),
@@ -563,6 +574,17 @@ def project_readiness(
         return existing, True
     searches = _searches(db, owner, opportunity)
     products = _products(db, owner, opportunity, searches)
+    # An explicit product scope is authoritative for reassessment and review
+    # workflows.  It is still owner-scoped and does not change the historical
+    # implicit selection path when omitted.
+    if data.supplier_product_id is not None:
+        explicit_product = db.scalar(
+            select(SupplierProduct).where(
+                SupplierProduct.id == data.supplier_product_id,
+                SupplierProduct.owner_id == owner.id,
+            )
+        )
+        products = [explicit_product] if explicit_product is not None else []
     if data.supplier_id is not None:
         scoped_products = products
         products = [row for row in scoped_products if row.supplier_id == data.supplier_id]
@@ -576,6 +598,8 @@ def project_readiness(
             )
             if link:
                 products = [row for row in scoped_products if row.supplier_id == link.supplier_id]
+    if data.supplier_product_id is not None:
+        products = [row for row in products if row.id == data.supplier_product_id]
     if not products:
         raise HTTPException(
             409, "No supplier commercial evidence is linked to this product opportunity."

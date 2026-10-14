@@ -58,6 +58,16 @@ Owner = Annotated[User, Depends(current_user)]
 
 
 def account_response(row: MarketplaceAccount) -> AccountResponse:
+    if row.encrypted_credentials is None:
+        connection_state = "AUTHORIZATION_REQUIRED"
+    elif row.validation_status == "expired":
+        connection_state = "EXPIRED"
+    elif row.validation_status == "invalid":
+        connection_state = "DEGRADED"
+    else:
+        # The existing connector is deterministic and network-free.  It may
+        # validate a local fixture, but it must never claim a live connection.
+        connection_state = "UNVERIFIED"
     return AccountResponse(
         id=row.id,
         marketplace=row.marketplace,
@@ -69,6 +79,9 @@ def account_response(row: MarketplaceAccount) -> AccountResponse:
         validation_status=row.validation_status,
         last_validated_at=row.last_validated_at,
         capabilities=capabilities_for(row.marketplace),
+        connection_state=connection_state,
+        permission_state="UNVERIFIED",
+        transport_mode="SYNTHETIC",
         created_at=row.created_at,
         updated_at=row.updated_at,
     )

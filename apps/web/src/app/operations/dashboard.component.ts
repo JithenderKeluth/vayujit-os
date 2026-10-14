@@ -164,6 +164,10 @@ import type { CommerceJourney } from '../commerce-journey.types';
             ><span aria-hidden="true">+</span><strong>Start product research</strong
             ><small>Find and compare opportunities worth investigating.</small></a
           >
+          <a class="quick-start" routerLink="/operations/action-center"
+            ><span aria-hidden="true">+</span><strong>Open Action Center</strong
+            ><small>Review evidence-backed operational issues and next steps.</small></a
+          >
           <a class="quick-start" routerLink="/intelligence/sourcing"
             ><span aria-hidden="true">+</span><strong>Find suppliers</strong
             ><small>Review sourcing options for a product.</small></a

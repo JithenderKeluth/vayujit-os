@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
+import json
 import uuid
+from datetime import timedelta
 from decimal import Decimal
 from typing import Annotated, Any, cast
 
@@ -23,6 +26,8 @@ from vayujit_api.commerce.amazon import (
     amazon_marketplace,
 )
 from vayujit_api.commerce.models import (
+    AmazonListingExecutionAuthorization,
+    AmazonListingReview,
     MarketplaceAccount,
     MarketplaceDriftRecord,
     MarketplaceFee,
@@ -40,6 +45,7 @@ from vayujit_api.commerce.models import (
     MarketplaceVariant,
 )
 from vayujit_api.commerce.service import encrypt_credentials
+from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
@@ -72,6 +78,20 @@ class AmazonSubmitRequest(BaseModel):
     product_type: str = Field(min_length=1, max_length=100)
     attributes: dict[str, Any] = Field(default_factory=dict)
     idempotency_key: str = Field(min_length=1, max_length=200)
+    authorization_id: uuid.UUID
+
+
+class AmazonListingReviewRequest(BaseModel):
+    product_type: str = Field(min_length=1, max_length=100)
+    attributes: dict[str, Any] = Field(default_factory=dict)
+    confirm: bool = False
+
+
+class AmazonExecutionAuthorizationRequest(BaseModel):
+    review_id: uuid.UUID
+    idempotency_key: str = Field(min_length=1, max_length=200)
+    expires_seconds: int = Field(default=600, ge=60, le=3600)
+    confirm: bool = False
 
 
 class AmazonPreviewRequest(BaseModel):
@@ -144,6 +164,90 @@ def _require_enabled(account: MarketplaceAccount) -> None:
         raise HTTPException(409, "Amazon account is disabled; enable it before remote mutations.")
 
 
+def _listing(db: Session, user: User, listing_id: uuid.UUID) -> MarketplaceListing:
+    row = db.scalar(
+        select(MarketplaceListing).where(
+            MarketplaceListing.id == listing_id,
+            MarketplaceListing.owner_id == user.id,
+            MarketplaceListing.marketplace == "amazon",
+        )
+    )
+    if row is None:
+        raise HTTPException(404, "Amazon listing was not found.")
+    return row
+
+
+def _approved_artifact(db: Session, user: User, listing: MarketplaceListing) -> GeneratedArtifact:
+    if listing.content_artifact_id is None:
+        raise HTTPException(
+            409, "An approved Amazon content Artifact is required before submission."
+        )
+    artifact = db.scalar(
+        select(GeneratedArtifact).where(
+            GeneratedArtifact.id == listing.content_artifact_id,
+            GeneratedArtifact.owner_id == user.id,
+            GeneratedArtifact.product_id == listing.product_id,
+        )
+    )
+    if artifact is None or artifact.status != "approved":
+        raise HTTPException(
+            409, "An approved Amazon content Artifact is required before submission."
+        )
+    return artifact
+
+
+def _payload_fingerprint(
+    listing: MarketplaceListing,
+    artifact: GeneratedArtifact,
+    product_type: str,
+    attributes: dict[str, Any],
+) -> str:
+    payload = {
+        "account_id": str(listing.account_id),
+        "listing_id": str(listing.id),
+        "product_id": str(listing.product_id),
+        "title": listing.title,
+        "sku": listing.marketplace_sku,
+        "product_type": product_type,
+        "attributes": attributes,
+        "artifact_id": str(artifact.id),
+        "artifact_version": artifact.version_number,
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _safe_review(row: AmazonListingReview) -> dict[str, object]:
+    return {
+        "id": row.id,
+        "listing_id": row.listing_id,
+        "account_id": row.account_id,
+        "artifact_id": row.artifact_id,
+        "artifact_version": row.artifact_version,
+        "product_type": row.product_type,
+        "attributes": row.attributes_json,
+        "payload_fingerprint": row.payload_fingerprint,
+        "status": row.status,
+        "reviewed_at": row.reviewed_at,
+    }
+
+
+def _safe_authorization(
+    row: AmazonListingExecutionAuthorization, *, idempotent_reuse: bool = False
+) -> dict[str, object]:
+    return {
+        "id": row.id,
+        "listing_id": row.listing_id,
+        "review_id": row.review_id,
+        "operation": row.operation,
+        "idempotency_key": row.idempotency_key,
+        "payload_fingerprint": row.payload_fingerprint,
+        "status": row.status,
+        "expires_at": row.expires_at,
+        "idempotent_reuse": idempotent_reuse,
+    }
+
+
 def _safe_account(row: MarketplaceAccount) -> dict[str, object]:
     config = row.configuration_json or {}
     marketplace = amazon_marketplace(str(config.get("country_code", "IN")))
@@ -158,6 +262,8 @@ def _safe_account(row: MarketplaceAccount) -> dict[str, object]:
         "validation_status": row.validation_status,
         "last_validated_at": row.last_validated_at,
         "capability_state": {"enabled": row.enabled, "validated": row.validation_status == "valid"},
+        "execution_mode": "LOCAL_FAKE",
+        "live_mutations_enabled": get_settings().live_marketplace_mutations_enabled,
         "country_code": marketplace.country_code,
         "marketplace_id": marketplace.marketplace_id,
         "currency": marketplace.currency,
@@ -165,6 +271,8 @@ def _safe_account(row: MarketplaceAccount) -> dict[str, object]:
         "endpoint_region": marketplace.endpoint_region,
         "capabilities": [
             "listing_preview",
+            "listing_human_review",
+            "listing_execution_authorization",
             "listing_submit",
             "listing_reconcile",
             "inventory_read",
@@ -538,6 +646,210 @@ def preview_listing(
     return result
 
 
+@router.post("/listings/{listing_id}/review")
+def review_listing(
+    listing_id: uuid.UUID,
+    data: AmazonListingReviewRequest,
+    db: DatabaseSession,
+    user: Owner,
+) -> dict[str, object]:
+    """Record explicit HUMAN approval for the exact current listing payload."""
+    if not data.confirm:
+        raise HTTPException(400, "Explicit HUMAN confirmation is required before listing review.")
+    listing = _listing(db, user, listing_id)
+    account = _account(db, user, listing.account_id)
+    artifact = _approved_artifact(db, user, listing)
+    if account.marketplace != "amazon":
+        raise HTTPException(409, "The selected listing is not an Amazon listing.")
+    fingerprint = _payload_fingerprint(listing, artifact, data.product_type, data.attributes)
+    existing = db.scalar(
+        select(AmazonListingReview).where(
+            AmazonListingReview.owner_id == user.id,
+            AmazonListingReview.listing_id == listing.id,
+            AmazonListingReview.payload_fingerprint == fingerprint,
+        )
+    )
+    if existing is not None:
+        if existing.status != "approved":
+            existing.status = "approved"
+            existing.revoked_at = None
+            existing.reviewed_at = now()
+            existing.updated_at = existing.reviewed_at
+            db.commit()
+        return {**_safe_review(existing), "idempotent_reuse": True}
+    stamp = now()
+    row = AmazonListingReview(
+        owner_id=user.id,
+        account_id=account.id,
+        listing_id=listing.id,
+        artifact_id=artifact.id,
+        artifact_version=artifact.version_number,
+        product_type=data.product_type,
+        attributes_json=data.attributes,
+        payload_fingerprint=fingerprint,
+        status="approved",
+        reviewed_by=user.id,
+        reviewed_at=stamp,
+        created_at=stamp,
+        updated_at=stamp,
+    )
+    db.add(row)
+    db.flush()
+    record_event(
+        db,
+        actor_id=user.id,
+        action="amazon.listing_human_approved",
+        entity_type="marketplace_listing",
+        entity_id=listing.id,
+        metadata={"review_id": str(row.id), "artifact_version": artifact.version_number},
+    )
+    db.commit()
+    return _safe_review(row)
+
+
+@router.get("/listings/{listing_id}/review")
+def get_listing_review(
+    listing_id: uuid.UUID, db: DatabaseSession, user: Owner
+) -> dict[str, object]:
+    listing = _listing(db, user, listing_id)
+    row = db.scalar(
+        select(AmazonListingReview)
+        .where(
+            AmazonListingReview.owner_id == user.id,
+            AmazonListingReview.listing_id == listing.id,
+        )
+        .order_by(AmazonListingReview.created_at.desc())
+    )
+    if row is None:
+        return {"status": "review_required", "listing_id": listing.id}
+    return _safe_review(row)
+
+
+@router.post("/listings/{listing_id}/execution-authorizations", status_code=201)
+def issue_listing_execution_authorization(
+    listing_id: uuid.UUID,
+    data: AmazonExecutionAuthorizationRequest,
+    db: DatabaseSession,
+    user: Owner,
+) -> dict[str, object]:
+    if not data.confirm:
+        raise HTTPException(
+            400, "Explicit HUMAN confirmation is required before execution authorization."
+        )
+    listing = _listing(db, user, listing_id)
+    account = _account(db, user, listing.account_id)
+    artifact = _approved_artifact(db, user, listing)
+    review = db.scalar(
+        select(AmazonListingReview).where(
+            AmazonListingReview.id == data.review_id,
+            AmazonListingReview.owner_id == user.id,
+            AmazonListingReview.listing_id == listing.id,
+            AmazonListingReview.account_id == account.id,
+            AmazonListingReview.status == "approved",
+        )
+    )
+    if review is None:
+        raise HTTPException(409, "Approve the exact listing payload before authorizing execution.")
+    fingerprint = _payload_fingerprint(
+        listing, artifact, review.product_type, review.attributes_json
+    )
+    if review.payload_fingerprint != fingerprint:
+        raise HTTPException(409, "The listing or approved content changed; review it again.")
+    existing = db.scalar(
+        select(AmazonListingExecutionAuthorization).where(
+            AmazonListingExecutionAuthorization.owner_id == user.id,
+            AmazonListingExecutionAuthorization.listing_id == listing.id,
+            AmazonListingExecutionAuthorization.operation == "listing_submit",
+            AmazonListingExecutionAuthorization.idempotency_key == data.idempotency_key,
+        )
+    )
+    if existing is not None:
+        return {**_safe_authorization(existing), "idempotent_reuse": True}
+    stamp = now()
+    row = AmazonListingExecutionAuthorization(
+        owner_id=user.id,
+        account_id=account.id,
+        listing_id=listing.id,
+        review_id=review.id,
+        operation="listing_submit",
+        idempotency_key=data.idempotency_key,
+        payload_fingerprint=fingerprint,
+        status="issued",
+        expires_at=stamp + timedelta(seconds=data.expires_seconds),
+        issued_by=user.id,
+        created_at=stamp,
+        updated_at=stamp,
+    )
+    db.add(row)
+    db.flush()
+    record_event(
+        db,
+        actor_id=user.id,
+        action="amazon.execution_authorization_issued",
+        entity_type="marketplace_listing",
+        entity_id=listing.id,
+        metadata={"authorization_id": str(row.id), "review_id": str(review.id)},
+    )
+    db.commit()
+    return _safe_authorization(row)
+
+
+@router.get("/listings/{listing_id}/execution-authorizations/latest")
+def latest_listing_execution_authorization(
+    listing_id: uuid.UUID, db: DatabaseSession, user: Owner
+) -> dict[str, object]:
+    listing = _listing(db, user, listing_id)
+    row = db.scalar(
+        select(AmazonListingExecutionAuthorization)
+        .where(
+            AmazonListingExecutionAuthorization.owner_id == user.id,
+            AmazonListingExecutionAuthorization.listing_id == listing.id,
+        )
+        .order_by(AmazonListingExecutionAuthorization.created_at.desc())
+    )
+    if row is None:
+        return {"status": "authorization_required", "listing_id": listing.id}
+    return _safe_authorization(row)
+
+
+@router.post("/listings/{listing_id}/execution-authorizations/{authorization_id}/revoke")
+def revoke_listing_execution_authorization(
+    listing_id: uuid.UUID,
+    authorization_id: uuid.UUID,
+    data: AmazonAccountToggle,
+    db: DatabaseSession,
+    user: Owner,
+) -> dict[str, object]:
+    if not data.confirm:
+        raise HTTPException(400, "Explicit HUMAN confirmation is required to revoke authorization.")
+    _listing(db, user, listing_id)
+    row = db.scalar(
+        select(AmazonListingExecutionAuthorization)
+        .where(
+            AmazonListingExecutionAuthorization.id == authorization_id,
+            AmazonListingExecutionAuthorization.owner_id == user.id,
+            AmazonListingExecutionAuthorization.listing_id == listing_id,
+        )
+        .with_for_update()
+    )
+    if row is None:
+        raise HTTPException(404, "Listing execution authorization was not found.")
+    if row.status == "issued":
+        row.status = "revoked"
+        row.revoked_at = now()
+        row.updated_at = row.revoked_at
+        record_event(
+            db,
+            actor_id=user.id,
+            action="amazon.execution_authorization_revoked",
+            entity_type="marketplace_listing",
+            entity_id=listing_id,
+            metadata={"authorization_id": str(row.id)},
+        )
+        db.commit()
+    return _safe_authorization(row)
+
+
 @router.post("/listings/{listing_id}/submit")
 def submit_listing(
     listing_id: uuid.UUID,
@@ -545,32 +857,44 @@ def submit_listing(
     db: DatabaseSession,
     user: Owner,
 ) -> dict[str, object]:
-    listing = db.scalar(
-        select(MarketplaceListing).where(
-            MarketplaceListing.id == listing_id,
-            MarketplaceListing.owner_id == user.id,
-            MarketplaceListing.marketplace == "amazon",
-        )
-    )
-    if listing is None:
-        raise HTTPException(404, "Amazon listing was not found.")
+    listing = _listing(db, user, listing_id)
     account = _account(db, user, listing.account_id)
     _require_enabled(account)
-    if listing.content_artifact_id is None:
-        raise HTTPException(
-            409, "An approved Amazon content Artifact is required before submission."
-        )
-    artifact = db.scalar(
-        select(GeneratedArtifact).where(
-            GeneratedArtifact.id == listing.content_artifact_id,
-            GeneratedArtifact.owner_id == user.id,
-            GeneratedArtifact.product_id == listing.product_id,
-        )
+    artifact = _approved_artifact(db, user, listing)
+    current_fingerprint = _payload_fingerprint(
+        listing, artifact, data.product_type, data.attributes
     )
-    if artifact is None or artifact.status != "approved":
-        raise HTTPException(
-            409, "An approved Amazon content Artifact is required before submission."
+    authorization = db.scalar(
+        select(AmazonListingExecutionAuthorization)
+        .where(
+            AmazonListingExecutionAuthorization.id == data.authorization_id,
+            AmazonListingExecutionAuthorization.owner_id == user.id,
+            AmazonListingExecutionAuthorization.listing_id == listing.id,
+            AmazonListingExecutionAuthorization.operation == "listing_submit",
         )
+        .with_for_update()
+    )
+    if authorization is None:
+        raise HTTPException(404, "Listing execution authorization was not found.")
+    if authorization.payload_fingerprint != current_fingerprint:
+        raise HTTPException(
+            409, "The listing changed after approval; review and authorize it again."
+        )
+    current_time = now()
+    if authorization.status == "consumed" and authorization.result_json is not None:
+        return {**authorization.result_json, "idempotent_reuse": True}
+    if authorization.status == "issued" and authorization.expires_at <= current_time:
+        authorization.status = "expired"
+        authorization.updated_at = current_time
+        db.commit()
+        raise HTTPException(409, "The one-time listing authorization has expired.")
+    if authorization.status != "issued":
+        raise HTTPException(409, "The listing execution authorization is no longer usable.")
+    settings = get_settings()
+    if settings.external_mutations_emergency_stop:
+        raise HTTPException(503, "External mutations are paused by the emergency stop.")
+    if settings.live_marketplace_mutations_enabled:
+        raise HTTPException(409, "Live Amazon execution is not configured; local provider only.")
     result = _connector(account).submit(
         sku=listing.marketplace_sku or f"VJ-{listing.id.hex[:10]}",
         payload={
@@ -601,8 +925,7 @@ def submit_listing(
         entity_id=listing.id,
         metadata={"status": result.status, "remote_status": result.remote_status},
     )
-    db.commit()
-    return {
+    safe_result: dict[str, object] = {
         "status": result.status,
         "remote_listing_id": result.remote_id,
         "remote_status": result.remote_status,
@@ -612,7 +935,22 @@ def submit_listing(
             {"code": issue.code, "message": issue.message, "retryable": issue.retryable}
             for issue in result.issues
         ],
+        "execution_mode": "LOCAL_FAKE",
     }
+    authorization.status = "consumed"
+    authorization.consumed_at = current_time
+    authorization.result_json = safe_result
+    authorization.updated_at = current_time
+    record_event(
+        db,
+        actor_id=user.id,
+        action="amazon.listing_execution_consumed",
+        entity_type="marketplace_listing",
+        entity_id=listing.id,
+        metadata={"authorization_id": str(authorization.id), "status": result.status},
+    )
+    db.commit()
+    return safe_result
 
 
 @router.post("/listings/{listing_id}/reconcile")
@@ -1784,6 +2122,7 @@ def drift(listing_id: uuid.UUID, db: DatabaseSession, user: Owner) -> dict[str, 
                 }
             ],
         }
+    previous_drift_state = listing.drift_state
     account = _account(db, user, listing.account_id)
     remote = _connector(account).get_listing(listing.remote_listing_id)
     remote_missing = (
@@ -1844,7 +2183,7 @@ def drift(listing_id: uuid.UUID, db: DatabaseSession, user: Owner) -> dict[str, 
             for row in variants
         ],
         "media": [
-            {"media_id": row.media_id, "position": row.position, "status": row.status}
+            {"media_id": str(row.media_id), "position": row.position, "status": row.status}
             for row in mappings
         ],
         "price": str(price.amount) if price is not None else None,
@@ -1872,6 +2211,7 @@ def drift(listing_id: uuid.UUID, db: DatabaseSession, user: Owner) -> dict[str, 
         "inventory_quantity": None if remote_missing else remote.get("quantity"),
     }
     fields: list[dict[str, object]] = []
+    all_fields_resolved_keep_remote = True
     for path, local_value in local_values.items():
         remote_value = remote_values.get(path)
         if local_value == remote_value:
@@ -1897,7 +2237,24 @@ def drift(listing_id: uuid.UUID, db: DatabaseSession, user: Owner) -> dict[str, 
                 MarketplaceDriftRecord.state == "detected",
             )
         )
-        if existing is None:
+        resolved_keep_remote = db.scalar(
+            select(MarketplaceDriftRecord).where(
+                MarketplaceDriftRecord.owner_id == user.id,
+                MarketplaceDriftRecord.listing_id == listing.id,
+                MarketplaceDriftRecord.field_name == path,
+                MarketplaceDriftRecord.state == "resolved_keep_remote",
+            )
+        )
+        if not (
+            previous_drift_state == "remote_kept"
+            and resolved_keep_remote is not None
+            and resolved_keep_remote.local_value_json == local_value
+            and resolved_keep_remote.remote_value_json == remote_value
+        ):
+            all_fields_resolved_keep_remote = False
+        if existing is None and (
+            resolved_keep_remote is None or previous_drift_state != "remote_kept"
+        ):
             db.add(
                 MarketplaceDriftRecord(
                     owner_id=user.id,
@@ -1910,7 +2267,11 @@ def drift(listing_id: uuid.UUID, db: DatabaseSession, user: Owner) -> dict[str, 
                     updated_at=now(),
                 )
             )
-    listing.drift_state = "detected" if fields else "none"
+    listing.drift_state = (
+        "remote_kept"
+        if fields and previous_drift_state == "remote_kept" and all_fields_resolved_keep_remote
+        else ("detected" if fields else "none")
+    )
     listing.updated_at = now()
     db.commit()
     classification = (
@@ -1962,6 +2323,12 @@ def keep_remote_drift(
         record.state = "resolved_keep_remote"
         record.resolved_at = now()
         record.updated_at = now()
+    # Keep the listing-level prerequisite in sync with the durable field
+    # decisions. Readiness must not remain blocked after every detected drift
+    # record has been explicitly resolved by the HUMAN reviewer.
+    listing = _listing(db, user, listing_id)
+    listing.drift_state = "remote_kept"
+    listing.updated_at = now()
     record_event(
         db,
         actor_id=user.id,

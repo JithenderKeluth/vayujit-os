@@ -21,9 +21,15 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
   styles: `
     :host {
       display: block;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
     }
     .ux-page-header {
       display: flex;
+      width: 100%;
+      max-width: 100%;
+      min-width: 0;
       align-items: flex-start;
       justify-content: space-between;
       gap: var(--vj-space-5);
@@ -39,6 +45,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
     }
     .actions {
       display: flex;
+      min-width: 0;
       flex-wrap: wrap;
       gap: var(--vj-space-2);
     }

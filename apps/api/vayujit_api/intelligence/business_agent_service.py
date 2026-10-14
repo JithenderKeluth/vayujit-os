@@ -6,12 +6,13 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import time
 import uuid
 from collections.abc import Mapping
 from decimal import Decimal, InvalidOperation
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -96,6 +97,20 @@ def _bounded_int(value: object, default: int) -> int:
         except (TypeError, ValueError):
             return default
     return default
+
+
+def _run_execution_lock(db: Session, run_id: uuid.UUID) -> None:
+    """Serialize concurrent execution of the same canonical run.
+
+    The row lock remains the authoritative state lock; this transaction
+    advisory lock also covers callers that loaded the run before entering the
+    execution service and prevents duplicate attempt rows during the first
+    execution transaction.
+    """
+
+    raw = hashlib.sha256(f"business-agent-run:{run_id}".encode()).digest()
+    key = int.from_bytes(raw[:8], "big") & ((1 << 63) - 1)
+    db.execute(select(func.pg_advisory_xact_lock(key)))
 
 
 def _supplier_source_policy() -> dict[str, object]:
@@ -321,6 +336,80 @@ def _candidate_cards(db: Session, owner: User, limit: int = 20) -> list[dict[str
         }
         for row in rows
     ]
+
+
+def _supplier_intelligence_projection(
+    output: object,
+    *,
+    step_status: str,
+    opportunity_id: uuid.UUID,
+) -> dict[str, object]:
+    """Project the canonical supplier-search result into the Business Agent brief.
+
+    Supplier discovery remains authoritative in ``SupplierSearch`` and the supplier
+    intelligence services.  This function only selects the durable, safe-to-display
+    continuation fields; it does not score, certify, rank, or mutate a supplier.
+    """
+
+    raw_output = output if isinstance(output, dict) else {}
+    raw_summary = raw_output.get("result")
+    summary = raw_summary if isinstance(raw_summary, dict) else {}
+    raw_supplier_ids = summary.get("supplier_ids")
+    supplier_ids = (
+        [str(value) for value in raw_supplier_ids if value]
+        if isinstance(raw_supplier_ids, list)
+        else []
+    )
+    raw_failures = summary.get("failures")
+    failures = (
+        [value for value in raw_failures if isinstance(value, dict)]
+        if isinstance(raw_failures, list)
+        else []
+    )
+    raw_contradictions = summary.get("contradictions")
+    contradictions = (
+        raw_contradictions
+        if isinstance(raw_contradictions, (int, float)) and not isinstance(raw_contradictions, bool)
+        else len(raw_contradictions) if isinstance(raw_contradictions, list) else 0
+    )
+    accepted_count = _bounded_int(summary.get("accepted_candidate_count"), len(supplier_ids))
+    next_action = str(summary.get("next_action") or "Review supplier research gaps")
+    return {
+        "status": str(summary.get("status") or step_status),
+        "mode": str(raw_output.get("mode") or summary.get("mode") or "UNKNOWN"),
+        "provider": str(summary.get("provider") or "UNKNOWN"),
+        "opportunity_id": str(opportunity_id),
+        "research_request_id": raw_output.get("research_request_id"),
+        "supplier_ids": supplier_ids,
+        "candidate_count": _bounded_int(summary.get("candidate_count"), 0),
+        "accepted_candidate_count": accepted_count,
+        "sources_searched": _bounded_int(summary.get("sources_searched"), 0),
+        "researched_count": _bounded_int(summary.get("researched_count"), 0),
+        "contradictions": contradictions,
+        "failures": failures,
+        "freshness": str(summary.get("freshness") or "UNKNOWN"),
+        "budget": summary.get("budget") if isinstance(summary.get("budget"), dict) else {},
+        "observability": (
+            summary.get("observability") if isinstance(summary.get("observability"), dict) else {}
+        ),
+        "source_admission": (
+            summary.get("source_admission")
+            if isinstance(summary.get("source_admission"), dict)
+            else {}
+        ),
+        "prompt_injection": (
+            summary.get("prompt_injection")
+            if isinstance(summary.get("prompt_injection"), dict)
+            else {"detected": False, "instructions_executable": False}
+        ),
+        "next_action": next_action,
+        "requires_human_review": True,
+        "external_writes": [],
+        "semantic_boundary": (
+            "Supplier observations and source claims require human review; they are not "
+            "supplier certification, demand proof, or procurement authorization."
+        ),
+    }
 
 
 def get_goal(db: Session, owner: User, goal_id: uuid.UUID) -> BusinessAgentGoal:
@@ -932,6 +1021,11 @@ def _emit_trend_channel_event(
 
 
 def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgentRun:
+    _run_execution_lock(db, run.id)
+    # ``run_or_404`` is evaluated by the router before this service acquires
+    # the transaction lock.  Expire that pre-lock identity-map snapshot so a
+    # concurrent replay observes the committed terminal/waiting state.
+    db.expire_all()
     locked_run = db.scalar(
         select(BusinessAgentRun)
         .where(BusinessAgentRun.id == run.id, BusinessAgentRun.owner_id == owner.id)
@@ -941,17 +1035,38 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
     if locked_run is None:
         raise HTTPException(404, "Business agent run not found.")
     run = locked_run
+    if run.status == "RUNNING":
+        # A previous request may have committed the RUNNING marker before a
+        # capability performed its own durable commit.  Replay the eventual
+        # canonical state rather than interleaving another attempt sequence.
+        for _ in range(120):
+            db.rollback()
+            current = db.scalar(
+                select(BusinessAgentRun).where(
+                    BusinessAgentRun.id == run.id,
+                    BusinessAgentRun.owner_id == owner.id,
+                )
+            )
+            if current is None or current.status != "RUNNING":
+                return current or run
+            time.sleep(0.05)
+        return run
     if run.status in {"CANCELLED", "COMPLETED", "PAUSED", "BUDGET_EXHAUSTED"}:
         return run
     if run.status == "WAITING_APPROVAL" and not _run_has_human_product_selection(db, owner, run):
         return run
     run.status = "RUNNING"
     run.started_at = run.started_at or agent_now()
+    run.updated_at = agent_now()
+    # Publish the in-progress marker before capabilities that commit their own
+    # state, allowing concurrent callers to replay rather than execute again.
+    db.commit()
+    db.refresh(run)
     steps = list(
         db.scalars(
             select(BusinessAgentStep)
             .where(BusinessAgentStep.plan_id == run.plan_id, BusinessAgentStep.owner_id == owner.id)
-            .order_by(BusinessAgentStep.created_at)
+            .order_by(BusinessAgentStep.step_key)
         )
     )
     max_steps = _bounded_int(run.budget.get("max_steps"), 20)
@@ -1232,7 +1347,30 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             created_at=agent_now(),
         )
         db.add(attempt)
-        db.flush()
+        try:
+            db.flush()
+        except IntegrityError:
+            # A concurrent equivalent start may have committed this canonical
+            # attempt while this request was waiting on the uniqueness
+            # authority.  Re-read the durable run and replay its result rather
+            # than leaking a raw constraint error or creating a second logical
+            # execution.
+            db.rollback()
+            concurrent_run = db.scalar(
+                select(BusinessAgentRun).where(
+                    BusinessAgentRun.id == run.id,
+                    BusinessAgentRun.owner_id == owner.id,
+                )
+            )
+            if concurrent_run is not None and concurrent_run.status in {
+                "RUNNING",
+                "PARTIAL",
+                "WAITING_APPROVAL",
+                "COMPLETED",
+                "BUDGET_EXHAUSTED",
+            }:
+                return concurrent_run
+            raise
         try:
             output: dict[str, object]
             if step.capability_id == "product_opportunity.create":
@@ -1308,18 +1446,20 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             elif step.capability_id in ECONOMICS_CAPABILITIES:
                 context_id = _economics_context_id(goal_record)
                 if context_id is None:
-                    output = {
-                        "status": "RESEARCH_GAP",
-                        "readiness": "NOT_EVALUATED",
-                        "code": "ECONOMIC_CONTEXT_REQUIRED",
-                        "research_gaps": [
-                            {
-                                "code": "ECONOMICS_RESEARCH_GAP",
-                                "message": "An explicit economic_context_id is required for Business Agent sourcing economics.",
-                            }
-                        ],
-                        "external_writes": [],
-                    }
+                    output = project_economics_for_opportunity(db, owner, opportunity.id)
+                    if output.get("status") == "NOT_EVALUATED":
+                        output = {
+                            "status": "RESEARCH_GAP",
+                            "readiness": "NOT_EVALUATED",
+                            "code": "ECONOMIC_CONTEXT_REQUIRED",
+                            "research_gaps": [
+                                {
+                                    "code": "ECONOMICS_RESEARCH_GAP",
+                                    "message": "An explicit economic context or readiness-gated landed-cost calculation is required for Business Agent sourcing economics.",
+                                }
+                            ],
+                            "external_writes": [],
+                        }
                 else:
                     output = project_economics_for_opportunity(
                         db, owner, opportunity.id, economic_context_id=context_id
@@ -1604,6 +1744,15 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             "candidates": _candidate_cards(db, owner),
             "commercial_readiness": failed_commercial_readiness_payload,
         }
+        supplier_step = next(
+            (step for step in steps if step.capability_id == "supplier.discovery"), None
+        )
+        if supplier_step is not None:
+            run.result["supplier_intelligence"] = _supplier_intelligence_projection(
+                supplier_step.result,
+                step_status=supplier_step.status,
+                opportunity_id=opportunity.id,
+            )
     if (
         not all(step.status == "COMPLETED" for step in steps)
         and _bounded_int(usage.get("steps"), 0) >= max_steps
@@ -1634,6 +1783,16 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             integrated_slices.append("13G")
         economics_steps = [step for step in steps if step.capability_id in ECONOMICS_CAPABILITIES]
         economics_outputs = [step.result for step in economics_steps]
+        supplier_steps = [step for step in steps if step.capability_id == "supplier.discovery"]
+        supplier_projection = (
+            _supplier_intelligence_projection(
+                supplier_steps[-1].result,
+                step_status=supplier_steps[-1].status,
+                opportunity_id=opportunity.id,
+            )
+            if supplier_steps
+            else None
+        )
         review_steps = [step for step in steps if step.capability_id in REVIEW_CAPABILITIES]
         trend_steps = [step for step in steps if step.capability_id in TREND_CAPABILITIES]
         trend_outputs = [step.result for step in trend_steps]
@@ -1703,6 +1862,7 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             "economics_capabilities": [step.capability_id for step in economics_steps],
             "economics_projection": economics_outputs[-1] if economics_outputs else None,
             "commercial_readiness": commercial_readiness_payload,
+            "supplier_intelligence": supplier_projection,
             "external_writes": [],
         }
         brief_payload: dict[str, object] = {
@@ -1711,6 +1871,16 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             "assumptions": goal_record.assumptions,
             "unresolved_questions": goal_record.unresolved_questions,
             "commercial_readiness": commercial_readiness_payload,
+            "supplier_intelligence": supplier_projection,
+            "engagement": None,
+            "engagement_eligibility": {
+                "state": "NOT_CREATED",
+                "can_send": False,
+                "send_status": "NOT_EXECUTED",
+                "safe_next_action": (
+                    "Create a scoped engagement only after HUMAN PROCEED and contact review."
+                ),
+            },
         }
         if competitor_enabled:
             brief_payload["competitor_intelligence"] = competitor_decision_brief(
@@ -1799,6 +1969,20 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 "external_writes": [],
                 "semantic_boundary": "Cost evidence does not rank suppliers or products and is not a profitability or forecast claim.",
             }
+            if decision_brief is not None:
+                brief_payload["engagement"] = decision_brief.get("engagement")
+                brief_payload["engagement_eligibility"] = decision_brief.get(
+                    "engagement_eligibility",
+                    brief_payload["engagement_eligibility"],
+                )
+            brief_payload["recommendation"] = (
+                decision_brief.get("recommendation") if decision_brief else None
+            )
+            brief_payload["human_decision"] = (
+                decision_brief.get("human_decision") if decision_brief else None
+            )
+        run.result["engagement"] = brief_payload["engagement"]
+        run.result["engagement_eligibility"] = brief_payload["engagement_eligibility"]
         db.add(
             BusinessAgentArtifact(
                 owner_id=owner.id,

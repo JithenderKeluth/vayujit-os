@@ -61,6 +61,31 @@ class EconomicCalculation(Base):
         ForeignKey("intelligence_economic_input_snapshots.id", ondelete="RESTRICT"),
         index=True,
     )
+    product_opportunity_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_product_opportunities.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+    assessment_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_product_opportunity_assessments.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+    commercial_readiness_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_commercial_readiness_snapshots.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+    supplier_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_suppliers.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+    scenario_key: Mapped[str | None] = mapped_column(String(120), nullable=True)
     fx_snapshot_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("intelligence_fx_rate_snapshots.id", ondelete="RESTRICT"),

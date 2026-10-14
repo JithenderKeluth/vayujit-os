@@ -41,6 +41,19 @@ interface Readiness {
   warnings?: string[];
   informational?: Array<{ message: string }>;
 }
+interface ListingReview {
+  id?: string;
+  status: string;
+  payload_fingerprint?: string;
+  reviewed_at?: string;
+}
+interface ExecutionAuthorization {
+  id?: string;
+  status: string;
+  review_id?: string;
+  expires_at?: string;
+  idempotent_reuse?: boolean;
+}
 interface Attribute {
   key: string;
   label: string;
@@ -215,7 +228,7 @@ interface PriceDraft {
       @if (section() === 'Overview' || section() === 'Listings' || section() === 'Listing Editor') {
         <section class="marketplace-card">
           <h2>Listings</h2>
-          <div class="marketplace-table">
+          <div class="marketplace-table" role="region" tabindex="0" aria-label="Flipkart listings">
             <table>
               <caption>
                 Flipkart listings
@@ -309,11 +322,17 @@ interface PriceDraft {
               {{ listing.marketplace_sku }} - Artifact
               {{ listing.content_artifact_id || 'not attached' }}
             </p>
-            <div class="workspace-tabs inner-tabs" aria-label="Listing editor sections">
-              @for (tab of editorTabs; track tab) {
+            <div
+              class="workspace-tabs inner-tabs"
+              role="tablist"
+              aria-label="Listing editor sections"
+            >
+                @for (tab of editorTabs; track tab) {
                 <button
                   type="button"
+                  role="tab"
                   [class.active-tab]="editorSection() === tab"
+                  [attr.aria-selected]="editorSection() === tab"
                   (click)="editorSection.set(tab)"
                 >
                   {{ tab }}
@@ -384,7 +403,7 @@ interface PriceDraft {
               @if (matrixError()) {
                 <app-error-state title="Variant setup needs attention" [message]="matrixError()" />
               }
-              <div class="marketplace-table">
+              <div class="marketplace-table" role="region" tabindex="0" aria-label="Flipkart listing details">
                 <table>
                   <caption>
                     Deterministic variant matrix
@@ -577,13 +596,35 @@ interface PriceDraft {
               }
             }
             <div class="marketplace-actions">
-              <button type="button" [disabled]="!readiness()?.ready" (click)="submit()">
+              <button type="button" [disabled]="!readiness()?.ready" (click)="reviewListing()">
+                Review exact listing</button
+              ><button
+                type="button"
+                [disabled]="!review()?.id || review()?.status !== 'approved'"
+                (click)="authorizeListing()"
+              >
+                Authorize local execution</button
+              ><button
+                type="button"
+                [disabled]="!authorization()?.id || authorization()?.status !== 'issued'"
+                (click)="submit()"
+              >
                 Confirm and submit</button
+              ><button
+                type="button"
+                [disabled]="!authorization()?.id || authorization()?.status !== 'issued'"
+                (click)="revokeAuthorization()"
+              >
+                Revoke authorization</button
               ><button type="button" (click)="reconcile()">Refresh remote state</button
               ><button type="button" (click)="reviewDrift()">Review drift</button
               ><button type="button" (click)="keepRemote()">Keep remote</button
               ><button type="button" (click)="overwrite()">Confirmed overwrite</button>
             </div>
+            <p class="marketplace-status">
+              Review: {{ review()?.status || 'Required' }} · Authorization:
+              {{ authorization()?.status || 'Required' }}
+            </p>
             @if (drift(); as value) {
               <div class="marketplace-callout">
                 <strong>Drift: {{ value.drift_state }}</strong>
@@ -605,7 +646,7 @@ interface PriceDraft {
         <section class="marketplace-card">
           <h2>Orders and fulfilment</h2>
           <button type="button" (click)="importOrders()">Import orders</button>
-          <div class="marketplace-table">
+          <div class="marketplace-table" role="region" tabindex="0" aria-label="Flipkart orders">
             <table>
               <caption>
                 Read-only Flipkart orders
@@ -646,7 +687,7 @@ interface PriceDraft {
         <section class="marketplace-card">
           <h2>Financials and profitability</h2>
           <button type="button" (click)="importFinancials()">Import settlements</button>
-          <div class="marketplace-table">
+          <div class="marketplace-table" role="region" tabindex="0" aria-label="Flipkart settlements">
             <table>
               <caption>
                 Settlement summaries
@@ -771,6 +812,8 @@ export class FlipkartWorkspaceComponent implements OnInit {
   readonly orders = signal<Order[]>([]);
   readonly settlements = signal<Settlement[]>([]);
   readonly readiness = signal<Readiness | null>(null);
+  readonly review = signal<ListingReview | null>(null);
+  readonly authorization = signal<ExecutionAuthorization | null>(null);
   readonly inventory = signal<InventoryState | null>(null);
   readonly drift = signal<DriftState | null>(null);
   readonly diagnostics = signal<Record<string, unknown> | null>(null);
@@ -929,6 +972,19 @@ export class FlipkartWorkspaceComponent implements OnInit {
       );
       this.readiness.set(
         await this.safeGet<Readiness>(`${this.base}/listings/${listing.id}/readiness`),
+      );
+      this.review.set(
+        await firstValueFrom(
+          this.http.get<ListingReview>(`${this.base}/listings/${listing.id}/review`, this.options),
+        ),
+      );
+      this.authorization.set(
+        await firstValueFrom(
+          this.http.get<ExecutionAuthorization>(
+            `${this.base}/listings/${listing.id}/execution-authorizations/latest`,
+            this.options,
+          ),
+        ),
       );
       this.drift.set(await this.safeGet<DriftState>(`${this.base}/listings/${listing.id}/drift`));
     });
@@ -1131,6 +1187,11 @@ export class FlipkartWorkspaceComponent implements OnInit {
   }
   async submit(): Promise<void> {
     if (!this.activeListing()) return;
+    const authorization = this.authorization();
+    if (!authorization?.id || authorization.status !== 'issued') {
+      this.error.set('Review the exact listing and authorize the local submission first.');
+      return;
+    }
     await this.act(async () => {
       await firstValueFrom(
         this.http.post(
@@ -1142,6 +1203,7 @@ export class FlipkartWorkspaceComponent implements OnInit {
             media: [],
             price: this.priceDraft,
             idempotency_key: `flipkart-ui-submit-${this.activeListing()!.id}`,
+            authorization_id: authorization.id,
           },
           this.options,
         ),
@@ -1150,6 +1212,59 @@ export class FlipkartWorkspaceComponent implements OnInit {
         'Submission queued. The workspace will show processing or rejection safely.',
       );
       await this.loadWorkspace();
+    });
+  }
+  async reviewListing(): Promise<void> {
+    if (!this.activeListing() || !this.readiness()?.ready) return;
+    await this.act(async () => {
+      const value = await firstValueFrom(
+        this.http.post<ListingReview>(
+          `${this.base}/listings/${this.activeListing()!.id}/review`,
+          {
+            category_id: this.listingDraft.category,
+            attributes: this.attributeValues,
+            variants: this.variants(),
+            media: [],
+            price: this.priceDraft,
+            confirm: true,
+          },
+          this.options,
+        ),
+      );
+      this.review.set(value);
+      this.message.set('HUMAN review recorded for this exact listing payload.');
+    });
+  }
+  async authorizeListing(): Promise<void> {
+    if (!this.activeListing() || !this.review()?.id) return;
+    await this.act(async () => {
+      const value = await firstValueFrom(
+        this.http.post<ExecutionAuthorization>(
+          `${this.base}/listings/${this.activeListing()!.id}/execution-authorizations`,
+          {
+            review_id: this.review()!.id,
+            idempotency_key: `flipkart-ui-submit-${this.activeListing()!.id}`,
+            confirm: true,
+          },
+          this.options,
+        ),
+      );
+      this.authorization.set(value);
+      this.message.set('Single-use local execution authorization issued.');
+    });
+  }
+  async revokeAuthorization(): Promise<void> {
+    if (!this.activeListing() || !this.authorization()?.id) return;
+    await this.act(async () => {
+      const value = await firstValueFrom(
+        this.http.post<ExecutionAuthorization>(
+          `${this.base}/listings/${this.activeListing()!.id}/execution-authorizations/${this.authorization()!.id}/revoke`,
+          { confirm: true },
+          this.options,
+        ),
+      );
+      this.authorization.set(value);
+      this.message.set('Execution authorization revoked.');
     });
   }
   async reconcile(): Promise<void> {

@@ -24,13 +24,31 @@ import type { CommerceNextAction } from './commerce-journey.types';
         justify-content: space-between;
         gap: 1rem;
         align-items: center;
+        flex-wrap: wrap;
         border-left: 4px solid #0d7281;
         padding: 0.8rem 1rem;
         margin: 1rem 0;
         background: #eef7f7;
       }
+      .commerce-next-action > div {
+        min-width: 0;
+        flex: 1 1 18rem;
+      }
       .commerce-next-action h3 {
         margin: 0.1rem 0;
+      }
+      .commerce-next-action p {
+        overflow-wrap: anywhere;
+      }
+      .commerce-next-action .op-button {
+        flex: 0 0 auto;
+      }
+      @media (max-width: 520px) {
+        .commerce-next-action .op-button {
+          width: 100%;
+          box-sizing: border-box;
+          text-align: center;
+        }
       }
     `,
   ],

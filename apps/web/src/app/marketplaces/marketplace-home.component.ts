@@ -68,10 +68,14 @@ interface MarketplaceOverviewRow {
           ><h2>Profitability</h2>
           <p>Contribution with explicit cost availability.</p></a
         >
+        <a routerLink="/marketplaces/financials"
+          ><h2>Financial workspace</h2>
+          <p>Sales facts, fee evidence, product costs, and settlement reconciliation.</p></a
+        >
       </div>
       <section class="marketplace-card">
         <h2>Channel health</h2>
-        <div class="marketplace-table">
+        <div class="marketplace-table" role="region" tabindex="0" aria-label="Marketplace operational overview">
           <table>
             <caption>
               Marketplace operational overview

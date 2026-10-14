@@ -21,6 +21,16 @@ import type { CommerceJourney } from './commerce-journey.types';
           {{ journey.completed_stage_count }} of {{ journey.total_stage_count }} stages complete.
           Next: {{ journey.next_action.detail }}
         </p>
+        @if (contextFacts(journey).length) {
+          <dl class="journey-context-facts" aria-label="Active goal context">
+            @for (fact of contextFacts(journey); track fact.label) {
+              <div>
+                <dt>{{ fact.label }}</dt>
+                <dd>{{ fact.value }}</dd>
+              </div>
+            }
+          </dl>
+        }
       } @else {
         <p>
           Start with a Business Agent goal to keep research, supplier checks, economics, and launch
@@ -55,6 +65,28 @@ import type { CommerceJourney } from './commerce-journey.types';
       .commerce-journey-summary p {
         max-width: 70ch;
       }
+      .journey-context-facts {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem 1rem;
+        margin: 0.75rem 0 0;
+      }
+      .journey-context-facts > div {
+        display: grid;
+        gap: 0.1rem;
+        min-width: 8rem;
+      }
+      .journey-context-facts dt {
+        color: #5c7883;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .journey-context-facts dd {
+        margin: 0;
+        overflow-wrap: anywhere;
+      }
       @media (max-width: 680px) {
         .commerce-journey-summary {
           align-items: stretch;
@@ -70,4 +102,19 @@ import type { CommerceJourney } from './commerce-journey.types';
 })
 export class CommerceJourneySummaryComponent {
   @Input() journey: CommerceJourney | null = null;
+
+  contextFacts(journey: CommerceJourney): Array<{ label: string; value: string }> {
+    const values = journey.context.values;
+    const facts: Array<{ label: string; value: string }> = [];
+    const add = (label: string, value: unknown): void => {
+      if (typeof value === 'string' && value.trim()) facts.push({ label, value: value.trim() });
+      else if (typeof value === 'number' && Number.isFinite(value))
+        facts.push({ label, value: String(value) });
+    };
+    add('Category', values['category']);
+    add('Marketplace', values['marketplace']);
+    add('Budget', values['budget'] ?? values['capital'] ?? values['initial_budget']);
+    add('Currency', values['currency']);
+    return facts;
+  }
 }

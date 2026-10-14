@@ -1,0 +1,108 @@
+name: vayujit-production-reference
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?set a private production database name}
+      POSTGRES_USER: ${POSTGRES_USER:?set a dedicated database role}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set a secret-managed database password}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [private]
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 1G }
+
+  api:
+    build: { context: .., dockerfile: infrastructure/Dockerfile.api }
+    restart: unless-stopped
+    env_file: [.env.production]
+    depends_on:
+      postgres: { condition: service_healthy }
+    volumes:
+      - media_data:/var/lib/vayujit/media
+      - backup_data:/var/lib/vayujit/backups
+    expose: ["8000"]
+    networks: [private]
+    stop_grace_period: 30s
+    deploy:
+      resources:
+        limits: { cpus: '2.0', memory: 2G }
+
+  worker:
+    build: { context: .., dockerfile: infrastructure/Dockerfile.api }
+    restart: unless-stopped
+    env_file: [.env.production]
+    # Override the API image's migration shell entrypoint for the long-lived
+    # worker so argv is passed directly to Python (rather than becoming
+    # positional parameters to `sh -c`).
+    entrypoint: ["python", "-m", "vayujit_api.publishing.worker"]
+    command: ["run"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      api: { condition: service_healthy }
+    volumes:
+      - media_data:/var/lib/vayujit/media
+      - backup_data:/var/lib/vayujit/backups
+    networks: [private]
+    stop_grace_period: 45s
+    # The API image carries an HTTP healthcheck, but the worker is not an
+    # HTTP server.  Replace it with a truthful heartbeat check so Docker
+    # reports worker readiness from the durable worker heartbeat table.
+    healthcheck:
+      test:
+        ["CMD-SHELL", "python -c \"from datetime import timedelta; from sqlalchemy import select; from vayujit_api.core.database import SessionFactory; from vayujit_api.publishing.scheduler_time import utcnow; from vayujit_api.publishing.models import PublishingWorkerHeartbeat; db=SessionFactory(); row=db.scalar(select(PublishingWorkerHeartbeat).order_by(PublishingWorkerHeartbeat.last_heartbeat_at.desc())); db.close(); raise SystemExit(0 if row and row.last_heartbeat_at >= utcnow() - timedelta(minutes=2) else 1)\""]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 1G }
+
+  web:
+    build: { context: .., dockerfile: infrastructure/Dockerfile.web }
+    restart: unless-stopped
+    expose: ["8080"]
+    networks: [private]
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 256M }
+
+  proxy:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    environment:
+      VAYUJIT_PUBLIC_WEB_DOMAIN: ${VAYUJIT_PUBLIC_WEB_DOMAIN:?set the HTTPS web domain}
+    depends_on:
+      api: { condition: service_healthy }
+      web: { condition: service_healthy }
+    ports:
+      - "${VAYUJIT_HTTP_BIND:-80}:80"
+      - "${VAYUJIT_HTTPS_BIND:-443}:443"
+    volumes:
+      - ./nginx.production.conf.template:/etc/nginx/templates/default.conf.template:ro
+      - ${VAYUJIT_TLS_CERT_DIRECTORY:?mount a secret-managed certificate directory}:/etc/nginx/certs:ro
+    networks: [private, edge]
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 256M }
+
+networks:
+  private:
+    driver: bridge
+    internal: true
+  edge:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  media_data:
+  backup_data:

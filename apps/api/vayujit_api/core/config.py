@@ -3,6 +3,7 @@ from typing import Literal
 
 from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from sqlalchemy.engine import make_url
 
 
 class Settings(BaseSettings):
@@ -43,6 +44,12 @@ class Settings(BaseSettings):
     build_identifier: str = "development"
     git_commit: str = "unknown"
     build_timestamp: str = "unknown"
+    # The migration head is deployment metadata, not a user secret.  Keeping
+    # it configurable lets the release preflight pin a tested application
+    # image to the schema it was built against.
+    expected_migration_revision: str = "20261203_0146"
+    public_api_url: str | None = None
+    public_web_url: str | None = None
     node_version: str = "22-or-24"
     electron_version: str = "43.2.0"
     angular_build_version: str = "22"
@@ -159,6 +166,12 @@ class Settings(BaseSettings):
     live_ads_mutations_enabled: bool = False
     metrics_enabled: bool = True
     external_mutations_emergency_stop: bool = False
+    # PR-7B is fail-closed by default.  The only non-live execution mode is
+    # the isolated deterministic fake provider used by tests/certification.
+    email_delivery_enabled: bool = False
+    email_delivery_provider_mode: Literal["DISABLED", "FAKE", "LIVE"] = "DISABLED"
+    live_email_delivery_enabled: bool = False
+    email_delivery_max_attempts: int = Field(default=3, ge=1, le=3)
     provider_runtime_mode: Literal["fake", "sandbox", "live"] = "fake"
     provider_connect_timeout_seconds: float = Field(default=5.0, ge=0.1, le=60)
     provider_read_timeout_seconds: float = Field(default=30.0, ge=0.1, le=300)
@@ -268,6 +281,24 @@ class Settings(BaseSettings):
                 raise ValueError("production requires a 32-character session secret")
             if self.storage_provider != "filesystem" and not self.storage_bucket:
                 raise ValueError("production object storage requires a bucket")
+            if self.storage_provider == "filesystem":
+                raise ValueError(
+                    "production requires durable object storage; filesystem media is local-only"
+                )
+            if not self.backup_directory.strip():
+                raise ValueError("production requires a configured backup directory")
+            try:
+                database_url = make_url(self.database_url)
+            except Exception as error:
+                raise ValueError("production requires a valid PostgreSQL database URL") from error
+            if (database_url.host or "").casefold() in {"localhost", "127.0.0.1", "::1"}:
+                raise ValueError("production database cannot use a loopback host")
+            if (database_url.username or "").casefold() in {"vayujit", "postgres"}:
+                raise ValueError("production database must use a dedicated application role")
+            if self.public_api_url and not self.public_api_url.startswith("https://"):
+                raise ValueError("production public API URL must use HTTPS")
+            if self.public_web_url and not self.public_web_url.startswith("https://"):
+                raise ValueError("production public web URL must use HTTPS")
             if any(
                 origin.startswith(("http://127.0.0.1", "http://localhost", "app://"))
                 for origin in self.allowed_origin_set
@@ -318,6 +349,11 @@ class Settings(BaseSettings):
             "live_mutations_enabled": self.live_mutations_enabled,
             "ads_spend_enabled": self.ads_live_spend_enabled,
             "debug": self.debug,
+            "expected_migration_revision": self.expected_migration_revision,
+            "public_api_url_configured": bool(self.public_api_url),
+            "public_web_url_configured": bool(self.public_web_url),
+            "external_mutations_default_deny": not self.live_mutations_enabled,
+            "emergency_stop_active": self.external_mutations_emergency_stop,
             "shopify_mode": self.shopify_mode,
             "shopify_configured": bool(
                 self.shopify_shop_domain and self.shopify_admin_api_access_token

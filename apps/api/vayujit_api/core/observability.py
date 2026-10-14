@@ -133,9 +133,25 @@ class SafetyMiddleware(BaseHTTPMiddleware):
                     "retryable": False,
                 },
             )
-        key = (request.client.host if request.client else "unknown", self._bucket(request))
+        client_host = request.client.host if request.client else "unknown"
+        key = (client_host, self._bucket(request))
         limit = settings.request_rate_limit_per_minute
-        if request.url.path.startswith("/api/v1/auth"):
+        # Browser bootstrap performs these two idempotent reads on every full
+        # page load (including deep-link refreshes).  They do not authenticate
+        # or mutate state, so applying the login/mutation budget to them makes
+        # a normal authenticated navigation sequence fail closed after a few
+        # reloads.  Keep the stricter auth budget for credential/session
+        # mutations while retaining the ordinary request budget for these
+        # safe reads.
+        read_only_auth_bootstrap = request.method == "GET" and request.url.path in {
+            "/api/v1/auth/setup-status",
+            "/api/v1/auth/me",
+        }
+        if read_only_auth_bootstrap:
+            # Do not let harmless page-bootstrap reads consume the credential
+            # mutation bucket used by login, setup, and logout.
+            key = (client_host, "auth-bootstrap")
+        if request.url.path.startswith("/api/v1/auth") and not read_only_auth_bootstrap:
             limit = settings.auth_rate_limit_per_minute
         elif request.url.path.startswith("/api/v1/ai"):
             limit = settings.ai_rate_limit_per_minute

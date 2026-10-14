@@ -15,6 +15,14 @@ export const routes: Routes = [
       ),
     canActivate: [authGuard],
   },
+  {
+    path: 'intelligence/supplier-engagement',
+    loadComponent: () =>
+      import('./intelligence/supplier-engagement-workspace.component').then(
+        (m) => m.SupplierEngagementWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
 
   {
     path: 'intelligence/trends',
@@ -177,6 +185,18 @@ export const routes: Routes = [
     path: 'dashboard',
     loadComponent: () =>
       import('./operations/dashboard.component').then((m) => m.DashboardComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/action-center',
+    loadComponent: () =>
+      import('./operations/action-center.component').then((m) => m.ActionCenterComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'operations/launch-readiness',
+    loadComponent: () =>
+      import('./operations/launch-readiness.component').then((m) => m.LaunchReadinessComponent),
     canActivate: [authGuard],
   },
   {
@@ -425,16 +445,16 @@ export const routes: Routes = [
   {
     path: 'marketplaces/inventory',
     loadComponent: () =>
-      import('./marketplaces/marketplace-inventory.component').then(
-        (m) => m.MarketplaceInventoryComponent,
+      import('./marketplaces/unified-inventory.component').then(
+        (m) => m.UnifiedInventoryComponent,
       ),
     canActivate: [authGuard],
   },
   {
     path: 'marketplaces/orders',
     loadComponent: () =>
-      import('./marketplaces/marketplace-orders.component').then(
-        (m) => m.MarketplaceOrdersComponent,
+      import('./marketplaces/unified-orders.component').then(
+        (m) => m.UnifiedOrdersComponent,
       ),
     canActivate: [authGuard],
   },
@@ -451,6 +471,14 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./marketplaces/marketplace-analytics.component').then(
         (m) => m.MarketplaceAnalyticsComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'marketplaces/financials',
+    loadComponent: () =>
+      import('./marketplaces/financial-workspace.component').then(
+        (m) => m.FinancialWorkspaceComponent,
       ),
     canActivate: [authGuard],
   },
@@ -482,6 +510,22 @@ export const routes: Routes = [
     path: 'products',
     loadComponent: () =>
       import('./products/product-list.component').then((module) => module.ProductListComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'catalog',
+    loadComponent: () =>
+      import('./catalog/catalog-workspace.component').then(
+        (module) => module.CatalogWorkspaceComponent,
+      ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'catalog/:id',
+    loadComponent: () =>
+      import('./catalog/catalog-workspace.component').then(
+        (module) => module.CatalogWorkspaceComponent,
+      ),
     canActivate: [authGuard],
   },
   {

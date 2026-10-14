@@ -7,13 +7,17 @@ live Flipkart compatibility is deliberately not claimed.
 
 from __future__ import annotations
 
+import hashlib
+import json
 import uuid
+from datetime import timedelta
 from decimal import Decimal
 from typing import Annotated, Any, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from vayujit_api.ai.models import GeneratedArtifact
@@ -39,6 +43,8 @@ from vayujit_api.commerce.models import (
     MarketplaceCategory,
     MarketplaceInventory,
     MarketplaceListing,
+    MarketplaceListingExecutionAuthorization,
+    MarketplaceListingReview,
     MarketplaceMediaMapping,
     MarketplaceOrder,
     MarketplacePrice,
@@ -46,6 +52,7 @@ from vayujit_api.commerce.models import (
     MarketplaceVariant,
 )
 from vayujit_api.commerce.service import idempotent_resource, remember_idempotency
+from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
@@ -89,6 +96,18 @@ class PreviewRequest(BaseModel):
 
 class SubmitRequest(PreviewRequest):
     idempotency_key: str = Field(min_length=1, max_length=200)
+    authorization_id: uuid.UUID
+
+
+class ReviewRequest(PreviewRequest):
+    confirm: bool = False
+
+
+class ExecutionAuthorizationRequest(BaseModel):
+    review_id: uuid.UUID
+    idempotency_key: str = Field(min_length=1, max_length=200)
+    expires_seconds: int = Field(default=600, ge=60, le=3600)
+    confirm: bool = False
 
 
 class VariantsRequest(BaseModel):
@@ -506,6 +525,138 @@ def _listing(db: Session, user: User, listing_id: uuid.UUID) -> MarketplaceListi
     return row
 
 
+def _payload_fingerprint(
+    db: Session,
+    listing: MarketplaceListing,
+    artifact: GeneratedArtifact,
+    data: PreviewRequest,
+) -> tuple[str, dict[str, object]]:
+    """Fingerprint every field that can affect a Flipkart submission."""
+    durable_variants = [
+        {
+            "stable_variant_key": row.stable_variant_key,
+            "sku": row.sku,
+            "price": str(row.price_amount) if row.price_amount is not None else None,
+            "options": row.options_json,
+        }
+        for row in db.scalars(
+            select(MarketplaceVariant).where(
+                MarketplaceVariant.owner_id == listing.owner_id,
+                MarketplaceVariant.listing_id == listing.id,
+            )
+        ).all()
+    ]
+    durable_media = [
+        {
+            "media_id": str(row.media_id),
+            "position": row.position,
+            "alt_text": row.alt_text,
+            "status": row.status,
+        }
+        for row in db.scalars(
+            select(MarketplaceMediaMapping).where(
+                MarketplaceMediaMapping.owner_id == listing.owner_id,
+                MarketplaceMediaMapping.listing_id == listing.id,
+            )
+        ).all()
+    ]
+    durable_price = db.scalar(
+        select(MarketplacePrice).where(
+            MarketplacePrice.owner_id == listing.owner_id,
+            MarketplacePrice.listing_id == listing.id,
+            MarketplacePrice.variant_id.is_(None),
+        )
+    )
+    payload: dict[str, object] = {
+        "marketplace": "flipkart",
+        "account_id": str(listing.account_id),
+        "listing_id": str(listing.id),
+        "product_id": str(listing.product_id),
+        "title": listing.title,
+        "sku": listing.marketplace_sku,
+        "category": listing.category,
+        "category_id": data.category_id,
+        "attributes": data.attributes,
+        "media": data.media,
+        "variants": data.variants,
+        "price": data.price,
+        "durable_variants": durable_variants,
+        "durable_media": durable_media,
+        "durable_price": (
+            {
+                "amount": str(durable_price.amount),
+                "mrp_amount": (
+                    str(durable_price.mrp_amount) if durable_price.mrp_amount is not None else None
+                ),
+                "sale_amount": (
+                    str(durable_price.sale_amount)
+                    if durable_price.sale_amount is not None
+                    else None
+                ),
+                "currency": durable_price.currency,
+            }
+            if durable_price is not None
+            else None
+        ),
+        "artifact_id": str(artifact.id),
+        "artifact_version": artifact.version_number,
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
+    return hashlib.sha256(encoded).hexdigest(), payload
+
+
+def _safe_review(row: MarketplaceListingReview) -> dict[str, object]:
+    return {
+        "id": row.id,
+        "marketplace": row.marketplace,
+        "listing_id": row.listing_id,
+        "account_id": row.account_id,
+        "artifact_id": row.artifact_id,
+        "artifact_version": row.artifact_version,
+        "payload": row.payload_json,
+        "payload_fingerprint": row.payload_fingerprint,
+        "status": row.status,
+        "reviewed_at": row.reviewed_at,
+    }
+
+
+def _safe_authorization(
+    row: MarketplaceListingExecutionAuthorization, *, idempotent_reuse: bool = False
+) -> dict[str, object]:
+    return {
+        "id": row.id,
+        "marketplace": row.marketplace,
+        "listing_id": row.listing_id,
+        "review_id": row.review_id,
+        "operation": row.operation,
+        "idempotency_key": row.idempotency_key,
+        "payload_fingerprint": row.payload_fingerprint,
+        "status": row.status,
+        "expires_at": row.expires_at,
+        "idempotent_reuse": idempotent_reuse,
+    }
+
+
+def _approved_artifact(db: Session, user: User, listing: MarketplaceListing) -> GeneratedArtifact:
+    if listing.content_artifact_id is None:
+        raise HTTPException(
+            409, "An approved Flipkart content Artifact is required before submission."
+        )
+    artifact = db.scalar(
+        select(GeneratedArtifact).where(
+            GeneratedArtifact.id == listing.content_artifact_id,
+            GeneratedArtifact.owner_id == user.id,
+            GeneratedArtifact.product_id == listing.product_id,
+            GeneratedArtifact.status == "approved",
+        )
+    )
+    if artifact is None:
+        raise HTTPException(
+            409, "An approved Flipkart content Artifact is required before submission."
+        )
+    return artifact
+
+
 def _readiness(
     db: Session, user: User, listing: MarketplaceListing, data: PreviewRequest | None = None
 ) -> dict[str, object]:
@@ -647,6 +798,245 @@ def preview(
     return result
 
 
+@router.post("/listings/{listing_id}/review")
+def review_listing(
+    listing_id: uuid.UUID, data: ReviewRequest, db: DatabaseSession, user: Owner
+) -> dict[str, object]:
+    if not data.confirm:
+        raise HTTPException(400, "Explicit HUMAN confirmation is required before listing review.")
+    listing = _listing(db, user, listing_id)
+    account = _account(db, user, listing.account_id)
+    artifact = _approved_artifact(db, user, listing)
+    readiness_result = _readiness(db, user, listing, data)
+    if not readiness_result["ready"]:
+        raise HTTPException(409, "Resolve Flipkart readiness blockers before HUMAN review.")
+    fingerprint, payload = _payload_fingerprint(db, listing, artifact, data)
+    existing = db.scalar(
+        select(MarketplaceListingReview).where(
+            MarketplaceListingReview.owner_id == user.id,
+            MarketplaceListingReview.marketplace == "flipkart",
+            MarketplaceListingReview.listing_id == listing.id,
+            MarketplaceListingReview.payload_fingerprint == fingerprint,
+        )
+    )
+    if existing is not None:
+        if existing.status != "approved":
+            existing.status = "approved"
+            existing.revoked_at = None
+            existing.reviewed_at = now()
+            existing.updated_at = existing.reviewed_at
+            db.commit()
+        return {**_safe_review(existing), "idempotent_reuse": True}
+    stamp = now()
+    row = MarketplaceListingReview(
+        owner_id=user.id,
+        marketplace="flipkart",
+        account_id=account.id,
+        listing_id=listing.id,
+        artifact_id=artifact.id,
+        artifact_version=artifact.version_number,
+        payload_json=payload,
+        payload_fingerprint=fingerprint,
+        status="approved",
+        reviewed_by=user.id,
+        reviewed_at=stamp,
+        created_at=stamp,
+        updated_at=stamp,
+    )
+    db.add(row)
+    try:
+        db.flush()
+    except IntegrityError:
+        # Two browser tabs may approve the same payload concurrently.  The
+        # unique fingerprint is the authority; return the winner idempotently.
+        db.rollback()
+        existing = db.scalar(
+            select(MarketplaceListingReview).where(
+                MarketplaceListingReview.owner_id == user.id,
+                MarketplaceListingReview.marketplace == "flipkart",
+                MarketplaceListingReview.listing_id == listing.id,
+                MarketplaceListingReview.payload_fingerprint == fingerprint,
+            )
+        )
+        if existing is not None:
+            return {**_safe_review(existing), "idempotent_reuse": True}
+        raise
+    record_event(
+        db,
+        actor_id=user.id,
+        action="flipkart.listing_human_approved",
+        entity_type="marketplace_listing",
+        entity_id=listing.id,
+        metadata={"review_id": str(row.id), "artifact_version": artifact.version_number},
+    )
+    db.commit()
+    return _safe_review(row)
+
+
+@router.get("/listings/{listing_id}/review")
+def get_listing_review(
+    listing_id: uuid.UUID, db: DatabaseSession, user: Owner
+) -> dict[str, object]:
+    listing = _listing(db, user, listing_id)
+    row = db.scalar(
+        select(MarketplaceListingReview)
+        .where(
+            MarketplaceListingReview.owner_id == user.id,
+            MarketplaceListingReview.marketplace == "flipkart",
+            MarketplaceListingReview.listing_id == listing.id,
+        )
+        .order_by(MarketplaceListingReview.created_at.desc())
+    )
+    if row is None:
+        return {"status": "review_required", "listing_id": listing.id}
+    return _safe_review(row)
+
+
+@router.post("/listings/{listing_id}/execution-authorizations", status_code=201)
+def issue_listing_execution_authorization(
+    listing_id: uuid.UUID,
+    data: ExecutionAuthorizationRequest,
+    db: DatabaseSession,
+    user: Owner,
+) -> dict[str, object]:
+    if not data.confirm:
+        raise HTTPException(
+            400, "Explicit HUMAN confirmation is required before execution authorization."
+        )
+    listing = _listing(db, user, listing_id)
+    account = _account(db, user, listing.account_id)
+    artifact = _approved_artifact(db, user, listing)
+    review = db.scalar(
+        select(MarketplaceListingReview).where(
+            MarketplaceListingReview.id == data.review_id,
+            MarketplaceListingReview.owner_id == user.id,
+            MarketplaceListingReview.marketplace == "flipkart",
+            MarketplaceListingReview.listing_id == listing.id,
+            MarketplaceListingReview.account_id == account.id,
+            MarketplaceListingReview.status == "approved",
+        )
+    )
+    if review is None:
+        raise HTTPException(409, "Approve the exact listing payload before authorizing execution.")
+    review_data = PreviewRequest.model_validate(review.payload_json)
+    fingerprint, _ = _payload_fingerprint(db, listing, artifact, review_data)
+    if review.payload_fingerprint != fingerprint:
+        raise HTTPException(409, "The listing or approved content changed; review it again.")
+    existing = db.scalar(
+        select(MarketplaceListingExecutionAuthorization).where(
+            MarketplaceListingExecutionAuthorization.owner_id == user.id,
+            MarketplaceListingExecutionAuthorization.marketplace == "flipkart",
+            MarketplaceListingExecutionAuthorization.listing_id == listing.id,
+            MarketplaceListingExecutionAuthorization.operation == "listing_submit",
+            MarketplaceListingExecutionAuthorization.idempotency_key == data.idempotency_key,
+        )
+    )
+    if existing is not None:
+        return {**_safe_authorization(existing), "idempotent_reuse": True}
+    stamp = now()
+    row = MarketplaceListingExecutionAuthorization(
+        owner_id=user.id,
+        marketplace="flipkart",
+        account_id=account.id,
+        listing_id=listing.id,
+        review_id=review.id,
+        operation="listing_submit",
+        idempotency_key=data.idempotency_key,
+        payload_fingerprint=fingerprint,
+        status="issued",
+        expires_at=stamp + timedelta(seconds=data.expires_seconds),
+        issued_by=user.id,
+        created_at=stamp,
+        updated_at=stamp,
+    )
+    db.add(row)
+    try:
+        db.flush()
+    except IntegrityError:
+        # A duplicate idempotency key from another tab is a safe replay.
+        db.rollback()
+        existing = db.scalar(
+            select(MarketplaceListingExecutionAuthorization).where(
+                MarketplaceListingExecutionAuthorization.owner_id == user.id,
+                MarketplaceListingExecutionAuthorization.marketplace == "flipkart",
+                MarketplaceListingExecutionAuthorization.listing_id == listing.id,
+                MarketplaceListingExecutionAuthorization.operation == "listing_submit",
+                MarketplaceListingExecutionAuthorization.idempotency_key == data.idempotency_key,
+            )
+        )
+        if existing is not None:
+            return {**_safe_authorization(existing), "idempotent_reuse": True}
+        raise
+    record_event(
+        db,
+        actor_id=user.id,
+        action="flipkart.execution_authorization_issued",
+        entity_type="marketplace_listing",
+        entity_id=listing.id,
+        metadata={"authorization_id": str(row.id), "review_id": str(review.id)},
+    )
+    db.commit()
+    return _safe_authorization(row)
+
+
+@router.get("/listings/{listing_id}/execution-authorizations/latest")
+def latest_listing_execution_authorization(
+    listing_id: uuid.UUID, db: DatabaseSession, user: Owner
+) -> dict[str, object]:
+    listing = _listing(db, user, listing_id)
+    row = db.scalar(
+        select(MarketplaceListingExecutionAuthorization)
+        .where(
+            MarketplaceListingExecutionAuthorization.owner_id == user.id,
+            MarketplaceListingExecutionAuthorization.marketplace == "flipkart",
+            MarketplaceListingExecutionAuthorization.listing_id == listing.id,
+        )
+        .order_by(MarketplaceListingExecutionAuthorization.created_at.desc())
+    )
+    if row is None:
+        return {"status": "authorization_required", "listing_id": listing.id}
+    return _safe_authorization(row)
+
+
+@router.post("/listings/{listing_id}/execution-authorizations/{authorization_id}/revoke")
+def revoke_listing_execution_authorization(
+    listing_id: uuid.UUID,
+    authorization_id: uuid.UUID,
+    data: ConfirmRequest,
+    db: DatabaseSession,
+    user: Owner,
+) -> dict[str, object]:
+    if not data.confirm:
+        raise HTTPException(400, "Explicit HUMAN confirmation is required to revoke authorization.")
+    _listing(db, user, listing_id)
+    row = db.scalar(
+        select(MarketplaceListingExecutionAuthorization)
+        .where(
+            MarketplaceListingExecutionAuthorization.id == authorization_id,
+            MarketplaceListingExecutionAuthorization.owner_id == user.id,
+            MarketplaceListingExecutionAuthorization.marketplace == "flipkart",
+            MarketplaceListingExecutionAuthorization.listing_id == listing_id,
+        )
+        .with_for_update()
+    )
+    if row is None:
+        raise HTTPException(404, "Listing execution authorization was not found.")
+    if row.status == "issued":
+        row.status = "revoked"
+        row.revoked_at = now()
+        row.updated_at = row.revoked_at
+        record_event(
+            db,
+            actor_id=user.id,
+            action="flipkart.execution_authorization_revoked",
+            entity_type="marketplace_listing",
+            entity_id=listing_id,
+            metadata={"authorization_id": str(row.id)},
+        )
+        db.commit()
+    return _safe_authorization(row)
+
+
 @router.post("/listings/{listing_id}/submit")
 def submit(
     listing_id: uuid.UUID, data: SubmitRequest, db: DatabaseSession, user: Owner
@@ -657,30 +1047,71 @@ def submit(
     ready = _readiness(db, user, row, data)
     if not ready["ready"]:
         raise HTTPException(409, "Flipkart listing is not ready for submission.")
-    previous = idempotent_resource(db, user.id, account.id, "listing_submit", data.idempotency_key)
-    if previous == row.id and row.remote_listing_id:
-        return {
-            "status": row.raw_safe_status or row.status,
-            "remote_listing_id": row.remote_listing_id,
-            "remote_status": row.raw_safe_status,
-            "retryable": False,
-            "ambiguous": False,
-            "idempotent_reuse": True,
-            "issues": [],
-        }
+    artifact = _approved_artifact(db, user, row)
+    current_fingerprint, _ = _payload_fingerprint(db, row, artifact, data)
+    authorization = db.scalar(
+        select(MarketplaceListingExecutionAuthorization)
+        .where(
+            MarketplaceListingExecutionAuthorization.id == data.authorization_id,
+            MarketplaceListingExecutionAuthorization.owner_id == user.id,
+            MarketplaceListingExecutionAuthorization.marketplace == "flipkart",
+            MarketplaceListingExecutionAuthorization.account_id == account.id,
+            MarketplaceListingExecutionAuthorization.listing_id == row.id,
+            MarketplaceListingExecutionAuthorization.operation == "listing_submit",
+        )
+        .with_for_update()
+    )
+    if authorization is None:
+        raise HTTPException(404, "Flipkart listing execution authorization was not found.")
+    if authorization.payload_fingerprint != current_fingerprint:
+        raise HTTPException(
+            409, "The listing changed after approval; review and authorize it again."
+        )
+    current_time = now()
+    if authorization.status == "consumed" and authorization.result_json is not None:
+        return {**authorization.result_json, "idempotent_reuse": True}
+    if authorization.status == "issued" and authorization.expires_at <= current_time:
+        authorization.status = "expired"
+        authorization.updated_at = current_time
+        db.commit()
+        raise HTTPException(409, "The one-time Flipkart authorization has expired.")
+    if authorization.status != "issued":
+        raise HTTPException(409, "The Flipkart execution authorization is no longer usable.")
+    review = db.scalar(
+        select(MarketplaceListingReview).where(
+            MarketplaceListingReview.id == authorization.review_id,
+            MarketplaceListingReview.owner_id == user.id,
+            MarketplaceListingReview.marketplace == "flipkart",
+            MarketplaceListingReview.listing_id == row.id,
+            MarketplaceListingReview.status == "approved",
+        )
+    )
+    if review is None:
+        raise HTTPException(409, "A current HUMAN review is required before submission.")
+    settings = get_settings()
+    if settings.external_mutations_emergency_stop:
+        raise HTTPException(503, "External mutations are paused by the emergency stop.")
+    if settings.live_marketplace_mutations_enabled:
+        raise HTTPException(409, "Live Flipkart execution is not configured; local provider only.")
     result = _connector(account).submit(
         sku=row.marketplace_sku or "",
         payload={
             "title": row.title,
             "category": row.category,
             "attributes": data.attributes,
+            "media": data.media,
+            "variants": data.variants,
+            "price": data.price,
             "artifact_version": ready["artifact_version"],
         },
         idempotency_key=data.idempotency_key,
     )
     if result.status == "throttled":
         raise HTTPException(429, "Flipkart throttled the listing submission; retry safely.")
-    if result.remote_id:
+    # A rejected provider response may include the conflicting remote ID as
+    # diagnostic evidence. It must not become this listing's identity because
+    # the existing remote belongs to another listing under the same account.
+    if result.remote_id and result.status in {"accepted", "succeeded", "unknown"}:
         row.remote_listing_id = result.remote_id
     row.status = (
         "submitting" if result.status in {"accepted", "succeeded", "unknown"} else "rejected"
@@ -689,15 +1120,6 @@ def submit(
     row.raw_safe_status = result.remote_status or result.status
     row.updated_at = now()
     db.flush()
-    remember_idempotency(
-        db,
-        owner_id=user.id,
-        account_id=account.id,
-        operation="listing_submit",
-        key=data.idempotency_key,
-        resource_type="marketplace_listing",
-        resource_id=row.id,
-    )
     record_event(
         db,
         actor_id=user.id,
@@ -706,19 +1128,31 @@ def submit(
         entity_id=row.id,
         metadata={"status": result.status},
     )
-    db.commit()
-    return {
+    safe_result: dict[str, object] = {
         "status": result.status,
         "remote_listing_id": result.remote_id,
         "remote_status": result.remote_status,
         "retryable": result.retryable,
         "ambiguous": result.ambiguous,
-        "idempotent_reuse": False,
         "issues": [
             {"code": issue.code, "message": issue.message, "retryable": issue.retryable}
             for issue in result.issues
         ],
     }
+    authorization.status = "consumed"
+    authorization.consumed_at = current_time
+    authorization.result_json = safe_result
+    authorization.updated_at = current_time
+    record_event(
+        db,
+        actor_id=user.id,
+        action="flipkart.listing_execution_consumed",
+        entity_type="marketplace_listing",
+        entity_id=row.id,
+        metadata={"authorization_id": str(authorization.id), "status": result.status},
+    )
+    db.commit()
+    return safe_result
 
 
 @router.post("/listings/{listing_id}/reconcile")
@@ -897,7 +1331,49 @@ def save_price(
     if issues:
         raise HTTPException(422, issues[0].message)
     if not row.remote_listing_id:
-        raise HTTPException(409, "Submit the listing before changing its Flipkart price.")
+        # Draft pricing is a local preparation step.  It must not call the
+        # provider before the listing has passed HUMAN review and execution
+        # authorization, but it is durable so readiness can be evaluated.
+        old = db.scalar(
+            select(MarketplacePrice).where(
+                MarketplacePrice.owner_id == user.id,
+                MarketplacePrice.listing_id == row.id,
+                MarketplacePrice.variant_id.is_(None),
+            )
+        )
+        stamp = now()
+        if old is None:
+            old = MarketplacePrice(
+                owner_id=user.id,
+                listing_id=row.id,
+                variant_id=None,
+                currency=data.currency,
+                amount=data.selling_price,
+                mrp_amount=data.list_price,
+                sale_amount=data.sale_price,
+                cost_amount=None,
+                minimum_amount=None,
+                maximum_amount=None,
+                effective_from=stamp,
+                effective_to=None,
+                created_at=stamp,
+                updated_at=stamp,
+            )
+            db.add(old)
+        else:
+            old.currency = data.currency
+            old.amount = data.selling_price
+            old.mrp_amount = data.list_price
+            old.sale_amount = data.sale_price
+            old.updated_at = stamp
+        db.commit()
+        return {
+            "amount": str(old.amount),
+            "mrp_amount": str(old.mrp_amount) if old.mrp_amount is not None else None,
+            "currency": old.currency,
+            "draft": True,
+            "idempotent_reuse": False,
+        }
     previous = idempotent_resource(db, user.id, account.id, "price_update", data.idempotency_key)
     if previous == row.id:
         current = db.scalar(

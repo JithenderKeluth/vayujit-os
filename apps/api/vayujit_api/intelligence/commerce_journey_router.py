@@ -108,7 +108,11 @@ def journey_decision_brief(
     if journey is None:
         raise HTTPException(404, "Commerce journey not found.")
     return decision_brief_for_opportunity(
-        db, owner, opportunity_id, economic_context_id=economic_context_id
+        db,
+        owner,
+        opportunity_id,
+        economic_context_id=economic_context_id,
+        goal_id=journey_id,
     )
 
 

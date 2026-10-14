@@ -63,6 +63,8 @@ import { AuthService } from './auth.service';
   styles: [
     `
       .auth {
+        box-sizing: border-box;
+        width: 100%;
         min-height: 100vh;
         display: grid;
         place-items: center;
@@ -70,7 +72,10 @@ import { AuthService } from './auth.service';
         background: var(--vj-color-bg);
       }
       .auth-panel {
-        width: min(28rem, 100%);
+        box-sizing: border-box;
+        min-width: 0;
+        width: 100%;
+        max-width: 28rem;
         display: grid;
         gap: 0.75rem;
         background: var(--vj-color-surface);
@@ -122,12 +127,14 @@ import { AuthService } from './auth.service';
       }
       input,
       button {
+        box-sizing: border-box;
         min-height: 2.75rem;
         padding: 0.65rem 0.8rem;
         font: inherit;
       }
       input {
         width: 100%;
+        max-width: 100%;
       }
       button {
         border: 0;

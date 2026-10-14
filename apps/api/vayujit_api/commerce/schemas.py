@@ -79,6 +79,11 @@ class AccountResponse(BaseModel):
     validation_status: str
     last_validated_at: datetime | None
     capabilities: list[str]
+    # Connectivity is intentionally explicit.  A locally validated fake
+    # connector never becomes a real marketplace connection.
+    connection_state: str = "AUTHORIZATION_REQUIRED"
+    permission_state: str = "UNVERIFIED"
+    transport_mode: str = "SYNTHETIC"
     created_at: datetime
     updated_at: datetime
 
@@ -217,6 +222,144 @@ class DriftResponse(BaseModel):
     listing_id: uuid.UUID
     drift_state: str
     fields: list[dict[str, Any]]
+
+
+class InventoryItemCreate(BaseModel):
+    product_id: uuid.UUID
+    variant_id: uuid.UUID | None = None
+    internal_sku: str = Field(min_length=1, max_length=100)
+    location_code: str = Field(default="default", min_length=1, max_length=80)
+    unit: str = Field(default="each", min_length=1, max_length=24)
+    opening_quantity: int = Field(default=0, ge=0, le=2_000_000_000)
+    low_stock_threshold: int = Field(default=0, ge=0, le=2_000_000_000)
+    idempotency_key: str = Field(min_length=1, max_length=220)
+
+
+class InventoryItemResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    product_id: uuid.UUID
+    variant_id: uuid.UUID | None
+    internal_sku: str
+    location_code: str
+    unit: str
+    on_hand_quantity: int
+    reserved_quantity: int
+    damaged_quantity: int
+    available_to_promise: int
+    low_stock_threshold: int
+    version: int
+    last_reconciled_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class InventoryAdjustmentRequest(BaseModel):
+    delta: int = Field(ne=0, ge=-2_000_000_000, le=2_000_000_000)
+    reason: str = Field(min_length=1, max_length=500)
+    expected_version: int = Field(ge=1)
+    idempotency_key: str = Field(min_length=1, max_length=220)
+
+
+class InventoryReserveRequest(BaseModel):
+    order_line_key: str = Field(min_length=1, max_length=240)
+    quantity: int = Field(gt=0, le=2_000_000_000)
+    idempotency_key: str = Field(min_length=1, max_length=220)
+    order_id: uuid.UUID | None = None
+    source_event_id: str | None = Field(default=None, max_length=240)
+
+
+class InventoryReservationResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    inventory_item_id: uuid.UUID
+    order_id: uuid.UUID | None
+    order_line_key: str
+    quantity: int
+    state: str
+    created_at: datetime
+    updated_at: datetime
+
+
+class InventoryMovementResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    inventory_item_id: uuid.UUID
+    quantity: int
+    movement_type: str
+    source_reference: str | None
+    actor_type: str
+    reason: str
+    before_on_hand: int
+    after_on_hand: int
+    before_reserved: int
+    after_reserved: int
+    created_at: datetime
+
+
+class ChannelSkuMappingCreate(BaseModel):
+    account_id: uuid.UUID
+    inventory_item_id: uuid.UUID
+    external_sku: str = Field(min_length=1, max_length=160)
+    listing_id: uuid.UUID | None = None
+    idempotency_key: str = Field(min_length=1, max_length=220)
+
+
+class ChannelSkuMappingResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    account_id: uuid.UUID
+    inventory_item_id: uuid.UUID
+    marketplace: str
+    external_sku: str
+    listing_id: uuid.UUID | None
+    status: str
+    effective_version: int
+    provenance_json: dict[str, object]
+
+
+class FakeOrderLine(BaseModel):
+    external_sku: str = Field(min_length=1, max_length=160)
+    quantity: int = Field(gt=0, le=2_000_000_000)
+    unit_price: Decimal = Field(ge=0)
+
+
+class FakeOrderEventRequest(BaseModel):
+    account_id: uuid.UUID
+    external_order_id: str = Field(min_length=1, max_length=200)
+    event_id: str = Field(min_length=1, max_length=240)
+    event_type: str = Field(pattern="^(new_order|cancel|ship|return)$")
+    event_version: int = Field(default=1, ge=1)
+    lines: list[FakeOrderLine] = Field(default_factory=list, max_length=50)
+    reason: str | None = Field(default=None, max_length=240)
+
+
+class UnifiedOrderResponse(BaseModel):
+    id: uuid.UUID
+    account_id: uuid.UUID
+    marketplace: str
+    remote_order_id: str
+    status: str
+    fulfilment_status: str
+    reservation_state: str
+    line_count: int
+    fake_provider: bool
+    ordered_at: datetime
+
+
+class ReconciliationResponse(BaseModel):
+    inventory_items: int
+    low_stock_items: int
+    out_of_stock_items: int
+    active_reservations: int
+    reservation_failures: int
+    unmapped_order_lines: int
+    stale_provider_events: int
+    next_actions: list[str]
 
 
 def capabilities_for(marketplace: str) -> list[str]:

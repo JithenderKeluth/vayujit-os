@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { Component, inject, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { EvidenceCardComponent } from '../shared/evidence-card.component';
@@ -29,6 +29,7 @@ type Plan = { version?: number; status: string; task_count?: number };
 type Context = {
   id: string;
   supplier_id: string;
+  product_id?: string | null;
   status: string;
   readiness: string;
   summary?: { open_gaps?: number };
@@ -65,6 +66,19 @@ type Context = {
       </app-page-header>
       <app-commerce-journey-context />
       <app-supplier-journey-nav current="verify" />
+      @if (opportunityId) {
+        <section class="context-panel" aria-labelledby="selected-opportunity-title">
+          <p class="eyebrow">Selected product context</p>
+          <h2 id="selected-opportunity-title">Verification stays attached to the selected opportunity</h2>
+          <p>
+            Opportunity <code>{{ opportunityId }}</code> is the authoritative scope for this review.
+            Supplier contact, RFQs, purchasing, and payments remain disabled.
+          </p>
+          <a routerLink="/intelligence/cross-marketplace" [queryParams]="{ opportunity_id: opportunityId, supplier_id: supplierId }">
+            Return to supplier discovery
+          </a>
+        </section>
+      }
       @if (error) {
         <app-error-state
           title="Supplier verification is unavailable"
@@ -83,8 +97,8 @@ type Context = {
         </p>
         @if (!loading && !contexts.length) {
           <app-blocked-state
-            title="Shortlist suppliers before verification"
-            reason="No supplier is treated as verified until evidence supports that conclusion."
+            [title]="supplierId ? 'No verification context for this supplier' : 'Shortlist suppliers before verification'"
+            [reason]="supplierId ? 'The selected supplier has no owner-scoped due-diligence context yet. Return to supplier discovery and create the canonical verification context.' : 'No supplier is treated as verified until evidence supports that conclusion.'"
           />
           <a routerLink="/intelligence/cross-marketplace#comparison">Compare suppliers</a>
         }
@@ -215,6 +229,17 @@ type Context = {
       main {
         padding: 2rem;
       }
+      .context-panel {
+        border: 1px solid #9cc8cf;
+        border-left: 4px solid #147d8c;
+        border-radius: 0.75rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        background: #edf7f7;
+      }
+      .context-panel h2 {
+        margin: 0.25rem 0;
+      }
       article {
         border: 1px solid #c7d7df;
         border-radius: 0.5rem;
@@ -242,6 +267,9 @@ type Context = {
 })
 export class SupplierDueDiligenceComponent implements OnInit {
   private readonly http = inject(HttpClient);
+  private readonly route = inject(ActivatedRoute);
+  private readonly changeDetector = inject(ChangeDetectorRef);
+  private readonly requestOptions = { withCredentials: true };
   readonly breadcrumbs: BreadcrumbItem[] = [
     { label: 'Intelligence', url: '/intelligence' },
     { label: 'Supplier verification' },
@@ -250,6 +278,8 @@ export class SupplierDueDiligenceComponent implements OnInit {
   loading = true;
   error = '';
   reviewedGapId: string | null = null;
+  readonly supplierId = this.route.snapshot.queryParamMap.get('supplier_id') || '';
+  readonly opportunityId = this.route.snapshot.queryParamMap.get('opportunity_id') || '';
 
   semanticStatus(status: string): string {
     const labels: Record<string, string> = {
@@ -267,7 +297,12 @@ export class SupplierDueDiligenceComponent implements OnInit {
     return labels[status] || status.replaceAll('_', ' ');
   }
   supplierLabel(): string {
-    return 'Supplier selected for verification';
+    const context = this.contexts.find((item) =>
+      this.supplierId ? item.supplier_id === this.supplierId : true,
+    );
+    return context?.supplier_id
+      ? `Supplier ${context.supplier_id} selected for verification`
+      : 'Supplier selected for verification';
   }
   verificationOutcome(context: Context): string {
     const gaps = context.summary?.open_gaps || 0;
@@ -290,13 +325,18 @@ export class SupplierDueDiligenceComponent implements OnInit {
       this.contexts = await firstValueFrom(
         this.http.get<Context[]>(
           `${environment.apiUrl}/intelligence/supplier-due-diligence/contexts`,
+          this.requestOptions,
         ),
       );
+      if (this.supplierId) {
+        this.contexts = this.contexts.filter((context) => context.supplier_id === this.supplierId);
+      }
       await Promise.all(
         this.contexts.map(async (context) => {
           const detail = await firstValueFrom(
             this.http.get<Context>(
               `${environment.apiUrl}/intelligence/supplier-due-diligence/contexts/${context.id}`,
+              this.requestOptions,
             ),
           );
           context.gaps = detail.gaps || [];
@@ -304,6 +344,7 @@ export class SupplierDueDiligenceComponent implements OnInit {
           context.plans = await firstValueFrom(
             this.http.get<Plan[]>(
               `${environment.apiUrl}/intelligence/supplier-due-diligence/contexts/${context.id}/plans`,
+              this.requestOptions,
             ),
           );
         }),
@@ -315,6 +356,9 @@ export class SupplierDueDiligenceComponent implements OnInit {
       );
     } finally {
       this.loading = false;
+      // This app uses signal/zoneless-friendly change detection; the canonical HTTP
+      // projection is plain data so explicitly publish the completed state.
+      this.changeDetector.markForCheck();
     }
   }
 
@@ -327,14 +371,17 @@ export class SupplierDueDiligenceComponent implements OnInit {
       await firstValueFrom(
         this.http.get(
           `${environment.apiUrl}/intelligence/supplier-due-diligence/contexts/${context.id}/gaps/${gapId}`,
+          this.requestOptions,
         ),
       );
       this.reviewedGapId = gapId;
+      this.changeDetector.markForCheck();
     } catch (error: unknown) {
       this.error = intelligenceErrorMessage(
         error,
         'The verification evidence could not be loaded.',
       );
+      this.changeDetector.markForCheck();
     }
   }
 
@@ -353,6 +400,7 @@ export class SupplierDueDiligenceComponent implements OnInit {
           {
             reason: reason || '',
           },
+          this.requestOptions,
         ),
       );
       this.ngOnInit();
