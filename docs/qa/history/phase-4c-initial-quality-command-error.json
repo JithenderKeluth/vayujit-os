@@ -1,0 +1,167 @@
+{
+  "generated_at": "2026-10-26T18:09:32.552Z",
+  "checks": [
+    {
+      "name": "qa-node",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "--test",
+        "qa/unit/phase2.test.mjs",
+        "qa/unit/phase3.test.mjs",
+        "qa/unit/phase3a-resolution.test.mjs",
+        "qa/unit/phase3b-resolution.test.mjs",
+        "qa/unit/phase4.test.mjs",
+        "qa/unit/phase4a-resolution.test.mjs",
+        "qa/unit/phase4a.test.mjs",
+        "qa/unit/phase4b.test.mjs",
+        "qa/unit/safety.test.mjs"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 1247,
+      "log": "tmp/qa-agent/phase4c-quality/qa-node.log"
+    },
+    {
+      "name": "qa-python",
+      "command": [
+        "C:\\Users\\jithe\\Documents\\vayujit-os\\apps\\api\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "qa/unit",
+        "-q",
+        "-o",
+        "addopts="
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 7384,
+      "log": "tmp/qa-agent/phase4c-quality/qa-python.log"
+    },
+    {
+      "name": "angular",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\jithe\\Documents\\vayujit-os\\node_modules\\@angular\\cli\\bin\\ng.js",
+        "test",
+        "--watch=false"
+      ],
+      "cwd": "apps/web",
+      "exit_code": 0,
+      "elapsed_ms": 45187,
+      "log": "tmp/qa-agent/phase4c-quality/angular.log"
+    },
+    {
+      "name": "qa-eslint",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/eslint/bin/eslint.js",
+        "--config",
+        "qa/eslint.config.mjs",
+        "qa"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 1953,
+      "log": "tmp/qa-agent/phase4c-quality/qa-eslint.log"
+    },
+    {
+      "name": "qa-prettier",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/prettier/bin/prettier.cjs",
+        "--check",
+        "qa"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 1773,
+      "log": "tmp/qa-agent/phase4c-quality/qa-prettier.log"
+    },
+    {
+      "name": "web-lint",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\jithe\\Documents\\vayujit-os\\node_modules\\@angular\\cli\\bin\\ng.js",
+        "lint"
+      ],
+      "cwd": "apps/web",
+      "exit_code": 1,
+      "elapsed_ms": 2700,
+      "log": "tmp/qa-agent/phase4c-quality/web-lint.log"
+    },
+    {
+      "name": "typescript-app",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "apps/web/tsconfig.app.json"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 7360,
+      "log": "tmp/qa-agent/phase4c-quality/typescript-app.log"
+    },
+    {
+      "name": "typescript-spec",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "apps/web/tsconfig.spec.json"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 8749,
+      "log": "tmp/qa-agent/phase4c-quality/typescript-spec.log"
+    },
+    {
+      "name": "ruff",
+      "command": [
+        "C:\\Users\\jithe\\Documents\\vayujit-os\\apps\\api\\.venv\\Scripts\\python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "--config",
+        "apps/api/pyproject.toml",
+        "qa"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 288,
+      "log": "tmp/qa-agent/phase4c-quality/ruff.log"
+    },
+    {
+      "name": "black",
+      "command": [
+        "C:\\Users\\jithe\\Documents\\vayujit-os\\apps\\api\\.venv\\Scripts\\python.exe",
+        "-m",
+        "black",
+        "--check",
+        "--config",
+        "apps/api/pyproject.toml",
+        "qa"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 1028,
+      "log": "tmp/qa-agent/phase4c-quality/black.log"
+    },
+    {
+      "name": "compileall",
+      "command": [
+        "C:\\Users\\jithe\\Documents\\vayujit-os\\apps\\api\\.venv\\Scripts\\python.exe",
+        "-m",
+        "compileall",
+        "-q",
+        "qa"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 291,
+      "log": "tmp/qa-agent/phase4c-quality/compileall.log"
+    }
+  ]
+}

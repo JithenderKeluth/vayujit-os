@@ -56,8 +56,9 @@ describe('CompetitorIntelligenceWorkspaceComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Fixture seller');
     expect(fixture.nativeElement.textContent).toContain('PASS');
     expect(
-      fixture.nativeElement.querySelector('main[aria-labelledby="competitor-title"]'),
+      fixture.nativeElement.querySelector('section[aria-labelledby="competitor-title"]'),
     ).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('main')).toHaveLength(0);
   });
 
   it('shows a safe error when the authenticated API is unavailable', async () => {

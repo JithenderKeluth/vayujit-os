@@ -1,0 +1,1204 @@
+[
+  {
+    "journey": "Initial setup/onboarding",
+    "assessment": "PARTIAL: existing owner login/logout tested; fresh owner creation remains prior Phase 1 evidence",
+    "route_evidence": [
+      {
+        "declaration": "/setup",
+        "kind": "PAGE",
+        "area": "setup",
+        "source": "apps/web/src/app/auth/auth-page.component.ts",
+        "status": "GUEST_FLOW_SEPARATE_SCENARIO",
+        "visits": []
+      },
+      {
+        "declaration": "/login",
+        "kind": "PAGE",
+        "area": "login",
+        "source": "apps/web/src/app/auth/auth-page.component.ts",
+        "status": "GUEST_FLOW_SEPARATE_SCENARIO",
+        "visits": []
+      },
+      {
+        "declaration": "/dashboard",
+        "kind": "PAGE",
+        "area": "dashboard",
+        "source": "apps/web/src/app/operations/dashboard.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/dashboard",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-DASHBOARD/2-surface-7b8d67f70f5d.json",
+            "control_count": 145
+          },
+          {
+            "project": "mobile",
+            "route": "/dashboard",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-DASHBOARD/2-surface-7b8d67f70f5d.json",
+            "control_count": 145
+          }
+        ]
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    }
+  },
+  {
+    "journey": "Product discovery/selection",
+    "assessment": "PARTIAL: persisted synthetic selected context; live discovery intentionally forbidden",
+    "route_evidence": [
+      {
+        "declaration": "/intelligence/business-agent",
+        "kind": "PAGE",
+        "area": "intelligence",
+        "source": "apps/web/src/app/intelligence/business-agent-workspace.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/intelligence/business-agent",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/11-surface-0c12f8030a89.json",
+            "control_count": 147
+          },
+          {
+            "project": "mobile",
+            "route": "/intelligence/business-agent",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/11-surface-0c12f8030a89.json",
+            "control_count": 147
+          }
+        ]
+      },
+      {
+        "declaration": "/intelligence/product-opportunities",
+        "kind": "PAGE",
+        "area": "intelligence",
+        "source": "apps/web/src/app/intelligence/product-opportunity-workspace.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/intelligence/product-opportunities",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/23-surface-0faf63fcf942.json",
+            "control_count": 134
+          },
+          {
+            "project": "mobile",
+            "route": "/intelligence/product-opportunities",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/23-surface-0faf63fcf942.json",
+            "control_count": 134
+          }
+        ]
+      },
+      {
+        "declaration": "/intelligence/product-opportunities/:opportunityId",
+        "kind": "PAGE",
+        "area": "intelligence",
+        "source": "apps/web/src/app/intelligence/product-opportunity-workspace.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/intelligence/product-opportunities/d74ba8f5-2fcb-4caa-9302-d46790affe7b",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/26-surface-043fffb00dcb.json",
+            "control_count": 155
+          },
+          {
+            "project": "mobile",
+            "route": "/intelligence/product-opportunities/cb6494f2-8fbe-4374-806a-173512258605",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/26-surface-043fffb00dcb.json",
+            "control_count": 155
+          }
+        ]
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    }
+  },
+  {
+    "journey": "Supplier evaluation/DD",
+    "assessment": "PARTIAL: canonical synthetic supplier/DD context; no live acquisition/contact",
+    "route_evidence": [
+      {
+        "declaration": "/intelligence/sourcing",
+        "kind": "PAGE",
+        "area": "intelligence",
+        "source": "apps/web/src/app/intelligence/sourcing-workspace.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/intelligence/sourcing",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/29-surface-3b60467d4fa3.json",
+            "control_count": 185
+          },
+          {
+            "project": "mobile",
+            "route": "/intelligence/sourcing",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/29-surface-3b60467d4fa3.json",
+            "control_count": 185
+          }
+        ]
+      },
+      {
+        "declaration": "/intelligence/due-diligence",
+        "kind": "PAGE",
+        "area": "intelligence",
+        "source": "apps/web/src/app/intelligence/supplier-due-diligence.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/intelligence/due-diligence",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/53-surface-3e0651fa1742.json",
+            "control_count": 153
+          },
+          {
+            "project": "mobile",
+            "route": "/intelligence/due-diligence",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/53-surface-3e0651fa1742.json",
+            "control_count": 153
+          }
+        ]
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    }
+  },
+  {
+    "journey": "Economics/profitability",
+    "assessment": "PARTIAL: canonical prior oracles/API regressions and contextual browser evidence; not complete accounting",
+    "route_evidence": [
+      {
+        "declaration": "/intelligence/sourcing-economics",
+        "kind": "PAGE",
+        "area": "intelligence",
+        "source": "apps/web/src/app/intelligence/sourcing-economics-workspace.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/intelligence/sourcing-economics",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/2-surface-ee6bc0a4ad19.json",
+            "control_count": 146
+          },
+          {
+            "project": "mobile",
+            "route": "/intelligence/sourcing-economics",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/2-surface-ee6bc0a4ad19.json",
+            "control_count": 146
+          }
+        ]
+      },
+      {
+        "declaration": "/marketplaces/financials",
+        "kind": "PAGE",
+        "area": "marketplaces",
+        "source": "apps/web/src/app/marketplaces/financial-workspace.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/marketplaces/financials",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-MARKETPLACES/38-surface-1a1d594d48e5.json",
+            "control_count": 114
+          },
+          {
+            "project": "mobile",
+            "route": "/marketplaces/financials",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/38-surface-1a1d594d48e5.json",
+            "control_count": 114
+          }
+        ]
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    }
+  },
+  {
+    "journey": "Catalog management",
+    "assessment": "PARTIAL: supported edit/cancel/save/reload; image/variant workflows inventoried, not fully exercised",
+    "route_evidence": [
+      {
+        "declaration": "/products",
+        "kind": "PAGE",
+        "area": "products",
+        "source": "apps/web/src/app/products/product-list.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/products",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-PRODUCTS/2-surface-a76d2208e207.json",
+            "control_count": 167
+          },
+          {
+            "project": "mobile",
+            "route": "/products",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-PRODUCTS/2-surface-a76d2208e207.json",
+            "control_count": 167
+          }
+        ]
+      },
+      {
+        "declaration": "/catalog",
+        "kind": "PAGE",
+        "area": "catalog",
+        "source": "apps/web/src/app/catalog/catalog-workspace.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/catalog",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-CATALOG/2-surface-29bb909800da.json",
+            "control_count": 132
+          },
+          {
+            "project": "mobile",
+            "route": "/catalog",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-CATALOG/2-surface-29bb909800da.json",
+            "control_count": 132
+          }
+        ]
+      },
+      {
+        "declaration": "/catalog/:id",
+        "kind": "PAGE",
+        "area": "catalog",
+        "source": "apps/web/src/app/catalog/catalog-workspace.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/catalog/f43436d7-af45-4a9b-b954-bac49ec1141a",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-CATALOG/5-surface-c72b04b8fd88.json",
+            "control_count": 125
+          },
+          {
+            "project": "mobile",
+            "route": "/catalog/1b220511-8b34-44c5-8d9a-bcd905dc109d",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-CATALOG/5-surface-c72b04b8fd88.json",
+            "control_count": 125
+          }
+        ]
+      },
+      {
+        "declaration": "/products/new",
+        "kind": "PAGE",
+        "area": "products",
+        "source": "apps/web/src/app/products/product-form.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/products/new",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-PRODUCTS/5-surface-d63dad70c460.json",
+            "control_count": 133
+          },
+          {
+            "project": "mobile",
+            "route": "/products/new",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-PRODUCTS/5-surface-d63dad70c460.json",
+            "control_count": 133
+          }
+        ]
+      },
+      {
+        "declaration": "/products/:id/edit",
+        "kind": "PAGE",
+        "area": "products",
+        "source": "apps/web/src/app/products/product-form.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/products/f43436d7-af45-4a9b-b954-bac49ec1141a/edit",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-PRODUCTS/8-surface-6a96d3b46b36.json",
+            "control_count": 134
+          },
+          {
+            "project": "mobile",
+            "route": "/products/1b220511-8b34-44c5-8d9a-bcd905dc109d/edit",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-PRODUCTS/8-surface-6a96d3b46b36.json",
+            "control_count": 134
+          }
+        ]
+      },
+      {
+        "declaration": "/products/:id/channels",
+        "kind": "PAGE",
+        "area": "products",
+        "source": "apps/web/src/app/marketplaces/product-channel-view.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/products/f43436d7-af45-4a9b-b954-bac49ec1141a/channels",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-PRODUCTS/11-surface-15d8306be694.json",
+            "control_count": 129
+          },
+          {
+            "project": "mobile",
+            "route": "/products/1b220511-8b34-44c5-8d9a-bcd905dc109d/channels",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-PRODUCTS/11-surface-15d8306be694.json",
+            "control_count": 129
+          }
+        ]
+      },
+      {
+        "declaration": "/products/:id/media",
+        "kind": "PAGE",
+        "area": "products",
+        "source": "apps/web/src/app/products/product-media.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/products/f43436d7-af45-4a9b-b954-bac49ec1141a/media",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-PRODUCTS/14-surface-90de39735246.json",
+            "control_count": 121
+          },
+          {
+            "project": "mobile",
+            "route": "/products/1b220511-8b34-44c5-8d9a-bcd905dc109d/media",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-PRODUCTS/14-surface-90de39735246.json",
+            "control_count": 121
+          }
+        ]
+      },
+      {
+        "declaration": "/products/:id",
+        "kind": "PAGE",
+        "area": "products",
+        "source": "apps/web/src/app/products/product-details.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/products/f43436d7-af45-4a9b-b954-bac49ec1141a",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-PRODUCTS/17-surface-56befa062a32.json",
+            "control_count": 127
+          },
+          {
+            "project": "mobile",
+            "route": "/products/1b220511-8b34-44c5-8d9a-bcd905dc109d",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-PRODUCTS/17-surface-56befa062a32.json",
+            "control_count": 127
+          }
+        ]
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    }
+  },
+  {
+    "journey": "Initial inventory entry",
+    "assessment": "SUPPORTED BOUNDED LOCAL WORKFLOW: explicit review/confirm, persisted stock/ledger/audit, replay/concurrency and desktop/mobile evidence in Phase 4B",
+    "route_evidence": [
+      {
+        "declaration": "/marketplaces/inventory/opening",
+        "kind": "PAGE",
+        "area": "marketplaces",
+        "source": "apps/web/src/app/marketplaces/opening-stock.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/marketplaces/inventory/opening",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-MARKETPLACES/23-surface-2acd785e96c3.json",
+            "control_count": 124
+          },
+          {
+            "project": "mobile",
+            "route": "/marketplaces/inventory/opening",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/23-surface-2acd785e96c3.json",
+            "control_count": 124
+          }
+        ]
+      },
+      {
+        "declaration": "/marketplaces/inventory",
+        "kind": "PAGE",
+        "area": "marketplaces",
+        "source": "apps/web/src/app/marketplaces/unified-inventory.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/marketplaces/inventory",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-MARKETPLACES/26-surface-56e396fa5992.json",
+            "control_count": 141
+          },
+          {
+            "project": "desktop",
+            "route": "/marketplaces/inventory",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-TASK-03/0-stock-handoff-filter-empty.json",
+            "control_count": 114
+          },
+          {
+            "project": "mobile",
+            "route": "/marketplaces/inventory",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/26-surface-56e396fa5992.json",
+            "control_count": 141
+          },
+          {
+            "project": "mobile",
+            "route": "/marketplaces/inventory",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-TASK-03/0-stock-handoff-filter-empty.json",
+            "control_count": 114
+          }
+        ]
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    },
+    "functional_evidence": "docs/qa/phase-4b-report.json"
+  },
+  {
+    "journey": "Inventory updates",
+    "assessment": "PARTIAL: persisted API regression; browser filter/mapping cancel/error recovery",
+    "route_evidence": [
+      {
+        "declaration": "/marketplaces/inventory/opening",
+        "kind": "PAGE",
+        "area": "marketplaces",
+        "source": "apps/web/src/app/marketplaces/opening-stock.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/marketplaces/inventory/opening",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-MARKETPLACES/23-surface-2acd785e96c3.json",
+            "control_count": 124
+          },
+          {
+            "project": "mobile",
+            "route": "/marketplaces/inventory/opening",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/23-surface-2acd785e96c3.json",
+            "control_count": 124
+          }
+        ]
+      },
+      {
+        "declaration": "/marketplaces/inventory",
+        "kind": "PAGE",
+        "area": "marketplaces",
+        "source": "apps/web/src/app/marketplaces/unified-inventory.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/marketplaces/inventory",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-MARKETPLACES/26-surface-56e396fa5992.json",
+            "control_count": 141
+          },
+          {
+            "project": "desktop",
+            "route": "/marketplaces/inventory",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-TASK-03/0-stock-handoff-filter-empty.json",
+            "control_count": 114
+          },
+          {
+            "project": "mobile",
+            "route": "/marketplaces/inventory",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/26-surface-56e396fa5992.json",
+            "control_count": 141
+          },
+          {
+            "project": "mobile",
+            "route": "/marketplaces/inventory",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-TASK-03/0-stock-handoff-filter-empty.json",
+            "control_count": 114
+          }
+        ]
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    }
+  },
+  {
+    "journey": "Order handling",
+    "assessment": "PARTIAL: fake-provider canonical lifecycle API and read-only UI; no real marketplace handling",
+    "route_evidence": [
+      {
+        "declaration": "/marketplaces/orders",
+        "kind": "PAGE",
+        "area": "marketplaces",
+        "source": "apps/web/src/app/marketplaces/unified-orders.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/marketplaces/orders",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-MARKETPLACES/29-surface-deb6dc7f6e11.json",
+            "control_count": 116
+          },
+          {
+            "project": "mobile",
+            "route": "/marketplaces/orders",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/29-surface-deb6dc7f6e11.json",
+            "control_count": 116
+          }
+        ]
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    }
+  },
+  {
+    "journey": "Financial reconciliation",
+    "assessment": "PARTIAL: deterministic synthetic reconciliation and four exact historical node checks",
+    "route_evidence": [
+      {
+        "declaration": "/marketplaces/settlements",
+        "kind": "PAGE",
+        "area": "marketplaces",
+        "source": "apps/web/src/app/marketplaces/marketplace-settlements.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/marketplaces/settlements",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-MARKETPLACES/32-surface-6784939c8f3c.json",
+            "control_count": 115
+          },
+          {
+            "project": "mobile",
+            "route": "/marketplaces/settlements",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/32-surface-6784939c8f3c.json",
+            "control_count": 115
+          }
+        ]
+      },
+      {
+        "declaration": "/marketplaces/financials",
+        "kind": "PAGE",
+        "area": "marketplaces",
+        "source": "apps/web/src/app/marketplaces/financial-workspace.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/marketplaces/financials",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-MARKETPLACES/38-surface-1a1d594d48e5.json",
+            "control_count": 114
+          },
+          {
+            "project": "mobile",
+            "route": "/marketplaces/financials",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/38-surface-1a1d594d48e5.json",
+            "control_count": 114
+          }
+        ]
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    }
+  },
+  {
+    "journey": "Business Agent recommendations",
+    "assessment": "PARTIAL: read-only discovery; canonical financial agent API regressions",
+    "route_evidence": [
+      {
+        "declaration": "/intelligence/business-agent",
+        "kind": "PAGE",
+        "area": "intelligence",
+        "source": "apps/web/src/app/intelligence/business-agent-workspace.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/intelligence/business-agent",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/11-surface-0c12f8030a89.json",
+            "control_count": 147
+          },
+          {
+            "project": "mobile",
+            "route": "/intelligence/business-agent",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/11-surface-0c12f8030a89.json",
+            "control_count": 147
+          }
+        ]
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    }
+  },
+  {
+    "journey": "Action Center HUMAN decisions",
+    "assessment": "PARTIAL: canonical signal transition API regressions; generic business approval/execution remains unsupported",
+    "route_evidence": [
+      {
+        "declaration": "/operations/action-center",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/action-center.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/action-center",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/2-surface-882e3aee0bfb.json",
+            "control_count": 135
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/action-center",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/2-surface-882e3aee0bfb.json",
+            "control_count": 135
+          }
+        ]
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    }
+  },
+  {
+    "journey": "Settings/status/recovery",
+    "assessment": "PARTIAL: read-only route inventory; injected HTTP recovery only, no worker/backup mutation",
+    "route_evidence": [
+      {
+        "declaration": "/operations/action-center",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/action-center.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/action-center",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/2-surface-882e3aee0bfb.json",
+            "control_count": 135
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/action-center",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/2-surface-882e3aee0bfb.json",
+            "control_count": 135
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/launch-readiness",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/launch-readiness.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/launch-readiness",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/5-surface-cb79cae3ba15.json",
+            "control_count": 133
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/launch-readiness",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/5-surface-cb79cae3ba15.json",
+            "control_count": 133
+          }
+        ]
+      },
+      {
+        "declaration": "/settings/ai/providers",
+        "kind": "PAGE",
+        "area": "settings",
+        "source": "apps/web/src/app/ai/ai-provider-settings.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/settings/ai/providers",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-SETTINGS/2-surface-6c2d0dfedb52.json",
+            "control_count": 124
+          },
+          {
+            "project": "mobile",
+            "route": "/settings/ai/providers",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-SETTINGS/2-surface-6c2d0dfedb52.json",
+            "control_count": 124
+          }
+        ]
+      },
+      {
+        "declaration": "/settings/ai/providers/openai-compatible",
+        "kind": "PAGE",
+        "area": "settings",
+        "source": "apps/web/src/app/ai/ai-provider-settings.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/settings/ai/providers/openai-compatible",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-SETTINGS/5-surface-ba75275ffe64.json",
+            "control_count": 125
+          },
+          {
+            "project": "mobile",
+            "route": "/settings/ai/providers/openai-compatible",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-SETTINGS/5-surface-ba75275ffe64.json",
+            "control_count": 125
+          }
+        ]
+      },
+      {
+        "declaration": "/settings/publishing/connectors",
+        "kind": "REDIRECT",
+        "area": "settings",
+        "source": null,
+        "status": "REDIRECT_NOT_PAGE",
+        "visits": []
+      },
+      {
+        "declaration": "/settings/publishing/connectors/wordpress",
+        "kind": "PAGE",
+        "area": "settings",
+        "source": "apps/web/src/app/publishing/wordpress-settings.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/settings/publishing/connectors/wordpress",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-SETTINGS/8-surface-10890a8e3ef0.json",
+            "control_count": 123
+          },
+          {
+            "project": "mobile",
+            "route": "/settings/publishing/connectors/wordpress",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-SETTINGS/8-surface-10890a8e3ef0.json",
+            "control_count": 123
+          }
+        ]
+      },
+      {
+        "declaration": "/settings/publishing/connectors/shopify",
+        "kind": "PAGE",
+        "area": "settings",
+        "source": "apps/web/src/app/publishing/shopify-settings.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/settings/publishing/connectors/shopify",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-SETTINGS/11-surface-8a4f54608dcd.json",
+            "control_count": 128
+          },
+          {
+            "project": "mobile",
+            "route": "/settings/publishing/connectors/shopify",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-SETTINGS/11-surface-8a4f54608dcd.json",
+            "control_count": 128
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/workers",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/publishing/workers.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/workers",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/8-surface-5c777fef93e9.json",
+            "control_count": 110
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/workers",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/8-surface-5c777fef93e9.json",
+            "control_count": 110
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/workers/:id",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/publishing/worker-details.component.ts",
+        "status": "REQUIRES_UNAVAILABLE_CANONICAL_CONTEXT",
+        "visits": []
+      },
+      {
+        "declaration": "/operations",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/control-center.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/11-surface-8e1bfe571389.json",
+            "control_count": 126
+          },
+          {
+            "project": "mobile",
+            "route": "/operations",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/11-surface-8e1bfe571389.json",
+            "control_count": 126
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/jobs",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/control-center.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/jobs",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/14-surface-3013d0a9fe43.json",
+            "control_count": 127
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/jobs",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/14-surface-3013d0a9fe43.json",
+            "control_count": 127
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/providers",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/control-center.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/providers",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/17-surface-c2d45e6a67d7.json",
+            "control_count": 127
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/providers",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/17-surface-c2d45e6a67d7.json",
+            "control_count": 127
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/storage",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/control-center.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/storage",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/20-surface-59b1c6d69ecf.json",
+            "control_count": 127
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/storage",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/20-surface-59b1c6d69ecf.json",
+            "control_count": 127
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/security",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/control-center.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/security",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/23-surface-b67279856254.json",
+            "control_count": 127
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/security",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/23-surface-b67279856254.json",
+            "control_count": 127
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/releases",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/control-center.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/releases",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/26-surface-9630d3751e23.json",
+            "control_count": 127
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/releases",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/26-surface-9630d3751e23.json",
+            "control_count": 127
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/configuration",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/control-center.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/configuration",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/29-surface-2acdbdcaa142.json",
+            "control_count": 127
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/configuration",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/29-surface-2acdbdcaa142.json",
+            "control_count": 127
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/health",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/health.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/health",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/32-surface-8fd4dea237c4.json",
+            "control_count": 115
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/health",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/32-surface-8fd4dea237c4.json",
+            "control_count": 115
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/recovery",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/recovery.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/recovery",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/35-surface-4374938dc038.json",
+            "control_count": 112
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/recovery",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/35-surface-4374938dc038.json",
+            "control_count": 112
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/backups",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/backups.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/backups",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/38-surface-cb9ca137d34c.json",
+            "control_count": 111
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/backups",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/38-surface-cb9ca137d34c.json",
+            "control_count": 111
+          }
+        ]
+      },
+      {
+        "declaration": "/operations/audit",
+        "kind": "PAGE",
+        "area": "operations",
+        "source": "apps/web/src/app/operations/execution-history.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/operations/audit",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-OPERATIONS/41-surface-f46804ca26b0.json",
+            "control_count": 123
+          },
+          {
+            "project": "mobile",
+            "route": "/operations/audit",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-OPERATIONS/41-surface-f46804ca26b0.json",
+            "control_count": 123
+          }
+        ]
+      },
+      {
+        "declaration": "/settings/providers",
+        "kind": "PAGE",
+        "area": "settings",
+        "source": "apps/web/src/app/operations/provider-settings.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/settings/providers",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-SETTINGS/14-surface-7bea00441e4c.json",
+            "control_count": 111
+          },
+          {
+            "project": "mobile",
+            "route": "/settings/providers",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-SETTINGS/14-surface-7bea00441e4c.json",
+            "control_count": 111
+          }
+        ]
+      },
+      {
+        "declaration": "/settings",
+        "kind": "PAGE",
+        "area": "settings",
+        "source": "apps/web/src/app/operations/settings.component.ts",
+        "status": "VISITED_NOT_FULLY_TESTED",
+        "visits": [
+          {
+            "project": "desktop",
+            "route": "/settings",
+            "evidence": "tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-SETTINGS/17-surface-9b5bd3556c3d.json",
+            "control_count": 129
+          },
+          {
+            "project": "mobile",
+            "route": "/settings",
+            "evidence": "tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-SETTINGS/17-surface-9b5bd3556c3d.json",
+            "control_count": 129
+          }
+        ]
+      },
+      {
+        "declaration": "/settings/:section",
+        "kind": "PAGE",
+        "area": "settings",
+        "source": "apps/web/src/app/operations/settings.component.ts",
+        "status": "REQUIRES_UNAVAILABLE_CANONICAL_CONTEXT",
+        "visits": []
+      }
+    ],
+    "seller_review_questions": {
+      "start": "See actual headings/navigation/empty-state captures; not a subjective task-success assertion",
+      "next_step": "Review recorded actionable controls and state text",
+      "inputs": "Required/disabled fields inventoried; only explicit scenario validation executed",
+      "trust": "Synthetic/UNKNOWN preserved; no real provider evidence",
+      "persistence": "Only explicitly asserted save/reload and prior API scenarios",
+      "correction": "Only explicit cancel/filter/retry scenarios",
+      "completion": "No general completion claim",
+      "unsupported": "Default deny and missing workflow assessment retained"
+    }
+  }
+]

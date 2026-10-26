@@ -225,13 +225,15 @@ class DriftResponse(BaseModel):
 
 
 class InventoryItemCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
     product_id: uuid.UUID
     variant_id: uuid.UUID | None = None
     internal_sku: str = Field(min_length=1, max_length=100)
     location_code: str = Field(default="default", min_length=1, max_length=80)
     unit: str = Field(default="each", min_length=1, max_length=24)
-    opening_quantity: int = Field(default=0, ge=0, le=2_000_000_000)
-    low_stock_threshold: int = Field(default=0, ge=0, le=2_000_000_000)
+    opening_quantity: int = Field(default=0, strict=True, ge=0, le=2_000_000_000)
+    low_stock_threshold: int = Field(default=0, strict=True, ge=0, le=2_000_000_000)
     idempotency_key: str = Field(min_length=1, max_length=220)
 
 

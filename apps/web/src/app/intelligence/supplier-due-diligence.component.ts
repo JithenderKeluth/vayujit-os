@@ -54,7 +54,7 @@ type Context = {
     CommerceJourneyContextComponent,
   ],
   template: `
-    <main aria-labelledby="due-diligence-title">
+    <section aria-labelledby="due-diligence-title">
       <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         headingId="due-diligence-title"
@@ -69,12 +69,17 @@ type Context = {
       @if (opportunityId) {
         <section class="context-panel" aria-labelledby="selected-opportunity-title">
           <p class="eyebrow">Selected product context</p>
-          <h2 id="selected-opportunity-title">Verification stays attached to the selected opportunity</h2>
+          <h2 id="selected-opportunity-title">
+            Verification stays attached to the selected opportunity
+          </h2>
           <p>
             Opportunity <code>{{ opportunityId }}</code> is the authoritative scope for this review.
             Supplier contact, RFQs, purchasing, and payments remain disabled.
           </p>
-          <a routerLink="/intelligence/cross-marketplace" [queryParams]="{ opportunity_id: opportunityId, supplier_id: supplierId }">
+          <a
+            routerLink="/intelligence/cross-marketplace"
+            [queryParams]="{ opportunity_id: opportunityId, supplier_id: supplierId }"
+          >
             Return to supplier discovery
           </a>
         </section>
@@ -97,8 +102,16 @@ type Context = {
         </p>
         @if (!loading && !contexts.length) {
           <app-blocked-state
-            [title]="supplierId ? 'No verification context for this supplier' : 'Shortlist suppliers before verification'"
-            [reason]="supplierId ? 'The selected supplier has no owner-scoped due-diligence context yet. Return to supplier discovery and create the canonical verification context.' : 'No supplier is treated as verified until evidence supports that conclusion.'"
+            [title]="
+              supplierId
+                ? 'No verification context for this supplier'
+                : 'Shortlist suppliers before verification'
+            "
+            [reason]="
+              supplierId
+                ? 'The selected supplier has no owner-scoped due-diligence context yet. Return to supplier discovery and create the canonical verification context.'
+                : 'No supplier is treated as verified until evidence supports that conclusion.'
+            "
           />
           <a routerLink="/intelligence/cross-marketplace#comparison">Compare suppliers</a>
         }
@@ -126,7 +139,7 @@ type Context = {
               "
               source="Supplier due-diligence projection"
             />
-            <table>
+            <table tabindex="0">
               <caption>
                 Evidence coverage and verification gaps
               </caption>
@@ -222,7 +235,7 @@ type Context = {
           </article>
         }
       </section>
-    </main>
+    </section>
   `,
   styles: [
     `
@@ -250,6 +263,15 @@ type Context = {
         width: 100%;
         overflow-x: auto;
         display: block;
+        container-type: inline-size;
+      }
+      caption {
+        inline-size: 100cqi;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        text-align: left;
+        position: sticky;
+        inset-inline-start: 0;
       }
       button {
         margin: 0.25rem;

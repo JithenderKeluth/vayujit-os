@@ -121,8 +121,9 @@ describe('IntelligenceWorkspaceComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(
-      fixture.nativeElement.querySelector('main[aria-labelledby="intelligence-title"]'),
+      fixture.nativeElement.querySelector('section[aria-labelledby="intelligence-title"]'),
     ).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('main')).toHaveLength(0);
     expect(
       fixture.nativeElement.querySelector('nav[aria-label="Intelligence sections"]'),
     ).not.toBeNull();

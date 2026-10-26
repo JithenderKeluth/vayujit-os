@@ -1,0 +1,2032 @@
+{
+  "scans": [
+    {
+      "state": "axe-genuine-empty",
+      "route": "/marketplaces/inventory",
+      "violations": [],
+      "incomplete": [],
+      "passes": 43,
+      "project": "desktop",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-no-products",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 44,
+      "project": "desktop",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-entry",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 43,
+      "project": "desktop",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-review",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 44,
+      "project": "desktop",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-saved",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 40,
+      "project": "desktop",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-ledger",
+      "route": "/marketplaces/inventory",
+      "violations": [],
+      "incomplete": [],
+      "passes": 48,
+      "project": "desktop",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-invalid",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 43,
+      "project": "desktop",
+      "test_id": "QA-P4B-02",
+      "evidence": [
+        {
+          "name": "stock-surface-invalid",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-02/0-stock-surface-invalid.json"
+        },
+        {
+          "name": "stock-screen-invalid",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-02/1-stock-screen-invalid.png"
+        },
+        {
+          "name": "axe-invalid",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-02/2-axe-invalid.json"
+        },
+        {
+          "name": "node-screen-stock-quantity-help",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-02/3-node-screen-stock-quantity-help.png"
+        },
+        {
+          "name": "node-review-stock-quantity-help",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-02/4-node-review-stock-quantity-help.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-02/5-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-02/6-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-restored-review",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 44,
+      "project": "desktop",
+      "test_id": "QA-P4B-03",
+      "evidence": [
+        {
+          "name": "stock-surface-restored-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-03/0-stock-surface-restored-review.json"
+        },
+        {
+          "name": "stock-screen-restored-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-03/1-stock-screen-restored-review.png"
+        },
+        {
+          "name": "axe-restored-review",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-03/2-axe-restored-review.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-03/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-03/4-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-uncertain-save",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 44,
+      "project": "desktop",
+      "test_id": "QA-P4B-04",
+      "evidence": [
+        {
+          "name": "stock-surface-uncertain-save",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-04/0-stock-surface-uncertain-save.json"
+        },
+        {
+          "name": "stock-screen-uncertain-save",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-04/1-stock-screen-uncertain-save.png"
+        },
+        {
+          "name": "axe-uncertain-save",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-04/2-axe-uncertain-save.json"
+        },
+        {
+          "name": "lost-response-replay",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-04/3-lost-response-replay.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-04/4-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-04/5-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-conflict",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 44,
+      "project": "desktop",
+      "test_id": "QA-P4B-05",
+      "evidence": [
+        {
+          "name": "stock-surface-conflict",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-05/0-stock-surface-conflict.json"
+        },
+        {
+          "name": "stock-screen-conflict",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-05/1-stock-screen-conflict.png"
+        },
+        {
+          "name": "axe-conflict",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-05/2-axe-conflict.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-05/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-05/4-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-search-error",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 43,
+      "project": "desktop",
+      "test_id": "QA-P4B-06",
+      "evidence": [
+        {
+          "name": "stock-surface-search-error",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-06/0-stock-surface-search-error.json"
+        },
+        {
+          "name": "stock-screen-search-error",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-06/1-stock-screen-search-error.png"
+        },
+        {
+          "name": "axe-search-error",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-06/2-axe-search-error.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-06/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-06/4-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-saved-deep-link",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 40,
+      "project": "desktop",
+      "test_id": "QA-P4B-07",
+      "evidence": [
+        {
+          "name": "stock-surface-saved-deep-link",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-07/0-stock-surface-saved-deep-link.json"
+        },
+        {
+          "name": "stock-screen-saved-deep-link",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-07/1-stock-screen-saved-deep-link.png"
+        },
+        {
+          "name": "axe-saved-deep-link",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-07/2-axe-saved-deep-link.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-07/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-07/4-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-unknown-item",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 43,
+      "project": "desktop",
+      "test_id": "QA-P4B-08",
+      "evidence": [
+        {
+          "name": "stock-surface-unknown-item",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-08/0-stock-surface-unknown-item.json"
+        },
+        {
+          "name": "stock-screen-unknown-item",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-08/1-stock-screen-unknown-item.png"
+        },
+        {
+          "name": "axe-unknown-item",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-08/2-axe-unknown-item.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-08/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-08/4-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-genuine-empty",
+      "route": "/marketplaces/inventory",
+      "violations": [],
+      "incomplete": [],
+      "passes": 41,
+      "project": "mobile",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-no-products",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 42,
+      "project": "mobile",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-entry",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 41,
+      "project": "mobile",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-review",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 42,
+      "project": "mobile",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-saved",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 37,
+      "project": "mobile",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-ledger",
+      "route": "/marketplaces/inventory",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                ".marketplace-page > .marketplace-table > table > caption"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            },
+            {
+              "target": [
+                ".marketplace-page > .marketplace-table > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            },
+            {
+              "target": [
+                ".marketplace-page > .marketplace-table > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+              ],
+              "remediation": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+            }
+          ]
+        }
+      ],
+      "passes": 47,
+      "project": "mobile",
+      "test_id": "QA-P4B-01",
+      "evidence": [
+        {
+          "name": "stock-surface-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/0-stock-surface-genuine-empty.json"
+        },
+        {
+          "name": "stock-screen-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/1-stock-screen-genuine-empty.png"
+        },
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/2-axe-genuine-empty.json"
+        },
+        {
+          "name": "stock-surface-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/3-stock-surface-no-products.json"
+        },
+        {
+          "name": "stock-screen-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/4-stock-screen-no-products.png"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/5-axe-no-products.json"
+        },
+        {
+          "name": "stock-surface-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/6-stock-surface-entry.json"
+        },
+        {
+          "name": "stock-screen-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/7-stock-screen-entry.png"
+        },
+        {
+          "name": "axe-entry",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/8-axe-entry.json"
+        },
+        {
+          "name": "stock-surface-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/9-stock-surface-review.json"
+        },
+        {
+          "name": "stock-screen-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/10-stock-screen-review.png"
+        },
+        {
+          "name": "axe-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/11-axe-review.json"
+        },
+        {
+          "name": "stock-surface-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/12-stock-surface-saved.json"
+        },
+        {
+          "name": "stock-screen-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/13-stock-screen-saved.png"
+        },
+        {
+          "name": "axe-saved",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/14-axe-saved.json"
+        },
+        {
+          "name": "persisted-stock-proof",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/15-persisted-stock-proof.json"
+        },
+        {
+          "name": "stock-surface-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/16-stock-surface-ledger.json"
+        },
+        {
+          "name": "stock-screen-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/17-stock-screen-ledger.png"
+        },
+        {
+          "name": "axe-ledger",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/18-axe-ledger.json"
+        },
+        {
+          "name": "node-screen-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/19-node-screen-stock-ledger-caption.png"
+        },
+        {
+          "name": "node-review-stock-ledger-caption",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+        },
+        {
+          "name": "node-screen-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/21-node-screen-stock-damaged-header.png"
+        },
+        {
+          "name": "node-review-stock-damaged-header",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/22-node-review-stock-damaged-header.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/23-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/24-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-invalid",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 41,
+      "project": "mobile",
+      "test_id": "QA-P4B-02",
+      "evidence": [
+        {
+          "name": "stock-surface-invalid",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-02/0-stock-surface-invalid.json"
+        },
+        {
+          "name": "stock-screen-invalid",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-02/1-stock-screen-invalid.png"
+        },
+        {
+          "name": "axe-invalid",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-02/2-axe-invalid.json"
+        },
+        {
+          "name": "node-screen-stock-quantity-help",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-02/3-node-screen-stock-quantity-help.png"
+        },
+        {
+          "name": "node-review-stock-quantity-help",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-02/4-node-review-stock-quantity-help.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-02/5-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-02/6-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-restored-review",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 42,
+      "project": "mobile",
+      "test_id": "QA-P4B-03",
+      "evidence": [
+        {
+          "name": "stock-surface-restored-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-03/0-stock-surface-restored-review.json"
+        },
+        {
+          "name": "stock-screen-restored-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-03/1-stock-screen-restored-review.png"
+        },
+        {
+          "name": "axe-restored-review",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-03/2-axe-restored-review.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-03/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-03/4-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-uncertain-save",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 42,
+      "project": "mobile",
+      "test_id": "QA-P4B-04",
+      "evidence": [
+        {
+          "name": "stock-surface-uncertain-save",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-04/0-stock-surface-uncertain-save.json"
+        },
+        {
+          "name": "stock-screen-uncertain-save",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-04/1-stock-screen-uncertain-save.png"
+        },
+        {
+          "name": "axe-uncertain-save",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-04/2-axe-uncertain-save.json"
+        },
+        {
+          "name": "lost-response-replay",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-04/3-lost-response-replay.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-04/4-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-04/5-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-conflict",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 42,
+      "project": "mobile",
+      "test_id": "QA-P4B-05",
+      "evidence": [
+        {
+          "name": "stock-surface-conflict",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-05/0-stock-surface-conflict.json"
+        },
+        {
+          "name": "stock-screen-conflict",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-05/1-stock-screen-conflict.png"
+        },
+        {
+          "name": "axe-conflict",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-05/2-axe-conflict.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-05/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-05/4-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-search-error",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 41,
+      "project": "mobile",
+      "test_id": "QA-P4B-06",
+      "evidence": [
+        {
+          "name": "stock-surface-search-error",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-06/0-stock-surface-search-error.json"
+        },
+        {
+          "name": "stock-screen-search-error",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-06/1-stock-screen-search-error.png"
+        },
+        {
+          "name": "axe-search-error",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-06/2-axe-search-error.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-06/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-06/4-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-saved-deep-link",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 37,
+      "project": "mobile",
+      "test_id": "QA-P4B-07",
+      "evidence": [
+        {
+          "name": "stock-surface-saved-deep-link",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-07/0-stock-surface-saved-deep-link.json"
+        },
+        {
+          "name": "stock-screen-saved-deep-link",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-07/1-stock-screen-saved-deep-link.png"
+        },
+        {
+          "name": "axe-saved-deep-link",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-07/2-axe-saved-deep-link.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-07/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-07/4-final-screen.png"
+        }
+      ]
+    },
+    {
+      "state": "axe-unknown-item",
+      "route": "/marketplaces/inventory/opening",
+      "violations": [],
+      "incomplete": [],
+      "passes": 41,
+      "project": "mobile",
+      "test_id": "QA-P4B-08",
+      "evidence": [
+        {
+          "name": "stock-surface-unknown-item",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-08/0-stock-surface-unknown-item.json"
+        },
+        {
+          "name": "stock-screen-unknown-item",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-08/1-stock-screen-unknown-item.png"
+        },
+        {
+          "name": "axe-unknown-item",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-08/2-axe-unknown-item.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-08/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-08/4-final-screen.png"
+        }
+      ]
+    }
+  ],
+  "targeted": [
+    {
+      "route": "/marketplaces/inventory",
+      "html": "<caption _ngcontent-ng-c3807262853=\"\"> Canonical inventory balances </caption>",
+      "text": "Canonical inventory balances",
+      "bounds": {
+        "left": 321,
+        "right": 1391,
+        "top": 588.75,
+        "bottom": 612.75
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "text_boxes": [
+        {
+          "left": 321,
+          "right": 525.859375,
+          "top": 589.75,
+          "bottom": 610.75
+        }
+      ],
+      "violations": [],
+      "incomplete": [],
+      "passes": [
+        "color-contrast"
+      ],
+      "text_horizontally_in_view": true,
+      "name": "node-review-stock-ledger-caption",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+    },
+    {
+      "route": "/marketplaces/inventory",
+      "html": "<th _ngcontent-ng-c3807262853=\"\" scope=\"col\">Damaged</th>",
+      "text": "Damaged",
+      "bounds": {
+        "left": 696.390625,
+        "right": 793.921875,
+        "top": 612.75,
+        "bottom": 659.625
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "text_boxes": [
+        {
+          "left": 707.578125,
+          "right": 779.71875,
+          "top": 624.9375,
+          "bottom": 645.9375
+        }
+      ],
+      "violations": [],
+      "incomplete": [],
+      "passes": [
+        "color-contrast"
+      ],
+      "text_horizontally_in_view": true,
+      "name": "node-review-stock-damaged-header",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-01/22-node-review-stock-damaged-header.json"
+    },
+    {
+      "route": "/marketplaces/inventory/opening",
+      "html": "<small _ngcontent-ng-c3441595072=\"\" id=\"quantity-help\">Whole counted units, 0–2,000,000,000. Enter zero only for a known zero balance.</small>",
+      "text": "Whole counted units, 0–2,000,000,000. Enter zero only for a known zero balance.",
+      "bounds": {
+        "left": 967.46875,
+        "right": 1164.828125,
+        "top": 726.953125,
+        "bottom": 786.90625
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "text_boxes": [
+        {
+          "left": 967.46875,
+          "right": 1110.0625,
+          "top": 727.953125,
+          "bottom": 744.953125
+        },
+        {
+          "left": 967.46875,
+          "right": 1163,
+          "top": 747.9375,
+          "bottom": 764.9375
+        },
+        {
+          "left": 967.46875,
+          "right": 1098,
+          "top": 767.921875,
+          "bottom": 784.921875
+        }
+      ],
+      "violations": [],
+      "incomplete": [],
+      "passes": [
+        "color-contrast"
+      ],
+      "text_horizontally_in_view": true,
+      "name": "node-review-stock-quantity-help",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/cb6f57399d90f171/evidence/desktop-QA-P4B-02/4-node-review-stock-quantity-help.json"
+    },
+    {
+      "route": "/marketplaces/inventory",
+      "html": "<caption _ngcontent-ng-c3807262853=\"\"> Canonical inventory balances </caption>",
+      "text": "Canonical inventory balances",
+      "bounds": {
+        "left": 3.203125,
+        "right": 774.03125,
+        "top": 410.203125,
+        "bottom": 434.203125
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "text_boxes": [
+        {
+          "left": 3.203125,
+          "right": 208.0625,
+          "top": 411.203125,
+          "bottom": 432.203125
+        }
+      ],
+      "violations": [],
+      "incomplete": [],
+      "passes": [
+        "color-contrast"
+      ],
+      "text_horizontally_in_view": true,
+      "name": "node-review-stock-ledger-caption",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/20-node-review-stock-ledger-caption.json"
+    },
+    {
+      "route": "/marketplaces/inventory",
+      "html": "<th _ngcontent-ng-c3807262853=\"\" scope=\"col\">Damaged</th>",
+      "text": "Damaged",
+      "bounds": {
+        "left": 296.890625,
+        "right": 386.625,
+        "top": 401.203125,
+        "bottom": 443.296875
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "text_boxes": [
+        {
+          "left": 305.6875,
+          "right": 377.828125,
+          "top": 411,
+          "bottom": 432
+        }
+      ],
+      "violations": [],
+      "incomplete": [],
+      "passes": [
+        "color-contrast"
+      ],
+      "text_horizontally_in_view": true,
+      "name": "node-review-stock-damaged-header",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-01/22-node-review-stock-damaged-header.json"
+    },
+    {
+      "route": "/marketplaces/inventory/opening",
+      "html": "<small _ngcontent-ng-c3441595072=\"\" id=\"quantity-help\">Whole counted units, 0–2,000,000,000. Enter zero only for a known zero balance.</small>",
+      "text": "Whole counted units, 0–2,000,000,000. Enter zero only for a known zero balance.",
+      "bounds": {
+        "left": 29.796875,
+        "right": 360.203125,
+        "top": 549.328125,
+        "bottom": 589.296875
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "text_boxes": [
+        {
+          "left": 29.796875,
+          "right": 347.640625,
+          "top": 550.328125,
+          "bottom": 567.328125
+        },
+        {
+          "left": 29.796875,
+          "right": 180.59375,
+          "top": 570.3125,
+          "bottom": 587.3125
+        }
+      ],
+      "violations": [],
+      "incomplete": [],
+      "passes": [
+        "color-contrast"
+      ],
+      "text_horizontally_in_view": true,
+      "name": "node-review-stock-quantity-help",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/8bdfe17e3d733d33/evidence/mobile-QA-P4B-02/4-node-review-stock-quantity-help.json"
+    }
+  ],
+  "full_wcag_conformance": false
+}

@@ -1,0 +1,33 @@
+{
+  "status": "PASS",
+  "observed_at_utc": "2026-10-26T03:59:35.010358+00:00",
+  "method": "Independent read-only pg_database query on loopback postgres; exact task targets only",
+  "targets_checked": 21,
+  "marker_cleanup_proofs_checked": 20,
+  "never_created_initialization_target": "vayujit_qa85b0fda68fad45ed_test",
+  "remaining": [],
+  "databases": [
+    "vayujit_qa10148514e1582dab_test",
+    "vayujit_qa2089de90e3b72510_test",
+    "vayujit_qa20d288c49667c5a3_test",
+    "vayujit_qa2288c37d5d9d3198_test",
+    "vayujit_qa348bfd708180e800_test",
+    "vayujit_qa381ef415548baf9b_test",
+    "vayujit_qa41844a20d3d4d3c2_test",
+    "vayujit_qa463ad3c679d589bc_test",
+    "vayujit_qa4737ba0ae3cce0b1_test",
+    "vayujit_qa5946266a3e20ca37_test",
+    "vayujit_qa5e8954bda42f6d3b_test",
+    "vayujit_qa61a405c21be04c7b_test",
+    "vayujit_qa6ffed5774eb54ca3_test",
+    "vayujit_qa703ad013ac6b8690_test",
+    "vayujit_qa7b35fbf72d0b2fc0_test",
+    "vayujit_qa85b0fda68fad45ed_test",
+    "vayujit_qabc309a9580d5fa4f_test",
+    "vayujit_qacb92a2bb0ab27f12_test",
+    "vayujit_qad2b26e833dfc44ab_test",
+    "vayujit_qad307e20c763219b7_test",
+    "vayujit_qaf03c47c9f0f265fc_test"
+  ],
+  "qa_runner_fixture_runtime_processes_remaining": 0
+}

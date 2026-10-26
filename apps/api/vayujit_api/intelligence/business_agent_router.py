@@ -42,6 +42,7 @@ from vayujit_api.intelligence.business_agent_schemas import (
     RunResponse,
 )
 from vayujit_api.intelligence.business_agent_service import (
+    _candidate_cards,
     create_goal,
     create_plan,
     delete_goal,
@@ -52,6 +53,7 @@ from vayujit_api.intelligence.business_agent_service import (
     revise_plan,
     _trend_enabled,
 )
+from vayujit_api.intelligence.product_research import discovery_review_projection
 
 router = APIRouter(prefix="/api/v1/intelligence/business-agent", tags=["business-agent"])
 DB = Annotated[Session, Depends(get_session)]
@@ -71,6 +73,7 @@ def _run_payload(db: Session, run: BusinessAgentRun, owner: User) -> dict[str, o
         "result": run.result,
         "failure": run.failure,
         "checkpoint": run.checkpoint,
+        "candidates": _candidate_cards(db, owner, run_id=run.id),
         "approvals": [
             {
                 "id": a.id,
@@ -96,7 +99,7 @@ def _run_payload(db: Session, run: BusinessAgentRun, owner: User) -> dict[str, o
                 "capability_id": s.capability_id,
                 "status": s.status,
                 "attempt_count": s.attempt_count,
-                "result": s.result,
+                "result": discovery_review_projection(s.result),
             }
             for s in db.scalars(
                 select(BusinessAgentStep)

@@ -1,0 +1,2802 @@
+{
+  "generated_at": "2026-10-26T16:42:12.878Z",
+  "tested_source_sha256": {
+    "apps/api/vayujit_api/commerce/inventory_router.py": "badc6b1708624613020b77d928e011ec00226b51ff896c976ee0fb2fcf28ee8c",
+    "apps/api/vayujit_api/commerce/schemas.py": "b7fe6bece5057fe1cd759ed26fe27ea408be792ae285b99e8efb96cdcbad7e02",
+    "apps/api/vayujit_api/commerce/models.py": "83284b6650ee2e5c82f5f049051e78c7fda846657b7f6aa542d9a09632a47da6",
+    "apps/api/vayujit_api/products/models.py": "b77c1fc22844656e8b3360c1e9f6a0c3d57c6f72f1f813f93bf55e49560d56e9",
+    "apps/api/vayujit_api/catalog/models.py": "1f5c8b9615fcf33da73c751a6f5a6659ad29b06614288ff639d39ff087d778ca",
+    "apps/web/src/app/marketplaces/unified-inventory.component.ts": "15000d74ab5e63c9046639a8d0d10229919c36eb10f76f7d80cd8e209b4b20a3",
+    "apps/web/src/app/marketplaces/marketplace.service.ts": "9efd319ce7140c29291f5682cf50b9bb6f0941080dc50d9ac1d83bee38f92505",
+    "apps/web/src/app/app.routes.ts": "034764877c26d95b0d40b37ad08f56c254679df586749cf1845e037548c9f87c",
+    "qa/tests/phase4.spec.mjs": "f34b3fec212081d08279ac117f9562f7fa84d4c5491085c6bb15f9cdd1aa965b",
+    "apps/web/src/app/ai/ai.css": "a915901551c88b166b1183d6191c8ab8d4aeb141274a792bc8b67563b7d2a2cc",
+    "qa/tests/phase4b.spec.mjs": "a2c413a68336d4afb5fbf42dc8b5499352aef6cba025d93002e5d77118ad50fb",
+    "apps/web/src/app/marketplaces/opening-stock.component.ts": "7e7daae4153927c3365fcd52873b5d1994a509911feb7533c24e41571fae701c",
+    "apps/web/src/app/marketplaces/opening-stock.css": "66ddb035d891e8a85f8850d2d1046a6ce63097e8ae2f337a2ed2506ca2ef5145",
+    "qa/safety.mjs": "2ccb519a624f6b35d7f686fc8553b42bed611341e8ecad4014faaf56dd1bd6db",
+    "qa/server.mjs": "e9ca0877c0815a64d2b050cade9bb5d43c1e8d6a9252420e8bf3e33f5a4bbf4d"
+  },
+  "phase": "QA_AGENT_PHASE_4B",
+  "status": "INCOMPLETE",
+  "executive_summary": {
+    "passed": 2,
+    "failed": 14,
+    "total": 16,
+    "full_application_coverage": false
+  },
+  "coverage": {
+    "inventoried_routes": 155,
+    "api_declarations": 1610,
+    "runtime_api_operations": [
+      1629,
+      1629
+    ],
+    "models": 421,
+    "existing_backend_test_files": 391,
+    "existing_angular_spec_files": 69,
+    "historical_tests_rerun": false
+  },
+  "reports": [
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-26T16:39:42.301Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "failed",
+      "executive_summary": {
+        "passed": 1,
+        "failed": 7,
+        "skipped": 0,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-P4B-01",
+          "title": "QA-P4B-01 empty inventory to persisted opening, ledger and refresh",
+          "project": "desktop",
+          "status": "failed",
+          "duration_ms": 14203,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "axe-genuine-empty",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/0-axe-genuine-empty.json"
+            },
+            {
+              "name": "axe-no-products",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/1-axe-no-products.json"
+            },
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/4-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-desktop/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-genuine-empty",
+              "route": "/marketplaces/inventory",
+              "violations": [],
+              "incomplete": [],
+              "passes": 42
+            },
+            {
+              "state": "axe-no-products",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 43
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-02",
+          "title": "QA-P4B-02 invalid inputs, zero balance, cancel and keyboard review",
+          "project": "desktop",
+          "status": "failed",
+          "duration_ms": 12916,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-02/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-02/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-desktop/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-03",
+          "title": "QA-P4B-03 variant custom SKU review reload and explicit reapproval",
+          "project": "desktop",
+          "status": "failed",
+          "duration_ms": 12873,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-03/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-03/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-desktop/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-04",
+          "title": "QA-P4B-04 response lost after commit replays without duplicate stock",
+          "project": "desktop",
+          "status": "failed",
+          "duration_ms": 12877,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-04/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-04/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-desktop/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-05",
+          "title": "QA-P4B-05 stock appears after review conflict preserves balance",
+          "project": "desktop",
+          "status": "failed",
+          "duration_ms": 12848,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-05/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-05/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-desktop/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-06",
+          "title": "QA-P4B-06 unavailable product and API recovery remain fail closed",
+          "project": "desktop",
+          "status": "failed",
+          "duration_ms": 12824,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-06/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-06/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-desktop/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-07",
+          "title": "QA-P4B-07 filtered navigation and saved deep link history",
+          "project": "desktop",
+          "status": "failed",
+          "duration_ms": 13152,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-07/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-07/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-desktop/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-08",
+          "title": "QA-P4B-08 auth and unknown installation identifiers do not leak stock",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 1592,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-unknown-item",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-08/0-axe-unknown-item.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-08/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-08/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/login"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/inventory/00000000-0000-0000-0000-000000000001/ledger",
+                "status": 404
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/00000000-0000-0000-0000-000000000001/ledger",
+                "method": "GET",
+                "status": 404,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 401,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-unknown-item",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 43
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [
+        {
+          "id": "QA-RUN-DESKTOP-001",
+          "feature": "QA-P4B-01 empty inventory to persisted opening, ledger and refresh",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-01 (desktop)"
+          ],
+          "evidence": [
+            {
+              "name": "axe-genuine-empty",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/0-axe-genuine-empty.json"
+            },
+            {
+              "name": "axe-no-products",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/1-axe-no-products.json"
+            },
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/4-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-desktop/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-DESKTOP-002",
+          "feature": "QA-P4B-02 invalid inputs, zero balance, cancel and keyboard review",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-02 (desktop)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-02/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-02/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-desktop/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-DESKTOP-003",
+          "feature": "QA-P4B-03 variant custom SKU review reload and explicit reapproval",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-03 (desktop)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-03/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-03/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-desktop/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-DESKTOP-004",
+          "feature": "QA-P4B-04 response lost after commit replays without duplicate stock",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-04 (desktop)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-04/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-04/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-desktop/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-DESKTOP-005",
+          "feature": "QA-P4B-05 stock appears after review conflict preserves balance",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-05 (desktop)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-05/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-05/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-desktop/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-DESKTOP-006",
+          "feature": "QA-P4B-06 unavailable product and API recovery remain fail closed",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-06 (desktop)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-06/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-06/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-desktop/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-DESKTOP-007",
+          "feature": "QA-P4B-07 filtered navigation and saved deep link history",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-07 (desktop)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-07/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-07/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-desktop/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        }
+      ],
+      "confirmed_bugs": [],
+      "usability_findings": [],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "process_exit_code": 1,
+      "runtime_api_operations": 1629
+    },
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-26T16:41:47.223Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "failed",
+      "executive_summary": {
+        "passed": 1,
+        "failed": 7,
+        "skipped": 0,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-P4B-01",
+          "title": "QA-P4B-01 empty inventory to persisted opening, ledger and refresh",
+          "project": "mobile",
+          "status": "failed",
+          "duration_ms": 13659,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "axe-genuine-empty",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/0-axe-genuine-empty.json"
+            },
+            {
+              "name": "axe-no-products",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/1-axe-no-products.json"
+            },
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/4-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-mobile/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-genuine-empty",
+              "route": "/marketplaces/inventory",
+              "violations": [],
+              "incomplete": [],
+              "passes": 40
+            },
+            {
+              "state": "axe-no-products",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 41
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-02",
+          "title": "QA-P4B-02 invalid inputs, zero balance, cancel and keyboard review",
+          "project": "mobile",
+          "status": "failed",
+          "duration_ms": 12715,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+            "Error: apiRequestContext._wrapApiCall: file data stream has unexpected number of bytes",
+            "Error: End of central directory record signature not found. Either not a zip file, or file is truncated."
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-02/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-02/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-mobile/error-context.md"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-03",
+          "title": "QA-P4B-03 variant custom SKU review reload and explicit reapproval",
+          "project": "mobile",
+          "status": "failed",
+          "duration_ms": 12843,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-03/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-03/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-mobile/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-04",
+          "title": "QA-P4B-04 response lost after commit replays without duplicate stock",
+          "project": "mobile",
+          "status": "failed",
+          "duration_ms": 12864,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-04/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-04/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-mobile/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-05",
+          "title": "QA-P4B-05 stock appears after review conflict preserves balance",
+          "project": "mobile",
+          "status": "failed",
+          "duration_ms": 12879,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-05/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-05/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-mobile/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-06",
+          "title": "QA-P4B-06 unavailable product and API recovery remain fail closed",
+          "project": "mobile",
+          "status": "failed",
+          "duration_ms": 12854,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-06/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-06/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-mobile/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-07",
+          "title": "QA-P4B-07 filtered navigation and saved deep link history",
+          "project": "mobile",
+          "status": "failed",
+          "duration_ms": 13273,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-07/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-07/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-mobile/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-08",
+          "title": "QA-P4B-08 auth and unknown installation identifiers do not leak stock",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 2019,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-unknown-item",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-08/0-axe-unknown-item.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-08/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-08/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/login"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/inventory/00000000-0000-0000-0000-000000000001/ledger",
+                "status": 404
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/00000000-0000-0000-0000-000000000001/ledger",
+                "method": "GET",
+                "status": 404,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 401,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-unknown-item",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 41
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [
+        {
+          "id": "QA-RUN-MOBILE-001",
+          "feature": "QA-P4B-01 empty inventory to persisted opening, ledger and refresh",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-01 (mobile)"
+          ],
+          "evidence": [
+            {
+              "name": "axe-genuine-empty",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/0-axe-genuine-empty.json"
+            },
+            {
+              "name": "axe-no-products",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/1-axe-no-products.json"
+            },
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/4-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-mobile/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-MOBILE-002",
+          "feature": "QA-P4B-02 invalid inputs, zero balance, cancel and keyboard review",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n\nError: apiRequestContext._wrapApiCall: file data stream has unexpected number of bytes\nError: End of central directory record signature not found. Either not a zip file, or file is truncated.",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-02 (mobile)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-02/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-02/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-mobile/error-context.md"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-MOBILE-003",
+          "feature": "QA-P4B-03 variant custom SKU review reload and explicit reapproval",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-03 (mobile)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-03/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-03/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-mobile/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-MOBILE-004",
+          "feature": "QA-P4B-04 response lost after commit replays without duplicate stock",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-04 (mobile)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-04/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-04/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-mobile/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-MOBILE-005",
+          "feature": "QA-P4B-05 stock appears after review conflict preserves balance",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-05 (mobile)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-05/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-05/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-mobile/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-MOBILE-006",
+          "feature": "QA-P4B-06 unavailable product and API recovery remain fail closed",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-06 (mobile)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-06/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-06/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-mobile/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-MOBILE-007",
+          "feature": "QA-P4B-07 filtered navigation and saved deep link history",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P4B-07 (mobile)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-07/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-07/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-mobile/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        }
+      ],
+      "confirmed_bugs": [],
+      "usability_findings": [],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "process_exit_code": 1,
+      "runtime_api_operations": 1629
+    }
+  ],
+  "cleanup": [
+    {
+      "project": "desktop",
+      "database": "vayujit_qae6d4d3923344b2db_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qae6d4d3923344b2db_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qa92cbbda15c17f411_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa92cbbda15c17f411_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "QA-RUN-DESKTOP-001",
+      "feature": "QA-P4B-01 empty inventory to persisted opening, ledger and refresh",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-01 (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/0-axe-genuine-empty.json"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/1-axe-no-products.json"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-01/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-desktop/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-DESKTOP-002",
+      "feature": "QA-P4B-02 invalid inputs, zero balance, cancel and keyboard review",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-02 (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-02/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-02/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-desktop/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-DESKTOP-003",
+      "feature": "QA-P4B-03 variant custom SKU review reload and explicit reapproval",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-03 (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-03/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-03/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-desktop/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-DESKTOP-004",
+      "feature": "QA-P4B-04 response lost after commit replays without duplicate stock",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-04 (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-04/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-04/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-desktop/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-DESKTOP-005",
+      "feature": "QA-P4B-05 stock appears after review conflict preserves balance",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-05 (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-05/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-05/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-desktop/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-DESKTOP-006",
+      "feature": "QA-P4B-06 unavailable product and API recovery remain fail closed",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-06 (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-06/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-06/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-desktop/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-DESKTOP-007",
+      "feature": "QA-P4B-07 filtered navigation and saved deep link history",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-07 (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-07/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/evidence/desktop-QA-P4B-07/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/e6d4d3923344b2db/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-desktop/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-MOBILE-001",
+      "feature": "QA-P4B-01 empty inventory to persisted opening, ledger and refresh",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-01 (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-genuine-empty",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/0-axe-genuine-empty.json"
+        },
+        {
+          "name": "axe-no-products",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/1-axe-no-products.json"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-01/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-01-empty-in-00d9f--opening-ledger-and-refresh-mobile/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-MOBILE-002",
+      "feature": "QA-P4B-02 invalid inputs, zero balance, cancel and keyboard review",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n\nError: apiRequestContext._wrapApiCall: file data stream has unexpected number of bytes\nError: End of central directory record signature not found. Either not a zip file, or file is truncated.",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-02 (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-02/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-02/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-02-invalid--c428f--cancel-and-keyboard-review-mobile/error-context.md"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-MOBILE-003",
+      "feature": "QA-P4B-03 variant custom SKU review reload and explicit reapproval",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-03 (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-03/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-03/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-03-variant--b4926-oad-and-explicit-reapproval-mobile/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-MOBILE-004",
+      "feature": "QA-P4B-04 response lost after commit replays without duplicate stock",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-04 (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-04/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-04/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-04-response-b85e6-ays-without-duplicate-stock-mobile/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-MOBILE-005",
+      "feature": "QA-P4B-05 stock appears after review conflict preserves balance",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-05 (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-05/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-05/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-05-stock-ap-d9394--conflict-preserves-balance-mobile/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-MOBILE-006",
+      "feature": "QA-P4B-06 unavailable product and API recovery remain fail closed",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-06 (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-06/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-06/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-06-unavaila-fd09a-recovery-remain-fail-closed-mobile/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-MOBILE-007",
+      "feature": "QA-P4B-07 filtered navigation and saved deep link history",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Catalog product', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-P4B-07 (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-07/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/92cbbda15c17f411/evidence/mobile-QA-P4B-07/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/92cbbda15c17f411/browser-artifacts/phase4b-QA-P4B-07-filtered-5f881-and-saved-deep-link-history-mobile/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    }
+  ],
+  "confirmed_bugs": [],
+  "usability_findings": [],
+  "next_phase": "Risk-first persisted seller journey, financial oracle and foreign-ID matrices; no autonomous production fixes.",
+  "full_application_certification": "INCOMPLETE"
+}

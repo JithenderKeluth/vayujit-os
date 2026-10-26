@@ -24,6 +24,7 @@ import type {
 import { BusinessAgentService } from './business-agent.service';
 import { IntelligenceService, type ExternalResearchPolicy } from './intelligence.service';
 import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
+import { ProductDiscoveryReviewComponent } from './product-discovery-review.component';
 
 const CAPABILITY_LABELS: Record<string, string> = {
   'product_opportunity.create': 'Discover product opportunities',
@@ -65,11 +66,12 @@ const CAPABILITY_LABELS: Record<string, string> = {
     PageHeaderComponent,
     StatusBadgeComponent,
     CommerceJourneyContextComponent,
+    ProductDiscoveryReviewComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './business-agent-workspace.css',
   template: `
-    <main class="agent-page" aria-labelledby="business-agent-title">
+    <section class="agent-page" aria-labelledby="business-agent-title">
       <app-page-header
         eyebrow="Intelligence / Business Agent"
         title="What are you trying to accomplish?"
@@ -95,8 +97,8 @@ const CAPABILITY_LABELS: Record<string, string> = {
       <details class="technical-details">
         <summary>How this workspace operates</summary>
         <p>
-          Research uses the local deterministic provider. Plans and runs are owner-scoped, durable,
-          and reviewable.
+          Research uses the configured provider and explicit source policies. Plans and runs are
+          owner-scoped, durable, and reviewable.
         </p>
       </details>
       @if (error()) {
@@ -231,7 +233,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
                   <strong>Marketplace:</strong> {{ goal.structured_goal['marketplace'] }}
                 </p>
               }
-              <div class="constraint-summary" aria-label="Goal details">
+              <div class="constraint-summary" role="group" aria-label="Goal details">
                 <strong>Goal details</strong>
                 <ul>
                   @for (constraint of constraintRows(goal); track constraint.label) {
@@ -442,8 +444,13 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       <div class="next-step-list">
                         <strong>Next steps</strong>
                         <ol>
-                          <li>Review the failed discovery step and its evidence.</li>
-                          <li>Retry discovery after checking the provider response.</li>
+                          <li>
+                            Review the discovery outcomes below and resolve the recorded blocker.
+                          </li>
+                          <li>
+                            Where required, review and explicitly approve permitted sources before
+                            retrying.
+                          </li>
                           <li>Open Product Opportunities when a candidate is available.</li>
                         </ol>
                       </div>
@@ -454,6 +461,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       >
                     </section>
                   }
+                  <app-product-discovery-review [details]="discoveryDetails(run)" />
                   @if (currentStep(run); as current) {
                     <div class="current-step">
                       <strong
@@ -464,8 +472,12 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       >
                       <app-status-badge
                         [status]="current.status"
-                        [label]="statusLabel(current.status)"
-                        [tone]="statusTone(current.status)"
+                        [label]="
+                          awaitingSourceReview(run)
+                            ? 'Awaiting source review'
+                            : statusLabel(current.status)
+                        "
+                        [tone]="awaitingSourceReview(run) ? 'warning' : statusTone(current.status)"
                       />
                       <details class="technical-details compact-details">
                         <summary>Research detail</summary>
@@ -494,12 +506,21 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     </ol>
                   </details>
                   @if (run.failure['message']) {
-                    <div class="callout danger" role="alert">
-                      <strong>Research needs attention</strong>
+                    <div
+                      class="callout"
+                      [class.danger]="!awaitingSourceReview(run)"
+                      [attr.role]="awaitingSourceReview(run) ? 'status' : 'alert'"
+                    >
+                      <strong>{{
+                        awaitingSourceReview(run)
+                          ? 'Source review needed'
+                          : 'Research needs attention'
+                      }}</strong>
                       <p>{{ failureMessage(run) }}</p>
                       <p class="next-step-copy">
-                        Review the live evidence, then retry discovery. Product opportunities will
-                        appear after a canonical product is established.
+                        Review the page outcomes and any source approvals above before retrying.
+                        Product opportunities appear only after fetched evidence establishes a
+                        product.
                       </p>
                       <a
                         class="secondary-action action-link"
@@ -517,7 +538,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     @if (canPause(run)) {
                       <button type="button" (click)="pause(run)">Pause run</button>
                     }
-                    @if (canResume(run)) {
+                    @if (canResume(run) && !awaitingSourceReview(run)) {
                       <button type="button" (click)="resume(run)">
                         {{ run.status === 'PARTIAL' ? 'Resume failed step' : 'Resume run' }}
                       </button>
@@ -530,9 +551,11 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     @if (canRetry(run)) {
                       <button type="button" (click)="retry(run)">
                         {{
-                          run.status === 'PARTIAL'
-                            ? 'Retry failed discovery'
-                            : 'Retry through existing runtime'
+                          awaitingSourceReview(run)
+                            ? 'Continue product discovery'
+                            : run.status === 'PARTIAL'
+                              ? 'Retry failed discovery'
+                              : 'Retry through existing runtime'
                         }}
                       </button>
                     }
@@ -665,8 +688,13 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       </div>
                     }
                     @if (brief.payload['supplier_intelligence']; as supplier) {
-                      <div class="intelligence-summary" aria-labelledby="supplier-intelligence-{{ goal.id }}">
-                        <h5 id="supplier-intelligence-{{ goal.id }}">Supplier intelligence continuation</h5>
+                      <div
+                        class="intelligence-summary"
+                        aria-labelledby="supplier-intelligence-{{ goal.id }}"
+                      >
+                        <h5 id="supplier-intelligence-{{ goal.id }}">
+                          Supplier intelligence continuation
+                        </h5>
                         <p>
                           Supplier observations remain source-backed and require HUMAN review. They
                           are not supplier certification or procurement authorization.
@@ -839,7 +867,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
           </details>
         }
       </section>
-    </main>
+    </section>
   `,
 })
 export class BusinessAgentWorkspaceComponent implements OnInit {
@@ -1110,11 +1138,41 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   }
 
   failureMessage(run: BusinessAgentRun): string {
+    const details = this.discoveryDetails(run);
+    if (typeof details['review_guidance'] === 'string') return details['review_guidance'];
+    if (this.awaitingSourceReview(run)) {
+      return 'Product pages are awaiting your source review. Approve only permitted access, then choose Continue product discovery. This is a review boundary, not a provider failure.';
+    }
     const failed = run.steps.find((step) => step.status === 'FAILED');
     if (failed) {
       return `${failed.business_label || this.capabilityLabel(failed.capability_id)} failed: ${this.displayValue(run.failure['message']) || 'the provider did not return enough evidence.'}`;
     }
     return this.displayValue(run.failure['message']) || 'Research did not complete safely.';
+  }
+
+  awaitingSourceReview(run: BusinessAgentRun): boolean {
+    const details = this.discoveryDetails(run);
+    const fetches = details['fetches'];
+    return (
+      Array.isArray(fetches) &&
+      fetches.some((value: unknown) => {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+        const row = value as Record<string, unknown>;
+        return (
+          row['source_review_eligible'] !== false &&
+          (row['reason_code'] === 'SOURCE_APPROVAL_REQUIRED' ||
+            row['failure'] === 'External source approval is required before fetching.')
+        );
+      })
+    );
+  }
+
+  discoveryDetails(run: BusinessAgentRun): Record<string, unknown> {
+    const result = run.steps.find((step) => step.key === 'opportunity')?.result;
+    const value = result?.['details'] || result?.['research'];
+    return value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
   }
 
   businessRunStatus(run: BusinessAgentRun): string {

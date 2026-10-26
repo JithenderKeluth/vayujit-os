@@ -98,7 +98,8 @@ describe('IndiaMartDiscoveryComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('main[aria-labelledby="indiamart-title"]')).not.toBeNull();
+    expect(root.querySelector('section[aria-labelledby="indiamart-title"]')).not.toBeNull();
+    expect(root.querySelectorAll('main')).toHaveLength(0);
     expect(root.querySelectorAll('h1')).toHaveLength(1);
     expect(root.querySelector('form[aria-label="IndiaMART discovery request"]')).not.toBeNull();
     expect(root.querySelectorAll('label').length).toBeGreaterThanOrEqual(4);

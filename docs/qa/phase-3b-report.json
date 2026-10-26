@@ -1,0 +1,563 @@
+{
+  "generated_at": "2026-10-26T01:50:33.678Z",
+  "classification": "QA_PHASE_3B_BOUNDED_GATES_VALIDATED_APPLICATION_INCOMPLETE",
+  "phase3": {
+    "passed": 18,
+    "failed": 0,
+    "total": 18,
+    "full_application_coverage": false,
+    "api_passed": 36,
+    "api_failed": 0,
+    "api_errors": 0,
+    "confirmed_defect_roots": 0,
+    "product_gaps": 3,
+    "manual_accessibility_tasks": 1,
+    "status": "PASS_BOUNDED_SMOKE",
+    "cleanup": [
+      {
+        "project": "desktop",
+        "database": "vayujit_qa20801a4ca066cfbe_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qa20801a4ca066cfbe_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      },
+      {
+        "project": "mobile",
+        "database": "vayujit_qa71783c286d84ef4b_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qa71783c286d84ef4b_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      }
+    ]
+  },
+  "phase2": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "full_application_coverage": false,
+    "api_passed": 22,
+    "api_failed": 0,
+    "api_errors": 0,
+    "status": "PASS_BOUNDED_SMOKE",
+    "cleanup": [
+      {
+        "project": "desktop",
+        "database": "vayujit_qad2325c9fd225057d_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qad2325c9fd225057d_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      },
+      {
+        "project": "mobile",
+        "database": "vayujit_qae7079a94ed8d0d2b_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qae7079a94ed8d0d2b_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      }
+    ]
+  },
+  "phase1": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "full_application_coverage": false,
+    "status": "PASS_BOUNDED_SMOKE",
+    "cleanup": [
+      {
+        "project": "desktop",
+        "database": "vayujit_qa90389cc993651a12_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qa90389cc993651a12_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      },
+      {
+        "project": "mobile",
+        "database": "vayujit_qa95b528dd45a5f0c0_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qa95b528dd45a5f0c0_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      }
+    ]
+  },
+  "targeted_evidence": {
+    "verified": true,
+    "token": "07f642c125fc44e8",
+    "tests": 37,
+    "targeted_tests": 17,
+    "junit": "tmp/qa-agent/07f642c125fc44e8/backend-results.xml",
+    "junit_sha256": "0e40f0e7adc228b3e82e50b1acd0413be820184f2cf3cd116406e25b8e78b5a8",
+    "cleanup": "tmp/qa-agent/07f642c125fc44e8/cleanup.json",
+    "test_contract_hashes_verified": true,
+    "original_api_tests_unchanged": true,
+    "browser_timing_correction": {
+      "baseline_sha256": "986105d28a17ca0df223766f3e09dacb124bdd7cb3ce7e981947ad87d83965d5",
+      "retested_sha256": "d862ddf17f9c1806bdd53bd1b6969411b5dff89ec8660db574768b87f0240e7c",
+      "change": "Only the QA-owned restart request gets timeout 45000 plus an explanatory comment. No assertion, locator, input or expected business behavior changed.",
+      "measured_restart_ms": 18871,
+      "evidence": "tmp/qa-agent/974f9e6a0ee5313a/owned-runtime-probe.json"
+    },
+    "tested_source_sha256": {
+      "apps/api/vayujit_api/commerce/financial_router.py": "8a7cbdde9a055240534504571f2f235476a6eaf1a3588ca977f73e1fcb006064",
+      "apps/api/vayujit_api/commerce/inventory_router.py": "8725e1c8be7e474a8f4c7c8242501db6c7c9d9937a963938841a1772c7e6e6a6",
+      "apps/api/vayujit_api/operations/action_center_router.py": "8213e58dd0ce6fc303504aa62229727e4750e7a09b1437ba10bcf236eae15638",
+      "apps/api/tests/test_qa_phase3a_remediation.py": "066aa9b4b73d3942155cdb53936a133b69eca2c63844df515c35b76771a5bcfa"
+    },
+    "phase3b_tests": 16,
+    "phase3b_source_sha256": {
+      "apps/api/vayujit_api/commerce/financial_router.py": "8a7cbdde9a055240534504571f2f235476a6eaf1a3588ca977f73e1fcb006064",
+      "apps/api/vayujit_api/operations/action_center_router.py": "8213e58dd0ce6fc303504aa62229727e4750e7a09b1437ba10bcf236eae15638",
+      "apps/api/tests/test_qa_phase3b_remediation.py": "b067ad0d352c2a23e877f3b21aff3ee2a7894e047e6ca7fccfa925493d5ffc1e",
+      "apps/web/src/app/operations/action-center.component.ts": "b03a438b7ac6e1e98cea8d7c49d9860b54283a1e4e99027ab9cb5a793f8ece47",
+      "apps/web/src/app/marketplaces/financial-workspace.component.ts": "3b8fca75758cad7503df4ec0a5d0ab691b674ddad946770c9c7c111a21b0208b",
+      "apps/web/src/app/marketplaces/marketplace.service.ts": "8a508fe52b559d6bc43cea2d0f18889117ce051694ae0fbaa4a281f834c51b4a",
+      "apps/web/src/app/shared/seller-navigation.component.ts": "6c234e550271585eda7cfd3da3f305897c58ddf91c36ee6bd9e38ac4cf9f4cf2",
+      "qa/tests/phase3b.spec.mjs": "b77bd2bd911838057c647b2bfed12668423d08bfd6bcfbd27049a0942f95600d"
+    }
+  },
+  "resolutions": [
+    {
+      "id": "QA-P3-FIN-001",
+      "status": "RESOLVED",
+      "retest_status": "PASS",
+      "scope": "Phase 3A revalidation against current source",
+      "historical_finding": {
+        "id": "QA-P3-FIN-001",
+        "feature": "Latest UNKNOWN cost evidence",
+        "area": "Financial reconciliation",
+        "journey": "Revise acquisition evidence and review contribution",
+        "route": "/marketplaces/financials",
+        "type": "CALCULATION",
+        "severity": "MAJOR",
+        "priority": "P1",
+        "expected": "A newer UNKNOWN revision of a cost key invalidates that key's older known amount for current contribution; historical as-of queries may retain the earlier evidence.",
+        "actual": "The January cost 200.01 is still used after a February UNKNOWN revision of the same key. The February summary reports contribution -103.04 and no missing inputs. _cost_evidence_rows filters UNKNOWN rows before choosing the latest version, resurrecting the superseded known row.",
+        "business_impact": "A seller can receive a qualified profit/loss estimate based on acquisition evidence they explicitly marked unknown.",
+        "reproduction_steps": [
+          "npm.cmd run qa:phase3",
+          "Inspect test_08_unknown_cost_revision_does_not_resurrect_old_known_cost in both persisted installations."
+        ],
+        "evidence": [
+          {
+            "name": "Repeated persisted UNKNOWN revision response",
+            "path": "tmp/qa-agent/96be1091b699b21b/unknown-cost-revision.json"
+          },
+          {
+            "name": "Current execution ledger",
+            "path": "docs/qa/phase-3-report.json"
+          },
+          {
+            "name": "Canonical cost-version selection",
+            "path": "apps/api/vayujit_api/commerce/financial_router.py"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Select the latest applicable cost revision first, then preserve UNKNOWN as a blocker; retain valid historical as-of behavior and cost lineage. Implement only with separate remediation authorization.",
+        "retest_status": "FAIL"
+      }
+    },
+    {
+      "id": "QA-P3-IDEM-001",
+      "status": "RESOLVED",
+      "retest_status": "PASS",
+      "scope": "Phase 3A revalidation against current source",
+      "historical_finding": {
+        "id": "QA-P3-IDEM-001",
+        "feature": "Stock adjustment replay identity",
+        "area": "Inventory",
+        "journey": "Retry a stock movement without duplicating or misacknowledging it",
+        "route": "/marketplaces/inventory",
+        "type": "FUNCTIONAL",
+        "severity": "MAJOR",
+        "priority": "P1",
+        "expected": "Identical retries return the original movement; conflicting delta or intent under the same key produces an explicit conflict rather than success for a different request.",
+        "actual": "After recording delta 1, reusing the same key with delta 99 returns HTTP 200 and the original balance. Duplicate lookup checks only item/key, not movement identity. No extra stock was added; the defect is silent acceptance of conflicting intent.",
+        "business_impact": "A seller or retrying client can believe a requested correction succeeded although a different earlier movement was returned.",
+        "reproduction_steps": [
+          "npm.cmd run qa:phase3",
+          "Inspect test_05_conflicting_stock_key_is_not_silently_accepted."
+        ],
+        "evidence": [
+          {
+            "name": "Conflicting delta and actual response",
+            "path": "tmp/qa-agent/96be1091b699b21b/stock-conflicting-key.json"
+          },
+          {
+            "name": "Canonical movement replay lookup",
+            "path": "apps/api/vayujit_api/commerce/inventory_router.py"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Define canonical semantic replay identity and reject changed movement payloads while retaining identical retry and concurrency safety.",
+        "retest_status": "FAIL"
+      }
+    },
+    {
+      "id": "QA-P3-IDEM-002",
+      "status": "RESOLVED",
+      "retest_status": "PASS",
+      "scope": "Phase 3A revalidation against current source",
+      "historical_finding": {
+        "id": "QA-P3-IDEM-002",
+        "feature": "Financial event conflicting replay",
+        "area": "Financial reconciliation",
+        "journey": "Record and safely retry sale/refund evidence",
+        "route": "/api/v1/financial/events",
+        "type": "FUNCTIONAL",
+        "severity": "MAJOR",
+        "priority": "P1",
+        "expected": "An existing source event ID must not acknowledge materially different monetary evidence as an identical replay.",
+        "actual": "Replaying the recorded sale with amount 999999 returns HTTP 201/idempotent true and the old event. Both preflight and uniqueness-recovery paths return the existing event without checking amount/type/reference identity. Existing data is not overwritten.",
+        "business_impact": "Conflicting sale or refund evidence can be silently discarded while a client sees a success response, obscuring reconciliation errors.",
+        "reproduction_steps": [
+          "npm.cmd run qa:phase3",
+          "Inspect test_07_conflicting_financial_event_is_rejected."
+        ],
+        "evidence": [
+          {
+            "name": "Conflicting financial request response",
+            "path": "tmp/qa-agent/96be1091b699b21b/financial-conflicting-key.json"
+          },
+          {
+            "name": "Canonical ingestion and uniqueness recovery",
+            "path": "apps/api/vayujit_api/commerce/financial_router.py"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Compare normalized authoritative event identity in both replay paths and return a conflict for changed evidence, without weakening identical-delivery deduplication.",
+        "retest_status": "FAIL"
+      }
+    },
+    {
+      "id": "QA-P3-IDEM-003",
+      "status": "RESOLVED",
+      "retest_status": "PASS",
+      "scope": "Phase 3A revalidation against current source",
+      "historical_finding": {
+        "id": "QA-P3-IDEM-003",
+        "feature": "Action Center transition identity",
+        "area": "Action Center",
+        "journey": "Acknowledge then resolve a signal with traceable HUMAN intent",
+        "route": "/operations/action-center",
+        "type": "FUNCTIONAL",
+        "severity": "MODERATE",
+        "priority": "P2",
+        "expected": "A resolve request cannot reuse an acknowledge key and receive a successful response for the earlier transition.",
+        "actual": "A resolve request using the acknowledge key returns HTTP 200, the old transition ID and ACKNOWLEDGED state. _transition looks up owner/key but does not compare signal, target state or note.",
+        "business_impact": "The displayed/requested HUMAN intent and audit transition may disagree, making operational review unreliable.",
+        "reproduction_steps": [
+          "npm.cmd run qa:phase3",
+          "Inspect test_13_conflicting_signal_transition_key_rejected."
+        ],
+        "evidence": [
+          {
+            "name": "Resolve acknowledged as the old transition",
+            "path": "tmp/qa-agent/96be1091b699b21b/action-conflicting-key.json"
+          },
+          {
+            "name": "Transition authority",
+            "path": "apps/api/vayujit_api/operations/action_center_router.py"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Validate semantic transition scope and target under the canonical owner/key lock; preserve identical concurrent replays.",
+        "retest_status": "FAIL"
+      }
+    },
+    {
+      "id": "QA-P3-SIGNAL-001",
+      "status": "RESOLVED",
+      "retest_status": "PASS",
+      "scope": "Phase 3A revalidation against current source",
+      "historical_finding": {
+        "id": "QA-P3-SIGNAL-001",
+        "feature": "Out-of-stock recommendation after source recovery",
+        "area": "Business Agent / Action Center",
+        "journey": "Replenish stock and refresh operational guidance",
+        "route": "/operations/action-center",
+        "type": "FUNCTIONAL",
+        "severity": "MAJOR",
+        "priority": "P1",
+        "expected": "A rescan after stock recovery must retire or explicitly stale the obsolete out-of-stock claim; acknowledgement alone does not make old evidence current.",
+        "actual": "After the same item is replenished from 0 to 20 and rescanned, its signal remains ACKNOWLEDGED/critical with evidence available 0, source version v1 and confidence 0.90. The scan upserts current matches but does not invalidate no-longer-matching signals.",
+        "business_impact": "A seller may waste time or make unnecessary replenishment decisions from a high-confidence obsolete recommendation. No automatic procurement was executed.",
+        "reproduction_steps": [
+          "npm.cmd run qa:phase3",
+          "Inspect test_15_source_changes_rescan_and_signal_resolution and the preceding stock adjustment."
+        ],
+        "evidence": [
+          {
+            "name": "Old source claim after replenishment and rescan",
+            "path": "tmp/qa-agent/96be1091b699b21b/signal-after-replenishment.json"
+          },
+          {
+            "name": "Current execution evidence",
+            "path": "docs/qa/phase-3-report.json"
+          },
+          {
+            "name": "Signal scan authority",
+            "path": "apps/api/vayujit_api/operations/action_center_router.py"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Reconcile emitted fingerprints against current source state, retaining history while transitioning obsolete claims to a truthful noncurrent state. Do not auto-approve any business action.",
+        "retest_status": "FAIL"
+      }
+    },
+    {
+      "id": "QA-P3-SOURCE-001",
+      "status": "RESOLVED",
+      "retest_status": "PASS",
+      "scope": "Phase 3B correctness",
+      "historical_finding": {
+        "id": "QA-P3-SOURCE-001",
+        "feature": "Synthetic order financial provenance",
+        "area": "Financial evidence",
+        "journey": "Distinguish rehearsal data from real marketplace evidence",
+        "route": "/marketplaces/financials",
+        "type": "PERSISTENCE",
+        "severity": "MAJOR",
+        "priority": "P1",
+        "expected": "Financial fallback from fake-provider orders remains explicitly synthetic, even when no separate financial event exists.",
+        "actual": "The Flipkart summary contains only fake orders, canonical_order_fallback true and event_count 0, but synthetic_provider false. The flag inspects FinancialEvent source_type only and ignores fake order totals/provenance. The UI uses this flag to choose Synthetic fixture versus Canonical evidence.",
+        "business_impact": "A rehearsal can be presented as non-synthetic financial evidence, undermining trust in seller readiness and forecasts.",
+        "reproduction_steps": [
+          "npm.cmd run qa:phase3",
+          "Inspect test_17_canonical_order_synthetic_provenance_and_state_change."
+        ],
+        "evidence": [
+          {
+            "name": "Fake-order fallback with false synthetic flag",
+            "path": "tmp/qa-agent/96be1091b699b21b/canonical-order-financial-source.json"
+          },
+          {
+            "name": "Financial projection source flag",
+            "path": "apps/api/vayujit_api/commerce/financial_router.py"
+          },
+          {
+            "name": "UI source presentation",
+            "path": "apps/web/src/app/marketplaces/financial-workspace.component.ts"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Propagate synthetic/trust provenance through every contributing canonical source, never promote missing source classification to real/verified evidence.",
+        "retest_status": "FAIL"
+      }
+    },
+    {
+      "id": "QA-P3-UX-001",
+      "status": "RESOLVED",
+      "retest_status": "PASS",
+      "scope": "Phase 3B correctness",
+      "historical_finding": {
+        "id": "QA-P3-UX-001",
+        "feature": "Resolved Action Center filter",
+        "area": "Action Center",
+        "journey": "Resolve and reopen persisted seller work",
+        "route": "/operations/action-center",
+        "type": "FUNCTIONAL",
+        "severity": "MODERATE",
+        "priority": "P2",
+        "expected": "Selecting Resolved retrieves and displays persisted resolved signals with useful history.",
+        "actual": "After resolving a card, choosing Resolved shows no card although the detail API reports RESOLVED and history. The select updates ngModel only; load() requests include_resolved only when called later, so the current dataset excludes resolved rows. Reproduced on desktop/mobile.",
+        "business_impact": "Sellers cannot reliably find completed work through the offered status filter and may think their review history was lost.",
+        "reproduction_steps": [
+          "npm.cmd run qa:phase3",
+          "QA-P3-04: acknowledge and resolve the browser warning, then choose Resolved without another refresh."
+        ],
+        "evidence": [
+          {
+            "name": "Browser screenshots, trace and API proof",
+            "path": "docs/qa/phase-3-report.json"
+          },
+          {
+            "name": "Filter and load implementation",
+            "path": "apps/web/src/app/operations/action-center.component.ts"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Trigger an authoritative reload on the status change and keep loading/error/context feedback; do not remove the filter or relax the browser assertion.",
+        "retest_status": "FAIL"
+      }
+    },
+    {
+      "id": "QA-UX-NAV-CURRENT-001",
+      "status": "RESOLVED",
+      "retest_status": "PASS",
+      "scope": "Low-risk navigation recommendation",
+      "historical_finding": {
+        "id": "QA-UX-NAV-CURRENT-001",
+        "feature": "Seller navigation current-location clarity",
+        "route": "/intelligence/business-agent",
+        "type": "USABILITY",
+        "severity": "MINOR",
+        "priority": "P2",
+        "expected": "The seller can distinguish the current page from its broader research section.",
+        "actual": "In the reviewed 25 October 2026 synthetic desktop screenshot, Business Agent and My Research both use the same active sidebar treatment. The navigation uses prefix matching for the parent /intelligence link. This is a usability recommendation, not an authorization or navigation failure.",
+        "reproduction_steps": [
+          "Run the QA smoke suite",
+          "Create a goal and plan",
+          "Review the sidebar on /intelligence/business-agent"
+        ],
+        "evidence": [
+          {
+            "name": "reviewed-desktop-screenshot",
+            "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+          }
+        ],
+        "confidence": "RECOMMENDATION",
+        "suggested_fix": "Consider exact matching for the current page or a visually distinct parent-section state. Preserve all routes and access guards.",
+        "retest_status": "NOT_RETESTED",
+        "area": "Seller navigation current-location clarity",
+        "journey": "Operational seller lifecycle",
+        "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+      }
+    }
+  ],
+  "retained": [
+    "QA-P3-GAP-001",
+    "QA-P3-GAP-002",
+    "QA-P3-GAP-003",
+    "QA-P3-A11Y-REVIEW-001"
+  ],
+  "assessment": {
+    "scope": "QA_PHASE_3B_REVIEW_NOT_NEW_WORKFLOW_AUTHORIZATION",
+    "full_application_certification": "INCOMPLETE",
+    "usability": [
+      {
+        "id": "QA-UX-CURRENCY-DESKTOP",
+        "priority": "P2",
+        "status": "PROPOSED",
+        "route": "/products/new",
+        "problem": "USD default requires manual INR selection; currency mistakes can affect financial interpretation.",
+        "evidence": "Preserved Phase 1 UX observation and defect backlog",
+        "minimal_improvement": "Use explicit canonical business-currency preference with visible confirmation, not inferred INR.",
+        "complexity": "Small UI; medium configuration-contract validation",
+        "requires_product_approval": true
+      },
+      {
+        "id": "QA-UX-CURRENCY-MOBILE",
+        "priority": "P2",
+        "status": "PROPOSED",
+        "route": "/products/new",
+        "problem": "Same currency default adds mobile entry friction and error risk.",
+        "evidence": "Preserved Phase 1 mobile UX observation and defect backlog",
+        "minimal_improvement": "Shared explicit currency preference plus mobile keyboard verification.",
+        "complexity": "Small UI; medium contract validation",
+        "requires_product_approval": true
+      },
+      {
+        "id": "QA-UX-NAV-CURRENT-001",
+        "priority": "P2",
+        "status": "IMPLEMENTED_CLOSURE_REQUIRES_EXECUTED_LEDGER",
+        "route": "/intelligence/business-agent",
+        "problem": "Two current-page highlights obscure seller location.",
+        "evidence": "Prefix matcher; Phase 3B QA-P3B-01 desktop/mobile assertions",
+        "minimal_improvement": "Exact-match My Research root without changing guards or routes.",
+        "complexity": "Small",
+        "requires_product_approval": false
+      },
+      {
+        "id": "QA-P2-UX-ECONOMICS-DESKTOP",
+        "priority": "P2",
+        "status": "PROPOSED",
+        "route": "/intelligence/sourcing-economics",
+        "problem": "Baseline 16260px page obscures the decision and next action.",
+        "evidence": "Preserved Phase 2 desktop UX evidence",
+        "minimal_improvement": "Status summary, section jump links and deduplicated reasons; keep provenance available.",
+        "complexity": "Medium",
+        "requires_product_approval": true
+      },
+      {
+        "id": "QA-P2-UX-ECONOMICS-MOBILE",
+        "priority": "P2",
+        "status": "PROPOSED",
+        "route": "/intelligence/sourcing-economics",
+        "problem": "Baseline 43301px page burdens mobile navigation and comprehension.",
+        "evidence": "Preserved Phase 2 mobile UX evidence",
+        "minimal_improvement": "Shared hierarchy proposal with focus-safe mobile disclosure.",
+        "complexity": "Medium",
+        "requires_product_approval": true
+      },
+      {
+        "id": "QA-UX-PRE-RUN-MODE-001",
+        "priority": "P3",
+        "status": "PROPOSED",
+        "route": "/intelligence/business-agent",
+        "problem": "Configured mode, unrecorded run mode and confirmation/Start controls can appear contradictory.",
+        "evidence": "Preserved pre-run state observation; no live-provider certification",
+        "minimal_improvement": "Explain configured versus per-run state and canonical next action.",
+        "complexity": "Small copy; medium supported-state review",
+        "requires_product_approval": true
+      }
+    ],
+    "workflow_gaps": [
+      {
+        "id": "QA-P3-GAP-001",
+        "classification": "IMPORTANT_BUT_DEFERRABLE",
+        "status": "OPEN",
+        "rationale": "Exact historical operational projections cannot be reconstructed. Deferrable only while clearly current/estimated and not the sole financial ledger.",
+        "dependencies": [
+          "Approved immutable-history and retention requirements",
+          "Complete calculation input lineage"
+        ]
+      },
+      {
+        "id": "QA-P3-GAP-002",
+        "classification": "IMPORTANT_BUT_DEFERRABLE",
+        "status": "OPEN",
+        "rationale": "Action Center is advisory and external actions are default-denied; a duplicate generic approval authority would be unsafe.",
+        "dependencies": [
+          "Supported action-type inventory",
+          "Routing to existing canonical HUMAN authorities"
+        ]
+      },
+      {
+        "id": "QA-P3-GAP-003",
+        "classification": "LAUNCH_CRITICAL_MISSING_WORKFLOW",
+        "status": "OPEN",
+        "rationale": "Initial canonical SKU stock has an API but no demonstrated empty-state UI handoff. Product-master stock is a separate authority.",
+        "dependencies": [
+          "Approved opening-balance and provenance UX",
+          "Existing canonical inventory creation API"
+        ]
+      }
+    ],
+    "accessibility": {
+      "status": "MANUAL_REVIEW_REQUIRED",
+      "historical_caption_occurrences": 6,
+      "historical_financial_nodes": 4,
+      "note": "Full-document scans, scrolling, keyboard focus and supplemental node screenshots are retained. Incomplete axe results and zero-target rescans do not prove WCAG compliance. Exact results are in phase-3b-validation.md and execution artifacts."
+    }
+  },
+  "full_application_certification": "INCOMPLETE"
+}

@@ -92,7 +92,7 @@ import { AIService } from './ai.service';
           {{ busy() ? 'Generating...' : 'Generate review draft' }}
         </button>
       </div>
-      <aside class="ai-card">
+      <section class="ai-card" aria-label="Generation summary">
         <h2>Generation summary</h2>
         <p>
           Provider: {{ providerKey }} - Model:
@@ -106,7 +106,7 @@ import { AIService } from './ai.service';
           Human approval remains mandatory. Cost is unavailable unless operator pricing exists.
           Product content and additional instructions are treated as untrusted data.
         </p>
-      </aside>
+      </section>
     </form>
   </section>`,
   styleUrl: './ai.css',

@@ -1,0 +1,197 @@
+# QA Phase 4 executed report
+
+2026-10-26T17:08:38.510Z. **PASS_BOUNDED_EXPLORATION**. Application certification **INCOMPLETE**.
+
+## Actual counts
+
+```json
+{
+  "passed": 44,
+  "failed": 0,
+  "skipped": 0,
+  "blocked_installations": 0,
+  "api_passed": 36,
+  "api_failed": 0,
+  "api_errors": 0,
+  "route_declarations": 155,
+  "visited_declarations": 121,
+  "unavailable_context_declarations": 26,
+  "safety_denied_request_occurrences": 0,
+  "control_occurrences": 30920,
+  "unique_control_fingerprints": 24240,
+  "visible_control_occurrences": 17866,
+  "recorded_action_outcomes": 8,
+  "axe_state_scans": 252,
+  "axe_rule_violation_occurrences": 0,
+  "new_confirmed_route_rule_findings": 0,
+  "confirmed_non_axe_findings": 0,
+  "inherited_open_findings": 129,
+  "complete_application_coverage": false
+}
+```
+
+## New findings (triage categories preserved)
+
+- **QA-P4-UX-STOCK-EMPTY** P2 / RECOMMENDATION / USABILITY: Searching for a nonexistent SKU on a populated installation shows “No canonical inventory yet” and creation guidance rather than distinguishing no matching results. The same scenario then retrieves an existing persisted SKU. Evidence: tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-TASK-03/0-stock-handoff-filter-empty.json, tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-TASK-03/0-stock-handoff-filter-empty.json
+- **QA-P4-UX-OVERFLOW-805927FDFA67** P2 / RECOMMENDATION / USABILITY: desktop: document width 1664px at viewport 1440px Evidence: tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-AI/14-surface-1d863b9c09d5.json
+- **QA-P4-UX-OVERFLOW-4A67C5636387** P2 / RECOMMENDATION / USABILITY: desktop: document width 1469px at viewport 1440px Evidence: tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/50-surface-8c4f8b0e0cd9.json
+- **QA-P4-UX-RESEARCH-LENGTH** P2 / RECOMMENDATION / USABILITY: desktop /intelligence/external: 13125px document height; mobile /intelligence/websites: 14416px document height Evidence: tmp/qa-agent/2af5f146287bb2ee/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/47-surface-31279458c620.json, tmp/qa-agent/12b406043b4f94f2/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/44-surface-7c35cac419c4.json
+
+## Accessibility subset
+
+```json
+{
+  "node_reviews": 32,
+  "verified_contrast_nodes": 32,
+  "incomplete_node_reviews": 0,
+  "actual_node_violations": 0,
+  "clipped_text_reviews": 0
+}
+```
+
+See [exact node and scan evidence](phase-4-accessibility.json). Wide viewport success is not narrow/mobile closure; no WCAG conformance claim.
+
+## Prior findings
+
+- QA-UX-CURRENCY-DESKTOP / P2 / NOT_RETESTED
+- QA-UX-CURRENCY-MOBILE / P2 / NOT_RETESTED
+- QA-P2-UX-ECONOMICS-DESKTOP / P2 / NOT_RETESTED
+- QA-P2-UX-ECONOMICS-MOBILE / P2 / NOT_RETESTED
+- QA-P3-GAP-001 / P2 / BLOCKED
+- QA-P3-GAP-002 / P2 / BLOCKED
+- QA-P3-GAP-003 / P2 / BLOCKED
+- QA-P3-A11Y-REVIEW-001 / P2 / PASS
+- QA-UX-PRE-RUN-MODE-001 / P3 / NOT_RETESTED
+- QA-P4-AXE-E96F9DFDE280 / P2 / PASS
+- QA-P4-AXE-23DF0FDF8B0E / P2 / PASS
+- QA-P4-AXE-E40C2783EE3D / P2 / PASS
+- QA-P4-AXE-44ACD6654124 / P2 / PASS
+- QA-P4-AXE-CB04ED4A4EA6 / P2 / PASS
+- QA-P4-AXE-3E5F633E4037 / P2 / PASS
+- QA-P4-AXE-D7BBEB7BBE2A / P2 / PASS
+- QA-P4-AXE-DC01B46528F7 / P2 / PASS
+- QA-P4-AXE-FD6BE146A5F0 / P2 / PASS
+- QA-P4-AXE-D9E4382CA736 / P2 / PASS
+- QA-P4-AXE-3A8E81633B75 / P2 / PASS
+- QA-P4-AXE-A16747D8ABCB / P2 / PASS
+- QA-P4-AXE-6D3829F9EEF4 / P2 / PASS
+- QA-P4-AXE-D6DAE6D2EE22 / P2 / PASS
+- QA-P4-AXE-A271A0498E89 / P2 / PASS
+- QA-P4-AXE-F00D78BBBB9B / P2 / PASS
+- QA-P4-AXE-A1E598DC9852 / P2 / PASS
+- QA-P4-AXE-E14F2270CBE9 / P2 / PASS
+- QA-P4-AXE-3C9CF969E8F2 / P2 / PASS
+- QA-P4-AXE-A2CA3D432552 / P2 / PASS
+- QA-P4-AXE-79435C8AA158 / P2 / PASS
+- QA-P4-AXE-91E14988E5D5 / P2 / PASS
+- QA-P4-AXE-A6D1540C04AA / P2 / PASS
+- QA-P4-AXE-89DAC1CD93F9 / P2 / PASS
+- QA-P4-AXE-513CFFA471E1 / P2 / PASS
+- QA-P4-AXE-66308571F015 / P2 / PASS
+- QA-P4-AXE-FE9BD5EDDAEF / P2 / PASS
+- QA-P4-AXE-2B7FA3EFC0F3 / P2 / PASS
+- QA-P4-AXE-6765E73EDC71 / P2 / PASS
+- QA-P4-AXE-AF8BF75CA180 / P2 / PASS
+- QA-P4-AXE-430F9652F664 / P2 / PASS
+- QA-P4-AXE-9ED3FC173084 / P2 / PASS
+- QA-P4-AXE-001F12348729 / P2 / PASS
+- QA-P4-AXE-5087095AA670 / P2 / PASS
+- QA-P4-AXE-5E13BE44E3A4 / P2 / PASS
+- QA-P4-AXE-DD250ACC3B69 / P2 / PASS
+- QA-P4-AXE-B92F2A83E235 / P1 / PASS
+- QA-P4-AXE-8A51650AE106 / P2 / PASS
+- QA-P4-AXE-E8DCA3F276C4 / P2 / PASS
+- QA-P4-AXE-2E450747C233 / P2 / PASS
+- QA-P4-AXE-75F369D37253 / P2 / PASS
+- QA-P4-AXE-FFB4A299A7CE / P2 / PASS
+- QA-P4-AXE-2D7E9087CD96 / P2 / PASS
+- QA-P4-AXE-5E5F9D8178D6 / P2 / PASS
+- QA-P4-AXE-34A8ABF24CC4 / P1 / PASS
+- QA-P4-AXE-42FE7B94A7D8 / P1 / PASS
+- QA-P4-ASSERT-C42568577235 / P1 / PASS
+- QA-P4-AXE-8E00B31BBCEC / P2 / PASS
+- QA-P4-AXE-5125939B31FA / P2 / PASS
+- QA-P4-AXE-E9B916722E14 / P2 / PASS
+- QA-P4-AXE-2E2C527E83C9 / P2 / PASS
+- QA-P4-AXE-AA47B13918CB / P2 / PASS
+- QA-P4-AXE-0A3596EDDB06 / P2 / PASS
+- QA-P4-AXE-D7DD15FFCE5B / P2 / PASS
+- QA-P4-AXE-0BB638A4CD4C / P2 / PASS
+- QA-P4-AXE-D710A11DAF0F / P2 / PASS
+- QA-P4-AXE-FBA4993C75D8 / P2 / PASS
+- QA-P4-AXE-5A35D76B79B9 / P2 / PASS
+- QA-P4-AXE-B7376E19BA87 / P2 / PASS
+- QA-P4-AXE-C6D5B2B4C7E1 / P2 / PASS
+- QA-P4-AXE-76479A8A6DF4 / P2 / PASS
+- QA-P4-AXE-78D838E8B612 / P2 / PASS
+- QA-P4-AXE-F0BACDB7A3BA / P2 / PASS
+- QA-P4-AXE-F75FFFA4B7D0 / P2 / PASS
+- QA-P4-AXE-8950ECCA4CCC / P1 / PASS
+- QA-P4-AXE-4A89BCBB98E6 / P2 / PASS
+- QA-P4-AXE-8280F5E3D289 / P2 / PASS
+- QA-P4-AXE-1E1BC8507674 / P1 / PASS
+- QA-P4-AXE-763F1B4A4390 / P2 / PASS
+- QA-P4-AXE-0F52BC939E41 / P2 / PASS
+- QA-P4-AXE-C7838FC35B1A / P1 / PASS
+- QA-P4-AXE-26AEEB64E1BD / P2 / PASS
+- QA-P4-AXE-338F8353CBE9 / P2 / PASS
+- QA-P4-AXE-9C85044DF29F / P1 / PASS
+- QA-P4-AXE-BCE52D1D245F / P2 / PASS
+- QA-P4-AXE-9A12E729646E / P2 / PASS
+- QA-P4-AXE-601357805E06 / P1 / PASS
+- QA-P4-AXE-8C8B1F278405 / P2 / PASS
+- QA-P4-AXE-8DC6F8DCDEC2 / P2 / PASS
+- QA-P4-AXE-10C33F043B34 / P1 / PASS
+- QA-P4-AXE-F35A3F1CCC3B / P2 / PASS
+- QA-P4-AXE-91CF6D09DACC / P2 / PASS
+- QA-P4-AXE-B4F94EEF1625 / P1 / PASS
+- QA-P4-AXE-B6A22B4A01D6 / P2 / PASS
+- QA-P4-AXE-B80713638977 / P2 / PASS
+- QA-P4-AXE-2599632DCD78 / P2 / PASS
+- QA-P4-AXE-B04BA9EDFEA5 / P2 / PASS
+- QA-P4-AXE-C1475768FD6F / P2 / PASS
+- QA-P4-AXE-5F89506AC241 / P2 / PASS
+- QA-P4-AXE-253C0733D8E7 / P2 / PASS
+- QA-P4-AXE-4C1A2779E46E / P2 / PASS
+- QA-P4-ASSERT-B98DFC06C7B1 / P1 / PASS
+- QA-P4-AXE-204FB7530B1E / P1 / PASS
+- QA-P4-ASSERT-FC9019123F6D / P1 / PASS
+- QA-P4-AXE-1BD3E57BFE08 / P2 / PASS
+- QA-P4-AXE-528EB4702FE9 / P1 / PASS
+- QA-P4-AXE-86986F1B529F / P1 / PASS
+- QA-P4-AXE-B55758865EA3 / P1 / PASS
+- QA-P4-AXE-9F962BE094D5 / P1 / PASS
+- QA-P4-AXE-FF234C7614B0 / P1 / PASS
+- QA-P4-ASSERT-47F74387E395 / P1 / PASS
+- QA-P4-AXE-CE8A889155F0 / P1 / PASS
+- QA-P4-ASSERT-02BB0B433F4A / P1 / PASS
+- QA-P4-ASSERT-503A9F1D5FF5 / P1 / PASS
+- QA-P4-AXE-B1E92B58C67D / P1 / PASS
+- QA-P4-AXE-E00F1DD38EB3 / P1 / PASS
+- QA-P4-API-67A1C8127DF2 / P2 / NOT_RETESTED
+- QA-P4-ASSERT-F8D3F24797EE / P1 / PASS
+- QA-P4-AXE-A1CF7B3F220C / P1 / PASS
+- QA-P4-AXE-7C0BAFB59154 / P1 / PASS
+- QA-P4-ASSERT-700D428F916A / P1 / PASS
+- QA-P4-UX-STOCK-EMPTY / P2 / NOT_RETESTED
+- QA-P4-A11Y-CAPTION-CLIPPING / P2 / PASS
+- QA-P4-UX-OVERFLOW-805927FDFA67 / P2 / NOT_RETESTED
+- QA-P4-UX-OVERFLOW-4A67C5636387 / P2 / NOT_RETESTED
+- QA-P4-UX-RESEARCH-LENGTH / P2 / NOT_RETESTED
+- QA-P4-AXE-53F6D1D5D94D / P2 / PASS
+- QA-P4-AXE-26DC4E2A2543 / P2 / PASS
+- QA-P4-AXE-C81046A29D13 / P1 / PASS
+- QA-P4A-A11Y-MANUAL-001 / P2 / BLOCKED
+
+Preserved without automatic closure. [Current backlog](defect-backlog.json).
+
+## Cleanup
+
+- desktop: PASS, child exit 0, marker=true, absent=true
+- mobile: PASS, child exit 0, marker=true, absent=true
+
+## Coverage and limitations
+
+[Route/control matrix](phase-4-coverage.md), [12 seller journeys](phase-4-journeys.json), [initial stock proposal](phase-4-stock-entry-assessment.md), and [validation / exact Windows commands](phase-4-validation.md).
+
+Only disposable synthetic state. Existing ORM fixtures are not migration certification. No marketplace/provider calls, supplier contact, publication, worker/backup changes, permanent data changes, branches, commits or pushes.

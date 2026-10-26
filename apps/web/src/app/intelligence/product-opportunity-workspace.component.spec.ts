@@ -131,6 +131,11 @@ describe('Product opportunity sourcing feasibility', () => {
     component.detail.set(detail);
     component.sourcingFeasibility.set(output);
     fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(
+      root.querySelector('section.workspace[aria-label="Product opportunity workspace"]'),
+    ).not.toBeNull();
+    expect(root.querySelectorAll('main')).toHaveLength(0);
     const text = fixture.nativeElement.textContent as string;
     for (const expected of [
       'Fixture supplier',

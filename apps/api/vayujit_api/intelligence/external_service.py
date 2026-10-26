@@ -4,12 +4,13 @@ from __future__ import annotations
 import hashlib
 import time
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
+from math import ceil
 from typing import cast
 from urllib.parse import urlparse
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -31,6 +32,7 @@ from vayujit_api.intelligence.external_durability import (
 )
 from vayujit_api.intelligence.external_evidence import derive_freshness
 from vayujit_api.intelligence.external_models import (
+    ExternalExecution,
     ExternalFetch,
     ExternalProviderState,
     ExternalSearchRequest,
@@ -53,6 +55,16 @@ from vayujit_api.intelligence.external_schemas import (
 )
 
 ALLOWED_MODES = ("DISABLED", "LOCAL_FIXTURE", "SANDBOX", "LIVE_READ_ONLY")
+SAFE_FETCH_FAILURE_MESSAGES = {
+    "dns_rebinding_blocked": "The DNS safety recheck blocked this fetch. Source approval cannot override it. Use another product source; do not disable network safety.",
+    "redirect_blocked": "The source redirected outside permitted access. Use another product source.",
+    "mime_blocked": "The response was not a supported page format.",
+    "response_too_large": "The response exceeded the configured safe size limit.",
+    "fetch_rate_limited": "The source rate-limited the fetch. Wait before retrying or use another source.",
+    "fetch_timeout": "The source did not respond within the configured timeout.",
+    "fetch_network_failed": "The source could not be reached safely.",
+    "fetch_5xx": "The source returned a server error.",
+}
 ALLOWED_MISSION_TYPES = {
     "PRODUCT_VALIDATION",
     "TREND_RESEARCH",
@@ -264,6 +276,56 @@ def _search_reuse_payload(
     }
 
 
+def _recorded_search_results(
+    db: Session, owner: User, request: ExternalSearchRequest
+) -> list[ExternalSearchResult]:
+    """Reconstruct shared canonical results through the existing execution lineage."""
+    execution = db.scalar(
+        select(ExternalExecution).where(
+            ExternalExecution.owner_id == owner.id,
+            ExternalExecution.kind == "search",
+            ExternalExecution.identity_key
+            == execution_identity(
+                "search",
+                owner_id=owner.id,
+                mission_id=request.mission_id,
+                task_id=request.task_id,
+                value=request.identity_key,
+            ),
+        )
+    )
+    if execution is not None and execution.status == "COMPLETED":
+        ids: list[uuid.UUID] = []
+        for value in execution.result_ids or []:
+            try:
+                identifier = uuid.UUID(str(value))
+            except (ValueError, TypeError):
+                continue
+            if identifier not in ids:
+                ids.append(identifier)
+        rows = list(
+            db.scalars(
+                select(ExternalSearchResult).where(
+                    ExternalSearchResult.owner_id == owner.id,
+                    ExternalSearchResult.id.in_(ids),
+                )
+            )
+        )
+        by_id = {row.id: row for row in rows}
+        return [by_id[identifier] for identifier in ids if identifier in by_id]
+    # Legacy requests without a completed execution still use their recorded parent.
+    return list(
+        db.scalars(
+            select(ExternalSearchResult)
+            .where(
+                ExternalSearchResult.owner_id == owner.id,
+                ExternalSearchResult.search_id == request.id,
+            )
+            .order_by(ExternalSearchResult.rank)
+        )
+    )
+
+
 def _fetch_reuse_payload(existing: ExternalFetch) -> dict[str, object] | None:
     """Reuse fetched evidence while preserving its derived freshness state."""
     freshness = derive_freshness(existing.retrieved_at)
@@ -378,7 +440,12 @@ def _guard(settings: Settings, *, operation: str) -> None:
 
 
 def _check_quota(
-    db: Session, owner: User, provider: str, settings: Settings
+    db: Session,
+    owner: User,
+    provider: str,
+    settings: Settings,
+    *,
+    now: datetime | None = None,
 ) -> ExternalProviderState:
     state = db.scalar(
         select(ExternalProviderState)
@@ -393,15 +460,62 @@ def _check_quota(
         db.flush()
     if state.disabled:
         raise HTTPException(409, "Search provider is disabled.")
-    if (
-        state.requests_minute >= settings.intelligence_search_requests_per_minute
-        or state.requests_hour >= settings.intelligence_search_requests_per_hour
-        or state.requests_day >= settings.intelligence_search_daily_cap
-    ):
+    current = (now or datetime.now(UTC)).astimezone(UTC)
+    previous = state.updated_at
+    if previous.tzinfo is None:
+        previous = previous.replace(tzinfo=UTC)
+    minute = current.replace(second=0, microsecond=0)
+    hour = minute.replace(minute=0)
+    day = hour.replace(hour=0)
+    windows = (
+        (
+            "requests_minute",
+            minute,
+            timedelta(minutes=1),
+            settings.intelligence_search_requests_per_minute,
+        ),
+        ("requests_hour", hour, timedelta(hours=1), settings.intelligence_search_requests_per_hour),
+        ("requests_day", day, timedelta(days=1), settings.intelligence_search_daily_cap),
+    )
+    if any(previous < start for _, start, _, _ in windows):
+        # Keep the provider row lock while reconstructing expired UTC windows.
+        # Legacy rows did not advance updated_at, so recent durable requests
+        # must be counted rather than assuming an old timestamp means no usage.
+        usage = db.execute(
+            select(
+                func.count().filter(ExternalSearchRequest.created_at >= minute),
+                func.count().filter(ExternalSearchRequest.created_at >= hour),
+                func.count(),
+            ).where(
+                ExternalSearchRequest.owner_id == owner.id,
+                ExternalSearchRequest.provider == provider,
+                ExternalSearchRequest.created_at >= day,
+            )
+        ).one()
+        for (field, start, _, _), count in zip(windows, usage, strict=True):
+            if previous < start:
+                setattr(state, field, int(count))
+    # Every reservation/rejection advances the common timestamp. Comparing
+    # calendar boundaries independently allows minute/hour/day rollover even
+    # under continuous traffic; a backward clock must not reopen a window.
+    state.updated_at = max(previous, current)
+    blocked_until = [
+        start + duration
+        for field, start, duration, limit in windows
+        if getattr(state, field) >= limit
+    ]
+    if blocked_until:
         state.status = "RATE_LIMITED"
         state.last_failure = "search_rate_limited"
         db.commit()
-        raise HTTPException(429, "Search quota exceeded.")
+        retry_after = max(1, ceil((max(blocked_until) - current).total_seconds()))
+        raise HTTPException(
+            429, "Search quota exceeded.", headers={"Retry-After": str(retry_after)}
+        )
+    if state.status == "RATE_LIMITED":
+        state.status = "READY"
+        if state.last_failure == "search_rate_limited":
+            state.last_failure = None
     state.requests_minute += 1
     state.requests_hour += 1
     state.requests_day += 1
@@ -442,13 +556,7 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
         )
     )
     if existing is not None:
-        results = list(
-            db.scalars(
-                select(ExternalSearchResult)
-                .where(ExternalSearchResult.search_id == existing.id)
-                .order_by(ExternalSearchResult.rank)
-            )
-        )
+        results = _recorded_search_results(db, owner, existing)
         reused = _search_reuse_payload(existing, results)
         if reused is not None:
             return reused
@@ -478,13 +586,7 @@ def search(db: Session, owner: User, data: ExternalSearchRequestBody) -> dict[st
                 )
             )
             if existing is not None:
-                results = list(
-                    db.scalars(
-                        select(ExternalSearchResult)
-                        .where(ExternalSearchResult.search_id == existing.id)
-                        .order_by(ExternalSearchResult.rank)
-                    )
-                )
+                results = _recorded_search_results(db, owner, existing)
                 reused = _search_reuse_payload(existing, results)
                 if reused is not None:
                     return reused
@@ -957,7 +1059,14 @@ def fetch(db: Session, owner: User, data: ExternalFetchRequestBody) -> dict[str,
                         idempotency_key=f"external-fetch:{execution.id}:{suffix}",
                     )
                     db.commit()
-                    raise HTTPException(502, "Approved fetch failed safely.") from exc
+                    headers = (
+                        {"X-External-Failure-Code": failure_code}
+                        if failure_code in SAFE_FETCH_FAILURE_MESSAGES
+                        else None
+                    )
+                    raise HTTPException(
+                        502, "Approved fetch failed safely.", headers=headers
+                    ) from exc
                 time.sleep(
                     min(
                         settings.intelligence_external_retry_backoff_seconds * (2**attempt),

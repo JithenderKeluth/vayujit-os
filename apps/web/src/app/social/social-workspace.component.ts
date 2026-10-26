@@ -486,7 +486,7 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
               @if (!posts().length) {
                 <p class="empty">No Video posts yet. Start with Compose.</p>
               }
-              <div class="table-wrap">
+              <div class="table-wrap" tabindex="0" role="region" aria-label="Recent Video posts table">
                 <table>
                   <thead>
                     <tr>

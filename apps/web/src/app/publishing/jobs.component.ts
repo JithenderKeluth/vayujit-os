@@ -47,7 +47,7 @@ import { PublishingService } from './publishing.service';
             <th>Artifact</th>
             <th>Attempts</th>
             <th>Lease / delay</th>
-            <th></th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>

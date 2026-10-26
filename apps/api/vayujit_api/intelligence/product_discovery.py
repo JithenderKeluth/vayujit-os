@@ -414,10 +414,9 @@ def generate_category_product_hypotheses(
 ) -> list[dict[str, object]]:
     """Generate bounded concrete hypotheses from the canonical candidate authority.
 
-    Exact category candidates are preferred. When the authority has no exact
-    taxonomy match, its existing product concepts are projected into the
-    seller-requested category as system-generated hypotheses. They are search
-    seeds only; fetched evidence must still establish category compatibility.
+    Exact category candidates are preferred. For an unsupported taxonomy,
+    search the requested category itself rather than relabelling unrelated
+    fixture products. This seed is a research scope, never a product entity.
     """
     goal = dict(structured_goal or {})
     requested_category = str(goal.get("category") or "").strip()
@@ -425,34 +424,24 @@ def generate_category_product_hypotheses(
     if exact or not requested_category:
         return exact
 
-    seed_goal = dict(goal)
-    seed_goal.pop("category", None)
-    seeds = discover_local_product_candidates(raw_goal, seed_goal, limit=limit)
     label = re.sub(r"\s+", " ", requested_category).strip(" .,-")
-    projected: list[dict[str, object]] = []
-    for item in seeds[: max(1, min(limit, 3))]:
-        seed_profile = item.get("profile")
-        profile = dict(seed_profile) if isinstance(seed_profile, dict) else {}
-        concept = f"{label} {item['product_concept']}"
-        projected.append(
-            {
-                **item,
-                "name": f"{label.title()} {item['name']}",
-                "product_concept": concept,
-                "category": label.title(),
-                "subcategory": label.title(),
-                "profile": {
-                    **profile,
-                    "candidate_source": "CATEGORY_CONSTRAINED_HYPOTHESIS",
-                    "candidate_provenance": {
-                        "source": "CATEGORY_CONSTRAINED_HYPOTHESIS",
-                        "method": "CANONICAL_CANDIDATE_AUTHORITY_PROJECTION",
-                        "authoritative": False,
-                    },
+    return [
+        {
+            "name": f"{label.title()} category discovery",
+            "product_concept": label,
+            "description": "Category research scope only; no product identity established.",
+            "category": label.title(),
+            "subcategory": "UNKNOWN",
+            "profile": {
+                "candidate_source": "CATEGORY_LED_DISCOVERY_SEED",
+                "candidate_provenance": {
+                    "source": "EXPLICIT_SELLER_CATEGORY",
+                    "method": "CATEGORY_LED_DISCOVERY",
+                    "authoritative": False,
                 },
-            }
-        )
-    return projected
+            },
+        }
+    ]
 
 
 __all__ = [

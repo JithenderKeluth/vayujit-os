@@ -5,7 +5,7 @@ import threading
 import uuid
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 os.environ["VAYUJIT_INTELLIGENCE_ENABLED"] = "true"
@@ -351,7 +351,7 @@ def test_provider_request_budget_concurrency_is_atomic(
         assert budget is not None and budget.provider_requests_used == 1
 
 
-@pytest.mark.parametrize("window", ["minute", "hour"])
+@pytest.mark.parametrize("window", ["minute", "hour", "day"])
 def test_provider_rate_limit_concurrency_is_atomic(
     client: TestClient, monkeypatch: pytest.MonkeyPatch, window: str
 ) -> None:
@@ -361,7 +361,7 @@ def test_provider_rate_limit_concurrency_is_atomic(
         intelligence_external_approved_domains="example.org",
         intelligence_search_requests_per_minute=1 if window == "minute" else 100,
         intelligence_search_requests_per_hour=1 if window == "hour" else 100,
-        intelligence_search_daily_cap=100,
+        intelligence_search_daily_cap=1 if window == "day" else 100,
     )
     monkeypatch.setattr(external_service, "_settings", lambda: settings)
     provider = CountingSearchProvider()
@@ -404,7 +404,131 @@ def test_provider_rate_limit_concurrency_is_atomic(
             select(ExternalProviderState).where(ExternalProviderState.provider == provider.name)
         )
         assert state is not None
-        assert (state.requests_minute if window == "minute" else state.requests_hour) == 1
+        assert getattr(state, f"requests_{window}") == 1
+
+
+def test_expired_provider_quota_recovers_under_concurrent_searches(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    setup_context(client)
+    settings = _settings_with(
+        intelligence_external_provider_mode="LOCAL_FIXTURE",
+        intelligence_external_approved_domains="example.org",
+        intelligence_search_requests_per_minute=1,
+        intelligence_search_requests_per_hour=100,
+        intelligence_search_daily_cap=100,
+    )
+    monkeypatch.setattr(external_service, "_settings", lambda: settings)
+    provider = CountingSearchProvider()
+    monkeypatch.setattr(external_service, "_provider", lambda _settings: provider)
+    assert integration.factory is not None
+    with integration.factory() as db:
+        owner = db.scalar(select(User).where(User.email == "owner@example.com"))
+        assert owner is not None
+        db.add(
+            ExternalProviderState(
+                owner_id=owner.id,
+                provider=provider.name,
+                status="RATE_LIMITED",
+                requests_minute=1,
+                requests_hour=1,
+                requests_day=1,
+                last_failure="search_rate_limited",
+                updated_at=datetime.now(UTC) - timedelta(days=2),
+            )
+        )
+        db.add(
+            ExternalSearchRequest(
+                owner_id=owner.id,
+                query="unrelated provider fixture",
+                provider="unrelated-fixture-provider",
+                mode="LOCAL_FIXTURE",
+                status="COMPLETED",
+                correlation_id="unrelated-provider-quota-fixture",
+                identity_key=f"unrelated-provider-{uuid.uuid4()}",
+                created_at=datetime.now(UTC),
+            )
+        )
+        db.commit()
+
+    def operation(db: Session, owner: User, index: int) -> object:
+        return external_service.search(
+            db,
+            owner,
+            ExternalSearchRequestBody(
+                query=f"expired-quota-{uuid.uuid4()}-{index}",
+                allowed_domains=["example.org"],
+                max_results=1,
+            ),
+        )
+
+    results = _run_two_sessions(operation)
+    assert sum(isinstance(value, dict) and "status" in value for value in results) == 1
+    assert (
+        sum(isinstance(value, dict) and value.get("status_code") == 429 for value in results) == 1
+    )
+    assert provider.calls == 1
+
+
+def test_legacy_provider_quota_preserves_recent_search_usage(
+    client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    setup_context(client)
+    settings = _settings_with(
+        intelligence_external_provider_mode="LOCAL_FIXTURE",
+        intelligence_external_approved_domains="example.org",
+        intelligence_search_requests_per_minute=1,
+        intelligence_search_requests_per_hour=100,
+        intelligence_search_daily_cap=100,
+    )
+    monkeypatch.setattr(external_service, "_settings", lambda: settings)
+    provider = CountingSearchProvider()
+    monkeypatch.setattr(external_service, "_provider", lambda _settings: provider)
+    assert integration.factory is not None
+    with integration.factory() as db:
+        owner = db.scalar(select(User).where(User.email == "owner@example.com"))
+        assert owner is not None
+        db.add(
+            ExternalProviderState(
+                owner_id=owner.id,
+                provider=provider.name,
+                status="RATE_LIMITED",
+                requests_minute=1,
+                requests_hour=1,
+                requests_day=1,
+                updated_at=datetime.now(UTC) - timedelta(days=2),
+            )
+        )
+        db.add(
+            ExternalSearchRequest(
+                owner_id=owner.id,
+                query="recent durable usage fixture",
+                provider=provider.name,
+                mode="LOCAL_FIXTURE",
+                status="COMPLETED",
+                correlation_id="recent-quota-fixture",
+                identity_key=f"recent-quota-{uuid.uuid4()}",
+                created_at=datetime.now(UTC),
+            )
+        )
+        db.commit()
+        with pytest.raises(HTTPException) as failure:
+            external_service.search(
+                db,
+                owner,
+                ExternalSearchRequestBody(
+                    query=f"legacy-current-quota-{uuid.uuid4()}",
+                    allowed_domains=["example.org"],
+                    max_results=1,
+                ),
+            )
+        assert failure.value.status_code == 429
+        state = db.scalar(
+            select(ExternalProviderState).where(ExternalProviderState.provider == provider.name)
+        )
+        assert state is not None
+        assert (state.requests_minute, state.requests_hour, state.requests_day) == (1, 1, 1)
+    assert provider.calls == 0
 
 
 def test_retry_budget_concurrency_consumes_one_token(client: TestClient) -> None:

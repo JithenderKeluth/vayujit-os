@@ -1,5 +1,7 @@
+import base64
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -259,8 +261,10 @@ class Settings(BaseSettings):
     @field_validator("environment")
     @classmethod
     def recognized_environment(cls, value: str) -> str:
-        if value not in {"local", "test", "development", "staging", "production"}:
-            raise ValueError("environment must be local, test, development, staging, or production")
+        if value not in {"local", "pc_local", "test", "development", "staging", "production"}:
+            raise ValueError(
+                "environment must be local, pc_local, test, development, staging, or production"
+            )
         return value
 
     @model_validator(mode="after")
@@ -308,6 +312,8 @@ class Settings(BaseSettings):
                 raise ValueError("production cannot enable debug mode")
             if self.live_ads_mutations_enabled and not self.ads_live_spend_enabled:
                 raise ValueError("live Ads mutations require the spend switch")
+        if self.environment == "pc_local":
+            self._validate_pc_local_security()
         if self.environment in {"local", "test", "development"} and self.require_https:
             raise ValueError("HTTPS is only required for staging or production")
         if not self.allowed_origin_set:
@@ -315,6 +321,83 @@ class Settings(BaseSettings):
         if "*" in self.allowed_origin_set:
             raise ValueError("wildcard origins are not allowed with credentialed CORS")
         return self
+
+    def _validate_pc_local_security(self) -> None:
+        """Keep the Windows PC profile loopback-only and fail closed for live actions."""
+        if self.debug:
+            raise ValueError("pc_local cannot enable debug mode")
+        if self.require_https or self.session_secure_cookie:
+            raise ValueError(
+                "pc_local uses loopback HTTP; HTTPS and secure cookies belong to the public profile"
+            )
+        if self.allow_missing_origin:
+            raise ValueError("pc_local requires exact Origin validation")
+        if not self.session_secret or len(self.session_secret) < 32:
+            raise ValueError("pc_local requires a unique session secret of at least 32 characters")
+        if not self.credential_encryption_key:
+            raise ValueError("pc_local requires a credential encryption key")
+        try:
+            key = base64.urlsafe_b64decode(self.credential_encryption_key.encode())
+        except Exception as error:
+            raise ValueError(
+                "pc_local credential encryption key must decode to 32 bytes"
+            ) from error
+        if len(key) != 32:
+            raise ValueError("pc_local credential encryption key must decode to 32 bytes")
+
+        try:
+            database_url = make_url(self.database_url)
+        except Exception as error:
+            raise ValueError("pc_local requires a valid private PostgreSQL URL") from error
+        if (database_url.host or "").casefold() != "postgres":
+            raise ValueError("pc_local database must use the private Compose postgres service")
+        if (database_url.database or "").casefold() != "vayujit_business":
+            raise ValueError("pc_local must use the dedicated vayujit_business database")
+        if (database_url.username or "").casefold() in {"", "postgres", "vayujit"}:
+            raise ValueError("pc_local requires a dedicated application database role")
+        if not database_url.password or len(database_url.password) < 32:
+            raise ValueError(
+                "pc_local requires a unique database password of at least 32 characters"
+            )
+
+        allowed_hosts = {"localhost", "127.0.0.1"}
+        if not self.allowed_origin_set:
+            raise ValueError("pc_local requires a loopback web Origin")
+        for origin in self.allowed_origin_set:
+            parsed = urlsplit(origin)
+            if (
+                parsed.scheme != "http"
+                or parsed.hostname not in allowed_hosts
+                or parsed.path
+                or parsed.query
+                or parsed.fragment
+                or parsed.username
+                or parsed.password
+            ):
+                raise ValueError("pc_local trusted Origins must be HTTP loopback addresses")
+        if self.web_origin not in self.allowed_origin_set:
+            raise ValueError("pc_local web origin must be listed in allowed Origins")
+        if self.storage_provider != "filesystem":
+            raise ValueError("pc_local media must use the persistent local media volume")
+        if not self.external_mutations_emergency_stop:
+            raise ValueError("pc_local requires the external mutations emergency stop")
+        if any(
+            (
+                self.live_ai_enabled,
+                self.live_social_publishing_enabled,
+                self.live_marketplace_mutations_enabled,
+                self.live_ads_mutations_enabled,
+                self.ads_live_spend_enabled,
+                self.live_email_delivery_enabled,
+                self.email_delivery_enabled,
+                self.shopify_live_mutation_enabled,
+            )
+        ):
+            raise ValueError("pc_local cannot enable live provider writes or email delivery")
+        if self.restore_enabled:
+            raise ValueError(
+                "pc_local must keep API restore disabled; use the isolated restore drill"
+            )
 
     @property
     def allowed_origin_set(self) -> set[str]:

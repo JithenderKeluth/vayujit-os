@@ -34,7 +34,7 @@ interface WebsiteFilters {
   imports: [DecimalPipe, FormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="website-intelligence" aria-labelledby="website-intelligence-title">
+    <section class="website-intelligence" aria-labelledby="website-intelligence-title">
       <header class="page-header">
         <div>
           <p class="eyebrow">Intelligence / Website research</p>
@@ -148,7 +148,7 @@ interface WebsiteFilters {
           <p class="empty">No manufacturers match these server-aligned filters.</p>
         }
         @if (manufacturers().length) {
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Manufacturer candidates and evidence quality">
             <table>
               <caption>
                 Manufacturer candidates and evidence quality
@@ -264,7 +264,7 @@ interface WebsiteFilters {
         @if (!suppliers().length) {
           <p class="empty">No supplier websites yet.</p>
         } @else {
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Supplier website candidates">
             <table>
               <caption>
                 Supplier website candidates
@@ -353,7 +353,7 @@ interface WebsiteFilters {
       <section id="commercial" class="panel" aria-labelledby="commercial-title">
         <p class="eyebrow">Commercial intelligence</p>
         <h2 id="commercial-title">Observed terms and append-only history</h2>
-        <div class="table-wrap">
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Commercial terms retain source currency and observation lineage">
           <table>
             <caption>
               Commercial terms retain source currency and observation lineage
@@ -425,7 +425,7 @@ interface WebsiteFilters {
         @if (!contradictions().length) {
           <p class="empty">No contradictions yet.</p>
         } @else {
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Owner-scoped contradiction list">
             <table>
               <caption>
                 Owner-scoped contradiction list
@@ -479,7 +479,7 @@ interface WebsiteFilters {
         @if (!changes().length) {
           <p class="empty">No material changes yet.</p>
         } @else {
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Owner-scoped website changes">
             <table>
               <caption>
                 Owner-scoped website changes
@@ -529,7 +529,7 @@ interface WebsiteFilters {
         @if (!alerts().length) {
           <p class="empty">No alerts yet.</p>
         } @else {
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Owner-scoped website alerts">
             <table>
               <caption>
                 Owner-scoped website alerts
@@ -577,7 +577,7 @@ interface WebsiteFilters {
         @if (!profiles().length) {
           <p class="empty">No source profiles yet.</p>
         } @else {
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Source profile policy and refresh schedule">
             <table>
               <caption>
                 Source profile policy and refresh schedule
@@ -635,7 +635,7 @@ interface WebsiteFilters {
         @if (!jobs().length) {
           <p class="empty">No refresh jobs yet.</p>
         } @else {
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Owner-scoped refresh queue">
             <table>
               <caption>
                 Owner-scoped refresh queue
@@ -717,7 +717,7 @@ interface WebsiteFilters {
         @if (!history().length) {
           <p class="empty">No history yet.</p>
         } @else {
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Observation lineage and freshness">
             <table>
               <caption>
                 Observation lineage and freshness
@@ -757,7 +757,7 @@ interface WebsiteFilters {
         @if (!reports().length) {
           <p class="empty">No reports yet.</p>
         } @else {
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Available website reports">
             <table>
               <caption>
                 Available website reports
@@ -847,7 +847,7 @@ interface WebsiteFilters {
         @if (!calendar().length) {
           <p class="empty">No refresh events scheduled.</p>
         } @else {
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Website refresh due events">
             <table>
               <caption>
                 Website refresh due events
@@ -891,7 +891,7 @@ interface WebsiteFilters {
           implemented.
         </p>
       </section>
-    </main>
+    </section>
   `,
   styles: [
     `
@@ -957,6 +957,9 @@ interface WebsiteFilters {
       }
       .boundary-grid small {
         color: #c7dfdc;
+      }
+      .matrix-grid .state small {
+        color: inherit;
       }
       .tabs {
         display: flex;

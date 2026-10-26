@@ -41,6 +41,11 @@ def sha256(path: Path) -> str:
 
 def create_backup(db: Session, owner_id: uuid.UUID) -> BackupRecord:
     settings = get_settings()
+    if settings.environment == "pc_local":
+        raise RuntimeError(
+            "Unencrypted application backups are disabled in pc_local. "
+            "Use the scheduled encrypted PC backup workflow."
+        )
     url = make_url(settings.database_url)
     stamp = datetime.now(UTC)
     key = stamp.strftime("%Y%m%dT%H%M%SZ") + "-" + uuid.uuid4().hex[:8]

@@ -1,0 +1,3330 @@
+{
+  "generated_at": "2026-10-26T16:49:33.461Z",
+  "tested_source_sha256": {
+    "apps/api/vayujit_api/commerce/inventory_router.py": "f7e828003e4f43d4ce17b42eb2269da221a64f06567ba9e6c849d4421fbdf685",
+    "apps/api/vayujit_api/commerce/schemas.py": "b7fe6bece5057fe1cd759ed26fe27ea408be792ae285b99e8efb96cdcbad7e02",
+    "apps/api/vayujit_api/commerce/models.py": "83284b6650ee2e5c82f5f049051e78c7fda846657b7f6aa542d9a09632a47da6",
+    "apps/api/vayujit_api/products/models.py": "b77c1fc22844656e8b3360c1e9f6a0c3d57c6f72f1f813f93bf55e49560d56e9",
+    "apps/api/vayujit_api/catalog/models.py": "1f5c8b9615fcf33da73c751a6f5a6659ad29b06614288ff639d39ff087d778ca",
+    "apps/web/src/app/marketplaces/unified-inventory.component.ts": "15000d74ab5e63c9046639a8d0d10229919c36eb10f76f7d80cd8e209b4b20a3",
+    "apps/web/src/app/marketplaces/marketplace.service.ts": "9efd319ce7140c29291f5682cf50b9bb6f0941080dc50d9ac1d83bee38f92505",
+    "apps/web/src/app/app.routes.ts": "034764877c26d95b0d40b37ad08f56c254679df586749cf1845e037548c9f87c",
+    "qa/tests/phase4.spec.mjs": "f34b3fec212081d08279ac117f9562f7fa84d4c5491085c6bb15f9cdd1aa965b",
+    "apps/web/src/app/ai/ai.css": "a915901551c88b166b1183d6191c8ab8d4aeb141274a792bc8b67563b7d2a2cc",
+    "qa/tests/phase4b.spec.mjs": "6b931587dd27e818a77f5f1e979a684c52c414b86dc878241f73b2644d5e8b1a",
+    "apps/web/src/app/marketplaces/opening-stock.component.ts": "efa4ecd8b6cef370b6f4038799491a5bb0cbfad398f62bd46c600174f5109f0d",
+    "apps/web/src/app/marketplaces/opening-stock.css": "58ff2ab002fa845490e2d406e6efb6946c328a8137057fb04d5505a31fb2e1e1",
+    "qa/safety.mjs": "5859ed828531964721bd2c596f82b8d308eb8c9f7b6b78825c5ebf4ee40569a8",
+    "qa/server.mjs": "e9ca0877c0815a64d2b050cade9bb5d43c1e8d6a9252420e8bf3e33f5a4bbf4d"
+  },
+  "phase": "QA_AGENT_PHASE_4B",
+  "status": "PASS_BOUNDED_OPENING_STOCK",
+  "executive_summary": {
+    "passed": 16,
+    "failed": 0,
+    "total": 16,
+    "full_application_coverage": false
+  },
+  "coverage": {
+    "inventoried_routes": 155,
+    "api_declarations": 1610,
+    "runtime_api_operations": [
+      1629,
+      1629
+    ],
+    "models": 421,
+    "existing_backend_test_files": 391,
+    "existing_angular_spec_files": 71,
+    "historical_tests_rerun": false
+  },
+  "reports": [
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-26T16:47:47.279Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "passed",
+      "executive_summary": {
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-P4B-01",
+          "title": "QA-P4B-01 empty inventory to persisted opening, ledger and refresh",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 4236,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-genuine-empty",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-01/0-axe-genuine-empty.json"
+            },
+            {
+              "name": "axe-no-products",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-01/1-axe-no-products.json"
+            },
+            {
+              "name": "axe-entry",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-01/2-axe-entry.json"
+            },
+            {
+              "name": "axe-review",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-01/3-axe-review.json"
+            },
+            {
+              "name": "axe-saved",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-01/4-axe-saved.json"
+            },
+            {
+              "name": "persisted-stock-proof",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-01/5-persisted-stock-proof.json"
+            },
+            {
+              "name": "axe-ledger",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-01/6-axe-ledger.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-01/7-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-01/8-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/28259a89-133c-4bcb-bb3a-78ce1b1a3a87",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/28259a89-133c-4bcb-bb3a-78ce1b1a3a87",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 201,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/d2e649c3-cc30-4d01-adc8-7f6754c1e416/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/28259a89-133c-4bcb-bb3a-78ce1b1a3a87",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/d2e649c3-cc30-4d01-adc8-7f6754c1e416/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/28259a89-133c-4bcb-bb3a-78ce1b1a3a87",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/d2e649c3-cc30-4d01-adc8-7f6754c1e416/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-genuine-empty",
+              "route": "/marketplaces/inventory",
+              "violations": [],
+              "incomplete": [],
+              "passes": 42
+            },
+            {
+              "state": "axe-no-products",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 43
+            },
+            {
+              "state": "axe-entry",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 42
+            },
+            {
+              "state": "axe-review",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 43
+            },
+            {
+              "state": "axe-saved",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 40
+            },
+            {
+              "state": "axe-ledger",
+              "route": "/marketplaces/inventory",
+              "violations": [],
+              "incomplete": [],
+              "passes": 47
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-02",
+          "title": "QA-P4B-02 invalid inputs, zero balance, cancel and keyboard review",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 3049,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-invalid",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-02/0-axe-invalid.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-02/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-02/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/9f9d80a3-bdb5-4187-8acc-0f47b9a59f5a",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/9f9d80a3-bdb5-4187-8acc-0f47b9a59f5a",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/9f9d80a3-bdb5-4187-8acc-0f47b9a59f5a",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/9f9d80a3-bdb5-4187-8acc-0f47b9a59f5a",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 201,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/b360ad74-1f27-47c9-8cc8-784028bced31/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/9f9d80a3-bdb5-4187-8acc-0f47b9a59f5a",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-invalid",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "nodes": [
+                    {
+                      "target": [
+                        "#quantity-help"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 42
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-03",
+          "title": "QA-P4B-03 variant custom SKU review reload and explicit reapproval",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 2129,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-restored-review",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-03/0-axe-restored-review.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-03/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-03/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/685ca2c6-b678-4e66-90d4-56389bd5ffc1",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/685ca2c6-b678-4e66-90d4-56389bd5ffc1",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/685ca2c6-b678-4e66-90d4-56389bd5ffc1",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 201,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/e9dcd7c3-3a61-4de1-a4f0-65f575ca4189/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/685ca2c6-b678-4e66-90d4-56389bd5ffc1",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-restored-review",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 43
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-04",
+          "title": "QA-P4B-04 response lost after commit replays without duplicate stock",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 2500,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-uncertain-save",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-04/0-axe-uncertain-save.json"
+            },
+            {
+              "name": "lost-response-replay",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-04/1-lost-response-replay.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-04/3-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: net::ERR_FAILED"
+            ],
+            "page_errors": [],
+            "failed_requests": [
+              {
+                "path": "/api/v1/inventory/items",
+                "code": "net::ERR_FAILED"
+              }
+            ],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/5d018a3b-0c2d-44e2-8ac3-49bec6aca8c9",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/5d018a3b-0c2d-44e2-8ac3-49bec6aca8c9",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/5d018a3b-0c2d-44e2-8ac3-49bec6aca8c9",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 201,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/23263a49-c8b4-41b8-933f-6d23082ecdd5/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/5d018a3b-0c2d-44e2-8ac3-49bec6aca8c9",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-uncertain-save",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 43
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-05",
+          "title": "QA-P4B-05 stock appears after review conflict preserves balance",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 2186,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-conflict",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-05/0-axe-conflict.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-05/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-05/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/inventory/items",
+                "status": 409
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 409 (Conflict)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/5b44eb1c-36c7-48be-a1a9-39a1ded4b842",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/5b44eb1c-36c7-48be-a1a9-39a1ded4b842",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 409,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/5b44eb1c-36c7-48be-a1a9-39a1ded4b842",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/5b44eb1c-36c7-48be-a1a9-39a1ded4b842",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-conflict",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 43
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-06",
+          "title": "QA-P4B-06 unavailable product and API recovery remain fail closed",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 2022,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-search-error",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-06/0-axe-search-error.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-06/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-06/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/inventory/items",
+                "status": 409
+              },
+              {
+                "path": "/api/v1/products",
+                "status": 503
+              },
+              {
+                "path": "/api/v1/products",
+                "status": 503
+              }
+            ],
+            "expected_http_errors": [
+              {
+                "path": "/api/v1/products",
+                "status": 503
+              }
+            ],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 409 (Conflict)",
+              "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+              "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/6efa6e71-6a1b-49f8-bcbc-4f6dfae679d8",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/6efa6e71-6a1b-49f8-bcbc-4f6dfae679d8",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 409,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 503,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 503,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-search-error",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 43
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-07",
+          "title": "QA-P4B-07 filtered navigation and saved deep link history",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 2319,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-saved-deep-link",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-07/0-axe-saved-deep-link.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-07/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-07/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/7d228ce3-91f6-4264-8e55-0a5d21adc4d1",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/7d228ce3-91f6-4264-8e55-0a5d21adc4d1",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 201,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/8b97ef7f-74a9-4fa7-9855-ba05c4d4b640/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/7d228ce3-91f6-4264-8e55-0a5d21adc4d1",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/8b97ef7f-74a9-4fa7-9855-ba05c4d4b640/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/7d228ce3-91f6-4264-8e55-0a5d21adc4d1",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/8b97ef7f-74a9-4fa7-9855-ba05c4d4b640/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-saved-deep-link",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 37
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-08",
+          "title": "QA-P4B-08 auth and unknown installation identifiers do not leak stock",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 1294,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-unknown-item",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-08/0-axe-unknown-item.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-08/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/d00af1f2c833fba6/evidence/desktop-QA-P4B-08/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/login"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/inventory/00000000-0000-0000-0000-000000000001/ledger",
+                "status": 404
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/00000000-0000-0000-0000-000000000001/ledger",
+                "method": "GET",
+                "status": 404,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 401,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-unknown-item",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 43
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [],
+      "confirmed_bugs": [],
+      "usability_findings": [],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "process_exit_code": 0,
+      "runtime_api_operations": 1629
+    },
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-26T16:49:01.775Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "passed",
+      "executive_summary": {
+        "passed": 8,
+        "failed": 0,
+        "skipped": 0,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-P4B-01",
+          "title": "QA-P4B-01 empty inventory to persisted opening, ledger and refresh",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 3585,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-genuine-empty",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-01/0-axe-genuine-empty.json"
+            },
+            {
+              "name": "axe-no-products",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-01/1-axe-no-products.json"
+            },
+            {
+              "name": "axe-entry",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-01/2-axe-entry.json"
+            },
+            {
+              "name": "axe-review",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-01/3-axe-review.json"
+            },
+            {
+              "name": "axe-saved",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-01/4-axe-saved.json"
+            },
+            {
+              "name": "persisted-stock-proof",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-01/5-persisted-stock-proof.json"
+            },
+            {
+              "name": "axe-ledger",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-01/6-axe-ledger.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-01/7-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-01/8-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/2b83c36b-384f-4327-9b51-86565ef8c7f0",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/2b83c36b-384f-4327-9b51-86565ef8c7f0",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 201,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/64c95010-3837-49ae-bf01-fd5c151806d5/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/2b83c36b-384f-4327-9b51-86565ef8c7f0",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/64c95010-3837-49ae-bf01-fd5c151806d5/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/2b83c36b-384f-4327-9b51-86565ef8c7f0",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/64c95010-3837-49ae-bf01-fd5c151806d5/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-genuine-empty",
+              "route": "/marketplaces/inventory",
+              "violations": [],
+              "incomplete": [],
+              "passes": 40
+            },
+            {
+              "state": "axe-no-products",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 41
+            },
+            {
+              "state": "axe-entry",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 40
+            },
+            {
+              "state": "axe-review",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 41
+            },
+            {
+              "state": "axe-saved",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 37
+            },
+            {
+              "state": "axe-ledger",
+              "route": "/marketplaces/inventory",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "nodes": [
+                    {
+                      "target": [
+                        ".marketplace-page > .marketplace-table > table > caption"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".marketplace-page > .marketplace-table > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".marketplace-page > .marketplace-table > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element content is too short to determine if it is actual text content"
+                    }
+                  ]
+                }
+              ],
+              "passes": 46
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-02",
+          "title": "QA-P4B-02 invalid inputs, zero balance, cancel and keyboard review",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 2970,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-invalid",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-02/0-axe-invalid.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-02/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-02/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/91c323af-cdb1-4adb-9299-f780f15086c3",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/91c323af-cdb1-4adb-9299-f780f15086c3",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/91c323af-cdb1-4adb-9299-f780f15086c3",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/91c323af-cdb1-4adb-9299-f780f15086c3",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 201,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/8be80fdd-cf8a-40b6-ba36-e84bf42937fd/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/91c323af-cdb1-4adb-9299-f780f15086c3",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-invalid",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "nodes": [
+                    {
+                      "target": [
+                        "#quantity-help"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 40
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-03",
+          "title": "QA-P4B-03 variant custom SKU review reload and explicit reapproval",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 1835,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-restored-review",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-03/0-axe-restored-review.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-03/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-03/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/c7a42a61-ff00-4919-92a3-273d70ceaed3",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/c7a42a61-ff00-4919-92a3-273d70ceaed3",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/c7a42a61-ff00-4919-92a3-273d70ceaed3",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 201,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/8defcf88-a97f-4d41-9e94-d11027839667/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/c7a42a61-ff00-4919-92a3-273d70ceaed3",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-restored-review",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 41
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-04",
+          "title": "QA-P4B-04 response lost after commit replays without duplicate stock",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 1809,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-uncertain-save",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-04/0-axe-uncertain-save.json"
+            },
+            {
+              "name": "lost-response-replay",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-04/1-lost-response-replay.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-04/3-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: net::ERR_FAILED"
+            ],
+            "page_errors": [],
+            "failed_requests": [
+              {
+                "path": "/api/v1/inventory/items",
+                "code": "net::ERR_FAILED"
+              }
+            ],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/9e16b376-75f5-499b-b27c-29655346d0d9",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/9e16b376-75f5-499b-b27c-29655346d0d9",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/9e16b376-75f5-499b-b27c-29655346d0d9",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 201,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/746c581e-8d15-42f5-8d6f-2a656c7eb191/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/9e16b376-75f5-499b-b27c-29655346d0d9",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-uncertain-save",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 41
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-05",
+          "title": "QA-P4B-05 stock appears after review conflict preserves balance",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 1939,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-conflict",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-05/0-axe-conflict.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-05/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-05/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/inventory/items",
+                "status": 409
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 409 (Conflict)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/ea6e1704-a2fc-42a7-81c3-6cb5dfa5e7df",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/ea6e1704-a2fc-42a7-81c3-6cb5dfa5e7df",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 409,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/ea6e1704-a2fc-42a7-81c3-6cb5dfa5e7df",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/ea6e1704-a2fc-42a7-81c3-6cb5dfa5e7df",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-conflict",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 41
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-06",
+          "title": "QA-P4B-06 unavailable product and API recovery remain fail closed",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 2409,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-search-error",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-06/0-axe-search-error.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-06/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-06/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/inventory/items",
+                "status": 409
+              },
+              {
+                "path": "/api/v1/products",
+                "status": 503
+              },
+              {
+                "path": "/api/v1/products",
+                "status": 503
+              }
+            ],
+            "expected_http_errors": [
+              {
+                "path": "/api/v1/products",
+                "status": 503
+              }
+            ],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 409 (Conflict)",
+              "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+              "Failed to load resource: the server responded with a status of 503 (Service Unavailable)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/8f7d2772-73f6-4593-8469-269e8615ffff",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/8f7d2772-73f6-4593-8469-269e8615ffff",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 409,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 503,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 503,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-search-error",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 41
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-07",
+          "title": "QA-P4B-07 filtered navigation and saved deep link history",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 2274,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-saved-deep-link",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-07/0-axe-saved-deep-link.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-07/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-07/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/31e369fe-efd0-4a40-b0a7-02f9345b05aa",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/31e369fe-efd0-4a40-b0a7-02f9345b05aa",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/items",
+                "method": "POST",
+                "status": 201,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/36c74888-c4c4-49e2-ac03-f1610c748176/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/31e369fe-efd0-4a40-b0a7-02f9345b05aa",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/36c74888-c4c4-49e2-ac03-f1610c748176/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/catalog/products/31e369fe-efd0-4a40-b0a7-02f9345b05aa",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/36c74888-c4c4-49e2-ac03-f1610c748176/ledger",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-saved-deep-link",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 34
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4B-08",
+          "title": "QA-P4B-08 auth and unknown installation identifiers do not leak stock",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 1111,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-unknown-item",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-08/0-axe-unknown-item.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-08/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/08d6bb79d9da4a2e/evidence/mobile-QA-P4B-08/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/marketplaces/inventory/opening",
+              "/login"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/inventory/00000000-0000-0000-0000-000000000001/ledger",
+                "status": 404
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/inventory/00000000-0000-0000-0000-000000000001/ledger",
+                "method": "GET",
+                "status": 404,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory/opening"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 401,
+                "screen": "/marketplaces/inventory/opening"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-unknown-item",
+              "route": "/marketplaces/inventory/opening",
+              "violations": [],
+              "incomplete": [],
+              "passes": 41
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [],
+      "confirmed_bugs": [],
+      "usability_findings": [],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "process_exit_code": 0,
+      "runtime_api_operations": 1629
+    }
+  ],
+  "cleanup": [
+    {
+      "project": "desktop",
+      "database": "vayujit_qad00af1f2c833fba6_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qad00af1f2c833fba6_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qa08d6bb79d9da4a2e_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa08d6bb79d9da4a2e_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    }
+  ],
+  "findings": [],
+  "confirmed_bugs": [],
+  "usability_findings": [],
+  "next_phase": "Risk-first persisted seller journey, financial oracle and foreign-ID matrices; no autonomous production fixes.",
+  "full_application_certification": "INCOMPLETE"
+}

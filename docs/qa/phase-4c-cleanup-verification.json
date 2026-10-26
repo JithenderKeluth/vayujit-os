@@ -1,0 +1,12 @@
+{
+  "method": "read-only pg_database query of exact task-owned names; no DROP or session termination",
+  "targets": [
+    "vayujit_qa37b1c209bda2baa9_test",
+    "vayujit_qa5275b9c72e4a4473_test",
+    "vayujit_qa66f6d53f1e5ecf2a_test",
+    "vayujit_qa8644b989a75faaef_test",
+    "vayujit_qac84e3310c5656b03_test"
+  ],
+  "remaining": [],
+  "status": "PASS"
+}

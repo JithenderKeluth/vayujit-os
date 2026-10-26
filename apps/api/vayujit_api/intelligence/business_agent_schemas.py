@@ -70,6 +70,7 @@ class RunResponse(BaseModel):
     artifacts: list[dict[str, object]] = []
     findings: list[dict[str, object]] = []
     tool_invocations: list[dict[str, object]] = []
+    candidates: list[dict[str, object]] = Field(default_factory=list)
     model_config = {"from_attributes": True}
 
 

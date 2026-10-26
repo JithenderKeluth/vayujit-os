@@ -1,0 +1,23 @@
+{
+  "scope": "QA_PHASE_3B_REVIEW_NOT_NEW_WORKFLOW_AUTHORIZATION",
+  "full_application_certification": "INCOMPLETE",
+  "usability": [
+    {"id":"QA-UX-CURRENCY-DESKTOP","priority":"P2","status":"PROPOSED","route":"/products/new","problem":"USD default requires manual INR selection; currency mistakes can affect financial interpretation.","evidence":"Preserved Phase 1 UX observation and defect backlog","minimal_improvement":"Use explicit canonical business-currency preference with visible confirmation, not inferred INR.","complexity":"Small UI; medium configuration-contract validation","requires_product_approval":true},
+    {"id":"QA-UX-CURRENCY-MOBILE","priority":"P2","status":"PROPOSED","route":"/products/new","problem":"Same currency default adds mobile entry friction and error risk.","evidence":"Preserved Phase 1 mobile UX observation and defect backlog","minimal_improvement":"Shared explicit currency preference plus mobile keyboard verification.","complexity":"Small UI; medium contract validation","requires_product_approval":true},
+    {"id":"QA-UX-NAV-CURRENT-001","priority":"P2","status":"IMPLEMENTED_CLOSURE_REQUIRES_EXECUTED_LEDGER","route":"/intelligence/business-agent","problem":"Two current-page highlights obscure seller location.","evidence":"Prefix matcher; Phase 3B QA-P3B-01 desktop/mobile assertions","minimal_improvement":"Exact-match My Research root without changing guards or routes.","complexity":"Small","requires_product_approval":false},
+    {"id":"QA-P2-UX-ECONOMICS-DESKTOP","priority":"P2","status":"PROPOSED","route":"/intelligence/sourcing-economics","problem":"Baseline 16260px page obscures the decision and next action.","evidence":"Preserved Phase 2 desktop UX evidence","minimal_improvement":"Status summary, section jump links and deduplicated reasons; keep provenance available.","complexity":"Medium","requires_product_approval":true},
+    {"id":"QA-P2-UX-ECONOMICS-MOBILE","priority":"P2","status":"PROPOSED","route":"/intelligence/sourcing-economics","problem":"Baseline 43301px page burdens mobile navigation and comprehension.","evidence":"Preserved Phase 2 mobile UX evidence","minimal_improvement":"Shared hierarchy proposal with focus-safe mobile disclosure.","complexity":"Medium","requires_product_approval":true},
+    {"id":"QA-UX-PRE-RUN-MODE-001","priority":"P3","status":"PROPOSED","route":"/intelligence/business-agent","problem":"Configured mode, unrecorded run mode and confirmation/Start controls can appear contradictory.","evidence":"Preserved pre-run state observation; no live-provider certification","minimal_improvement":"Explain configured versus per-run state and canonical next action.","complexity":"Small copy; medium supported-state review","requires_product_approval":true}
+  ],
+  "workflow_gaps": [
+    {"id":"QA-P3-GAP-001","classification":"IMPORTANT_BUT_DEFERRABLE","status":"OPEN","rationale":"Exact historical operational projections cannot be reconstructed. Deferrable only while clearly current/estimated and not the sole financial ledger.","dependencies":["Approved immutable-history and retention requirements","Complete calculation input lineage"]},
+    {"id":"QA-P3-GAP-002","classification":"IMPORTANT_BUT_DEFERRABLE","status":"OPEN","rationale":"Action Center is advisory and external actions are default-denied; a duplicate generic approval authority would be unsafe.","dependencies":["Supported action-type inventory","Routing to existing canonical HUMAN authorities"]},
+    {"id":"QA-P3-GAP-003","classification":"LAUNCH_CRITICAL_MISSING_WORKFLOW","status":"OPEN","rationale":"Initial canonical SKU stock has an API but no demonstrated empty-state UI handoff. Product-master stock is a separate authority.","dependencies":["Approved opening-balance and provenance UX","Existing canonical inventory creation API"]}
+  ],
+  "accessibility": {
+    "status":"MANUAL_REVIEW_REQUIRED",
+    "historical_caption_occurrences":6,
+    "historical_financial_nodes":4,
+    "note":"Full-document scans, scrolling, keyboard focus and supplemental node screenshots are retained. Incomplete axe results and zero-target rescans do not prove WCAG compliance. Exact results are in phase-3b-validation.md and execution artifacts."
+  }
+}

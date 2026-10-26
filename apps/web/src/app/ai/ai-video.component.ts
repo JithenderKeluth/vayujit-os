@@ -29,7 +29,7 @@ type RecordValue = Record<string, unknown>;
     RouterLink,
   ],
   template: `
-    <main class="video-page">
+    <section class="video-page">
       <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         eyebrow="Create / video"
@@ -98,7 +98,7 @@ type RecordValue = Record<string, unknown>;
           </div>
           <span class="step-count">Step {{ step() }} of 14</span>
         </div>
-        <div class="progress" aria-label="Generate workflow progress">
+        <div class="progress" role="progressbar" aria-label="Generate workflow progress" aria-valuemin="0" aria-valuemax="14" [attr.aria-valuenow]="step()" [attr.aria-valuetext]="'Step ' + step() + ' of 14'">
           <span [style.width.%]="(step() / 14) * 100"></span>
         </div>
         <div class="wizard-grid">
@@ -198,7 +198,7 @@ type RecordValue = Record<string, unknown>;
             placeholder="Search Product or generation ID"
           />
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Video generation history">
           <table>
             <caption class="sr-only">
               Generated videos
@@ -615,7 +615,7 @@ type RecordValue = Record<string, unknown>;
         }
         <p class="muted">No credentials, DSNs, or local filesystem paths are rendered.</p>
       </section>
-    </main>
+    </section>
   `,
   styles: [
     `

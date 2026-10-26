@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { Router, provideRouter } from '@angular/router';
 
 import { SellerNavigationComponent } from './seller-navigation.component';
 
@@ -31,5 +31,13 @@ describe('SellerNavigationComponent', () => {
     expect(
       root.querySelector('a[href="/intelligence/sourcing-economics"]')?.closest('details'),
     ).toBe(advanced);
+  });
+  it('does not mark My Research as the current page within Business Agent', async () => {
+    TestBed.inject(Router).resetConfig([{ path: 'intelligence/business-agent', component: SellerNavigationComponent }]);
+    await TestBed.inject(Router).navigateByUrl('/intelligence/business-agent');
+    await fixture.whenStable(); fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelector('a[href="/intelligence/business-agent"]')?.getAttribute('aria-current')).toBe('page');
+    expect(root.querySelector('a[href="/intelligence"]')?.hasAttribute('aria-current')).toBe(false);
   });
 });

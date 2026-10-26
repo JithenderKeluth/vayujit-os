@@ -14,6 +14,10 @@
 .ai-header {
   justify-content: space-between;
 }
+.ai-filter-field {
+  display: grid;
+  gap: 0.35rem;
+}
 .ai-card {
   background: #fff;
   border: 1px solid #dce3e8;

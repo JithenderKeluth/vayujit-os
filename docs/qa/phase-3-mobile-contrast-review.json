@@ -1,0 +1,45 @@
+{
+  "scope": "Established axe engine after real scrolling, supplemental to full-document scans; repeated states are not unique defect counts.",
+  "states": [
+    {
+      "state": "obscured-table-due-diligence",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/evidence/mobile-QA-P3-06/1-obscured-table-due-diligence.json",
+      "targets": 5,
+      "examined": 5,
+      "axe_passes_after_scrolling": 5,
+      "confirmed_violations": 0,
+      "remaining_incomplete": [],
+      "status": "SCROLLED_TARGETS_VERIFIED_BY_AXE"
+    },
+    {
+      "state": "obscured-table-economics",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/evidence/mobile-QA-P3-06/4-obscured-table-economics.json",
+      "targets": 35,
+      "examined": 35,
+      "axe_passes_after_scrolling": 35,
+      "confirmed_violations": 0,
+      "remaining_incomplete": [],
+      "status": "SCROLLED_TARGETS_VERIFIED_BY_AXE"
+    },
+    {
+      "state": "obscured-table-stale-economics",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/evidence/mobile-QA-P3-06/7-obscured-table-stale-economics.json",
+      "targets": 26,
+      "examined": 26,
+      "axe_passes_after_scrolling": 26,
+      "confirmed_violations": 0,
+      "remaining_incomplete": [],
+      "status": "SCROLLED_TARGETS_VERIFIED_BY_AXE"
+    },
+    {
+      "state": "obscured-table-human-decision",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/evidence/mobile-QA-P3-06/11-obscured-table-human-decision.json",
+      "targets": 35,
+      "examined": 35,
+      "axe_passes_after_scrolling": 35,
+      "confirmed_violations": 0,
+      "remaining_incomplete": [],
+      "status": "SCROLLED_TARGETS_VERIFIED_BY_AXE"
+    }
+  ]
+}

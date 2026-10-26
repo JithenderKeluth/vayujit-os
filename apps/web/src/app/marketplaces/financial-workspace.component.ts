@@ -63,8 +63,9 @@ import {
           <article><span>Fees & deductions</span><strong>{{ value.fees === 'UNKNOWN' ? 'UNKNOWN' : value.currency + ' ' + value.fees }}</strong><small>Observed or modelled evidence</small></article>
           <article><span>Known direct costs</span><strong>{{ value.known_direct_costs === 'UNKNOWN' ? 'UNKNOWN' : value.currency + ' ' + value.known_direct_costs }}</strong><small>COGS evidence only</small></article>
           <article><span>Contribution</span><strong>{{ value.contribution === 'UNKNOWN' ? 'UNKNOWN' : value.currency + ' ' + value.contribution }}</strong><small>{{ value.estimated_profit ? 'Fully qualified estimate' : 'Partial; missing inputs' }}</small></article>
-          <article><span>Orders / events</span><strong>{{ value.order_count }} / {{ value.event_count }}</strong><small>{{ value.synthetic_provider ? 'Synthetic fixture' : 'Canonical evidence' }}</small></article>
+          <article><span>Orders / events</span><strong>{{ value.order_count }} / {{ value.event_count }}</strong><small>{{ provenanceLabel(value) }}</small></article>
         </div>
+        <p role="note" aria-label="Financial evidence provenance">{{ provenanceLabel(value) }}. These figures are not independently verified real financial information. Source classification does not change the recorded amounts.</p>
         @if (value.missing_inputs.length) {
           <div class="marketplace-error" role="alert">
             <strong>Review before using profitability:</strong>
@@ -150,6 +151,10 @@ import {
   styleUrl: './marketplaces.css',
 })
 export class FinancialWorkspaceComponent {
+  provenanceLabel(value: FinancialSummary): string {
+    if (value.synthetic_provider) return value.provenance_status === 'MIXED' ? 'Synthetic fixture mixed with other evidence' : 'Synthetic fixture';
+    return value.provenance_status === 'REPORTED' ? 'Reported evidence' : 'Provenance UNKNOWN';
+  }
   private readonly service = inject(MarketplaceService);
   readonly summary = signal<FinancialSummary | null>(null);
   readonly profitability = signal<FinancialProfitability | null>(null);

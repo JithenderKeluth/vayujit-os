@@ -21,7 +21,7 @@ type NavigationGroup = {
         <div class="nav-group">
           <span class="nav-group-label">{{ group.label }}</span>
           @for (item of group.items; track item[1]) {
-            <a [routerLink]="item[1]" routerLinkActive="active" ariaCurrentWhenActive="page">
+            <a [routerLink]="item[1]" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item[1] === '/intelligence' }" ariaCurrentWhenActive="page">
               {{ item[0] }}
             </a>
           }

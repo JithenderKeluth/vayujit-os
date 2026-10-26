@@ -40,7 +40,7 @@ function safeError(error: unknown): string {
   imports: [BusinessEntitySelectorsComponent, CommonModule, FormsModule, RouterLink],
   selector: 'app-ai-video-bulk',
   template: `
-    <main class="bulk-page">
+    <section class="bulk-page">
       <a routerLink="/ai/video">← AI Video Studio</a>
       <h1>Bulk Video Studio</h1>
       <p>Plan multi-product Videos, review the exact fingerprint, then queue durable child jobs.</p>
@@ -91,7 +91,7 @@ function safeError(error: unknown): string {
       @if (error(); as message) {
         <p class="error" role="alert">{{ message }}</p>
       }
-    </main>
+    </section>
   `,
   styles: [
     `

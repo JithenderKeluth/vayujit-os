@@ -57,7 +57,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-breadcrumbs [items]="detail() ? detailBreadcrumbs(detail()!) : listBreadcrumbs" />
-    <main class="workspace" aria-labelledby="opportunities-title">
+    <section class="workspace" aria-label="Product opportunity workspace">
       <app-page-header
         [title]="detail() ? detail()!.name : 'Product opportunities'"
         eyebrow="Intelligence / Winning Product"
@@ -1621,7 +1621,7 @@ import {
           </section>
         }
       }
-    </main>
+    </section>
   `,
   styleUrl: './product-opportunity-workspace.css',
 })

@@ -1,10 +1,13 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
+from vayujit_api.operations import pc_media_backup_cli
 from vayujit_api.operations.media_backup import (
     MediaBackupError,
     create_media_backup,
@@ -54,6 +57,58 @@ def test_media_manifest_contains_checksum_size_and_mime(tmp_path: Path) -> None:
     }
     assert all(len(item["checksum_sha256"]) == 64 for item in payload["files"])
     assert all(item["size_bytes"] > 0 for item in payload["files"])
+
+
+def test_pc_media_backup_cli_produces_stable_nonempty_host_artifacts(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+) -> None:
+    source = tmp_path / "media-source"
+    source.mkdir()
+    (source / "product-image.png").write_bytes(b"synthetic-disposable-image")
+    output = tmp_path / "host-staging"
+    monkeypatch.setattr(
+        pc_media_backup_cli, "get_settings", lambda: SimpleNamespace(media_storage_directory=source)
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "pc_media_backup_cli",
+            "create",
+            "--output-directory",
+            str(output),
+            "--backup-id",
+            "disposable-test-id",
+        ],
+    )
+
+    assert pc_media_backup_cli.main() == 0
+
+    archive = output / "media.zip"
+    manifest = output / "media.json"
+    assert archive.is_file() and archive.stat().st_size > 0
+    assert manifest.is_file() and manifest.stat().st_size > 0
+    assert sorted(path.name for path in output.iterdir()) == ["media.json", "media.zip"]
+    payload = json.loads(manifest.read_text(encoding="utf-8"))
+    assert payload["lineage"]["backup_id"] == "disposable-test-id"
+    assert len(payload["files"]) == 1
+    # CLI's `files` field is the number of source entries, not artifact count.
+    assert json.loads(capsys.readouterr().out) == {"files": 1}
+
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "pc_media_backup_cli",
+            "verify",
+            "--archive",
+            str(archive),
+            "--manifest",
+            str(manifest),
+        ],
+    )
+    assert pc_media_backup_cli.main() == 0
+    assert json.loads(capsys.readouterr().out) == {"verified_files": 1}
 
 
 @pytest.mark.parametrize("case", ["missing_archive", "missing_manifest", "unsafe_target"])

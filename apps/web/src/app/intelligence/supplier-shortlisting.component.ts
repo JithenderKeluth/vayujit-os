@@ -39,7 +39,7 @@ import { CommerceJourneyService } from '../commerce-journey.service';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main aria-labelledby="shortlisting-title">
+    <section class="supplier-shortlisting-page" aria-labelledby="shortlisting-title">
       <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         headingId="shortlisting-title"
@@ -192,11 +192,11 @@ import { CommerceJourneyService } from '../commerce-journey.service';
           server-derived. Human approval is required before an internal sourcing handoff.
         </p>
       </section>
-    </main>
+    </section>
   `,
   styles: [
     `
-      main {
+      .supplier-shortlisting-page {
         padding: 2rem;
         max-width: 1200px;
         margin: auto;

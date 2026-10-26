@@ -149,7 +149,7 @@ const run: BusinessAgentRun = {
 };
 
 describe('BusinessAgentWorkspaceComponent', () => {
-  const intelligence = { externalPolicy: vi.fn() };
+  const intelligence = { externalPolicy: vi.fn(), externalSourceProfiles: vi.fn() };
 
   const service = {
     goals: vi.fn(),
@@ -182,6 +182,7 @@ describe('BusinessAgentWorkspaceComponent', () => {
     service.latestPlan.mockRejectedValue(new Error('no plan'));
     service.latestRun.mockRejectedValue(new Error('no run'));
     intelligence.externalPolicy.mockReset();
+    intelligence.externalSourceProfiles.mockResolvedValue([]);
     intelligence.externalPolicy.mockResolvedValue({
       provider: 'brave',
       mode: 'LOCAL_FIXTURE',
@@ -416,5 +417,48 @@ describe('BusinessAgentWorkspaceComponent', () => {
     fixture.detectChanges();
     expect(element.querySelector('script')).toBeNull();
     expect(element.textContent).toContain('<script>ignore</script>');
+  });
+
+  it('exposes the recorded source blocker instead of a generic no-product error', async () => {
+    const fixture = await create();
+    fixture.componentInstance.runs.set({
+      'goal-1': {
+        ...run,
+        status: 'PARTIAL',
+        candidates: [],
+        failure: { code: 'NO_USEFUL_PRODUCT_CANDIDATES', message: 'No canonical product.' },
+        steps: [
+          {
+            id: 'source-step',
+            key: 'opportunity',
+            capability_id: 'product_opportunity.create',
+            status: 'FAILED',
+            attempt_count: 0,
+            result: {
+              details: {
+                queries: [],
+                fetches: [
+                  {
+                    domain: 'example.org',
+                    url: 'https://example.org/product/band',
+                    status: 'FAILED',
+                    failure: 'External source approval is required before fetching.',
+                  },
+                ],
+              },
+            },
+          },
+        ],
+      },
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Product pages are awaiting your source review');
+    expect(root.textContent).toContain('Continue product discovery');
+    expect(root.textContent).not.toContain('Resume failed step');
+    expect(root.textContent).toContain('Review blocked sources');
+    expect(root.textContent).toContain('0 successful page fetches');
   });
 });

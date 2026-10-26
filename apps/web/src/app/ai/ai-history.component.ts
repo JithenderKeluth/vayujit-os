@@ -13,27 +13,36 @@ import { AIService } from './ai.service';
       <a class="ai-button" routerLink="/ai/generate">Generate</a>
     </header>
     <form class="ai-card ai-filters" (ngSubmit)="load(1)">
-      <select name="requestStatus" [(ngModel)]="requestStatus">
-        <option value="">All request statuses</option>
-        @for (status of requestStatuses; track status) {
-          <option [value]="status">{{ status }}</option>
-        }
-      </select>
-      <select name="artifactStatus" [(ngModel)]="artifactStatus">
-        <option value="">All review statuses</option>
-        @for (status of artifactStatuses; track status) {
-          <option [value]="status">{{ status }}</option>
-        }
-      </select>
-      <input name="dateFrom" type="date" [(ngModel)]="dateFrom" /><input
-        name="dateTo"
-        type="date"
-        [(ngModel)]="dateTo"
-      />
+      <div class="ai-filter-field">
+        <label for="history-request-status">Request status</label>
+        <select id="history-request-status" name="requestStatus" [(ngModel)]="requestStatus">
+          <option value="">All request statuses</option>
+          @for (status of requestStatuses; track status) {
+            <option [value]="status">{{ status }}</option>
+          }
+        </select>
+      </div>
+      <div class="ai-filter-field">
+        <label for="history-review-status">Review status</label>
+        <select id="history-review-status" name="artifactStatus" [(ngModel)]="artifactStatus">
+          <option value="">All review statuses</option>
+          @for (status of artifactStatuses; track status) {
+            <option [value]="status">{{ status }}</option>
+          }
+        </select>
+      </div>
+      <div class="ai-filter-field">
+        <label for="history-date-from">Date from</label>
+        <input id="history-date-from" name="dateFrom" type="date" [(ngModel)]="dateFrom" />
+      </div>
+      <div class="ai-filter-field">
+        <label for="history-date-to">Date to</label
+        ><input id="history-date-to" name="dateTo" type="date" [(ngModel)]="dateTo" />
+      </div>
       <button>Filter</button>
     </form>
     @if (error()) {
-      <p class="ai-error">{{ error() }}</p>
+      <p class="ai-error" role="alert">{{ error() }}</p>
     }
     <article class="ai-card">
       <table class="ai-table">
@@ -43,7 +52,7 @@ import { AIService } from './ai.service';
             <th>Brand / product</th>
             <th>Generation</th>
             <th>Artifact</th>
-            <th></th>
+            <th scope="col">Actions</th>
           </tr>
         </thead>
         <tbody>

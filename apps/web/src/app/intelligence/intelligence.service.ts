@@ -1088,6 +1088,29 @@ export class IntelligenceService {
     );
   }
 
+  approveExternalSource(domain: string, reason: string): Promise<ExternalRecord> {
+    return firstValueFrom(
+      this.http.post<ExternalRecord>(
+        `${this.base}/external/source-profiles/admit`,
+        {
+          domain,
+          reason,
+          approval_authority: 'HUMAN',
+          robots_policy: 'APPROVED',
+          terms_status: 'APPROVED',
+          access_classification: 'APPROVED',
+        },
+        this.options,
+      ),
+    );
+  }
+
+  externalSourceProfiles(): Promise<ExternalRecord[]> {
+    return firstValueFrom(
+      this.http.get<ExternalRecord[]>(`${this.base}/external/source-profiles`, this.options),
+    );
+  }
+
   externalSearches(): Promise<ExternalRecord[]> {
     return firstValueFrom(
       this.http.get<ExternalRecord[]>(`${this.base}/external/searches`, this.options),

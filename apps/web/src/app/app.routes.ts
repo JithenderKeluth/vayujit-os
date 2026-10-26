@@ -443,6 +443,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'marketplaces/inventory/opening',
+    loadComponent: () => import('./marketplaces/opening-stock.component').then((m) => m.OpeningStockComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'marketplaces/inventory',
     loadComponent: () =>
       import('./marketplaces/unified-inventory.component').then(

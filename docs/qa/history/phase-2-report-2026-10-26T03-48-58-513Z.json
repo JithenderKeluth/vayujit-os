@@ -1,0 +1,2376 @@
+{
+  "generated_at": "2026-10-26T03:48:58.513Z",
+  "tested_source_sha256": {},
+  "phase": "QA_AGENT_PHASE_2",
+  "status": "PASS_BOUNDED_SMOKE",
+  "executive_summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "full_application_coverage": false,
+    "api_passed": 22,
+    "api_failed": 0,
+    "api_errors": 0
+  },
+  "coverage": {
+    "inventoried_routes": 154,
+    "api_declarations": 1610,
+    "runtime_api_operations": [
+      1629,
+      1629
+    ],
+    "models": 421,
+    "existing_backend_test_files": 390,
+    "existing_angular_spec_files": 69,
+    "historical_tests_rerun": false
+  },
+  "reports": [
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-26T03:47:28.828Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "passed",
+      "executive_summary": {
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-P2-01",
+          "title": "QA-P2-01 selected product supplier context and incomplete due diligence",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 4628,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-supplier-detail",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-01/0-axe-supplier-detail.json"
+            },
+            {
+              "name": "axe-due-diligence",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-01/1-axe-due-diligence.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-01/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-01/3-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/intelligence/cross-marketplace",
+              "/intelligence/cross-marketplace",
+              "/intelligence/due-diligence",
+              "/intelligence/due-diligence",
+              "/intelligence/due-diligence",
+              "/intelligence/due-diligence"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-supplier-detail",
+              "route": "/intelligence/cross-marketplace",
+              "violations": [],
+              "incomplete": [],
+              "passes": 44
+            },
+            {
+              "state": "axe-due-diligence",
+              "route": "/intelligence/due-diligence",
+              "violations": [],
+              "incomplete": [],
+              "passes": 46
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P2-02",
+          "title": "QA-P2-02 modeled contribution API UI consistency and reload",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 11383,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "ux-observations",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/0-ux-observations.json"
+            },
+            {
+              "name": "axe-economics",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/1-axe-economics.json"
+            },
+            {
+              "name": "economics-overview",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/2-economics-overview.png"
+            },
+            {
+              "name": "axe-stale-economics",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/3-axe-stale-economics.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/4-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/5-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-economics",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [],
+              "passes": 50
+            },
+            {
+              "state": "axe-stale-economics",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [],
+              "passes": 50
+            }
+          ],
+          "usability": [
+            {
+              "id": "QA-P2-UX-ECONOMICS-DESKTOP",
+              "feature": "Commercial decision brief information hierarchy",
+              "route": "/intelligence/sourcing-economics",
+              "type": "USABILITY",
+              "severity": "MODERATE",
+              "priority": "P2",
+              "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+              "actual": "The populated page is 16260px high at a 1000px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+              "reproduction_steps": [
+                "npm.cmd run qa:phase2",
+                "Open the populated economics scenario and review its full-page screenshot."
+              ],
+              "confidence": "RECOMMENDATION",
+              "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+              "retest_status": "NOT_RETESTED"
+            }
+          ]
+        },
+        {
+          "id": "QA-P2-03",
+          "title": "QA-P2-03 explicit HUMAN review, duplicate replay and reopening decision",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 7716,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "human-decision-outcome",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-03/0-human-decision-outcome.json"
+            },
+            {
+              "name": "human-decision-replay",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-03/1-human-decision-replay.json"
+            },
+            {
+              "name": "supplier-scoped-concurrent-replay",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-03/2-supplier-scoped-concurrent-replay.json"
+            },
+            {
+              "name": "axe-human-decision",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-03/3-axe-human-decision.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-03/4-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-03/5-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [
+              {
+                "path": "/api/v1/commerce-journeys/6dc70e56-28b8-442e-9d64-e7601aa37b6c/decision",
+                "status": 409
+              }
+            ],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-human-decision",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [],
+              "passes": 50
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P2-04",
+          "title": "QA-P2-04 product cost edit cancel, persistence and immutable economic snapshot",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 3262,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-product-cost",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-04/0-axe-product-cost.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-04/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-04/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/products/918e9ec2-9813-4fce-a3bd-54ba0278c4cc/edit",
+              "/products/918e9ec2-9813-4fce-a3bd-54ba0278c4cc/edit",
+              "/products/918e9ec2-9813-4fce-a3bd-54ba0278c4cc",
+              "/products/918e9ec2-9813-4fce-a3bd-54ba0278c4cc/edit",
+              "/products/918e9ec2-9813-4fce-a3bd-54ba0278c4cc/edit",
+              "/products/918e9ec2-9813-4fce-a3bd-54ba0278c4cc",
+              "/products/918e9ec2-9813-4fce-a3bd-54ba0278c4cc",
+              "/products/918e9ec2-9813-4fce-a3bd-54ba0278c4cc"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-product-cost",
+              "route": "/products/918e9ec2-9813-4fce-a3bd-54ba0278c4cc",
+              "violations": [],
+              "incomplete": [],
+              "passes": 36
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [],
+      "confirmed_bugs": [],
+      "usability_findings": [
+        {
+          "id": "QA-P2-UX-ECONOMICS-DESKTOP",
+          "feature": "Commercial decision brief information hierarchy",
+          "route": "/intelligence/sourcing-economics",
+          "type": "USABILITY",
+          "severity": "MODERATE",
+          "priority": "P2",
+          "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+          "actual": "The populated page is 16260px high at a 1000px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+          "reproduction_steps": [
+            "npm.cmd run qa:phase2",
+            "Open the populated economics scenario and review its full-page screenshot."
+          ],
+          "confidence": "RECOMMENDATION",
+          "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+          "retest_status": "NOT_RETESTED",
+          "evidence": [
+            {
+              "name": "ux-observations",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/0-ux-observations.json"
+            },
+            {
+              "name": "axe-economics",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/1-axe-economics.json"
+            },
+            {
+              "name": "economics-overview",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/2-economics-overview.png"
+            },
+            {
+              "name": "axe-stale-economics",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/3-axe-stale-economics.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/4-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/5-final-screen.png"
+            }
+          ]
+        }
+      ],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "api_results": {
+        "tests": [
+          {
+            "id": "test_01_selection_supplier_due_diligence_decision",
+            "status": "PASS"
+          },
+          {
+            "id": "test_02_fractional_rounding_and_capital",
+            "status": "PASS"
+          },
+          {
+            "id": "test_03_positive_negative_and_zero_margin",
+            "status": "PASS"
+          },
+          {
+            "id": "test_04_missing_invalid_currency_and_tax_unknown",
+            "status": "PASS"
+          },
+          {
+            "id": "test_05_idempotency_history_and_reload",
+            "status": "PASS"
+          },
+          {
+            "id": "test_06_changed_readiness_does_not_silently_accept_old_cost",
+            "status": "PASS"
+          },
+          {
+            "id": "test_07_independent_database_reconstruction",
+            "status": "PASS"
+          },
+          {
+            "id": "test_08_human_controls_and_business_decision_history",
+            "status": "PASS"
+          },
+          {
+            "id": "test_09_explicit_tax_rate_arithmetic_and_unknown_basis",
+            "status": "PASS"
+          },
+          {
+            "id": "test_10_capital_shortfall_is_not_zero",
+            "status": "PASS"
+          },
+          {
+            "id": "test_11_prepare_current_browser_review_after_fixture_changes",
+            "status": "PASS"
+          }
+        ],
+        "passed": 11,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "process_exit_code": 0
+      },
+      "process_exit_code": 0,
+      "runtime_api_operations": 1629
+    },
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-26T03:48:55.115Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "passed",
+      "executive_summary": {
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-P2-01",
+          "title": "QA-P2-01 selected product supplier context and incomplete due diligence",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 4294,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-supplier-detail",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-01/0-axe-supplier-detail.json"
+            },
+            {
+              "name": "axe-due-diligence",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-01/1-axe-due-diligence.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-01/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-01/3-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/intelligence/cross-marketplace",
+              "/intelligence/cross-marketplace",
+              "/intelligence/due-diligence",
+              "/intelligence/due-diligence",
+              "/intelligence/due-diligence",
+              "/intelligence/due-diligence"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-supplier-detail",
+              "route": "/intelligence/cross-marketplace",
+              "violations": [],
+              "incomplete": [],
+              "passes": 42
+            },
+            {
+              "state": "axe-due-diligence",
+              "route": "/intelligence/due-diligence",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "count": 5,
+                  "nodes": [
+                    {
+                      "target": [
+                        "th:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "th:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(1) > td:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(2) > td:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 45
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P2-02",
+          "title": "QA-P2-02 modeled contribution API UI consistency and reload",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 10233,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "ux-observations",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/0-ux-observations.json"
+            },
+            {
+              "name": "axe-economics",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/1-axe-economics.json"
+            },
+            {
+              "name": "economics-overview",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/2-economics-overview.png"
+            },
+            {
+              "name": "axe-stale-economics",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/3-axe-stale-economics.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/4-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/5-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-economics",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "count": 35,
+                  "nodes": [
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 49
+            },
+            {
+              "state": "axe-stale-economics",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "count": 26,
+                  "nodes": [
+                    {
+                      "target": [
+                        "th[scope=\"col\"]:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "th[scope=\"col\"]:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(1) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(1) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(2) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(2) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 49
+            }
+          ],
+          "usability": [
+            {
+              "id": "QA-P2-UX-ECONOMICS-MOBILE",
+              "feature": "Commercial decision brief information hierarchy",
+              "route": "/intelligence/sourcing-economics",
+              "type": "USABILITY",
+              "severity": "MODERATE",
+              "priority": "P2",
+              "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+              "actual": "The populated page is 43373px high at a 844px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+              "reproduction_steps": [
+                "npm.cmd run qa:phase2",
+                "Open the populated economics scenario and review its full-page screenshot."
+              ],
+              "confidence": "RECOMMENDATION",
+              "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+              "retest_status": "NOT_RETESTED"
+            }
+          ]
+        },
+        {
+          "id": "QA-P2-03",
+          "title": "QA-P2-03 explicit HUMAN review, duplicate replay and reopening decision",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 7478,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "human-decision-outcome",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-03/0-human-decision-outcome.json"
+            },
+            {
+              "name": "human-decision-replay",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-03/1-human-decision-replay.json"
+            },
+            {
+              "name": "supplier-scoped-concurrent-replay",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-03/2-supplier-scoped-concurrent-replay.json"
+            },
+            {
+              "name": "axe-human-decision",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-03/3-axe-human-decision.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-03/4-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-03/5-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [
+              {
+                "path": "/api/v1/commerce-journeys/4aa07f65-a89f-44ee-89b4-d0b01880cc9b/decision",
+                "status": 409
+              }
+            ],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-human-decision",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "count": 35,
+                  "nodes": [
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 49
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P2-04",
+          "title": "QA-P2-04 product cost edit cancel, persistence and immutable economic snapshot",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 2970,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-product-cost",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-04/0-axe-product-cost.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-04/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-04/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/products/ae4a6a98-3a9c-4267-acea-d134222d7248/edit",
+              "/products/ae4a6a98-3a9c-4267-acea-d134222d7248/edit",
+              "/products/ae4a6a98-3a9c-4267-acea-d134222d7248/edit",
+              "/products/ae4a6a98-3a9c-4267-acea-d134222d7248/edit",
+              "/products/ae4a6a98-3a9c-4267-acea-d134222d7248",
+              "/products/ae4a6a98-3a9c-4267-acea-d134222d7248",
+              "/products/ae4a6a98-3a9c-4267-acea-d134222d7248"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-product-cost",
+              "route": "/products/ae4a6a98-3a9c-4267-acea-d134222d7248",
+              "violations": [],
+              "incomplete": [],
+              "passes": 34
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [],
+      "confirmed_bugs": [],
+      "usability_findings": [
+        {
+          "id": "QA-P2-UX-ECONOMICS-MOBILE",
+          "feature": "Commercial decision brief information hierarchy",
+          "route": "/intelligence/sourcing-economics",
+          "type": "USABILITY",
+          "severity": "MODERATE",
+          "priority": "P2",
+          "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+          "actual": "The populated page is 43373px high at a 844px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+          "reproduction_steps": [
+            "npm.cmd run qa:phase2",
+            "Open the populated economics scenario and review its full-page screenshot."
+          ],
+          "confidence": "RECOMMENDATION",
+          "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+          "retest_status": "NOT_RETESTED",
+          "evidence": [
+            {
+              "name": "ux-observations",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/0-ux-observations.json"
+            },
+            {
+              "name": "axe-economics",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/1-axe-economics.json"
+            },
+            {
+              "name": "economics-overview",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/2-economics-overview.png"
+            },
+            {
+              "name": "axe-stale-economics",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/3-axe-stale-economics.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/4-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/5-final-screen.png"
+            }
+          ]
+        }
+      ],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "api_results": {
+        "tests": [
+          {
+            "id": "test_01_selection_supplier_due_diligence_decision",
+            "status": "PASS"
+          },
+          {
+            "id": "test_02_fractional_rounding_and_capital",
+            "status": "PASS"
+          },
+          {
+            "id": "test_03_positive_negative_and_zero_margin",
+            "status": "PASS"
+          },
+          {
+            "id": "test_04_missing_invalid_currency_and_tax_unknown",
+            "status": "PASS"
+          },
+          {
+            "id": "test_05_idempotency_history_and_reload",
+            "status": "PASS"
+          },
+          {
+            "id": "test_06_changed_readiness_does_not_silently_accept_old_cost",
+            "status": "PASS"
+          },
+          {
+            "id": "test_07_independent_database_reconstruction",
+            "status": "PASS"
+          },
+          {
+            "id": "test_08_human_controls_and_business_decision_history",
+            "status": "PASS"
+          },
+          {
+            "id": "test_09_explicit_tax_rate_arithmetic_and_unknown_basis",
+            "status": "PASS"
+          },
+          {
+            "id": "test_10_capital_shortfall_is_not_zero",
+            "status": "PASS"
+          },
+          {
+            "id": "test_11_prepare_current_browser_review_after_fixture_changes",
+            "status": "PASS"
+          }
+        ],
+        "passed": 11,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "process_exit_code": 0
+      },
+      "process_exit_code": 0,
+      "runtime_api_operations": 1629
+    }
+  ],
+  "cleanup": [
+    {
+      "project": "desktop",
+      "database": "vayujit_qa381ef415548baf9b_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa381ef415548baf9b_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qaf03c47c9f0f265fc_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qaf03c47c9f0f265fc_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    }
+  ],
+  "findings": [],
+  "confirmed_bugs": [],
+  "usability_findings": [
+    {
+      "id": "QA-P2-UX-ECONOMICS-DESKTOP",
+      "feature": "Commercial decision brief information hierarchy",
+      "route": "/intelligence/sourcing-economics",
+      "type": "USABILITY",
+      "severity": "MODERATE",
+      "priority": "P2",
+      "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+      "actual": "The populated page is 16260px high at a 1000px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase2",
+        "Open the populated economics scenario and review its full-page screenshot."
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+      "retest_status": "NOT_RETESTED",
+      "evidence": [
+        {
+          "name": "ux-observations",
+          "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/0-ux-observations.json"
+        },
+        {
+          "name": "axe-economics",
+          "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/1-axe-economics.json"
+        },
+        {
+          "name": "economics-overview",
+          "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/2-economics-overview.png"
+        },
+        {
+          "name": "axe-stale-economics",
+          "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/3-axe-stale-economics.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/4-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/381ef415548baf9b/evidence/desktop-QA-P2-02/5-final-screen.png"
+        }
+      ],
+      "area": "Commercial decision brief information hierarchy",
+      "journey": "Phase 2 seller journey",
+      "business_impact": "May prevent trustworthy, repeatable seller decisions; inspect the specific evidence before remediation."
+    },
+    {
+      "id": "QA-P2-UX-ECONOMICS-MOBILE",
+      "feature": "Commercial decision brief information hierarchy",
+      "route": "/intelligence/sourcing-economics",
+      "type": "USABILITY",
+      "severity": "MODERATE",
+      "priority": "P2",
+      "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+      "actual": "The populated page is 43373px high at a 844px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase2",
+        "Open the populated economics scenario and review its full-page screenshot."
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+      "retest_status": "NOT_RETESTED",
+      "evidence": [
+        {
+          "name": "ux-observations",
+          "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/0-ux-observations.json"
+        },
+        {
+          "name": "axe-economics",
+          "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/1-axe-economics.json"
+        },
+        {
+          "name": "economics-overview",
+          "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/2-economics-overview.png"
+        },
+        {
+          "name": "axe-stale-economics",
+          "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/3-axe-stale-economics.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/4-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/f03c47c9f0f265fc/evidence/mobile-QA-P2-02/5-final-screen.png"
+        }
+      ],
+      "area": "Commercial decision brief information hierarchy",
+      "journey": "Phase 2 seller journey",
+      "business_impact": "May prevent trustworthy, repeatable seller decisions; inspect the specific evidence before remediation."
+    }
+  ],
+  "next_phase": "Risk-first persisted seller journey, financial oracle and foreign-ID matrices; no autonomous production fixes.",
+  "api_tests": [
+    {
+      "id": "test_01_selection_supplier_due_diligence_decision",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_02_fractional_rounding_and_capital",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_03_positive_negative_and_zero_margin",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_04_missing_invalid_currency_and_tax_unknown",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_05_idempotency_history_and_reload",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_06_changed_readiness_does_not_silently_accept_old_cost",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_07_independent_database_reconstruction",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_08_human_controls_and_business_decision_history",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_09_explicit_tax_rate_arithmetic_and_unknown_basis",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_10_capital_shortfall_is_not_zero",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_11_prepare_current_browser_review_after_fixture_changes",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_01_selection_supplier_due_diligence_decision",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_02_fractional_rounding_and_capital",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_03_positive_negative_and_zero_margin",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_04_missing_invalid_currency_and_tax_unknown",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_05_idempotency_history_and_reload",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_06_changed_readiness_does_not_silently_accept_old_cost",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_07_independent_database_reconstruction",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_08_human_controls_and_business_decision_history",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_09_explicit_tax_rate_arithmetic_and_unknown_basis",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_10_capital_shortfall_is_not_zero",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_11_prepare_current_browser_review_after_fixture_changes",
+      "status": "PASS",
+      "project": "mobile"
+    }
+  ],
+  "inherited_phase1_findings": [
+    {
+      "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-COLOR-CONTRAST",
+      "feature": "axe-goal-plan",
+      "route": "/intelligence/business-agent",
+      "type": "ACCESSIBILITY",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "No axe color-contrast violation in this state.",
+      "actual": "{\"id\":\"color-contrast\",\"impact\":\"serious\",\"help\":\"Elements must meet minimum color contrast ratio thresholds\",\"nodes\":[{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(6) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(7) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"listings\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"}]}",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "QA-SMOKE-04: axe-goal-plan (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-goal-plan",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+        },
+        {
+          "name": "journey-boundary",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+        }
+      ],
+      "confidence": "CONFIRMED",
+      "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-COMPLEMENTARY-IS-TOP-LEVEL",
+      "feature": "axe-goal-plan",
+      "route": "/intelligence/business-agent",
+      "type": "ACCESSIBILITY",
+      "severity": "MODERATE",
+      "priority": "P1",
+      "expected": "No axe landmark-complementary-is-top-level violation in this state.",
+      "actual": "{\"id\":\"landmark-complementary-is-top-level\",\"impact\":\"moderate\",\"help\":\"Aside should not be contained in another landmark\",\"nodes\":[{\"target\":[\".commerce-next-action\"],\"remediation\":\"Fix any of the following:\\n  The complementary landmark is contained in another landmark.\"}]}",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "QA-SMOKE-04: axe-goal-plan (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-goal-plan",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+        },
+        {
+          "name": "journey-boundary",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+        }
+      ],
+      "confidence": "CONFIRMED",
+      "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-MAIN-IS-TOP-LEVEL",
+      "feature": "axe-goal-plan",
+      "route": "/intelligence/business-agent",
+      "type": "ACCESSIBILITY",
+      "severity": "MODERATE",
+      "priority": "P1",
+      "expected": "No axe landmark-main-is-top-level violation in this state.",
+      "actual": "{\"id\":\"landmark-main-is-top-level\",\"impact\":\"moderate\",\"help\":\"Main landmark should not be contained in another landmark\",\"nodes\":[{\"target\":[\".agent-page\"],\"remediation\":\"Fix any of the following:\\n  The main landmark is contained in another landmark.\"}]}",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "QA-SMOKE-04: axe-goal-plan (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-goal-plan",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+        },
+        {
+          "name": "journey-boundary",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+        }
+      ],
+      "confidence": "CONFIRMED",
+      "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-NO-DUPLICATE-MAIN",
+      "feature": "axe-goal-plan",
+      "route": "/intelligence/business-agent",
+      "type": "ACCESSIBILITY",
+      "severity": "MODERATE",
+      "priority": "P1",
+      "expected": "No axe landmark-no-duplicate-main violation in this state.",
+      "actual": "{\"id\":\"landmark-no-duplicate-main\",\"impact\":\"moderate\",\"help\":\"Document should not have more than one main landmark\",\"nodes\":[{\"target\":[\"#main-content\"],\"remediation\":\"Fix any of the following:\\n  Document has more than one main landmark\"}]}",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "QA-SMOKE-04: axe-goal-plan (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-goal-plan",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+        },
+        {
+          "name": "journey-boundary",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+        }
+      ],
+      "confidence": "CONFIRMED",
+      "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-COLOR-CONTRAST",
+      "feature": "axe-goal-plan",
+      "route": "/intelligence/business-agent",
+      "type": "ACCESSIBILITY",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "No axe color-contrast violation in this state.",
+      "actual": "{\"id\":\"color-contrast\",\"impact\":\"serious\",\"help\":\"Elements must meet minimum color contrast ratio thresholds\",\"nodes\":[{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(6) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(7) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"listings\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"}]}",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "QA-SMOKE-04: axe-goal-plan (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-goal-plan",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+        },
+        {
+          "name": "journey-boundary",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+        }
+      ],
+      "confidence": "CONFIRMED",
+      "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-COMPLEMENTARY-IS-TOP-LEVEL",
+      "feature": "axe-goal-plan",
+      "route": "/intelligence/business-agent",
+      "type": "ACCESSIBILITY",
+      "severity": "MODERATE",
+      "priority": "P1",
+      "expected": "No axe landmark-complementary-is-top-level violation in this state.",
+      "actual": "{\"id\":\"landmark-complementary-is-top-level\",\"impact\":\"moderate\",\"help\":\"Aside should not be contained in another landmark\",\"nodes\":[{\"target\":[\".commerce-next-action\"],\"remediation\":\"Fix any of the following:\\n  The complementary landmark is contained in another landmark.\"}]}",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "QA-SMOKE-04: axe-goal-plan (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-goal-plan",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+        },
+        {
+          "name": "journey-boundary",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+        }
+      ],
+      "confidence": "CONFIRMED",
+      "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-MAIN-IS-TOP-LEVEL",
+      "feature": "axe-goal-plan",
+      "route": "/intelligence/business-agent",
+      "type": "ACCESSIBILITY",
+      "severity": "MODERATE",
+      "priority": "P1",
+      "expected": "No axe landmark-main-is-top-level violation in this state.",
+      "actual": "{\"id\":\"landmark-main-is-top-level\",\"impact\":\"moderate\",\"help\":\"Main landmark should not be contained in another landmark\",\"nodes\":[{\"target\":[\".agent-page\"],\"remediation\":\"Fix any of the following:\\n  The main landmark is contained in another landmark.\"}]}",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "QA-SMOKE-04: axe-goal-plan (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-goal-plan",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+        },
+        {
+          "name": "journey-boundary",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+        }
+      ],
+      "confidence": "CONFIRMED",
+      "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-NO-DUPLICATE-MAIN",
+      "feature": "axe-goal-plan",
+      "route": "/intelligence/business-agent",
+      "type": "ACCESSIBILITY",
+      "severity": "MODERATE",
+      "priority": "P1",
+      "expected": "No axe landmark-no-duplicate-main violation in this state.",
+      "actual": "{\"id\":\"landmark-no-duplicate-main\",\"impact\":\"moderate\",\"help\":\"Document should not have more than one main landmark\",\"nodes\":[{\"target\":[\"#main-content\"],\"remediation\":\"Fix any of the following:\\n  Document has more than one main landmark\"}]}",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "QA-SMOKE-04: axe-goal-plan (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-goal-plan",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+        },
+        {
+          "name": "journey-boundary",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+        }
+      ],
+      "confidence": "CONFIRMED",
+      "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-DESKTOP-001",
+      "feature": "QA-SMOKE-04 business goal to persisted plan; no discovery execution",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "Error: goal-plan: no serious/critical axe violations\n\nexpect(received).toEqual(expected) // deep equality\n\n- Expected  -  1\n+ Received  + 51\n\n- Array []\n+ Array [\n+   Object {\n+     \"help\": \"Elements must meet minimum color contrast ratio thresholds\",\n+     \"id\": \"color-contrast\",\n+     \"impact\": \"serious\",\n+     \"nodes\": Array [\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\":",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-SMOKE-04 (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-goal-plan",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+        },
+        {
+          "name": "journey-boundary",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-RUN-MOBILE-001",
+      "feature": "QA-SMOKE-04 business goal to persisted plan; no discovery execution",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "Error: goal-plan: no serious/critical axe violations\n\nexpect(received).toEqual(expected) // deep equality\n\n- Expected  -  1\n+ Received  + 51\n\n- Array []\n+ Array [\n+   Object {\n+     \"help\": \"Elements must meet minimum color contrast ratio thresholds\",\n+     \"id\": \"color-contrast\",\n+     \"impact\": \"serious\",\n+     \"nodes\": Array [\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\":",
+      "reproduction_steps": [
+        "npm.cmd run qa:smoke",
+        "Inspect QA-SMOKE-04 (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "axe-goal-plan",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+        },
+        {
+          "name": "journey-boundary",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-UX-CURRENCY-DESKTOP",
+      "feature": "Indian seller product creation",
+      "route": "/products/new",
+      "type": "USABILITY",
+      "severity": "MINOR",
+      "priority": "P2",
+      "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+      "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+      "reproduction_steps": [
+        "Create a brand",
+        "Open /products/new",
+        "Inspect Currency before entering a price"
+      ],
+      "evidence": [
+        {
+          "name": "axe-catalog-empty",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/0-axe-catalog-empty.json"
+        },
+        {
+          "name": "ux-observations",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/1-ux-observations.json"
+        },
+        {
+          "name": "axe-catalog-detail",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/2-axe-catalog-detail.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-UX-CURRENCY-MOBILE",
+      "feature": "Indian seller product creation",
+      "route": "/products/new",
+      "type": "USABILITY",
+      "severity": "MINOR",
+      "priority": "P2",
+      "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+      "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+      "reproduction_steps": [
+        "Create a brand",
+        "Open /products/new",
+        "Inspect Currency before entering a price"
+      ],
+      "evidence": [
+        {
+          "name": "axe-catalog-empty",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/0-axe-catalog-empty.json"
+        },
+        {
+          "name": "ux-observations",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/1-ux-observations.json"
+        },
+        {
+          "name": "axe-catalog-detail",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/2-axe-catalog-detail.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-UX-NAV-CURRENT-001",
+      "feature": "Seller navigation current-location clarity",
+      "route": "/intelligence/business-agent",
+      "type": "USABILITY",
+      "severity": "MINOR",
+      "priority": "P2",
+      "expected": "The seller can distinguish the current page from its broader research section.",
+      "actual": "In the reviewed 25 October 2026 synthetic desktop screenshot, Business Agent and My Research both use the same active sidebar treatment. The navigation uses prefix matching for the parent /intelligence link. This is a usability recommendation, not an authorization or navigation failure.",
+      "reproduction_steps": [
+        "Run the QA smoke suite",
+        "Create a goal and plan",
+        "Review the sidebar on /intelligence/business-agent"
+      ],
+      "evidence": [
+        {
+          "name": "reviewed-desktop-screenshot",
+          "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider exact matching for the current page or a visually distinct parent-section state. Preserve all routes and access guards.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-UX-PRE-RUN-MODE-001",
+      "feature": "First research plan guidance",
+      "route": "/intelligence/business-agent",
+      "type": "USABILITY",
+      "severity": "INFO",
+      "priority": "P3",
+      "expected": "A first-time seller understands what is known before the first run and the single next action.",
+      "actual": "The reviewed synthetic planned-goal state displays a provider-mode-not-recorded warning, a DISABLED research-mode banner, journey research links, a separate confirm-context action and Start run. These describe different authorities, but their relationship may be unclear to a first-time seller. No blocked live-provider flow was executed.",
+      "reproduction_steps": [
+        "Use a fresh synthetic owner",
+        "Create the kids-category goal",
+        "Create a versioned plan without starting it",
+        "Review the journey header and goal card together"
+      ],
+      "evidence": [
+        {
+          "name": "reviewed-desktop-screenshot",
+          "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Review pre-run wording and action hierarchy with a seller. Distinguish global configured mode from not-yet-recorded per-run mode; do not hide actual provider restrictions.",
+      "retest_status": "NOT_RETESTED"
+    }
+  ],
+  "phase1_status": "INCOMPLETE",
+  "gaps": [
+    "Manual synthetic ProductOpportunity candidates are authored through the canonical API; real product web discovery is NOT executed or claimed.",
+    "Supplier LOCAL_FIXTURE evidence is synthetic/unverified, not live supplier proof. Switching suppliers/multiple-supplier comparisons remain unexecuted.",
+    "GST and marketplace fee schedules are not inferred. Explicit hypothetical fee arithmetic and unknown tax exclusions are tested; jurisdictional tax certification is not claimed.",
+    "Metadata-created disposable schemas retain the Phase 1 migration limitation; no migration PASS is claimed.",
+    "Full order/refund/settlement net-profit lifecycle and cross-installation isolation remain Phase 3 gaps."
+  ]
+}

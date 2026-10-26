@@ -1,0 +1,394 @@
+{
+    "profile":  "pc-first-disposable-certification",
+    "status":  "PASS",
+    "scope":  "historical disposable runtime and browser certification only; encrypted backup/restore was not executed",
+    "pc_first_classification":  "PC-FIRST DEPLOYMENT — IMPLEMENTED / CERTIFICATION PENDING",
+    "backup_restore_certification":  {
+        "status":  "NOT_RUN",
+        "destination_independence":  "UNVERIFIED",
+        "evidence_report_path":  "docs/seller-os/artifacts/pc-first-backup-restore-rehearsal.json",
+        "blocker":  "Docker, age, age-keygen, Python, Node, and WinGet are unavailable; WSL enumeration is denied; read-only disk inventory found only physical NVMe disk 0 and no second mounted drive letter.",
+        "permanent_business_database_started":  false,
+        "scheduler_registered":  false
+    },
+    "docker_version":  "29.6.2",
+    "project":  "vayujit-pc-cert-88efb37a4a",
+    "port":  50915,
+    "checks":  [
+                   {
+                       "name":  "Compose configuration",
+                       "status":  "PASS",
+                       "evidence":  "Disposable project=vayujit-pc-cert-88efb37a4a"
+                   },
+                   {
+                       "name":  "nginx-proxied production readiness",
+                       "status":  "PASS",
+                       "evidence":  "http://127.0.0.1:50915"
+                   },
+                   {
+                       "name":  "all Compose services created",
+                       "status":  "PASS",
+                       "evidence":  "count=5"
+                   },
+                   {
+                       "name":  "vayujit-pc-cert-88efb37a4a_data is internal and isolated",
+                       "status":  "PASS",
+                       "evidence":  "vayujit-pc-cert-88efb37a4a_data"
+                   },
+                   {
+                       "name":  "vayujit-pc-cert-88efb37a4a_app is internal and isolated",
+                       "status":  "PASS",
+                       "evidence":  "vayujit-pc-cert-88efb37a4a_app"
+                   },
+                   {
+                       "name":  "proxy-only edge bridge has outbound masquerading disabled",
+                       "status":  "PASS",
+                       "evidence":  "vayujit-pc-cert-88efb37a4a_edge"
+                   },
+                   {
+                       "name":  "only proxy publishes loopback port",
+                       "status":  "PASS",
+                       "evidence":  "8081/tcp -\u003e 127.0.0.1:50915 {\"8081/tcp\":[{\"HostIp\":\"127.0.0.1\",\"HostPort\":\"50915\"}]}"
+                   },
+                   {
+                       "name":  "proxy cannot reach reserved TEST-NET egress probe",
+                       "status":  "PASS",
+                       "evidence":  "wget: download timed out"
+                   },
+                   {
+                       "name":  "database and app services have no host ports",
+                       "status":  "PASS",
+                       "evidence":  ""
+                   },
+                   {
+                       "name":  "browser app served with security headers",
+                       "status":  "PASS",
+                       "evidence":  "HTTP 200"
+                   },
+                   {
+                       "name":  "real canonical API owner/product/cost/media onboarding",
+                       "status":  "PASS",
+                       "evidence":  "{\"mode\":\"seed\",\"checks\":[{\"name\":\"first_owner_onboarding\",\"pass\":true},{\"name\":\"canonical_brand_create\",\"pass\":true},{\"name\":\"canonical_product_create\",\"pass\":true},{\"name\":\"canonical_financial_cost_evidence_create\",\"pass\":true},{\"name\":\"canonical_media_upload\",\"pass\":true},{\"name\":\"canonical_product_media_attachment\",\"pass\":true}],\"fixture\":\"synthetic disposable only; never copy or promote to owner data\"}"
+                   },
+                   {
+                       "name":  "isolated Chrome CDP starts on loopback",
+                       "status":  "PASS",
+                       "evidence":  "port=50914"
+                   },
+                   {
+                       "name":  "authenticated Chrome, keyboard, responsive, product/catalog deep links, refresh and axe scan",
+                       "status":  "PASS",
+                       "evidence":  "checks=25; axe-pages=6; viewport-checks=5"
+                   },
+                   {
+                       "name":  "whole stack readiness after persistent-volume restart",
+                       "status":  "PASS",
+                       "evidence":  ""
+                   },
+                   {
+                       "name":  "owner auth, catalog, cost, inventory, media persistence and denied external writes",
+                       "status":  "PASS",
+                       "evidence":  "{\"mode\":\"verify\",\"checks\":[{\"name\":\"owner_login\",\"pass\":true},{\"name\":\"one_owner_exists_after_restart\",\"pass\":true},{\"name\":\"unauthenticated_products_are_denied\",\"pass\":true},{\"name\":\"canonical_product_list_persists\",\"pass\":true},{\"name\":\"product_price_cost_stock_persist\",\"pass\":true},{\"name\":\"catalog_context_persists\",\"pass\":true},{\"name\":\"media_metadata_persists\",\"pass\":true},{\"name\":\"media_bytes_persist\",\"pass\":true},{\"name\":\"marketplace_external_writes_remain_disabled\",\"pass\":true}]}"
+                   },
+                   {
+                       "name":  "publishing worker becomes healthy after persistent-volume restart",
+                       "status":  "PASS",
+                       "evidence":  "healthy"
+                   },
+                   {
+                       "name":  "worker has only the internal data network",
+                       "status":  "PASS",
+                       "evidence":  "vayujit-pc-cert-88efb37a4a_data"
+                   }
+               ],
+    "error":  null,
+    "diagnostic_log_tail":  null,
+    "browser":  {
+                    "mode":  "isolated_chrome_disposable",
+                    "checks":  [
+                                   {
+                                       "name":  "fresh isolated Chrome reaches the sign-in form",
+                                       "pass":  true,
+                                       "evidence":  "Welcome back"
+                                   },
+                                   {
+                                       "name":  "Sign in has no axe violations",
+                                       "pass":  true,
+                                       "evidence":  "violations=0"
+                                   },
+                                   {
+                                       "name":  "keyboard Tab advances from email to password",
+                                       "pass":  true,
+                                       "evidence":  "password"
+                                   },
+                                   {
+                                       "name":  "keyboard Shift+Tab returns to email",
+                                       "pass":  true,
+                                       "evidence":  ""
+                                   },
+                                   {
+                                       "name":  "unauthenticated browser session is denied before sign-in",
+                                       "pass":  true,
+                                       "evidence":  "GET /api/v1/auth/me =\u003e 401"
+                                   },
+                                   {
+                                       "name":  "canonical credential login authenticates the browser session",
+                                       "pass":  true,
+                                       "evidence":  "POST /api/v1/auth/login =\u003e 200"
+                                   },
+                                   {
+                                       "name":  "authenticated browser session resolves the owner through the app route",
+                                       "pass":  true,
+                                       "evidence":  "GET /api/v1/auth/me =\u003e 200"
+                                   },
+                                   {
+                                       "name":  "Dashboard has no axe violations",
+                                       "pass":  true,
+                                       "evidence":  "violations=0"
+                                   },
+                                   {
+                                       "name":  "dashboard fits 360px viewport",
+                                       "pass":  true,
+                                       "evidence":  "viewport=345; document=345; offenders=[]"
+                                   },
+                                   {
+                                       "name":  "dashboard fits 390px viewport",
+                                       "pass":  true,
+                                       "evidence":  "viewport=375; document=375; offenders=[]"
+                                   },
+                                   {
+                                       "name":  "dashboard fits 768px viewport",
+                                       "pass":  true,
+                                       "evidence":  "viewport=753; document=753; offenders=[]"
+                                   },
+                                   {
+                                       "name":  "dashboard fits 1024px viewport",
+                                       "pass":  true,
+                                       "evidence":  "viewport=1009; document=1009; offenders=[]"
+                                   },
+                                   {
+                                       "name":  "dashboard fits 1440px viewport",
+                                       "pass":  true,
+                                       "evidence":  "viewport=1425; document=1425; offenders=[]"
+                                   },
+                                   {
+                                       "name":  "authenticated product list displays persisted disposable catalog item",
+                                       "pass":  true,
+                                       "evidence":  ""
+                                   },
+                                   {
+                                       "name":  "Product list has no axe violations",
+                                       "pass":  true,
+                                       "evidence":  "violations=0"
+                                   },
+                                   {
+                                       "name":  "deep-linked product details display the correct persisted product",
+                                       "pass":  true,
+                                       "evidence":  ""
+                                   },
+                                   {
+                                       "name":  "Product details has no axe violations",
+                                       "pass":  true,
+                                       "evidence":  "violations=0"
+                                   },
+                                   {
+                                       "name":  "product editor deep link retains the persisted product context",
+                                       "pass":  true,
+                                       "evidence":  "Edit product"
+                                   },
+                                   {
+                                       "name":  "Product editor has no axe violations",
+                                       "pass":  true,
+                                       "evidence":  "violations=0"
+                                   },
+                                   {
+                                       "name":  "catalog detail deep link retains product context",
+                                       "pass":  true,
+                                       "evidence":  ""
+                                   },
+                                   {
+                                       "name":  "Catalog detail has no axe violations",
+                                       "pass":  true,
+                                       "evidence":  "violations=0"
+                                   },
+                                   {
+                                       "name":  "browser Back restores product deep link",
+                                       "pass":  true,
+                                       "evidence":  ""
+                                   },
+                                   {
+                                       "name":  "browser Forward restores catalog deep link",
+                                       "pass":  true,
+                                       "evidence":  ""
+                                   },
+                                   {
+                                       "name":  "refresh retains persisted catalog context",
+                                       "pass":  true,
+                                       "evidence":  ""
+                                   },
+                                   {
+                                       "name":  "browser loaded no third-party origins",
+                                       "pass":  true,
+                                       "evidence":  ""
+                                   }
+                               ],
+                    "pages":  [
+                                  {
+                                      "route":  "/dashboard",
+                                      "authenticated":  true
+                                  },
+                                  {
+                                      "route":  "/products",
+                                      "item_visible":  true
+                                  },
+                                  {
+                                      "route":  "/products/1db7aa6d-6666-4bf2-9172-d688a76fd138",
+                                      "item_visible":  true
+                                  },
+                                  {
+                                      "route":  "/catalog/1db7aa6d-6666-4bf2-9172-d688a76fd138",
+                                      "item_visible":  true
+                                  }
+                              ],
+                    "viewports":  [
+                                      {
+                                          "page":  "dashboard",
+                                          "width":  360,
+                                          "css_viewport_width":  345,
+                                          "no_horizontal_overflow":  true,
+                                          "document_width":  345,
+                                          "overflow_examples":  [
+
+                                                                ]
+                                      },
+                                      {
+                                          "page":  "dashboard",
+                                          "width":  390,
+                                          "css_viewport_width":  375,
+                                          "no_horizontal_overflow":  true,
+                                          "document_width":  375,
+                                          "overflow_examples":  [
+
+                                                                ]
+                                      },
+                                      {
+                                          "page":  "dashboard",
+                                          "width":  768,
+                                          "css_viewport_width":  753,
+                                          "no_horizontal_overflow":  true,
+                                          "document_width":  753,
+                                          "overflow_examples":  [
+
+                                                                ]
+                                      },
+                                      {
+                                          "page":  "dashboard",
+                                          "width":  1024,
+                                          "css_viewport_width":  1009,
+                                          "no_horizontal_overflow":  true,
+                                          "document_width":  1009,
+                                          "overflow_examples":  [
+
+                                                                ]
+                                      },
+                                      {
+                                          "page":  "dashboard",
+                                          "width":  1440,
+                                          "css_viewport_width":  1425,
+                                          "no_horizontal_overflow":  true,
+                                          "document_width":  1425,
+                                          "overflow_examples":  [
+
+                                                                ]
+                                      }
+                                  ],
+                    "axe":  [
+                                {
+                                    "page":  "Sign in",
+                                    "violations":  [
+
+                                                   ],
+                                    "passes":  28,
+                                    "incomplete":  [
+
+                                                   ]
+                                },
+                                {
+                                    "page":  "Dashboard",
+                                    "violations":  [
+
+                                                   ],
+                                    "passes":  38,
+                                    "incomplete":  [
+
+                                                   ]
+                                },
+                                {
+                                    "page":  "Product list",
+                                    "violations":  [
+
+                                                   ],
+                                    "passes":  39,
+                                    "incomplete":  [
+
+                                                   ]
+                                },
+                                {
+                                    "page":  "Product details",
+                                    "violations":  [
+
+                                                   ],
+                                    "passes":  36,
+                                    "incomplete":  [
+
+                                                   ]
+                                },
+                                {
+                                    "page":  "Product editor",
+                                    "violations":  [
+
+                                                   ],
+                                    "passes":  38,
+                                    "incomplete":  [
+                                                       {
+                                                           "id":  "color-contrast",
+                                                           "impact":  "serious",
+                                                           "count":  2,
+                                                           "examples":  [
+                                                                            {
+                                                                                "target":  [
+                                                                                               "textarea[formcontrolname=\"short_description\"]"
+                                                                                           ],
+                                                                                "summary":  "Fix any of the following:\n  Element\u0027s background color could not be determined because it\u0027s partially obscured by another element"
+                                                                            },
+                                                                            {
+                                                                                "target":  [
+                                                                                               "textarea[formcontrolname=\"description\"]"
+                                                                                           ],
+                                                                                "summary":  "Fix any of the following:\n  Element\u0027s background color could not be determined because it\u0027s partially obscured by another element"
+                                                                            }
+                                                                        ]
+                                                       }
+                                                   ]
+                                },
+                                {
+                                    "page":  "Catalog detail",
+                                    "violations":  [
+
+                                                   ],
+                                    "passes":  43,
+                                    "incomplete":  [
+
+                                                   ]
+                                }
+                            ],
+                    "console_errors":  [
+
+                                       ],
+                    "status":  "PASS",
+                    "browser_version":  "Chrome/155.0.8059.40",
+                    "external_resources":  [
+
+                                           ]
+                }
+}

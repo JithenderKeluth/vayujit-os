@@ -35,7 +35,7 @@ import {
     CommerceJourneyContextComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: ` <main class="intelligence-page" aria-labelledby="intelligence-title">
+  template: ` <section class="intelligence-page" aria-labelledby="intelligence-title">
     <app-breadcrumbs [items]="breadcrumbs" />
     <header class="page-header">
       <div>
@@ -956,7 +956,7 @@ import {
         <p>AI INTERPRETATION — NOT ENABLED (AI INTERPRETATION DISABLED)</p>
       </section>
     }
-  </main>`,
+  </section>`,
   styles: [
     `
       :host {

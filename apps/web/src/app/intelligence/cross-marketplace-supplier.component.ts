@@ -44,12 +44,13 @@ import {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="workspace" aria-labelledby="supplier-intelligence-title">
+    <section class="workspace" aria-labelledby="supplier-intelligence-title">
       <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         class="page-header"
         eyebrow="Intelligence / Supplier Intelligence"
         title="Cross-marketplace Supplier Intelligence"
+        headingId="supplier-intelligence-title"
         description="One canonical, evidence-first view across independent sources."
       >
         <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
@@ -86,12 +87,14 @@ import {
           @if (researchMode === 'LOCAL_FIXTURE') {
             <p class="fixture-boundary" role="note">Local demo data — not live market evidence.</p>
           }
-          <div class="research-form" aria-label="Selected product supplier research">
+          <div class="research-form" role="group" aria-label="Selected product supplier research">
             <p class="research-intent">
-              VAYUJIT will derive a bounded supplier-search intent from this selected product.
-              You do not need to enter a product ID or search string.
+              VAYUJIT will derive a bounded supplier-search intent from this selected product. You
+              do not need to enter a product ID or search string.
             </p>
-            <p class="research-mode">Mode: <strong>{{ researchMode }}</strong> · no supplier contact or external write</p>
+            <p class="research-mode">
+              Mode: <strong>{{ researchMode }}</strong> · no supplier contact or external write
+            </p>
             <button type="button" (click)="startResearch()" [disabled]="researchBusy()">
               {{ researchBusy() ? 'Finding suppliers...' : 'Find suppliers for this product' }}
             </button>
@@ -307,12 +310,7 @@ import {
       </section>
 
       @if (selected()) {
-        <section
-          id="supplier-detail"
-          class="panel"
-          aria-labelledby="detail-title"
-          tabindex="-1"
-        >
+        <section id="supplier-detail" class="panel" aria-labelledby="detail-title" tabindex="-1">
           <p class="eyebrow">Supplier detail</p>
           <h2 id="detail-title">{{ selected()?.display_name }}</h2>
           <p class="detail-lede">
@@ -514,7 +512,7 @@ import {
           </details>
         }
       </section>
-    </main>
+    </section>
   `,
   styles: [
     `
@@ -1166,16 +1164,25 @@ export class CrossMarketplaceSupplierComponent {
     const status = this.researchStatus();
     const messages: Record<string, string> = {
       NOT_STARTED: 'Supplier research has not started for this selected product.',
-      RUNNING: 'Bounded supplier research is running. Results remain read-only until you review them.',
-      COMPLETED: 'Research completed. Review evidence, freshness, risks, and unknown commercial fields before comparing.',
-      NO_CANDIDATES: 'No canonical supplier candidate survived the evidence and relevance gates for this product.',
-      PROVIDER_UNAVAILABLE: 'The configured provider is unavailable. No supplier contact or external write was attempted.',
+      RUNNING:
+        'Bounded supplier research is running. Results remain read-only until you review them.',
+      COMPLETED:
+        'Research completed. Review evidence, freshness, risks, and unknown commercial fields before comparing.',
+      NO_CANDIDATES:
+        'No canonical supplier candidate survived the evidence and relevance gates for this product.',
+      PROVIDER_UNAVAILABLE:
+        'The configured provider is unavailable. No supplier contact or external write was attempted.',
       APPROVAL_REQUIRED: 'Human approval is required before this research can continue.',
-      BLOCKED: 'Research is blocked by a canonical safety or context gate. Review the selected product and the error above.',
-      FAILED: 'Research failed before a canonical supplier projection was produced. Retry only after reviewing the error.',
+      BLOCKED:
+        'Research is blocked by a canonical safety or context gate. Review the selected product and the error above.',
+      FAILED:
+        'Research failed before a canonical supplier projection was produced. Retry only after reviewing the error.',
       STALE: 'The available supplier evidence is stale and needs human review before it is used.',
     };
-    return messages[status] || 'Review the canonical result and its evidence before taking the next step.';
+    return (
+      messages[status] ||
+      'Review the canonical result and its evidence before taking the next step.'
+    );
   }
   private researchStatus(): string {
     const value = this.research()?.['status'];

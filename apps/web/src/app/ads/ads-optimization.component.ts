@@ -13,7 +13,7 @@ type Json = any;
   imports: [CommonModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="optimization-shell" aria-labelledby="optimization-title">
+    <section class="optimization-shell" aria-labelledby="optimization-title">
       <header class="page-header">
         <div>
           <p class="eyebrow">Ads and Marketing Automation</p>
@@ -176,7 +176,7 @@ type Json = any;
           </section>
         </div>
       }
-    </main>
+    </section>
   `,
   styles: [
     `

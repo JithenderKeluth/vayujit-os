@@ -7,7 +7,7 @@ import re
 import uuid
 from datetime import UTC, datetime
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from fastapi import HTTPException
 from sqlalchemy import select
@@ -18,6 +18,10 @@ from vayujit_api.identity.models import User
 from vayujit_api.intelligence.external_schemas import (
     ExternalFetchRequestBody,
     ExternalSearchRequestBody,
+)
+from vayujit_api.intelligence.external_service import (
+    SAFE_FETCH_FAILURE_MESSAGES,
+    approved_source_profiles,
 )
 from vayujit_api.intelligence.external_service import fetch as approved_fetch
 from vayujit_api.intelligence.external_service import search as external_search
@@ -423,7 +427,93 @@ def _live_product_queries(concept: str) -> list[tuple[str, str]]:
     return [
         (f"{concept} product detail India", "PRIMARY_PRODUCT_QUERY"),
         (f"{concept} product specifications India", "REFINEMENT_AFTER_NO_PRODUCT_EVIDENCE"),
+        (
+            f"{concept} buy online India product specifications",
+            "BOUNDED_PRODUCT_PAGE_RECOVERY",
+        ),
     ]
+
+
+def non_product_discovery_url(url: str) -> tuple[str, str] | None:
+    """Skip only clear non-product URL surfaces; never establish product eligibility."""
+    parsed = urlparse(url)
+    path = parsed.path.casefold().rstrip("/")
+    host = (parsed.hostname or "").casefold()
+    segments = set(path.split("/"))
+    # A concrete nested product path can legitimately appear inside a collection.
+    if re.search(r"/(?:dp|gp/product|products?|p|item)/[^/]+", path):
+        return None
+    if segments & {"search", "s"}:
+        return (
+            "SEARCH_PAGE",
+            "Search-results pages are not concrete products; "
+            "no source approval is needed for this result.",
+        )
+    if segments & {"manufacturers", "suppliers", "supplier-directory"}:
+        return (
+            "SUPPLIER_DIRECTORY",
+            "Supplier directories belong to later sourcing research, "
+            "not product identity discovery.",
+        )
+    if segments & {"category", "categories", "collections"}:
+        return (
+            "PRODUCT_LISTING",
+            "Category and collection pages do not identify one concrete product.",
+        )
+    if segments & {"shipping-policy", "privacy-policy", "terms-and-conditions", "policies"}:
+        return "POLICY_PAGE", "Policy pages are not product evidence."
+    if segments & {"blog", "blogs", "news", "guides", "articleshow"}:
+        return "EDITORIAL", "Editorial and guide pages are not concrete product pages."
+    if host == "amazon.in" or host.endswith(".amazon.in"):
+        if not path:
+            return "MARKETPLACE_HOME", "Marketplace home pages are not product evidence."
+        if path.endswith("/b") or "node" in parse_qs(parsed.query):
+            return "PRODUCT_LISTING", "Marketplace category pages are not concrete products."
+    return None
+
+
+def discovery_review_projection(result: dict[str, object]) -> dict[str, object]:
+    """Add current UI guidance without rewriting historical evidence or failures."""
+    key = "details" if isinstance(result.get("details"), dict) else "research"
+    raw = result.get(key)
+    if not isinstance(raw, dict):
+        return result
+    details = dict(raw)
+    rows = details.get("fetches")
+    if not isinstance(rows, list):
+        return result
+    reviewed = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        excluded = non_product_discovery_url(str(row.get("url") or ""))
+        reviewed.append(
+            {
+                **row,
+                "source_review_eligible": excluded is None,
+                **({"skip_reason": excluded[1]} if excluded else {}),
+            }
+        )
+    details["fetches"] = reviewed
+    rejected = details.get("rejected_results")
+    skipped = (
+        [
+            row
+            for row in rejected
+            if isinstance(row, dict) and row.get("reason_code") == "NON_PRODUCT_PAGE"
+        ]
+        if isinstance(rejected, list)
+        else []
+    )
+    if (reviewed or skipped) and all(
+        row.get("source_review_eligible") is False for row in reviewed
+    ):
+        details["review_guidance"] = (
+            "The returned URLs are search, directory, or category pages, not concrete products. "
+            "No approval is needed for these pages. Retry discovery once to apply "
+            "product-page filtering and bounded refinement."
+        )
+    return {**result, key: details}
 
 
 def _normalize_live_search_failure(exc: HTTPException) -> tuple[str, str]:
@@ -446,11 +536,14 @@ def run_live_product_discovery(
 ) -> dict[str, Any]:
     """Run bounded adaptive discovery and materialize only validated product identities."""
     settings = get_settings()
-    structured = structured_goal or {}
+    structured = dict(structured_goal or {})
     market = str(structured.get("country_region") or structured.get("country") or "IN")
     marketplace = str(structured.get("marketplace") or "AMAZON_IN")
     requested_category = _goal_category_constraint(raw_goal, structured)
+    if requested_category:
+        structured["category"] = requested_category
     hypotheses = _live_hypotheses(raw_goal, structured)
+    source_profiles = approved_source_profiles(db, owner)
     hypothesis_generated_at = datetime.now(UTC).isoformat()
     for hypothesis in hypotheses:
         hypothesis_profile = hypothesis.get("profile")
@@ -477,7 +570,7 @@ def run_live_product_discovery(
         1, min(int(getattr(settings, "intelligence_product_search_max_requests", 3)), 12)
     )
     max_hypotheses = min(len(hypotheses), 3)
-    planned_requests = min(max_hypotheses * 2, configured_budget)
+    planned_requests = min(max_hypotheses * 3, configured_budget)
     target_candidates = _target_candidate_count(structured)
     empty_budget = {
         "configured": configured_budget,
@@ -532,6 +625,7 @@ def run_live_product_discovery(
     fetches: list[dict[str, object]] = []
     rejected_results: list[dict[str, object]] = []
     observed_urls: set[str] = set()
+    skipped_results = 0
     executed_requests = 0
     reused_requests = 0
     reused_fetches = 0
@@ -539,13 +633,31 @@ def run_live_product_discovery(
     stop_reason = "SEARCH_BUDGET_EXHAUSTED"
 
     def materialize(hypothesis: dict[str, object], row: Any) -> bool:
-        nonlocal reused_fetches
-        if len(fetches) >= max_fetches or not hasattr(row, "url"):
+        nonlocal reused_fetches, skipped_results
+        if not hasattr(row, "url"):
             return False
         canonical = str(row.canonical_url or row.url)
         if canonical in observed_urls:
             return False
         observed_urls.add(canonical)
+        excluded = non_product_discovery_url(canonical)
+        if excluded is not None:
+            skipped_results += 1
+            rejected_results.append(
+                {
+                    "url": canonical,
+                    "domain": str(row.domain),
+                    "page_type": excluded[0],
+                    "eligible": False,
+                    "reason_code": "NON_PRODUCT_PAGE",
+                    "reason": excluded[1],
+                    "status": "NOT_FETCHED",
+                    "source_review_eligible": False,
+                }
+            )
+            return False
+        if len(fetches) >= max_fetches:
+            return False
         try:
             fetched = approved_fetch(
                 db,
@@ -554,19 +666,42 @@ def run_live_product_discovery(
                     url=canonical,
                     allowed_domains=[str(row.domain)],
                     search_result_id=uuid.UUID(str(row.id)),
+                    source_profile=next(
+                        (
+                            source_profiles[domain]
+                            for domain in sorted(
+                                source_profiles, key=lambda value: (-len(value), value)
+                            )
+                            if str(row.domain).lower() == domain
+                            or str(row.domain).lower().endswith("." + domain)
+                        ),
+                        "default",
+                    ),
                     correlation_id=f"product-discovery-fetch:{row.id}",
                 ),
             )
         except HTTPException as exc:
+            approval_required = (
+                exc.status_code == 403
+                and exc.detail == "External source approval is required before fetching."
+            )
+            safe_code = (exc.headers or {}).get("X-External-Failure-Code", "")
+            safe_message = SAFE_FETCH_FAILURE_MESSAGES.get(safe_code, str(exc.detail))
+            reason_code = (
+                "SOURCE_APPROVAL_REQUIRED"
+                if approval_required
+                else (safe_code if safe_code in SAFE_FETCH_FAILURE_MESSAGES else "FETCH_REJECTED")
+            )
             fetches.append(
                 {
                     "url": canonical,
                     "domain": str(row.domain),
-                    "status": "FAILED",
+                    "status": "BLOCKED" if approval_required else "FAILED",
+                    "reason_code": reason_code,
                     "page_type": "UNKNOWN",
                     "eligible": False,
                     "reused": False,
-                    "failure": str(exc.detail),
+                    "failure": safe_message,
                 }
             )
             rejected_results.append(
@@ -575,7 +710,8 @@ def run_live_product_discovery(
                     "domain": str(row.domain),
                     "page_type": "UNKNOWN",
                     "eligible": False,
-                    "reason": str(exc.detail),
+                    "reason": safe_message,
+                    "reason_code": reason_code,
                 }
             )
             return False
@@ -863,31 +999,57 @@ def run_live_product_discovery(
                 if len(candidates) >= target_candidates:
                     stop_reason = "EARLY_STOP_TARGET_REACHED"
                     break
+            if len(candidates) < target_candidates and any(
+                item.get("reason_code") == "SOURCE_APPROVAL_REQUIRED" for item in fetches
+            ):
+                stop_reason = "SOURCE_APPROVAL_REQUIRED"
+                break
             if len(candidates) >= target_candidates:
                 break
-        if len(candidates) >= target_candidates or quota_exhausted:
+        if (
+            len(candidates) >= target_candidates
+            or quota_exhausted
+            or stop_reason == "SOURCE_APPROVAL_REQUIRED"
+        ):
             break
 
     if stop_reason == "SEARCH_BUDGET_EXHAUSTED" and executed_requests < configured_budget:
         stop_reason = "SEARCH_EXHAUSTED_WITHOUT_TARGET"
-    avoided_provider_calls = max(0, planned_requests - executed_requests)
+    if (
+        executed_requests == reused_requests
+        and not candidates
+        and stop_reason != "SOURCE_APPROVAL_REQUIRED"
+    ):
+        stop_reason = "CACHED_QUERY_PLAN_EXHAUSTED"
+    avoided_provider_calls = max(0, planned_requests - executed_requests) + reused_requests
     search_budget = {
         "configured": configured_budget,
         "planned": planned_requests,
         "executed": executed_requests,
         "reused": reused_requests,
         "remaining": max(0, configured_budget - executed_requests),
+        "provider_searches_executed": executed_requests - reused_requests,
+        "provider_budget_remaining": max(
+            0, configured_budget - executed_requests + reused_requests
+        ),
         "avoided": avoided_provider_calls,
         "target_candidates": target_candidates,
         "stop_reason": stop_reason,
     }
     observability = {
         "planned_search_requests": planned_requests,
-        "executed_search_requests": executed_requests,
+        "search_attempts": executed_requests,
+        "executed_search_requests": executed_requests - reused_requests,
         "reused_search_requests": reused_requests,
         "avoided_provider_calls": avoided_provider_calls,
         "results_returned": len(search_rows),
-        "urls_fetched": len(fetches),
+        "fetch_attempts": len(fetches),
+        "urls_fetched": sum(
+            item.get("status") == "COMPLETED" and not item.get("reused") for item in fetches
+        ),
+        "successful_fetches": sum(item.get("status") == "COMPLETED" for item in fetches),
+        "blocked_fetches": sum(item.get("status") == "BLOCKED" for item in fetches),
+        "non_product_pages_skipped": skipped_results,
         "fetches_reused": reused_fetches,
         "candidates_survived": len(candidates),
         "stop_reason": stop_reason,
@@ -909,10 +1071,21 @@ def run_live_product_discovery(
     db.commit()
     for candidate in candidates:
         db.refresh(candidate)
+    approval_domains = sorted(
+        {
+            str(item["domain"])
+            for item in rejected_results
+            if item.get("reason_code") == "SOURCE_APPROVAL_REQUIRED"
+        }
+    )
     status = (
         "RESEARCHED_WITH_GAPS"
         if candidates
-        else ("PROVIDER_QUOTA_EXHAUSTED" if quota_exhausted else "NO_USEFUL_PRODUCT_CANDIDATES")
+        else (
+            "PROVIDER_QUOTA_EXHAUSTED"
+            if quota_exhausted
+            else "SOURCE_APPROVAL_REQUIRED" if approval_domains else "NO_USEFUL_PRODUCT_CANDIDATES"
+        )
     )
     return {
         "mode": settings.intelligence_external_provider_mode,
@@ -934,6 +1107,7 @@ def run_live_product_discovery(
         ],
         "fetches": fetches,
         "rejected_results": rejected_results,
+        "source_approvals_required": approval_domains,
         "failures": failures,
         "search_budget": search_budget,
         "observability": observability,

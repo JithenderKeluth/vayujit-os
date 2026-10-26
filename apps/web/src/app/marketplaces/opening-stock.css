@@ -1,0 +1,98 @@
+.opening-page {
+  min-width: 0;
+}
+.opening-page .marketplace-card {
+  min-width: 0;
+}
+.opening-form {
+  display: grid;
+  gap: 1rem;
+}
+.opening-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-weight: 650;
+}
+.opening-page input,
+.opening-page select {
+  max-width: 100%;
+  min-width: 0;
+}
+.opening-page small {
+  font-weight: 400;
+  color: var(--vj-color-ink-soft);
+}
+.opening-page .checkbox-label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin: 1rem 0;
+}
+.opening-page .checkbox-label input {
+  flex: 0 0 auto;
+  margin-top: 0.3rem;
+}
+.opening-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+}
+.opening-facts div {
+  min-width: 0;
+}
+.opening-facts dt {
+  font-weight: 650;
+}
+.opening-facts dd {
+  margin: 0.25rem 0;
+  overflow-wrap: anywhere;
+}
+.reference {
+  overflow-wrap: anywhere;
+}
+.opening-page a {
+  color: var(--vj-color-brand);
+}
+.opening-page .marketplace-actions {
+  margin-top: 1rem;
+}
+.opening-page button {
+  padding: 0.65rem 0.9rem;
+  border: 1px solid #14566f;
+  border-radius: 0.4rem;
+  color: #fff;
+  background: #14566f;
+  font: inherit;
+}
+.opening-page button:disabled {
+  opacity: 0.6;
+}
+.opening-page [tabindex='-1']:focus {
+  outline: 3px solid var(--vj-focus);
+  outline-offset: 2px;
+}
+.opening-form fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.opening-form legend {
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+.opening-page .workspace-grid-form {
+  align-items: start;
+}
+.opening-page .workspace-grid-form > div {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+.opening-page .workspace-grid-form input {
+  width: 100%;
+  box-sizing: border-box;
+}
+.opening-page .marketplace-error:empty {
+  display: none;
+}

@@ -56,7 +56,7 @@ type Capability = Json & {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="ads-shell" aria-labelledby="ads-title">
+    <section class="ads-shell" aria-labelledby="ads-title">
       <app-growth-journey-nav current="advertising" />
       <app-page-header
         eyebrow="Grow / advertising"
@@ -124,7 +124,7 @@ type Capability = Json & {
           }
         }
       }
-    </main>
+    </section>
     <ng-template #overviewView
       ><section class="section-heading">
         <div>
@@ -230,7 +230,7 @@ type Capability = Json & {
           </div>
         </form>
       }
-      <section class="panel table-scroll">
+      <section class="panel table-scroll" tabindex="0" aria-label="Ads accounts table">
         <table>
           <caption class="sr-only">
             Ads accounts
@@ -317,7 +317,7 @@ type Capability = Json & {
           </select></label
         >
       </section>
-      <section class="panel table-scroll">
+      <section class="panel table-scroll" tabindex="0" aria-label="Ads campaigns table">
         <table>
           <caption class="sr-only">
             Ads campaigns
@@ -797,7 +797,7 @@ type Capability = Json & {
           ><small>No live revenue attribution connected</small>
         </article>
       </section>
-      <section class="panel table-scroll">
+      <section class="panel table-scroll" tabindex="0" aria-label="Advertising analytics table">
         <table>
           <thead>
             <tr>
@@ -837,7 +837,7 @@ type Capability = Json & {
           </p>
         </div>
       </section>
-      <section class="panel table-scroll">
+      <section class="panel table-scroll" tabindex="0" aria-label="Ads schedule table">
         <table>
           <caption class="sr-only">
             Ads schedule
@@ -882,7 +882,7 @@ type Capability = Json & {
           <p>Actions are explicit, idempotent, and always return safe messages.</p>
         </div>
       </section>
-      <section class="panel table-scroll">
+      <section class="panel table-scroll" tabindex="0" aria-label="Advertising failures table">
         <table>
           <thead>
             <tr>

@@ -93,7 +93,7 @@ const ACTIONS = [
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="portfolio-page" aria-labelledby="portfolio-title">
+    <section class="portfolio-page" aria-labelledby="portfolio-title">
       <app-breadcrumbs [items]="breadcrumbs" />
       <header class="page-header">
         <div>
@@ -666,7 +666,7 @@ const ACTIONS = [
           </section>
         </div>
       }
-    </main>
+    </section>
   `,
   styles: [
     `

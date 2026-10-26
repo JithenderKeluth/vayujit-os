@@ -53,7 +53,7 @@ import {
     @if (loading()) {
       <app-loading-state message="Loading existing trend intelligence..." />
     }
-    <main class="workspace" aria-labelledby="trend-title">
+    <section class="workspace" aria-labelledby="trend-title">
       <app-page-header
         eyebrow="Intelligence / Evidence"
         title="Trend Intelligence"
@@ -117,8 +117,8 @@ import {
         />
       }
       @if (contexts().length) {
-        <section aria-labelledby="context-heading">
-          <h2 id="context-heading">Contexts</h2>
+        <section aria-labelledby="trend-context-list-heading">
+          <h2 id="trend-context-list-heading">Contexts</h2>
           @for (context of contexts(); track context.id) {
             <button
               type="button"
@@ -373,7 +373,7 @@ import {
           }
         </section>
       }
-    </main>
+    </section>
   `,
 })
 export class TrendIntelligenceWorkspaceComponent {

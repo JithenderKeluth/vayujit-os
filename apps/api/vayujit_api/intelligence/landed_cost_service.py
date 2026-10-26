@@ -268,6 +268,84 @@ def _latest_calculation(
     )
 
 
+def landed_readiness_state(row: CommercialReadinessSnapshot) -> dict[str, object]:
+    """Semantic acquisition inputs, not snapshot IDs or incidental snapshot timestamps.
+
+    Reuse the exact known-before-assumed precedence used by PR-5B. Supplier,
+    basis, provenance, freshness and source references are material, not just price.
+    """
+    records: dict[str, object] = {}
+    for key in (*REQUIRED, "supplier_moq"):
+        record = _effective(row, key)
+        if record is None:
+            records[key] = None
+            continue
+        value = record.get("value")
+        if key in {"supplier_unit_price", "freight_cost", "supplier_moq"}:
+            parsed = _decimal(value)
+            value = str(parsed.normalize()) if parsed is not None and parsed.is_finite() else None
+        elif key in {"supplier_currency", "freight_currency", "origin", "destination"}:
+            value = str(value).strip().upper()
+        refs_value = record.get("source_references")
+        refs = refs_value if isinstance(refs_value, list) else []
+        records[key] = {
+            "value": value,
+            "basis": (
+                _basis(record.get("price_basis") or record.get("unit"))
+                if key == "supplier_unit_price"
+                else (
+                    _basis(record.get("unit"), freight=True)
+                    if key == "freight_cost"
+                    else record.get("unit")
+                )
+            ),
+            "currency": str(record.get("currency") or "").upper(),
+            "provenance": record.get("provenance"),
+            "trust_state": record.get("trust_state"),
+            "freshness": _freshness(record),
+            "marker": record.get("marker"),
+            "references": sorted(json.dumps(ref, sort_keys=True, default=str) for ref in refs),
+        }
+    return {
+        "owner_id": str(row.owner_id),
+        "opportunity_id": str(row.opportunity_id),
+        "assessment_id": str(row.assessment_id),
+        "supplier_id": str(row.supplier_id) if row.supplier_id else None,
+        "scenario_key": row.scenario_key,
+        "inputs": records,
+        "contradictions": sorted(
+            json.dumps(x, sort_keys=True, default=str) for x in (row.contradictions or [])
+        ),
+    }
+
+
+def landed_readiness_issue(
+    current: CommercialReadinessSnapshot | None,
+    original: CommercialReadinessSnapshot | None,
+) -> str | None:
+    """Fail closed for missing/changed/expired inputs; equivalent snapshots remain valid."""
+    if current is None or original is None:
+        return "LANDED_COST_LINEAGE_UNKNOWN"
+    gate = (current.readiness or {}).get("calculations", {})
+    landed_gate = gate.get("LANDED_UNIT_COST") if isinstance(gate, dict) else None
+    if not isinstance(landed_gate, dict) or landed_gate.get("status") != "READY":
+        return "LANDED_COST_INPUTS_REQUIRED"
+    if current.contradictions or any(_effective(current, key) is None for key in REQUIRED):
+        return "LANDED_COST_INPUTS_REQUIRED"
+    for key in ("supplier_unit_price", "freight_cost"):
+        amount = _decimal((_effective(current, key) or {}).get("value"))
+        if amount is None or not amount.is_finite() or amount < 0:
+            return "LANDED_COST_INPUTS_REQUIRED"
+    if any(
+        str((_effective(current, key) or {}).get("freshness") or "").upper() in {"STALE", "EXPIRED"}
+        for key in (*REQUIRED, "supplier_moq")
+    ):
+        return "LANDED_COST_INPUTS_STALE"
+    if landed_readiness_state(current) != landed_readiness_state(original):
+        return "LANDED_COST_INPUTS_CHANGED"
+    return None
+
+
 def calculate_landed_cost(
     db: Session,
     owner: User,
@@ -329,6 +407,14 @@ def calculate_landed_cost(
             readiness,
             ["unresolved_commercial_contradiction"],
             "Resolve the commercial contradiction before calculating.",
+        )
+
+    current_issue = landed_readiness_issue(readiness, readiness)
+    if current_issue:
+        return _blocked(
+            readiness,
+            [current_issue],
+            "Refresh missing or stale acquisition inputs before calculating landed cost.",
         )
 
     effective = {key: _effective(readiness, key) for key in REQUIRED}
@@ -625,6 +711,38 @@ def get_landed_cost(
             "Review PR-5A commercial readiness and provide the required landed-cost inputs.",
         )
     view = _calculation_view(db, owner, row)
+    original = (
+        db.scalar(
+            select(CommercialReadinessSnapshot).where(
+                CommercialReadinessSnapshot.id == row.commercial_readiness_snapshot_id,
+                CommercialReadinessSnapshot.owner_id == owner.id,
+                CommercialReadinessSnapshot.opportunity_id == opportunity_id,
+                CommercialReadinessSnapshot.assessment_id == assessment_id,
+            )
+        )
+        if row.commercial_readiness_snapshot_id
+        else None
+    )
+    issue = landed_readiness_issue(readiness, original)
+    if issue:
+        return {
+            "status": (
+                "STALE"
+                if issue in {"LANDED_COST_INPUTS_CHANGED", "LANDED_COST_INPUTS_STALE"}
+                else "BLOCKED"
+            ),
+            "calculable": False,
+            "calculation": view,
+            "breakdown": view["breakdown"],
+            "readiness": _readiness_payload(readiness),
+            "missing_inputs": [issue],
+            "limitations": ["Historical landed cost is retained, not current readiness."],
+            "safe_next_action": (
+                "Review acquisition inputs and recalculate landed cost "
+                "before relying on unit economics."
+            ),
+            "external_writes": [],
+        }
     return {
         "status": "CALCULATED" if row.per_unit_cost is not None else "PARTIAL",
         "calculable": row.per_unit_cost is not None,

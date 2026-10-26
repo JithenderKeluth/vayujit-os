@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import uuid
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from decimal import Decimal
 from typing import Annotated, Any, Literal
 
@@ -106,6 +106,7 @@ def _transition(
     note: str | None,
     *,
     actor_type: str = "HUMAN",
+    until: datetime | None = None,
 ) -> OperationalSignalTransition:
     if actor_type != "HUMAN":
         raise HTTPException(403, "Only a HUMAN seller may change an operational signal.")
@@ -115,12 +116,28 @@ def _transition(
             OperationalSignalTransition.idempotency_key == key,
         )
     )
+    expiry = until.astimezone(UTC).isoformat() if until is not None else None
     if existing is not None:
+        prior_expiry = existing.metadata_json.get("snoozed_until")
+        if prior_expiry is None and target == "SNOOZED" and signal.snoozed_until is not None:
+            # Legacy transitions have no expiry metadata; validate the persisted hold.
+            prior_expiry = signal.snoozed_until.astimezone(UTC).isoformat()
+        if (
+            existing.signal_id != signal.id
+            or existing.to_status != target
+            or existing.actor_type != "HUMAN"
+            or existing.actor_id != owner.id
+            or existing.note != note
+            or (target == "SNOOZED" and prior_expiry != expiry)
+        ):
+            raise HTTPException(409, "Idempotency key belongs to a different signal transition.")
         return existing
+    if signal.status == "STALE":
+        raise HTTPException(409, "Signal evidence changed; rescan before recording a new action.")
     stamp = now()
     previous = signal.status
     signal.status = target
-    signal.snoozed_until = None
+    signal.snoozed_until = until if target == "SNOOZED" else None
     signal.last_transition_at = stamp
     signal.updated_at = stamp
     row = OperationalSignalTransition(
@@ -132,11 +149,99 @@ def _transition(
         actor_id=owner.id,
         note=note,
         idempotency_key=key,
-        metadata_json={"policy_version": "pr-sos-06-v1"},
+        metadata_json={"policy_version": "pr-sos-06-v1", "snoozed_until": expiry},
         created_at=stamp,
     )
     db.add(row)
     return row
+
+
+def _stock_transition(
+    db: Session,
+    owner: User,
+    row: OperationalSignal,
+    target: Literal["STALE", "REOPENED"],
+    note: str,
+    stamp: datetime,
+) -> None:
+    """Derived-state audit, never HUMAN approval or a canonical inventory write."""
+    db.add(
+        OperationalSignalTransition(
+            owner_id=owner.id,
+            signal_id=row.id,
+            from_status=row.status,
+            to_status=target,
+            actor_type="SYSTEM",
+            actor_id=owner.id,
+            note=note,
+            idempotency_key=f"stock-{target.lower()}:{row.id}:{row.last_transition_at.isoformat()}",
+            metadata_json={
+                "policy_version": "pr-sos-06-v1",
+                "read_only": True,
+                "actor_id_role": "installation_owner_context",
+                "source_version": row.source_version,
+            },
+            created_at=stamp,
+        )
+    )
+    row.status = target
+    row.snoozed_until = None
+    row.last_transition_at = stamp
+    row.updated_at = stamp
+    if target == "STALE":
+        row.fresh_until = stamp
+
+
+def _refresh_stock_signals(db: Session, owner: User) -> None:
+    # Serialize derived signal transactions, not canonical inventory writers.
+    # Use a fresh inventory snapshot and its version for revalidation. Locking every
+    # inventory row here would invert multi-line order writers' existing lock order.
+    key = int.from_bytes(
+        hashlib.sha256(f"stock-signals:{owner.id}".encode()).digest()[:8], signed=True
+    )
+    db.execute(select(func.pg_advisory_xact_lock(key)))
+    items = db.scalars(
+        select(InventoryItem).where(InventoryItem.owner_id == owner.id).order_by(InventoryItem.id)
+    ).all()
+    by_id = {str(item.id): item for item in items}
+    rows = db.scalars(
+        select(OperationalSignal)
+        .where(
+            OperationalSignal.owner_id == owner.id,
+            OperationalSignal.source_authority == "InventoryItem",
+            OperationalSignal.signal_type.in_(["out_of_stock", "low_stock"]),
+            OperationalSignal.status != "STALE",
+        )
+        .order_by(OperationalSignal.id)
+        .with_for_update()
+    ).all()
+    stamp = now()
+    for row in rows:
+        item = by_id.get(row.source_resource_id or "")
+        available = (
+            item.on_hand_quantity - item.reserved_quantity - item.damaged_quantity if item else None
+        )
+        current_type = "out_of_stock" if available is not None and available <= 0 else "low_stock"
+        current = (
+            item is not None
+            and item.low_stock_threshold > 0
+            and available is not None
+            and available <= item.low_stock_threshold
+            and row.signal_type == current_type
+            and row.source_version in {str(item.version), f"v{item.version}"}
+            and row.evidence_json.get("available") == available
+            and row.evidence_json.get("threshold") == item.low_stock_threshold
+        )
+        if not current:
+            _stock_transition(
+                db,
+                owner,
+                row,
+                "STALE",
+                "Canonical inventory changed; historical stock evidence is no longer current. Rescan required.",
+                stamp,
+            )
+    db.flush()
 
 
 def _signal_dict(row: OperationalSignal) -> dict[str, Any]:
@@ -230,14 +335,27 @@ def _upsert_signal(
     ):
         setattr(row, key, spec[key])
     if was_resolved:
-        _transition(
-            db,
-            owner,
-            row,
-            "REOPENED",
-            f"reopen:{spec['fingerprint']}:{spec['source_version']}",
-            "Source issue recurred.",
-        )
+        if row.source_authority == "InventoryItem" and row.signal_type in {
+            "low_stock",
+            "out_of_stock",
+        }:
+            _stock_transition(
+                db,
+                owner,
+                row,
+                "REOPENED",
+                "Stock issue re-evaluated from canonical inventory.",
+                stamp,
+            )
+        else:
+            _transition(
+                db,
+                owner,
+                row,
+                "REOPENED",
+                f"reopen:{spec['fingerprint']}:{spec['source_version']}",
+                "Source issue recurred.",
+            )
     row.updated_at = stamp
     return row
 
@@ -296,9 +414,12 @@ def _spec(
 
 def _scan(db: Session, owner: User) -> tuple[int, datetime]:
     stamp = now()
+    _refresh_stock_signals(db, owner)
     _ensure_policy(db, owner, stamp)
     count = 0
-    for item in db.scalars(select(InventoryItem).where(InventoryItem.owner_id == owner.id)).all():
+    for item in db.scalars(
+        select(InventoryItem).where(InventoryItem.owner_id == owner.id).order_by(InventoryItem.id)
+    ).all():
         available = item.on_hand_quantity - item.reserved_quantity - item.damaged_quantity
         if item.low_stock_threshold > 0 and available <= item.low_stock_threshold:
             severity = "critical" if available <= 0 else "high"
@@ -321,6 +442,7 @@ def _scan(db: Session, owner: User) -> tuple[int, datetime]:
                         "available": available,
                         "threshold": item.low_stock_threshold,
                         "sku": item.internal_sku,
+                        "version": item.version,
                     },
                 ),
                 stamp,
@@ -570,6 +692,7 @@ def _scan(db: Session, owner: User) -> tuple[int, datetime]:
 
 
 def _expire_snoozes(db: Session, owner: User) -> None:
+    _refresh_stock_signals(db, owner)
     stamp = now()
     rows = db.scalars(
         select(OperationalSignal).where(
@@ -582,8 +705,7 @@ def _expire_snoozes(db: Session, owner: User) -> None:
         _transition(
             db, owner, row, "REOPENED", f"expiry:{row.id}:{row.snoozed_until}", "Snooze expired."
         )
-    if rows:
-        db.commit()
+    db.flush()
 
 
 def _briefing(db: Session, owner: User) -> dict[str, Any]:
@@ -604,7 +726,8 @@ def _briefing(db: Session, owner: User) -> dict[str, Any]:
             "active": len(active),
             "critical": sum(row.severity == "critical" for row in active),
             "high": sum(row.severity == "high" for row in active),
-            "resolved": len(rows) - len(active),
+            "resolved": sum(row.status == "RESOLVED" for row in rows),
+            "stale": sum(row.status == "STALE" for row in rows),
         },
         "category_breakdown": categories,
         "changes_since_previous": (
@@ -628,7 +751,7 @@ def action_center(
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
 ) -> dict[str, Any]:
-    _expire_snoozes(db, owner)
+    brief = _briefing(db, owner)
     statement = select(OperationalSignal).where(OperationalSignal.owner_id == owner.id)
     if not include_resolved and status is None:
         statement = statement.where(OperationalSignal.status.not_in(["RESOLVED", "STALE"]))
@@ -643,11 +766,15 @@ def action_center(
     if search:
         term = f"%{search.strip()}%"
         statement = statement.where(
-            (OperationalSignal.title.ilike(term)) | (OperationalSignal.explanation.ilike(term))
+            (OperationalSignal.title.ilike(term))
+            | (OperationalSignal.explanation.ilike(term))
+            | (OperationalSignal.signal_type.ilike(term))
         )
     rows = db.scalars(
         statement.order_by(
-            desc(OperationalSignal.priority_score), desc(OperationalSignal.observed_at)
+            desc(OperationalSignal.priority_score),
+            desc(OperationalSignal.observed_at),
+            OperationalSignal.id,
         )
         .offset(offset)
         .limit(limit)
@@ -659,7 +786,7 @@ def action_center(
         "signals": [_signal_dict(row) for row in rows],
         "total": int(total),
         "policy": _policy_dict(policy),
-        "briefing": _briefing(db, owner),
+        "briefing": brief,
     }
 
 
@@ -736,6 +863,7 @@ def signal_detail(signal_id: uuid.UUID, db: DatabaseSession, owner: Owner) -> di
         )
         .order_by(desc(OperationalSignalTransition.created_at))
     ).all()
+    db.commit()
     return {
         "signal": _signal_dict(row),
         "history": [
@@ -752,6 +880,7 @@ def signal_detail(signal_id: uuid.UUID, db: DatabaseSession, owner: Owner) -> di
 
 
 def _get_signal(signal_id: uuid.UUID, db: Session, owner: User) -> OperationalSignal:
+    _refresh_stock_signals(db, owner)
     row = db.scalar(
         select(OperationalSignal)
         .where(OperationalSignal.id == signal_id, OperationalSignal.owner_id == owner.id)
@@ -779,8 +908,9 @@ def snooze(
     if data.until <= now():
         raise HTTPException(422, "Snooze expiry must be in the future.")
     row = _get_signal(signal_id, db, owner)
-    transition = _transition(db, owner, row, "SNOOZED", data.idempotency_key, data.note)
-    row.snoozed_until = data.until
+    transition = _transition(
+        db, owner, row, "SNOOZED", data.idempotency_key, data.note, until=data.until
+    )
     db.commit()
     return {"signal": _signal_dict(row), "transition_id": str(transition.id)}
 
@@ -826,13 +956,15 @@ def request_action(
             403,
             "External actions are default-deny in PR-SOS-06 and require their canonical workflow.",
         )
+    if row.status == "STALE":
+        raise HTTPException(409, "Signal evidence changed; rescan before requesting an action.")
     db.commit()
     return {
         "status": "approval_required",
         "signal_id": str(row.id),
         "action_type": data.action_type,
         "external_writes": False,
-        "message": "The recommendation is recorded for HUMAN review; no action was executed.",
+        "message": "This is advisory only. No approval or execution was recorded; use the canonical HUMAN workflow before taking action.",
     }
 
 

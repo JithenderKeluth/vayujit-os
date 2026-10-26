@@ -18,6 +18,19 @@ describe('AIVideoComponent', () => {
     return { fixture, component: fixture.componentInstance, http };
   }
 
+  it('exposes one routed section and a named, accurate progressbar', () => {
+    const { fixture, component } = create();
+    expect(fixture.nativeElement.querySelector('main')).toBeNull();
+    const root = fixture.nativeElement as HTMLElement;
+    const bar = root.querySelector('[role="progressbar"]')!;
+    expect(bar.getAttribute('aria-label')).toBe('Generate workflow progress');
+    expect(bar.getAttribute('aria-valuenow')).toBe('1');
+    component.nextStep();
+    fixture.detectChanges();
+    expect(bar.getAttribute('aria-valuenow')).toBe('2');
+    expect(bar.getAttribute('aria-valuemax')).toBe('14');
+  });
+
   it('navigates all fourteen wizard steps and preserves bounds', () => {
     const { component } = create();
     expect(component.stepLabel()).toBe('Product');

@@ -17,6 +17,7 @@ from vayujit_api.identity.models import User
 from vayujit_api.intelligence.business_agent_models import BusinessAgentGoal
 from vayujit_api.intelligence.commercial_readiness_models import CommercialReadinessSnapshot
 from vayujit_api.intelligence.economic_calculation_models import EconomicCalculation
+from vayujit_api.intelligence.landed_cost_service import landed_readiness_issue
 from vayujit_api.intelligence.product_opportunity_models import (
     ProductOpportunity,
     ProductOpportunityAssessment,
@@ -378,6 +379,26 @@ def calculate_unit_economics(
         "landed_cost_calculation_id": str(landed.id) if landed else None,
         "commercial_readiness_snapshot_id": str(readiness.id) if readiness else None,
     }
+    if landed is not None:
+        issue = landed_lineage_issue(db, owner, landed, readiness)
+        if issue:
+            blocked = _blocked(
+                opportunity_id=opportunity_id,
+                assessment_id=assessment_id,
+                readiness=readiness_view,
+                missing=[issue],
+                input_snapshot=input_snapshot,
+                limitations=[
+                    "The landed-cost inputs are stale, missing, or no longer comparable. "
+                    "Historical results remain unchanged; they are not current readiness."
+                ],
+            )
+            blocked["freshness"] = _freshness_view(landed, readiness, issue)
+            blocked["safe_next_action"] = (
+                "Review the current acquisition inputs, recalculate landed cost, "
+                "then recalculate unit economics. Unknown values must remain unknown."
+            )
+            return blocked
     missing: list[str] = []
     if landed is None:
         missing.append("landed_cost_calculation")
@@ -639,6 +660,49 @@ def calculate_unit_economics(
     return view
 
 
+def landed_lineage_issue(
+    db: Session,
+    owner: User,
+    landed: EconomicCalculation,
+    current: CommercialReadinessSnapshot | None,
+) -> str | None:
+    original = (
+        db.scalar(
+            select(CommercialReadinessSnapshot).where(
+                CommercialReadinessSnapshot.id == landed.commercial_readiness_snapshot_id,
+                CommercialReadinessSnapshot.owner_id == owner.id,
+                CommercialReadinessSnapshot.opportunity_id == landed.product_opportunity_id,
+                CommercialReadinessSnapshot.assessment_id == landed.assessment_id,
+            )
+        )
+        if landed.commercial_readiness_snapshot_id
+        else None
+    )
+    return landed_readiness_issue(current, original)
+
+
+def _freshness_view(
+    landed: EconomicCalculation,
+    current: CommercialReadinessSnapshot | None,
+    issue: str,
+) -> dict[str, object]:
+    return {
+        "status": (
+            "STALE"
+            if issue in {"LANDED_COST_INPUTS_CHANGED", "LANDED_COST_INPUTS_STALE"}
+            else "NEEDS_INPUT"
+        ),
+        "code": issue,
+        "calculated_from_readiness_id": (
+            str(landed.commercial_readiness_snapshot_id)
+            if landed.commercial_readiness_snapshot_id
+            else None
+        ),
+        "current_readiness_id": str(current.id) if current else None,
+        "recalculation_required": True,
+    }
+
+
 def latest_unit_economics(
     db: Session, owner: User, opportunity_id: uuid.UUID, assessment_id: uuid.UUID
 ) -> dict[str, object] | None:
@@ -651,7 +715,44 @@ def latest_unit_economics(
         )
         .order_by(ProductOpportunityUnitEconomics.created_at.desc())
     )
-    return _view(row) if row is not None else None
+    if row is None:
+        return None
+    view = _view(row)
+    landed = db.scalar(
+        select(EconomicCalculation).where(
+            EconomicCalculation.id == row.landed_cost_calculation_id,
+            EconomicCalculation.owner_id == owner.id,
+        )
+    )
+    current = db.scalar(
+        select(CommercialReadinessSnapshot)
+        .where(
+            CommercialReadinessSnapshot.owner_id == owner.id,
+            CommercialReadinessSnapshot.opportunity_id == opportunity_id,
+            CommercialReadinessSnapshot.assessment_id == assessment_id,
+        )
+        .order_by(CommercialReadinessSnapshot.created_at.desc())
+    )
+    issue = (
+        landed_lineage_issue(db, owner, landed, current)
+        if landed
+        else "LANDED_COST_LINEAGE_UNKNOWN"
+    )
+    if issue:
+        # Read-time posture only: immutable historical status/amounts are not rewritten.
+        view["historical_status"] = row.status
+        view["status"] = "STALE" if "CHANGED" in issue or "STALE" in issue else "BLOCKED"
+        view["calculable"] = False
+        view["safe_next_action"] = (
+            "Review acquisition inputs and recalculate landed cost, then unit economics."
+        )
+        view["limitations"] = [
+            *row.limitations,
+            "Historical calculation: acquisition inputs are stale or require review.",
+        ]
+        if landed:
+            view["freshness"] = _freshness_view(landed, current, issue)
+    return view
 
 
 def unit_economics_history(

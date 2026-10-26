@@ -71,7 +71,12 @@ describe('ExternalResearchWorkspaceComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('main[aria-labelledby="external-title"]')).not.toBeNull();
+    expect(root.querySelector('section[aria-labelledby="external-title"]')).not.toBeNull();
+    expect(root.querySelectorAll('main')).toHaveLength(0);
+    expect(root.querySelectorAll('.badge-row[aria-label]:not([role="group"])')).toHaveLength(0);
+    expect(
+      root.querySelector('[role="group"][aria-label="Server-advertised recovery actions"]'),
+    ).not.toBeNull();
     expect(root.querySelector('nav[aria-label="External Research sections"]')).not.toBeNull();
     expect(root.textContent).toContain('LIVE SEARCH - NOT VALIDATED');
     expect(root.textContent).toContain('No searches yet.');

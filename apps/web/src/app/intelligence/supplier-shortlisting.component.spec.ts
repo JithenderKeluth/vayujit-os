@@ -34,7 +34,8 @@ describe('SupplierShortlistingComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('main[aria-labelledby="shortlisting-title"]')).not.toBeNull();
+    expect(root.querySelector('section[aria-labelledby="shortlisting-title"]')).not.toBeNull();
+    expect(root.querySelectorAll('main')).toHaveLength(0);
     expect(root.querySelector('h1#shortlisting-title')).not.toBeNull();
     expect(root.querySelector('label[for="context-id"]')).not.toBeNull();
     expect(root.querySelector('button[type="button"]')).not.toBeNull();

@@ -1,0 +1,601 @@
+{
+  "full_document_scans": 34,
+  "violation_rule_state_occurrences": 0,
+  "incomplete_rule_state_occurrences": 8,
+  "scans": [
+    {
+      "project": "desktop",
+      "test": "QA-P4C-01",
+      "scenario_status": "passed",
+      "state": "axe-campaign-detail",
+      "route": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb",
+      "violations": [],
+      "incomplete": [],
+      "passes": 33
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-01",
+      "scenario_status": "passed",
+      "state": "axe-campaign--activities-new",
+      "route": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities/new",
+      "violations": [],
+      "incomplete": [],
+      "passes": 38
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-01",
+      "scenario_status": "passed",
+      "state": "axe-campaign--dependencies",
+      "route": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/dependencies",
+      "violations": [],
+      "incomplete": [],
+      "passes": 36
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-01",
+      "scenario_status": "passed",
+      "state": "axe-campaign--video",
+      "route": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video",
+      "violations": [],
+      "incomplete": [],
+      "passes": 33
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-02",
+      "scenario_status": "passed",
+      "state": "axe-media-detail",
+      "route": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58",
+      "violations": [],
+      "incomplete": [],
+      "passes": 37
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-general",
+      "route": "/settings/general",
+      "violations": [],
+      "incomplete": [],
+      "passes": 38
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-profile",
+      "route": "/settings/profile",
+      "violations": [],
+      "incomplete": [],
+      "passes": 38
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-appearance",
+      "route": "/settings/appearance",
+      "violations": [],
+      "incomplete": [],
+      "passes": 38
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-security",
+      "route": "/settings/security",
+      "violations": [],
+      "incomplete": [],
+      "passes": 38
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-ai",
+      "route": "/settings/ai",
+      "violations": [],
+      "incomplete": [],
+      "passes": 38
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-publishing",
+      "route": "/settings/publishing",
+      "violations": [],
+      "incomplete": [],
+      "passes": 38
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-system",
+      "route": "/settings/system",
+      "violations": [],
+      "incomplete": [],
+      "passes": 35
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-warning--marketplaces-accounts",
+      "route": "/marketplaces/accounts",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                "tr:nth-child(1) > td:nth-child(7) > .marketplace-actions[aria-label=\"Read-only imports\"]"
+              ],
+              "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+            },
+            {
+              "target": [
+                "tr:nth-child(2) > td:nth-child(7) > .marketplace-actions[aria-label=\"Read-only imports\"]"
+              ],
+              "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+            }
+          ]
+        }
+      ],
+      "passes": 47
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-warning--ai-video",
+      "route": "/ai/video",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                "div[aria-label=\"Video status summary\"]"
+              ],
+              "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+            },
+            {
+              "target": [
+                ".quick-actions"
+              ],
+              "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+            }
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                ".wizard-grid:nth-child(2) > label:nth-child(2) > textarea"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            },
+            {
+              "target": [
+                ".wizard-grid:nth-child(3) > label:nth-child(2) > textarea"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            },
+            {
+              "target": [
+                "div:nth-child(7) > strong"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element"
+            },
+            {
+              "target": [
+                "div:nth-child(8) > strong"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it partially overlaps other elements"
+            }
+          ]
+        }
+      ],
+      "passes": 49
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-warning--intelligence-autonomous",
+      "route": "/intelligence/autonomous",
+      "violations": [],
+      "incomplete": [],
+      "passes": 43
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-inventory-full",
+      "route": "/marketplaces/inventory",
+      "violations": [],
+      "incomplete": [],
+      "passes": 47
+    },
+    {
+      "project": "desktop",
+      "test": "QA-P4C-04",
+      "scenario_status": "passed",
+      "state": "axe-catalog-create",
+      "route": "/products/new",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                "textarea[formcontrolname=\"short_description\"]"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            },
+            {
+              "target": [
+                "textarea[formcontrolname=\"description\"]"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            }
+          ]
+        }
+      ],
+      "passes": 38
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-01",
+      "scenario_status": "passed",
+      "state": "axe-campaign-detail",
+      "route": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4",
+      "violations": [],
+      "incomplete": [],
+      "passes": 31
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-01",
+      "scenario_status": "passed",
+      "state": "axe-campaign--activities-new",
+      "route": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities/new",
+      "violations": [],
+      "incomplete": [],
+      "passes": 36
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-01",
+      "scenario_status": "passed",
+      "state": "axe-campaign--dependencies",
+      "route": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/dependencies",
+      "violations": [],
+      "incomplete": [],
+      "passes": 34
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-01",
+      "scenario_status": "passed",
+      "state": "axe-campaign--video",
+      "route": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video",
+      "violations": [],
+      "incomplete": [],
+      "passes": 30
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-02",
+      "scenario_status": "passed",
+      "state": "axe-media-detail",
+      "route": "/media/2946c734-cb2d-42a8-be01-66510f2463ed",
+      "violations": [],
+      "incomplete": [],
+      "passes": 35
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-general",
+      "route": "/settings/general",
+      "violations": [],
+      "incomplete": [],
+      "passes": 36
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-profile",
+      "route": "/settings/profile",
+      "violations": [],
+      "incomplete": [],
+      "passes": 36
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-appearance",
+      "route": "/settings/appearance",
+      "violations": [],
+      "incomplete": [],
+      "passes": 36
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-security",
+      "route": "/settings/security",
+      "violations": [],
+      "incomplete": [],
+      "passes": 36
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-ai",
+      "route": "/settings/ai",
+      "violations": [],
+      "incomplete": [],
+      "passes": 36
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-publishing",
+      "route": "/settings/publishing",
+      "violations": [],
+      "incomplete": [],
+      "passes": 36
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-settings-system",
+      "route": "/settings/system",
+      "violations": [],
+      "incomplete": [],
+      "passes": 32
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-warning--marketplaces-accounts",
+      "route": "/marketplaces/accounts",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                "tr:nth-child(1) > td:nth-child(7) > .marketplace-actions[aria-label=\"Read-only imports\"]"
+              ],
+              "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+            },
+            {
+              "target": [
+                "tr:nth-child(2) > td:nth-child(7) > .marketplace-actions[aria-label=\"Read-only imports\"]"
+              ],
+              "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+            }
+          ]
+        }
+      ],
+      "passes": 46
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-warning--ai-video",
+      "route": "/ai/video",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "aria-prohibited-attr",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                "div[aria-label=\"Video status summary\"]"
+              ],
+              "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+            },
+            {
+              "target": [
+                ".quick-actions"
+              ],
+              "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+            }
+          ]
+        },
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                "td"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            },
+            {
+              "target": [
+                ".wizard-grid:nth-child(2) > label:nth-child(2) > textarea"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            },
+            {
+              "target": [
+                ".wizard-grid:nth-child(3) > label:nth-child(2) > textarea"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            },
+            {
+              "target": [
+                "#usage > .metrics > .metric:nth-child(2) > strong"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            },
+            {
+              "target": [
+                "#usage > .metrics > .metric:nth-child(4) > strong"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            },
+            {
+              "target": [
+                "div:nth-child(7) > strong"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            }
+          ]
+        }
+      ],
+      "passes": 48
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-warning--intelligence-autonomous",
+      "route": "/intelligence/autonomous",
+      "violations": [],
+      "incomplete": [],
+      "passes": 41
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-03",
+      "scenario_status": "passed",
+      "state": "axe-inventory-full",
+      "route": "/marketplaces/inventory",
+      "violations": [],
+      "incomplete": [],
+      "passes": 46
+    },
+    {
+      "project": "mobile",
+      "test": "QA-P4C-04",
+      "scenario_status": "passed",
+      "state": "axe-catalog-create",
+      "route": "/products/new",
+      "violations": [],
+      "incomplete": [
+        {
+          "id": "color-contrast",
+          "impact": "serious",
+          "nodes": [
+            {
+              "target": [
+                "textarea[formcontrolname=\"short_description\"]"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            },
+            {
+              "target": [
+                "textarea[formcontrolname=\"description\"]"
+              ],
+              "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+            }
+          ]
+        }
+      ],
+      "passes": 36
+    }
+  ],
+  "targeted": [
+    {
+      "route": "/marketplaces/inventory",
+      "html": "<caption _ngcontent-ng-c3807262853=\"\"> Canonical inventory balances </caption>",
+      "text": "Canonical inventory balances",
+      "bounds": {
+        "left": 321,
+        "right": 1391,
+        "top": 588.75,
+        "bottom": 612.75
+      },
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "text_boxes": [
+        {
+          "left": 321,
+          "right": 525.859375,
+          "top": 589.75,
+          "bottom": 610.75
+        }
+      ],
+      "violations": [],
+      "incomplete": [],
+      "passes": [
+        "color-contrast"
+      ],
+      "text_horizontally_in_view": true,
+      "test": "QA-P4C-03",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/35-node-review-inventory-caption.json"
+    },
+    {
+      "route": "/marketplaces/inventory",
+      "html": "<caption _ngcontent-ng-c3807262853=\"\"> Canonical inventory balances </caption>",
+      "text": "Canonical inventory balances",
+      "bounds": {
+        "left": 3.203125,
+        "right": 934.421875,
+        "top": 410.203125,
+        "bottom": 434.203125
+      },
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "text_boxes": [
+        {
+          "left": 3.203125,
+          "right": 208.0625,
+          "top": 411.203125,
+          "bottom": 432.203125
+        }
+      ],
+      "violations": [],
+      "incomplete": [],
+      "passes": [
+        "color-contrast"
+      ],
+      "text_horizontally_in_view": true,
+      "test": "QA-P4C-03",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/35-node-review-inventory-caption.json"
+    }
+  ],
+  "historical_manual_item_preserved": "QA-P4A-A11Y-MANUAL-001",
+  "wcag_conformance_claimed": false
+}

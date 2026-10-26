@@ -1,0 +1,659 @@
+[
+  {
+    "id": "QA-UX-CURRENCY-DESKTOP",
+    "feature": "Indian seller product creation",
+    "route": "/products/new",
+    "type": "USABILITY",
+    "severity": "MINOR",
+    "priority": "P2",
+    "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+    "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+    "reproduction_steps": [
+      "Create a brand",
+      "Open /products/new",
+      "Inspect Currency before entering a price"
+    ],
+    "evidence": [
+      {
+        "name": "axe-catalog-empty",
+        "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/0-axe-catalog-empty.json"
+      },
+      {
+        "name": "ux-observations",
+        "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/1-ux-observations.json"
+      },
+      {
+        "name": "axe-catalog-detail",
+        "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/2-axe-catalog-detail.json"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/3-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/4-final-screen.png"
+      }
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+    "retest_status": "NOT_RETESTED",
+    "area": "Indian seller product creation",
+    "journey": "Operational seller lifecycle",
+    "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow.",
+    "audit_journey": "Catalog creation",
+    "audit_business_impact": "Accidental USD pricing can invalidate Indian-seller inputs.",
+    "launch_classification": "CONDITIONALLY DEFERRABLE — OWNER DECISION",
+    "required_correction_or_acceptance": "Require an owner-confirmed INR entry checklist until a currency-preference change is separately approved.",
+    "retest_requirement": "Desktop create/edit/reload INR and explicit currency confirmation; observation is not closure.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  },
+  {
+    "id": "QA-UX-CURRENCY-MOBILE",
+    "feature": "Indian seller product creation",
+    "route": "/products/new",
+    "type": "USABILITY",
+    "severity": "MINOR",
+    "priority": "P2",
+    "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+    "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+    "reproduction_steps": [
+      "Create a brand",
+      "Open /products/new",
+      "Inspect Currency before entering a price"
+    ],
+    "evidence": [
+      {
+        "name": "axe-catalog-empty",
+        "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/0-axe-catalog-empty.json"
+      },
+      {
+        "name": "ux-observations",
+        "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/1-ux-observations.json"
+      },
+      {
+        "name": "axe-catalog-detail",
+        "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/2-axe-catalog-detail.json"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/3-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/4-final-screen.png"
+      }
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+    "retest_status": "NOT_RETESTED",
+    "area": "Indian seller product creation",
+    "journey": "Operational seller lifecycle",
+    "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow.",
+    "audit_journey": "Catalog creation",
+    "audit_business_impact": "Same currency risk on mobile; not a second independent monetary defect.",
+    "launch_classification": "CONDITIONALLY DEFERRABLE — OWNER DECISION",
+    "required_correction_or_acceptance": "Same INR confirmation policy, with mobile usability acceptance.",
+    "retest_requirement": "Repeat mobile create/edit/reload with INR; do not infer from desktop.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  },
+  {
+    "id": "QA-P2-UX-ECONOMICS-DESKTOP",
+    "feature": "Commercial decision brief information hierarchy",
+    "route": "/intelligence/sourcing-economics",
+    "type": "USABILITY",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+    "actual": "The populated page is 16236px high at a 1000px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase2",
+      "Open the populated economics scenario and review its full-page screenshot."
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+    "retest_status": "NOT_RETESTED",
+    "evidence": [
+      {
+        "name": "ux-observations",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/0-ux-observations.json"
+      },
+      {
+        "name": "axe-economics",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/1-axe-economics.json"
+      },
+      {
+        "name": "economics-overview",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/2-economics-overview.png"
+      },
+      {
+        "name": "axe-stale-economics",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/3-axe-stale-economics.json"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/4-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/5-final-screen.png"
+      }
+    ],
+    "area": "Commercial decision brief information hierarchy",
+    "journey": "Phase 2 seller journey",
+    "business_impact": "May prevent trustworthy, repeatable seller decisions; inspect the specific evidence before remediation.",
+    "audit_journey": "Economics/HUMAN decision",
+    "audit_business_impact": "Long evidence lists obscure blockers and the safe next decision.",
+    "launch_classification": "CONDITIONALLY DEFERRABLE — OWNER DECISION",
+    "required_correction_or_acceptance": "Approve a brief summary/jump-link proposal or witness owner comprehension of the existing screen; retain provenance.",
+    "retest_requirement": "Task-based desktop current/stale/unknown decision review without losing evidence.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  },
+  {
+    "id": "QA-P2-UX-ECONOMICS-MOBILE",
+    "feature": "Commercial decision brief information hierarchy",
+    "route": "/intelligence/sourcing-economics",
+    "type": "USABILITY",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+    "actual": "The populated page is 43325px high at a 844px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase2",
+      "Open the populated economics scenario and review its full-page screenshot."
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+    "retest_status": "NOT_RETESTED",
+    "evidence": [
+      {
+        "name": "ux-observations",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/0-ux-observations.json"
+      },
+      {
+        "name": "axe-economics",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/1-axe-economics.json"
+      },
+      {
+        "name": "economics-overview",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/2-economics-overview.png"
+      },
+      {
+        "name": "axe-stale-economics",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/3-axe-stale-economics.json"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/4-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/5-final-screen.png"
+      }
+    ],
+    "area": "Commercial decision brief information hierarchy",
+    "journey": "Phase 2 seller journey",
+    "business_impact": "May prevent trustworthy, repeatable seller decisions; inspect the specific evidence before remediation.",
+    "audit_journey": "Economics/HUMAN decision",
+    "audit_business_impact": "43k-pixel historical fixture makes mobile decisions costly and error-prone.",
+    "launch_classification": "CONDITIONALLY DEFERRABLE — OWNER DECISION",
+    "required_correction_or_acceptance": "Desktop-first initial use only if the owner explicitly accepts that limitation; mobile improvement remains open.",
+    "retest_requirement": "Real mobile scrolling, context, summary and decision task at 390px.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  },
+  {
+    "id": "QA-UX-PRE-RUN-MODE-001",
+    "feature": "First research plan guidance",
+    "route": "/intelligence/business-agent",
+    "type": "USABILITY",
+    "severity": "INFO",
+    "priority": "P3",
+    "expected": "A first-time seller understands what is known before the first run and the single next action.",
+    "actual": "The reviewed synthetic planned-goal state displays a provider-mode-not-recorded warning, a DISABLED research-mode banner, journey research links, a separate confirm-context action and Start run. These describe different authorities, but their relationship may be unclear to a first-time seller. No blocked live-provider flow was executed.",
+    "reproduction_steps": [
+      "Use a fresh synthetic owner",
+      "Create the kids-category goal",
+      "Create a versioned plan without starting it",
+      "Review the journey header and goal card together"
+    ],
+    "evidence": [
+      {
+        "name": "reviewed-desktop-screenshot",
+        "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+      }
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Review pre-run wording and action hierarchy with a seller. Distinguish global configured mode from not-yet-recorded per-run mode; do not hide actual provider restrictions.",
+    "retest_status": "NOT_RETESTED",
+    "area": "First research plan guidance",
+    "journey": "Operational seller lifecycle",
+    "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow.",
+    "audit_journey": "Business Agent research",
+    "audit_business_impact": "Configured mode, context confirmation and run mode can be mistaken for one authority.",
+    "launch_classification": "DEFERRABLE FOR OFFLINE USE — OWNER DECISION",
+    "required_correction_or_acceptance": "Keep real discovery unavailable until a separately witnessed provider/source-approval journey; approve clearer state copy.",
+    "retest_requirement": "Goal/context/plan/run states with disabled, approval-required, unavailable and permitted read-only modes.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  },
+  {
+    "id": "QA-P3-GAP-001",
+    "feature": "Historical operational financial calculation reconstruction",
+    "area": "Financial audit lineage",
+    "journey": "Reopen the exact calculation used before a later refund or cost revision",
+    "route": "/api/v1/financial/calculations",
+    "type": "MISSING_FLOW",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "If historical calculation review is offered, earlier metrics and complete input lineage can be reconstructed; otherwise explicitly document that only current projections are supported.",
+    "actual": "The supported authority overwrites one calculation row per scope/version. A later refund keeps the ID but changes metrics; the list is current projections, not immutable versions. Lineage lists event IDs but not the cost evidence used. This is a missing workflow, not a broken existing immutable-history contract. The final test validates the actual mutable contract.",
+    "business_impact": "A seller cannot reconstruct the exact earlier profitability calculation from this projection alone, even though source events remain persisted.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase3",
+      "Inspect test_09_current_financial_snapshot_and_later_refund and financial-snapshot-history.json."
+    ],
+    "evidence": [
+      {
+        "name": "Before/after and persisted projection",
+        "path": "tmp/qa-agent/96be1091b699b21b/financial-snapshot-history.json"
+      },
+      {
+        "name": "Scope-key update contract",
+        "path": "apps/api/vayujit_api/commerce/financial_router.py"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "suggested_fix": "Define whether retained calculation versions are required; reuse canonical snapshot/audit patterns and include applicable cost/source identities. Do not relabel current projections as immutable history.",
+    "retest_status": "BLOCKED",
+    "audit_journey": "Financial reconciliation",
+    "audit_business_impact": "A mutable current projection cannot prove exactly what an earlier operational calculation displayed.",
+    "launch_classification": "BLOCKER IF USED AS SOLE FINANCIAL LEDGER; OTHERWISE OWNER DECISION",
+    "required_correction_or_acceptance": "Use a separately retained accounting ledger and label projections current/estimated, or approve historical reconstruction requirements. Current source now includes cost IDs; immutability is still missing.",
+    "retest_requirement": "Reopen an earlier pre-refund result with its exact input/cost lineage, or document the accepted current-projection-only scope.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  },
+  {
+    "id": "QA-P3-GAP-002",
+    "feature": "Operational approve/reject/execution lifecycle",
+    "area": "Action Center",
+    "journey": "Turn an advisory signal into an explicitly reviewed supported action",
+    "route": "/api/v1/operations/action-center/signals/{id}/action",
+    "type": "MISSING_FLOW",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "Distinguish signal acknowledgement from a durable canonical HUMAN approval; do not claim approval or execution where only an advisory response exists.",
+    "actual": "The request-action authority returns approval_required and says the recommendation is recorded, but it adds no durable approval/action record. There is no approve/reject/failed-execution/retry lifecycle in this authority. The default-deny external boundary is working and was not bypassed.",
+    "business_impact": "A first-time seller may mistake a requested or acknowledged signal for a saved authorization or completed action.",
+    "reproduction_steps": [
+      "Read request_action in action_center_router.py",
+      "npm.cmd run qa:phase3",
+      "Inspect test_14_human_impersonation_external_action_and_unauthorized_resources."
+    ],
+    "evidence": [
+      {
+        "name": "Default-deny and advisory action response",
+        "path": "tmp/qa-agent/96be1091b699b21b/human-authority.json"
+      },
+      {
+        "name": "Canonical action authority",
+        "path": "apps/api/vayujit_api/operations/action_center_router.py"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "suggested_fix": "Clarify messaging and route only supported actions to their existing canonical HUMAN authorities; do not add a duplicate approval system or expose remote execution in QA.",
+    "retest_status": "BLOCKED",
+    "audit_journey": "Action Center HUMAN workflow",
+    "audit_business_impact": "Acknowledgement or advisory request is not a durable approval/execution lifecycle.",
+    "launch_classification": "BLOCKER FOR GENERIC EXECUTION; ADVISORY-ONLY DEFERRAL REQUIRES OWNER",
+    "required_correction_or_acceptance": "Retain default-deny and canonical commercial workflows; owner must accept advisory-only scope. Do not build duplicate approval authority.",
+    "retest_requirement": "Approved supported action types must use their canonical stale/replay/HUMAN authorities; generic unsupported actions stay denied.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  },
+  {
+    "id": "QA-P4-API-67A1C8127DF2",
+    "feature": "Phase 4 exploratory suspected_defect",
+    "area": "marketplaces",
+    "journey": "First-seller supported task review",
+    "route": "/marketplaces/accounts",
+    "type": "SUSPECTED_DEFECT",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "Supported local workflow is usable, truthful and accessible without unexpected errors or forbidden execution.",
+    "actual": "GET /api/v1/marketplaces/accounts returned HTTP 502. ORM-only fixture/migration requirements and code cause require separate triage; not automatically a production defect.",
+    "business_impact": "The seller may encounter an inaccessible, misleading or incomplete supported workflow.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase4",
+      "Open /marketplaces/accounts in the recorded synthetic scenario; inspect attached state and network evidence."
+    ],
+    "evidence": [
+      {
+        "name": "planned-routes",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/0-planned-routes.json"
+      },
+      {
+        "name": "surface-screen-46d104fdb813",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/1-surface-screen-46d104fdb813.png"
+      },
+      {
+        "name": "surface-46d104fdb813",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/2-surface-46d104fdb813.json"
+      },
+      {
+        "name": "axe-surface-12004ce25663",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/3-axe-surface-12004ce25663.json"
+      },
+      {
+        "name": "surface-screen-fa8afda1d0cb",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/4-surface-screen-fa8afda1d0cb.png"
+      },
+      {
+        "name": "surface-fa8afda1d0cb",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/5-surface-fa8afda1d0cb.json"
+      },
+      {
+        "name": "axe-surface-14c15b8c701e",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/6-axe-surface-14c15b8c701e.json"
+      },
+      {
+        "name": "surface-screen-adbe9d2d03ce",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/7-surface-screen-adbe9d2d03ce.png"
+      },
+      {
+        "name": "surface-adbe9d2d03ce",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/8-surface-adbe9d2d03ce.json"
+      },
+      {
+        "name": "axe-surface-ea7c3b4bd82a",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/9-axe-surface-ea7c3b4bd82a.json"
+      },
+      {
+        "name": "surface-screen-581e9bce1e35",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/10-surface-screen-581e9bce1e35.png"
+      },
+      {
+        "name": "surface-581e9bce1e35",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/11-surface-581e9bce1e35.json"
+      },
+      {
+        "name": "axe-surface-ce92a1d6ea4e",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/12-axe-surface-ce92a1d6ea4e.json"
+      },
+      {
+        "name": "surface-screen-648ae2c7903a",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/13-surface-screen-648ae2c7903a.png"
+      },
+      {
+        "name": "surface-648ae2c7903a",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/14-surface-648ae2c7903a.json"
+      },
+      {
+        "name": "axe-surface-e3b9bfbb2cff",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/15-axe-surface-e3b9bfbb2cff.json"
+      },
+      {
+        "name": "surface-screen-27466c985fd1",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/16-surface-screen-27466c985fd1.png"
+      },
+      {
+        "name": "surface-27466c985fd1",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/17-surface-27466c985fd1.json"
+      },
+      {
+        "name": "axe-surface-32ba20a3c6a3",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/18-axe-surface-32ba20a3c6a3.json"
+      },
+      {
+        "name": "surface-screen-b0a6a11d0797",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/19-surface-screen-b0a6a11d0797.png"
+      },
+      {
+        "name": "surface-b0a6a11d0797",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/20-surface-b0a6a11d0797.json"
+      },
+      {
+        "name": "axe-surface-8631c7d76fb6",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/21-axe-surface-8631c7d76fb6.json"
+      },
+      {
+        "name": "surface-screen-56e396fa5992",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/22-surface-screen-56e396fa5992.png"
+      },
+      {
+        "name": "surface-56e396fa5992",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/23-surface-56e396fa5992.json"
+      },
+      {
+        "name": "axe-surface-211e2cd8b570",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/24-axe-surface-211e2cd8b570.json"
+      },
+      {
+        "name": "surface-screen-deb6dc7f6e11",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/25-surface-screen-deb6dc7f6e11.png"
+      },
+      {
+        "name": "surface-deb6dc7f6e11",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/26-surface-deb6dc7f6e11.json"
+      },
+      {
+        "name": "axe-surface-368b4b452ff8",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/27-axe-surface-368b4b452ff8.json"
+      },
+      {
+        "name": "surface-screen-6784939c8f3c",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/28-surface-screen-6784939c8f3c.png"
+      },
+      {
+        "name": "surface-6784939c8f3c",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/29-surface-6784939c8f3c.json"
+      },
+      {
+        "name": "axe-surface-28d49c790eb7",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/30-axe-surface-28d49c790eb7.json"
+      },
+      {
+        "name": "surface-screen-c6a2c238d47d",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/31-surface-screen-c6a2c238d47d.png"
+      },
+      {
+        "name": "surface-c6a2c238d47d",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/32-surface-c6a2c238d47d.json"
+      },
+      {
+        "name": "axe-surface-7060bb001bd3",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/33-axe-surface-7060bb001bd3.json"
+      },
+      {
+        "name": "surface-screen-1a1d594d48e5",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/34-surface-screen-1a1d594d48e5.png"
+      },
+      {
+        "name": "surface-1a1d594d48e5",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/35-surface-1a1d594d48e5.json"
+      },
+      {
+        "name": "axe-surface-adaf7db132cb",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/36-axe-surface-adaf7db132cb.json"
+      },
+      {
+        "name": "screenshot",
+        "path": "tmp/qa-agent/2190f143d27bba01/browser-artifacts/phase4-QA-P4-SURFACE-MARKE-3dead-only-marketplaces-discovery-mobile/test-failed-1.png"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/38-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-MARKETPLACES/39-final-screen.png"
+      },
+      {
+        "name": "error-context",
+        "path": "tmp/qa-agent/2190f143d27bba01/browser-artifacts/phase4-QA-P4-SURFACE-MARKE-3dead-only-marketplaces-discovery-mobile/error-context.md"
+      },
+      {
+        "name": "trace",
+        "path": "tmp/qa-agent/2190f143d27bba01/browser-artifacts/phase4-QA-P4-SURFACE-MARKE-3dead-only-marketplaces-discovery-mobile/trace.zip"
+      }
+    ],
+    "confidence": "SUSPECTED",
+    "suggested_fix": "Review exact affected source/authority and approve only a bounded fix; preserve security and financial semantics.",
+    "retest_status": "NOT_RETESTED",
+    "audit_journey": "Marketplace account access",
+    "audit_business_impact": "Intermittent account-list 502 could obstruct account operations; root cause not established.",
+    "launch_classification": "REQUIRED TRIAGE BEFORE MARKETPLACE USE",
+    "required_correction_or_acceptance": "Preserve suspect status. Investigate original proxy/API diagnostics and repeat failure/recovery checks, including migration-backed fixtures.",
+    "retest_requirement": "Explicit repeated authenticated accounts GET, cold startup, injected disconnect/retry and migration-backed context. Non-reproduction is not a fix.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  },
+  {
+    "id": "QA-P4-UX-OVERFLOW-805927FDFA67",
+    "feature": "Phase 4 exploratory usability",
+    "area": "ai",
+    "journey": "First-seller supported task review",
+    "route": "/ai/video",
+    "type": "USABILITY",
+    "severity": "MINOR",
+    "priority": "P2",
+    "expected": "Supported local workflow is usable, truthful and accessible without unexpected errors or forbidden execution.",
+    "actual": "desktop: document width 1664px at viewport 1440px",
+    "business_impact": "Whole-page horizontal scrolling can obscure actions and disrupt desktop navigation.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase4",
+      "Open /ai/video in the recorded synthetic scenario; inspect attached state and network evidence."
+    ],
+    "evidence": [
+      {
+        "name": "Runtime surface bounds",
+        "path": "tmp/qa-agent/87ebb85b0dc2c37b/evidence/desktop-QA-P4-SURFACE-AI/14-surface-1d863b9c09d5.json"
+      }
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Inspect grid/flex min-width and bound overflow to named table/preview regions; preserve content. Complexity: small to medium layout work, requiring targeted visual retest.",
+    "retest_status": "NOT_RETESTED",
+    "audit_journey": "Video workspace",
+    "audit_business_impact": "Desktop horizontal overflow can hide controls or evidence.",
+    "launch_classification": "DEFERRABLE IF VIDEO EXCLUDED — OWNER DECISION",
+    "required_correction_or_acceptance": "Owner accepts video outside initial-use scope or approves bounded layout correction.",
+    "retest_requirement": "1440px and narrow keyboard/scroll/control-reachability checks; do not hide columns.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  },
+  {
+    "id": "QA-P4-UX-OVERFLOW-4A67C5636387",
+    "feature": "Phase 4 exploratory usability",
+    "area": "intelligence",
+    "journey": "First-seller supported task review",
+    "route": "/intelligence/autonomous",
+    "type": "USABILITY",
+    "severity": "MINOR",
+    "priority": "P2",
+    "expected": "Supported local workflow is usable, truthful and accessible without unexpected errors or forbidden execution.",
+    "actual": "desktop: document width 1469px at viewport 1440px",
+    "business_impact": "Whole-page horizontal scrolling can obscure actions and disrupt desktop navigation.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase4",
+      "Open /intelligence/autonomous in the recorded synthetic scenario; inspect attached state and network evidence."
+    ],
+    "evidence": [
+      {
+        "name": "Runtime surface bounds",
+        "path": "tmp/qa-agent/87ebb85b0dc2c37b/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/50-surface-8c4f8b0e0cd9.json"
+      }
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Inspect grid/flex min-width and bound overflow to named table/preview regions; preserve content. Complexity: small to medium layout work, requiring targeted visual retest.",
+    "retest_status": "NOT_RETESTED",
+    "audit_journey": "Autonomous research workspace",
+    "audit_business_impact": "Overflow reduces information/control reachability.",
+    "launch_classification": "DEFERRABLE IF AUTONOMOUS RESEARCH EXCLUDED — OWNER DECISION",
+    "required_correction_or_acceptance": "Owner explicitly excludes this workflow or approves bounded layout work; no autonomous execution authorized.",
+    "retest_requirement": "Desktop/mobile document bounds, all columns and keyboard access.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  },
+  {
+    "id": "QA-P4-UX-RESEARCH-LENGTH",
+    "feature": "Phase 4 exploratory usability",
+    "area": "intelligence",
+    "journey": "First-seller supported task review",
+    "route": "/intelligence/external",
+    "type": "USABILITY",
+    "severity": "MINOR",
+    "priority": "P2",
+    "expected": "Supported local workflow is usable, truthful and accessible without unexpected errors or forbidden execution.",
+    "actual": "desktop /intelligence/external: 13149px document height; mobile /intelligence/websites: 14416px document height; mobile /intelligence/external: 19327px document height",
+    "business_impact": "Long source/evidence workspaces can make the current decision and next action difficult to find; length alone is not a functional defect.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase4",
+      "Open /intelligence/external in the recorded synthetic scenario; inspect attached state and network evidence."
+    ],
+    "evidence": [
+      {
+        "name": "Measured long research screen",
+        "path": "tmp/qa-agent/87ebb85b0dc2c37b/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/47-surface-31279458c620.json"
+      },
+      {
+        "name": "Measured long research screen",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/44-surface-7c35cac419c4.json"
+      },
+      {
+        "name": "Measured long research screen",
+        "path": "tmp/qa-agent/2190f143d27bba01/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/47-surface-31279458c620.json"
+      }
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Review a concise status summary, section jump links and scoped evidence disclosure without deleting provenance. Complexity: medium information-architecture proposal requiring product approval.",
+    "retest_status": "NOT_RETESTED",
+    "audit_journey": "External research/evidence review",
+    "audit_business_impact": "Long technical sections increase review friction and source-approval confusion.",
+    "launch_classification": "CONDITIONALLY DEFERRABLE — OWNER DECISION",
+    "required_correction_or_acceptance": "Approve minimal summary/progressive disclosure proposal; do not remove provenance or approval checks.",
+    "retest_requirement": "Seller finds evidence gaps, source boundaries and next action in both viewports.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  },
+  {
+    "id": "QA-P4A-A11Y-MANUAL-001",
+    "feature": "Unreviewed full-document axe incomplete results across recorded routes",
+    "area": "application-accessibility",
+    "journey": "Manual accessibility follow-up",
+    "route": "/intelligence",
+    "type": "ACCESSIBILITY",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "Unresolved obscured, conditional or empty-content checks remain explicitly pending, never inferred WCAG PASS.",
+    "actual": "85 rule/state incomplete occurrences across recorded routes; see the exact targets in phase-4-accessibility.json. These are manual-review requirements, not confirmed violations or independent code defects.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase4",
+      "Review retained incomplete target nodes in the recorded routes and viewports with real scrolling/content states."
+    ],
+    "evidence": [
+      {
+        "name": "Original full axe and node evidence",
+        "path": "docs/qa/phase-4-accessibility.json"
+      },
+      {
+        "name": "Additional stock workflow incomplete results retained for manual review",
+        "path": "docs/qa/phase-4b-accessibility.json"
+      }
+    ],
+    "confidence": "SUSPECTED",
+    "business_impact": "Automated evidence does not establish accessibility of every table, conditional control or assistive-technology interaction.",
+    "suggested_fix": "Independently review remaining nodes and assistive navigation; add bounded regressions for confirmed defects. Do not disable rules or equate empty/offscreen checks with success.",
+    "retest_status": "BLOCKED",
+    "audit_journey": "Cross-application accessibility",
+    "audit_business_impact": "Untested/offscreen/conditional content and assistive navigation cannot be certified accessible.",
+    "launch_classification": "BLOCKER TO COMPLETE ACCESSIBILITY CERTIFICATION",
+    "required_correction_or_acceptance": "Complete target-by-target manual/assistive review; fix demonstrated violations under separate authorization. No blanket WCAG claim or waiver.",
+    "retest_requirement": "Retain 85 historical rule/state incompletes and the stock numeric cell; expose each relevant node, verify focus/reading order and record remaining unknowns.",
+    "owner_acceptance_recorded": false,
+    "status_changed": false
+  }
+]

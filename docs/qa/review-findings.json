@@ -1,0 +1,32 @@
+[
+  {
+    "id": "QA-UX-NAV-CURRENT-001",
+    "feature": "Seller navigation current-location clarity",
+    "route": "/intelligence/business-agent",
+    "type": "USABILITY",
+    "severity": "MINOR",
+    "priority": "P2",
+    "expected": "The seller can distinguish the current page from its broader research section.",
+    "actual": "In the reviewed 25 October 2026 synthetic desktop screenshot, Business Agent and My Research both use the same active sidebar treatment. The navigation uses prefix matching for the parent /intelligence link. This is a usability recommendation, not an authorization or navigation failure.",
+    "reproduction_steps": ["Run the QA smoke suite", "Create a goal and plan", "Review the sidebar on /intelligence/business-agent"],
+    "evidence": [{ "name": "reviewed-desktop-screenshot", "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png" }],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Consider exact matching for the current page or a visually distinct parent-section state. Preserve all routes and access guards.",
+    "retest_status": "NOT_RETESTED"
+  },
+  {
+    "id": "QA-UX-PRE-RUN-MODE-001",
+    "feature": "First research plan guidance",
+    "route": "/intelligence/business-agent",
+    "type": "USABILITY",
+    "severity": "INFO",
+    "priority": "P3",
+    "expected": "A first-time seller understands what is known before the first run and the single next action.",
+    "actual": "The reviewed synthetic planned-goal state displays a provider-mode-not-recorded warning, a DISABLED research-mode banner, journey research links, a separate confirm-context action and Start run. These describe different authorities, but their relationship may be unclear to a first-time seller. No blocked live-provider flow was executed.",
+    "reproduction_steps": ["Use a fresh synthetic owner", "Create the kids-category goal", "Create a versioned plan without starting it", "Review the journey header and goal card together"],
+    "evidence": [{ "name": "reviewed-desktop-screenshot", "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png" }],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Review pre-run wording and action hierarchy with a seller. Distinguish global configured mode from not-yet-recorded per-run mode; do not hide actual provider restrictions.",
+    "retest_status": "NOT_RETESTED"
+  }
+]

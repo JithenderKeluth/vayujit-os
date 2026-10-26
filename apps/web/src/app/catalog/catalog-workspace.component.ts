@@ -57,7 +57,7 @@ interface VariantEditState {
     RouterLink,
   ],
   template: `
-    <main class="page catalog-page">
+    <section class="page catalog-page" aria-label="Seller catalog workspace">
       @if (selectedId) {
         <a class="back-link" routerLink="/catalog">← Back to Seller Catalog</a>
         @if (detailLoading()) {
@@ -73,6 +73,7 @@ interface VariantEditState {
           <app-page-header
             eyebrow="Seller Catalog / Product master"
             [title]="detail()!.product.name"
+            headingId="catalog-product-title"
             description="Prepare seller-owned product data and channel drafts. Nothing is published from this workspace."
           >
             <div page-header-actions>
@@ -253,7 +254,7 @@ interface VariantEditState {
           }
         }
       }
-    </main>
+    </section>
   `,
   styleUrl: './catalog-workspace.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

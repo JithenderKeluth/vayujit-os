@@ -22,14 +22,16 @@ import type { CommerceJourney } from './commerce-journey.types';
           Next: {{ journey.next_action.detail }}
         </p>
         @if (contextFacts(journey).length) {
-          <dl class="journey-context-facts" aria-label="Active goal context">
-            @for (fact of contextFacts(journey); track fact.label) {
-              <div>
-                <dt>{{ fact.label }}</dt>
-                <dd>{{ fact.value }}</dd>
-              </div>
-            }
-          </dl>
+          <div role="group" aria-label="Active goal context">
+            <dl class="journey-context-facts">
+              @for (fact of contextFacts(journey); track fact.label) {
+                <div>
+                  <dt>{{ fact.label }}</dt>
+                  <dd>{{ fact.value }}</dd>
+                </div>
+              }
+            </dl>
+          </div>
         }
       } @else {
         <p>

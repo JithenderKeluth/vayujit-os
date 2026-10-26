@@ -106,7 +106,7 @@ interface BriefView {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="engagement-page" aria-labelledby="engagement-title">
+    <section class="engagement-page" aria-labelledby="engagement-title">
       <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         headingId="engagement-title"
@@ -305,7 +305,7 @@ interface BriefView {
           </section>
         }
       }
-    </main>
+    </section>
   `,
   styles: [
     `

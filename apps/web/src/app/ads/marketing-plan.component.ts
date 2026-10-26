@@ -28,7 +28,7 @@ type Plan = {
     ErrorStateComponent,
   ],
   template: `
-    <main class="marketing-shell" aria-labelledby="marketing-title">
+    <section class="marketing-shell" aria-labelledby="marketing-title">
       <app-page-header
         eyebrow="Grow / plans"
         title="Cross-channel marketing plans"
@@ -156,7 +156,7 @@ type Plan = {
           </div>
         }
       </section>
-    </main>
+    </section>
   `,
   styles: [
     `

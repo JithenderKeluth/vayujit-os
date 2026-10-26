@@ -58,7 +58,7 @@ import {
         message="Create a review context to begin examining customer feedback evidence."
       />
     }
-    <main class="workspace" aria-labelledby="reviews-title">
+    <section class="workspace" aria-labelledby="reviews-title">
       <header class="page-header">
         <div>
           <p class="eyebrow">Intelligence / Reviews</p>
@@ -427,7 +427,7 @@ import {
           </p>
         </section>
       }
-    </main>
+    </section>
   `,
   styles: [
     `

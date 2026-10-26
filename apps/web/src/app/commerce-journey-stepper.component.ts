@@ -52,7 +52,7 @@ import type { CommerceJourneyStage } from './commerce-journey.types';
         background: var(--vj-color-brand-soft);
       }
       .commerce-journey-stepper a.blocked {
-        opacity: 0.72;
+        border-style: dashed;
       }
       .commerce-journey-stepper a.review {
         border-color: var(--vj-color-warning);

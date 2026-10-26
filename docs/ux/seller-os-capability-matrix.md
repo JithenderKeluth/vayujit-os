@@ -297,3 +297,17 @@ PRODUCTION-LIKE FIRST-SELLER PREPARATION / NO LIVE DEPLOYMENT)**. The only
 remaining release gates are HUMAN-controlled production deployment, real
 provider/marketplace authorization, TLS/DNS, secret-manager inputs, and
 off-host backup. See [`../seller-os/pr-sos-09-validation.md`](../seller-os/pr-sos-09-validation.md).
+
+### PC-first operational deployment preparation (2026-10-15)
+
+| Capability | State | Evidence / limitation |
+| --- | --- | --- |
+| Windows PC local Compose profile | DISPOSABLE RUNTIME/BROWSER VALIDATED; BUSINESS ACTIVATION PENDING | 17/17 runtime, network, security, migration, and persistence checks; 25/25 authenticated Chrome checks; six axe scans with zero violations; five dashboard widths fit. Owner data DB was not started. |
+| PC first-owner activation | PREPARED / HUMAN ACTIVATION REQUIRED | Unique generated configuration; one-owner constraint preserved; no synthetic records; exact typed phrase required; permanent owner DB intentionally not started. Activate only after the disposable encrypted backup/restore gate passes. |
+| PC encrypted backup and restore | IMPLEMENTED / CERTIFICATION PENDING | Permanent-profile backup plus marker-protected disposable backup/restore rehearsal are implemented. The runner supports a configurable destination, validates writability, checks for paths inside host-addressable data volumes, and conservatively maps Docker Desktop storage to a physical disk or reports `UNVERIFIED`. Not executed in this shell: Docker, `age`, `age-keygen`, Python, and Node are unavailable; WSL and physical-disk inspection are denied. No scheduler task was registered. |
+| External marketplace/provider operations | DENIED / NOT CONNECTED | Runtime network egress disabled; no Amazon/Flipkart accounts or real connectivity claimed; live mutations remain off. |
+
+This PC profile is separate from and does not reopen PR-SOS-09. Retain
+**PC-FIRST DEPLOYMENT — IMPLEMENTED / CERTIFICATION PENDING** until encrypted
+backup and independent restore are validated on an approved separate disk.
+Docker Desktop/Windows reboot recovery is also not yet witnessed.

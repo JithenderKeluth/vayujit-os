@@ -45,8 +45,9 @@ describe('AutonomousResearchComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(
-      fixture.nativeElement.querySelector('main[aria-labelledby="autonomous-title"]'),
+      fixture.nativeElement.querySelector('section[aria-labelledby="autonomous-title"]'),
     ).not.toBeNull();
+    expect(fixture.nativeElement.querySelectorAll('main')).toHaveLength(0);
     expect(fixture.nativeElement.querySelector('[role="alert"]')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Disabled by default');
     expect(fixture.nativeElement.textContent).toContain('LOCAL_DETERMINISTIC');

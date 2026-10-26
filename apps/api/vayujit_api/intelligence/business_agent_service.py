@@ -12,7 +12,7 @@ from collections.abc import Mapping
 from decimal import Decimal, InvalidOperation
 
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select, true
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -306,13 +306,25 @@ def _failure_classification(error: Exception) -> str:
     return "UNEXPECTED_FAILURE"
 
 
-def _candidate_cards(db: Session, owner: User, limit: int = 20) -> list[dict[str, object]]:
+def _candidate_cards(
+    db: Session, owner: User, limit: int = 20, *, run_id: uuid.UUID | None = None
+) -> list[dict[str, object]]:
+    context_filter = (
+        or_(
+            ProductOpportunity.idempotency_key == f"business-agent:{run_id}",
+            ProductOpportunity.idempotency_key.startswith(f"business-agent:{run_id}:candidate:"),
+            ProductOpportunity.intelligence_profile["business_agent_run_id"].astext == str(run_id),
+        )
+        if run_id is not None
+        else true()
+    )
     rows = list(
         db.scalars(
             select(ProductOpportunity)
             .where(
                 ProductOpportunity.owner_id == owner.id,
                 ProductOpportunity.lifecycle_status != "archived",
+                context_filter,
             )
             .order_by(ProductOpportunity.updated_at.desc())
             .limit(limit)
@@ -1191,8 +1203,14 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                     "Brave search quota is exhausted or unavailable. Check the configured "
                     "Brave credential/quota, then retry discovery."
                     if live_failure_code == "PROVIDER_QUOTA_EXHAUSTED"
-                    else "Live product research returned no canonical product opportunity. "
-                    "Review the evidence and retry discovery before comparing products."
+                    else (
+                        "Source review is required before product pages can be fetched. "
+                        "Review the discovered domains and explicitly approve permitted sources, "
+                        "then retry discovery."
+                        if live_failure_code == "SOURCE_APPROVAL_REQUIRED"
+                        else "Live product research returned no canonical product opportunity. "
+                        "Review the evidence and retry discovery before comparing products."
+                    )
                 )
                 live_failure: dict[str, object] = {
                     "code": live_failure_code,
@@ -1220,14 +1238,14 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                     "mode": "LIVE_READ_ONLY",
                 }
                 run.checkpoint = {"completed_steps": [], "last_step": None}
-            run.result = {
-                "outcome": "RESEARCH_BLOCKED",
-                "mode": execution_mode,
-                "external_writes": [],
-            }
-            db.commit()
-            db.refresh(run)
-            return run
+                run.result = {
+                    "outcome": "RESEARCH_BLOCKED",
+                    "mode": execution_mode,
+                    "external_writes": [],
+                }
+                db.commit()
+                db.refresh(run)
+                return run
         else:
             candidate_limit = _bounded_int(structured_goal.get("candidate_count"), 5)
             definitions = discover_local_product_candidates(
@@ -1272,6 +1290,16 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             if not discovered:
                 raise LookupError("No meaningful product candidates were discovered.")
             opportunity = discovered[0]
+    # A retry may have cleared discovery while later steps are still queued.
+    # Publish current-run candidates even if the step budget stops this run.
+    run.failure = {}
+    run.result = {
+        "outcome": "PRODUCT_CANDIDATES_AVAILABLE",
+        "opportunity_id": str(opportunity.id),
+        "candidates": _candidate_cards(db, owner, run_id=run.id),
+        "mode": execution_mode,
+        "external_writes": [],
+    }
     steps_by_key = {step.step_key: step for step in steps}
     ordered_steps: list[BusinessAgentStep] = []
     visiting: set[str] = set()
@@ -1741,7 +1769,7 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 for step in blocked_steps
             ],
             "external_writes": [],
-            "candidates": _candidate_cards(db, owner),
+            "candidates": _candidate_cards(db, owner, run_id=run.id),
             "commercial_readiness": failed_commercial_readiness_payload,
         }
         supplier_step = next(
@@ -1843,7 +1871,7 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             }
         run.result = {
             "opportunity_id": str(opportunity.id),
-            "candidates": _candidate_cards(db, owner),
+            "candidates": _candidate_cards(db, owner, run_id=run.id),
             "decision": "REVIEW_REQUIRED",
             "evidence_gap_loops": _bounded_int(usage.get("gap_loops"), 0),
             "external_writes": [],

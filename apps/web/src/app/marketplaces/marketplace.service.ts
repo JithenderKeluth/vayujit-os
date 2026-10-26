@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
+import { firstValueFrom, timeout } from 'rxjs';
 
 import { environment } from '../../environments/environment';
 
@@ -179,6 +179,16 @@ export interface InventoryAdjustment {
   expected_version: number;
   idempotency_key: string;
 }
+export interface InventoryOpeningRequest {
+  product_id: string;
+  variant_id: string | null;
+  internal_sku: string;
+  location_code: string;
+  unit: string;
+  opening_quantity: number;
+  low_stock_threshold: number;
+  idempotency_key: string;
+}
 export interface InventoryMovement {
   id: string;
   inventory_item_id: string;
@@ -247,6 +257,9 @@ export interface FinancialSummary {
   synthetic_provider: boolean;
   external_writes: boolean;
   canonical_order_fallback?: boolean;
+  provenance_status?: 'SYNTHETIC' | 'REPORTED' | 'UNKNOWN' | 'MIXED';
+  provenance_unknown?: boolean;
+  provenance_sources?: Array<{ authority: string; id: string; classification: string }>;
   currency_mismatches?: string[];
   date_from?: string | null;
   date_to?: string | null;
@@ -426,12 +439,26 @@ export class MarketplaceService {
   }
   adjustInventory(itemId: string, payload: InventoryAdjustment): Promise<InventoryItem> {
     return firstValueFrom(
-      this.http.post<InventoryItem>(`${environment.apiUrl}/inventory/${itemId}/adjust`, payload, this.options),
+      this.http.post<InventoryItem>(
+        `${environment.apiUrl}/inventory/${itemId}/adjust`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+  createInventoryItem(payload: InventoryOpeningRequest): Promise<InventoryItem> {
+    return firstValueFrom(
+      this.http
+        .post<InventoryItem>(`${environment.apiUrl}/inventory/items`, payload, this.options)
+        .pipe(timeout(20000)),
     );
   }
   inventoryLedger(itemId: string): Promise<InventoryMovement[]> {
     return firstValueFrom(
-      this.http.get<InventoryMovement[]>(`${environment.apiUrl}/inventory/${itemId}/ledger`, this.options),
+      this.http.get<InventoryMovement[]>(
+        `${environment.apiUrl}/inventory/${itemId}/ledger`,
+        this.options,
+      ),
     );
   }
   inventoryMappings(): Promise<ChannelSkuMapping[]> {
@@ -446,12 +473,19 @@ export class MarketplaceService {
     idempotency_key: string;
   }): Promise<ChannelSkuMapping> {
     return firstValueFrom(
-      this.http.post<ChannelSkuMapping>(`${environment.apiUrl}/inventory/mappings`, payload, this.options),
+      this.http.post<ChannelSkuMapping>(
+        `${environment.apiUrl}/inventory/mappings`,
+        payload,
+        this.options,
+      ),
     );
   }
   reconciliationSummary(): Promise<ReconciliationSummary> {
     return firstValueFrom(
-      this.http.get<ReconciliationSummary>(`${environment.apiUrl}/orders/reconciliation/summary`, this.options),
+      this.http.get<ReconciliationSummary>(
+        `${environment.apiUrl}/orders/reconciliation/summary`,
+        this.options,
+      ),
     );
   }
   orders(): Promise<MarketplaceOrder[]> {
@@ -505,40 +539,112 @@ export class MarketplaceService {
     if (dateTo) params = params.set('date_to', dateTo);
     return params;
   }
-  financialSummary(marketplace?: string, dateFrom?: string, dateTo?: string): Promise<FinancialSummary> {
+  financialSummary(
+    marketplace?: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<FinancialSummary> {
     const params = this.financialParams(marketplace, dateFrom, dateTo);
-    return firstValueFrom(this.http.get<FinancialSummary>(`${environment.apiUrl}/financial/summary`, { ...this.options, params }));
+    return firstValueFrom(
+      this.http.get<FinancialSummary>(`${environment.apiUrl}/financial/summary`, {
+        ...this.options,
+        params,
+      }),
+    );
   }
-  financialProfitability(marketplace?: string, dateFrom?: string, dateTo?: string): Promise<FinancialProfitability> {
+  financialProfitability(
+    marketplace?: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<FinancialProfitability> {
     const params = this.financialParams(marketplace, dateFrom, dateTo);
-    return firstValueFrom(this.http.get<FinancialProfitability>(`${environment.apiUrl}/financial/profitability`, { ...this.options, params }));
+    return firstValueFrom(
+      this.http.get<FinancialProfitability>(`${environment.apiUrl}/financial/profitability`, {
+        ...this.options,
+        params,
+      }),
+    );
   }
   financialFees(marketplace?: string, dateFrom?: string, dateTo?: string): Promise<FinancialFees> {
     const params = this.financialParams(marketplace, dateFrom, dateTo);
-    return firstValueFrom(this.http.get<FinancialFees>(`${environment.apiUrl}/financial/fees`, { ...this.options, params }));
+    return firstValueFrom(
+      this.http.get<FinancialFees>(`${environment.apiUrl}/financial/fees`, {
+        ...this.options,
+        params,
+      }),
+    );
   }
-  financialSettlements(marketplace?: string, dateFrom?: string, dateTo?: string): Promise<{ rows: FinancialSettlement[]; count: number; synthetic_provider: boolean }> {
+  financialSettlements(
+    marketplace?: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<{ rows: FinancialSettlement[]; count: number; synthetic_provider: boolean }> {
     const params = this.financialParams(marketplace, dateFrom, dateTo);
-    return firstValueFrom(this.http.get<{ rows: FinancialSettlement[]; count: number; synthetic_provider: boolean }>(`${environment.apiUrl}/financial/settlements`, { ...this.options, params }));
+    return firstValueFrom(
+      this.http.get<{ rows: FinancialSettlement[]; count: number; synthetic_provider: boolean }>(
+        `${environment.apiUrl}/financial/settlements`,
+        { ...this.options, params },
+      ),
+    );
   }
-  financialAlerts(marketplace?: string, dateFrom?: string, dateTo?: string): Promise<{ alerts: FinancialAlert[]; evidence_status: string }> {
+  financialAlerts(
+    marketplace?: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<{ alerts: FinancialAlert[]; evidence_status: string }> {
     const params = this.financialParams(marketplace, dateFrom, dateTo);
-    return firstValueFrom(this.http.get<{ alerts: FinancialAlert[]; evidence_status: string }>(`${environment.apiUrl}/financial/alerts`, { ...this.options, params }));
+    return firstValueFrom(
+      this.http.get<{ alerts: FinancialAlert[]; evidence_status: string }>(
+        `${environment.apiUrl}/financial/alerts`,
+        { ...this.options, params },
+      ),
+    );
   }
-  financialRevenueTrends(marketplace?: string, dateFrom?: string, dateTo?: string): Promise<{ rows: FinancialTrendPoint[]; currency: string; basis: string }> {
+  financialRevenueTrends(
+    marketplace?: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<{ rows: FinancialTrendPoint[]; currency: string; basis: string }> {
     const params = this.financialParams(marketplace, dateFrom, dateTo);
-    return firstValueFrom(this.http.get<{ rows: FinancialTrendPoint[]; currency: string; basis: string }>(`${environment.apiUrl}/financial/revenue-trends`, { ...this.options, params }));
+    return firstValueFrom(
+      this.http.get<{ rows: FinancialTrendPoint[]; currency: string; basis: string }>(
+        `${environment.apiUrl}/financial/revenue-trends`,
+        { ...this.options, params },
+      ),
+    );
   }
-  financialMarketplaceComparison(dateFrom?: string, dateTo?: string): Promise<{ rows: FinancialMarketplaceComparison[]; currency: string; count: number }> {
+  financialMarketplaceComparison(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<{ rows: FinancialMarketplaceComparison[]; currency: string; count: number }> {
     const params = this.financialParams(undefined, dateFrom, dateTo);
-    return firstValueFrom(this.http.get<{ rows: FinancialMarketplaceComparison[]; currency: string; count: number }>(`${environment.apiUrl}/financial/marketplace-comparison`, { ...this.options, params }));
+    return firstValueFrom(
+      this.http.get<{ rows: FinancialMarketplaceComparison[]; currency: string; count: number }>(
+        `${environment.apiUrl}/financial/marketplace-comparison`,
+        { ...this.options, params },
+      ),
+    );
   }
-  financialRefundImpact(marketplace?: string, dateFrom?: string, dateTo?: string): Promise<FinancialRefundImpact> {
+  financialRefundImpact(
+    marketplace?: string,
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<FinancialRefundImpact> {
     const params = this.financialParams(marketplace, dateFrom, dateTo);
-    return firstValueFrom(this.http.get<FinancialRefundImpact>(`${environment.apiUrl}/financial/refund-impact`, { ...this.options, params }));
+    return firstValueFrom(
+      this.http.get<FinancialRefundImpact>(`${environment.apiUrl}/financial/refund-impact`, {
+        ...this.options,
+        params,
+      }),
+    );
   }
   financialBusinessAgent(): Promise<FinancialBusinessAgent> {
-    return firstValueFrom(this.http.get<FinancialBusinessAgent>(`${environment.apiUrl}/financial/business-agent`, this.options));
+    return firstValueFrom(
+      this.http.get<FinancialBusinessAgent>(
+        `${environment.apiUrl}/financial/business-agent`,
+        this.options,
+      ),
+    );
   }
   static errorMessage(): string {
     return 'Marketplace data is unavailable. Check the API connection and try again.';

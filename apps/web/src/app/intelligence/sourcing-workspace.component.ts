@@ -30,7 +30,7 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="sourcing-page" aria-labelledby="sourcing-title">
+    <section class="sourcing-page" aria-labelledby="sourcing-title">
       <app-breadcrumbs [items]="breadcrumbs" />
 
       <app-page-header
@@ -574,7 +574,7 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
           <label>Quote ID <input name="decision-quote" [(ngModel)]="decision.quote_id" /></label>
         </details>
       </section>
-    </main>
+    </section>
   `,
   styles: [
     `

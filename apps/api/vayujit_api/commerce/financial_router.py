@@ -416,21 +416,20 @@ def _cost_evidence_rows(
 ) -> list[FinancialCostEvidence]:
     query = select(FinancialCostEvidence).where(
         FinancialCostEvidence.owner_id == user.id,
-        FinancialCostEvidence.evidence_status != "unknown",
+        FinancialCostEvidence.effective_from <= (as_of or now()),
     )
     if marketplace:
         query = query.where(
             (FinancialCostEvidence.marketplace.is_(None))
             | (FinancialCostEvidence.marketplace == marketplace.lower())
         )
-    if as_of:
-        query = query.where(FinancialCostEvidence.effective_from <= as_of)
     rows = list(
         db.scalars(
             query.order_by(
                 FinancialCostEvidence.cost_key,
                 FinancialCostEvidence.effective_from.desc(),
                 FinancialCostEvidence.created_at.desc(),
+                FinancialCostEvidence.id.desc(),
             )
         )
     )
@@ -438,6 +437,85 @@ def _cost_evidence_rows(
     for row in rows:
         latest.setdefault(row.cost_key, row)
     return list(latest.values())
+
+
+def _cost_state(rows: list[FinancialCostEvidence]) -> tuple[Decimal, bool, bool]:
+    """Latest UNKNOWN is a blocker, not a request to search an older revision."""
+    known = [row for row in rows if row.evidence_status != "unknown" and row.amount is not None]
+    amount = sum((row.amount for row in known if row.amount is not None), Decimal("0"))
+    unknown = any(row.evidence_status == "unknown" or row.amount is None for row in rows)
+    return amount, bool(known), unknown
+
+
+def _provenance(db: Session, user: User, rows: list[Any]) -> dict[str, Any]:
+    """Classify persisted sources, never infer real/verified from absence of fake flags.
+
+    Account configuration and explicit source types are declarations, not proof of
+    a live provider acquisition. Canonical rows lacking provenance remain UNKNOWN.
+    Positive synthetic ancestry always dominates a contradictory source claim.
+    """
+    accounts = {
+        row.id: row
+        for row in db.scalars(
+            select(MarketplaceAccount).where(MarketplaceAccount.owner_id == user.id)
+        )
+    }
+    parent_ids = {row.order_id for row in rows if getattr(row, "order_id", None)}
+    parents = {
+        row.id: row
+        for row in db.scalars(
+            select(MarketplaceOrder).where(
+                MarketplaceOrder.owner_id == user.id, MarketplaceOrder.id.in_(parent_ids)
+            )
+        )
+    }
+    sources: list[dict[str, str]] = []
+    for row in rows:
+        parent_id = getattr(row, "order_id", None)
+        parent = parents.get(parent_id) if parent_id is not None else None
+        account_id = getattr(row, "account_id", None) or getattr(parent, "account_id", None)
+        account = accounts.get(account_id) if account_id is not None else None
+        metadata = [
+            getattr(row, field, None) or {}
+            for field in ("provenance_json", "payload_json", "totals_json")
+        ]
+        if parent is not None:
+            metadata.append(parent.totals_json or {})
+        source_type = getattr(row, "source_type", None)
+        if not source_type:
+            source_type = metadata[0].get("source_type")
+        synthetic = (
+            source_type == "synthetic_fixture"
+            or any(data.get("fake_provider") is True for data in metadata)
+            or (
+                account is not None
+                and (
+                    account.environment == "sandbox"
+                    or account.capabilities_json.get("fake_provider") is True
+                )
+            )
+        )
+        classification = (
+            "SYNTHETIC"
+            if synthetic
+            else (
+                "REPORTED"
+                if source_type in {"seller_entered", "marketplace_reported", "verified"}
+                else "UNKNOWN"
+            )
+        )
+        sources.append(
+            {"authority": type(row).__name__, "id": str(row.id), "classification": classification}
+        )
+    sources.sort(key=lambda source: (source["authority"], source["id"]))
+    states = {source["classification"] for source in sources}
+    status = next(iter(states)) if len(states) == 1 else "MIXED" if states else "UNKNOWN"
+    return {
+        "provenance_status": status,
+        "synthetic_provider": "SYNTHETIC" in states,
+        "provenance_unknown": not states or "UNKNOWN" in states,
+        "provenance_sources": sources,
+    }
 
 
 def _event_response(row: FinancialEvent) -> dict[str, Any]:
@@ -487,9 +565,18 @@ def _summary(
             deduction_values[event_type] = canonical["fee_totals"].get(event_type, Decimal("0"))
     fees = sum(deduction_values.values(), Decimal("0"))
     cost_rows = _cost_evidence_rows(db, user, marketplace, date_to)
-    known_cost_rows = [cost for cost in cost_rows if cost.amount is not None]
-    known_cost_amounts = [cost.amount for cost in known_cost_rows if cost.amount is not None]
-    costs = sum(known_cost_amounts, Decimal("0"))
+    costs, has_known_cost, unknown_cost = _cost_state(cost_rows)
+    source_rows: list[Any] = [*events, *cost_rows]
+    if using_canonical_orders or "discount" not in event_types:
+        source_rows.extend(canonical["orders"])
+    if "refund" not in event_types:
+        source_rows.extend(canonical["refunds"])
+    source_rows.extend(
+        row
+        for row in canonical["fees"]
+        if (row.fee_type if row.fee_type in {"shipping", "fulfilment", "tax"} else "fee")
+        not in event_types
+    )
     missing: list[str] = []
     recognized_sales = bool(sales) and ("sale" in event_types or bool(canonical["orders"]))
     if not recognized_sales:
@@ -504,7 +591,7 @@ def _summary(
         and not canonical["fees"]
     ):
         missing.append("marketplace_fee_evidence")
-    if recognized_sales and not costs:
+    if recognized_sales and (not has_known_cost or unknown_cost):
         missing.append("product_cost_evidence")
     if canonical["currency_mismatches"]:
         missing.append("currency_conversion_evidence")
@@ -535,7 +622,13 @@ def _summary(
         "refunds": str(refunds),
         "net_sales": str(net_sales),
         "fees": str(fees) if has_fee_evidence else "UNKNOWN",
-        "known_direct_costs": str(costs) if known_cost_rows else "UNKNOWN",
+        "known_direct_costs": str(costs) if has_known_cost else "UNKNOWN",
+        "cost_evidence_ids": [str(row.id) for row in cost_rows],
+        "unknown_cost_evidence_ids": [
+            str(row.id)
+            for row in cost_rows
+            if row.evidence_status == "unknown" or row.amount is None
+        ],
         "contribution": str(contribution) if complete else "UNKNOWN",
         "estimated_profit": str(contribution) if complete else None,
         "margin_percent": (
@@ -554,7 +647,7 @@ def _summary(
         ),
         "event_count": len(events),
         "missing_inputs": missing,
-        "synthetic_provider": any(event.source_type == "synthetic_fixture" for event in events),
+        **_provenance(db, user, source_rows),
         "canonical_order_fallback": using_canonical_orders and bool(canonical["orders"]),
         "external_writes": False,
         "date_from": date_from.isoformat() if date_from else None,
@@ -591,7 +684,7 @@ def ingest_event(data: FinancialEventInput, db: DatabaseSession, user: Owner) ->
         )
     )
     if existing is not None:
-        return {"idempotent": True, "event": _event_response(existing)}
+        return _event_replay(existing, data)
     stamp = now()
     event = FinancialEvent(
         owner_id=user.id,
@@ -610,7 +703,14 @@ def ingest_event(data: FinancialEventInput, db: DatabaseSession, user: Owner) ->
         effective_at=data.effective_at or stamp,
         observed_at=stamp,
         calculation_version="pr-sos-05-v1",
-        provenance_json={"source_type": data.source_type, "source_event_id": data.source_event_id},
+        provenance_json={
+            "source_type": data.source_type,
+            "source_event_id": data.source_event_id,
+            "account_environment": account.environment,
+            "fake_provider": data.source_type == "synthetic_fixture"
+            or account.environment == "sandbox"
+            or account.capabilities_json.get("fake_provider") is True,
+        },
         payload_json=data.payload,
         created_at=stamp,
     )
@@ -628,8 +728,32 @@ def ingest_event(data: FinancialEventInput, db: DatabaseSession, user: Owner) ->
         )
         if existing is None:
             raise HTTPException(409, "Financial event could not be recorded safely.") from error
-        return {"idempotent": True, "event": _event_response(existing)}
+        return _event_replay(existing, data)
     return {"idempotent": False, "event": _event_response(event)}
+
+
+def _event_replay(row: FinancialEvent, data: FinancialEventInput) -> dict[str, Any]:
+    # Omitted effective_at means the server's original timestamp, not "now" on retry.
+    if (
+        row.account_id != data.account_id
+        or row.source_event_id != data.source_event_id
+        or row.marketplace != data.marketplace.lower()
+        or row.event_type != data.event_type
+        or row.amount != _money(data.amount)
+        or row.currency != data.currency
+        or row.product_id != data.product_id
+        or row.order_id != data.order_id
+        or row.settlement_id != data.settlement_id
+        or row.evidence_status != data.evidence_status
+        or row.source_type != data.source_type
+        or row.source_reference != data.source_reference
+        or row.payload_json != data.payload
+        or (data.effective_at is not None and row.effective_at != data.effective_at)
+    ):
+        raise HTTPException(
+            409, "Source event identity conflicts with persisted financial evidence."
+        )
+    return {"idempotent": True, "event": _event_response(row)}
 
 
 @router.get("/events")
@@ -829,6 +953,10 @@ def recalculate(
         ],
         "canonical_order_fallback": value["canonical_order_fallback"],
         "basis": value["basis"],
+        "cost_evidence_ids": value["cost_evidence_ids"],
+        "unknown_cost_evidence_ids": value["unknown_cost_evidence_ids"],
+        "provenance_status": value["provenance_status"],
+        "provenance_sources": value["provenance_sources"],
     }
     row = db.scalar(
         select(FinancialCalculationSnapshot).where(
@@ -906,6 +1034,10 @@ def sales(
 ) -> dict[str, Any]:
     events = _event_query(db, user, marketplace, date_from, date_to)
     canonical = _canonical_totals(db, user, marketplace, date_from, date_to)
+    provenance_by_id = {
+        row["id"]: row["classification"]
+        for row in _provenance(db, user, canonical["orders"])["provenance_sources"]
+    }
     return {
         "basis": "event effective_at; canonical order ordered_at fallback",
         "currency": "INR",
@@ -924,7 +1056,10 @@ def sales(
                 "ordered_at": order.ordered_at.isoformat(),
                 "totals": order.totals_json,
                 "source_type": "canonical_order",
-                "evidence_status": "observed",
+                "provenance_status": provenance_by_id[str(order.id)],
+                "evidence_status": (
+                    "modeled" if provenance_by_id[str(order.id)] == "SYNTHETIC" else "unknown"
+                ),
             }
             for order in canonical["orders"]
         ],
@@ -1025,16 +1160,23 @@ def _canonical_profitability_rows(
     for _key, entry in sorted(products.items()):
         product_id = entry["product_id"]
         costs = Decimal("0")
+        has_known_cost = False
+        unknown_cost = False
         if product_id:
-            for cost in _cost_evidence_rows(db, user, marketplace, date_to):
-                if cost.product_id == product_id and cost.amount is not None:
-                    costs += cost.amount
-            if not costs:
+            evidence = [
+                cost
+                for cost in _cost_evidence_rows(db, user, marketplace, date_to)
+                if cost.product_id == product_id
+            ]
+            costs, has_known_cost, unknown_cost = _cost_state(evidence)
+            # A legacy product value cannot override explicit UNKNOWN cost evidence.
+            if not evidence:
                 product = db.scalar(
                     select(Product).where(Product.id == product_id, Product.owner_id == user.id)
                 )
                 if product is not None and product.cost_amount is not None:
                     costs = _money(product.cost_amount)
+                    has_known_cost = True
         sales_value = entry["sales"]
         missing: list[str] = []
         if sales_value is None:
@@ -1044,7 +1186,7 @@ def _canonical_profitability_rows(
         else:
             deductions = entry["deductions"]
             contribution = sales_value - deductions - costs
-        if not costs:
+        if not has_known_cost or unknown_cost:
             missing.append("product_cost_evidence")
         rows.append(
             {
@@ -1053,7 +1195,7 @@ def _canonical_profitability_rows(
                 "scope": group_mode,
                 "gross_sales": str(sales_value) if sales_value is not None else "UNKNOWN",
                 "deductions": str(deductions) if deductions is not None else "UNKNOWN",
-                "known_direct_costs": str(costs) if costs else "UNKNOWN",
+                "known_direct_costs": str(costs) if has_known_cost else "UNKNOWN",
                 "contribution": (
                     str(contribution) if contribution is not None and not missing else "UNKNOWN"
                 ),
@@ -1063,7 +1205,7 @@ def _canonical_profitability_rows(
                 "evidence_status": "observed" if not missing else "partial",
                 "missing_inputs": missing,
                 "calculation_version": "pr-sos-05-v1",
-                "cost_source": "canonical_product_cost" if costs else None,
+                "cost_source": "canonical_product_cost" if has_known_cost else None,
                 "basis": "canonical marketplace order ordered_at and order-line totals",
             }
         )
@@ -1086,13 +1228,12 @@ def profitability(
     for product_key, product_events in sorted(by_product.items()):
         totals = _decimal_map(product_events)
         product_id = product_events[0].product_id
-        costs = Decimal("0")
-        if product_id:
-            for cost in _cost_evidence_rows(db, user, marketplace, date_to):
-                if cost.product_id != product_id:
-                    continue
-                if cost.amount is not None:
-                    costs += cost.amount
+        cost_rows = [
+            cost
+            for cost in _cost_evidence_rows(db, user, marketplace, date_to)
+            if product_id and cost.product_id == product_id
+        ]
+        costs, has_known_cost, unknown_cost = _cost_state(cost_rows)
         sales_value = totals["sale"]
         deductions = (
             totals["discount"]
@@ -1102,14 +1243,14 @@ def profitability(
             + totals["fulfilment"]
             + totals["tax"]
         )
-        missing = [] if costs else ["product_cost_evidence"]
+        missing = [] if has_known_cost and not unknown_cost else ["product_cost_evidence"]
         contribution = sales_value - deductions - costs
         rows.append(
             {
                 "product_id": None if product_key == "unknown" else product_key,
                 "gross_sales": str(sales_value),
                 "deductions": str(deductions),
-                "known_direct_costs": str(costs) if costs else "UNKNOWN",
+                "known_direct_costs": str(costs) if has_known_cost else "UNKNOWN",
                 "contribution": str(contribution) if not missing else "UNKNOWN",
                 "estimated_profit": str(contribution) if not missing else None,
                 "evidence_status": "observed" if not missing else "partial",
@@ -1211,6 +1352,7 @@ def refund_impact(
         "refunds": rows,
         "evidence_status": evidence_status,
         "basis": "explicit refund evidence; no return or cancellation inference",
+        **_provenance(db, user, refund_events or canonical["refunds"]),
     }
 
 
@@ -1477,8 +1619,10 @@ def settlements(
     return {
         "rows": [_reconciliation(row) for row in rows] + canonical_rows,
         "count": len(rows) + len(canonical_rows),
-        "synthetic_provider": any(
-            row.provenance_json.get("source_type") == "synthetic_fixture" for row in rows
+        **_provenance(
+            db,
+            user,
+            [*rows, *[row for row in canonical if row.remote_settlement_id not in known_keys]],
         ),
     }
 

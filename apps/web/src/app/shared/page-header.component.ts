@@ -49,7 +49,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
       flex-wrap: wrap;
       gap: var(--vj-space-2);
     }
-    @media (max-width: 640px) {
+    @media (max-width: 900px) {
       .ux-page-header {
         flex-direction: column;
       }

@@ -33,7 +33,7 @@ import { AIService } from './ai.service';
     RouterLink,
   ],
   template: `
-    <main class="ai-shell">
+    <section class="ai-shell">
       <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         eyebrow="Create / SEO"
@@ -213,7 +213,7 @@ import { AIService } from './ai.service';
           </ul>
         </section>
       }
-    </main>
+    </section>
   `,
   styles: [
     `

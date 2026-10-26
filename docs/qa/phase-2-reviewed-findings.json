@@ -1,0 +1,80 @@
+[
+  {
+    "id": "QA-P2-FIN-001",
+    "feature": "Changed commercial assumptions and historical landed cost",
+    "area": "Commercial economics",
+    "journey": "Supplier evidence -> cost assumptions -> unit economics -> seller decision",
+    "route": "/api/v1/intelligence/product-opportunities/{id}/assessments/{id}/commercial/unit-economics",
+    "type": "CALCULATION",
+    "severity": "MAJOR",
+    "priority": "P1",
+    "expected": "A newly calculated scenario using a historical landed cost against changed commercial readiness must reject the stale combination or explicitly identify its historical inputs and stale status. Historical immutable results must remain available.",
+    "actual": "After a new readiness snapshot changes assumed unit acquisition cost from INR 100 to INR 200, a new calculation explicitly referencing the previous landed cost returns READY, landed/unit 100, contribution/unit 124.9 and no stale limitation or contradiction. Its input snapshot combines the new readiness ID with the old calculation ID. Arithmetic for the old scenario is correct; the defect is missing stale-input protection/disclosure, not a proven Decimal rounding defect.",
+    "reproduction_steps": [
+      "Run npm.cmd run qa:phase2.",
+      "Inspect test_06_changed_readiness_does_not_silently_accept_old_cost.",
+      "Compare previous_readiness, changed_readiness, old and result in stale-input-observation.json."
+    ],
+    "evidence": [
+      {
+        "name": "Persisted HTTP reproduction",
+        "path": "tmp/qa-agent/7b04b3c8a2d65d4f/stale-input-observation.json"
+      },
+      {
+        "name": "Canonical implementation selects latest readiness and requested landed calculation without checking their linkage",
+        "path": "apps/api/vayujit_api/intelligence/product_opportunity_unit_economics_service.py"
+      },
+      {
+        "name": "Independent persisted/browser retest and resolution record",
+        "path": "docs/qa/remediation-retest.json"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "business_impact": "A seller may rely on a contribution overstated by INR 100/unit relative to the revised acquisition assumption, while the new result is presented as READY. This is scenario-context risk, not realized profit or a legal tax conclusion.",
+    "suggested_fix": "In a separately authorized production change, enforce the canonical readiness/calculation relationship or expose an explicit historical-scenario posture and require a deliberate refreshed calculation. Preserve old snapshots and approvals.",
+    "retest_status": "PASS"
+  },
+  {
+    "id": "QA-P2-DEC-001",
+    "feature": "Commerce Journey HUMAN decision replay",
+    "area": "HUMAN commercial decisions",
+    "journey": "Review recommendation -> KEEP_UNDER_REVIEW -> replay -> reopen",
+    "route": "/api/v1/commerce-journeys/{id}/decision",
+    "type": "FUNCTIONAL",
+    "severity": "MAJOR",
+    "priority": "P1",
+    "expected": "Replaying the identical authenticated request with its original idempotency key returns the same saved HUMAN decision without creating a second record.",
+    "actual": "The first browser HUMAN KEEP_UNDER_REVIEW request succeeds with HTTP 200 and a supplier-scoped decision. Replaying its exact request returns HTTP 409: Idempotency key is already bound to another decision. The journey wrapper omits supplier_id when delegating; create_human_decision compares the persisted supplier ID to the default None on replay, even though the initial supplier ID came from the canonical recommendation.",
+    "reproduction_steps": [
+      "Run npm.cmd run qa:phase2.",
+      "Open QA-P2-03 with the populated supplier-scoped recommendation.",
+      "Save Keep under review, then replay the captured request unchanged."
+    ],
+    "evidence": [
+      {
+        "name": "First HUMAN decision HTTP 200",
+        "path": "tmp/qa-agent/19d63dade5736dc4/evidence/mobile-QA-P2-03/0-human-decision-outcome.json"
+      },
+      {
+        "name": "Identical replay HTTP 409",
+        "path": "tmp/qa-agent/19d63dade5736dc4/evidence/mobile-QA-P2-03/1-human-decision-replay.json"
+      },
+      {
+        "name": "Delegation contract",
+        "path": "apps/api/vayujit_api/intelligence/economic_integration_service.py"
+      },
+      {
+        "name": "Existing decision supplier comparison",
+        "path": "apps/api/vayujit_api/intelligence/decision_recommendation_service.py"
+      },
+      {
+        "name": "Independent persisted/browser retest and resolution record",
+        "path": "docs/qa/remediation-retest.json"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "business_impact": "A retry after a slow response or reload is reported as a conflicting decision even when the seller already saved the same choice. No duplicate decision or unauthorized approval is claimed from this failure.",
+    "suggested_fix": "In a separately authorized change, resolve and pass the canonical supplier scope consistently for first submission and replay, retaining owner, target, decision and idempotency mismatch rejection.",
+    "retest_status": "PASS"
+  }
+]

@@ -215,7 +215,7 @@ interface PriceDraft {
       @if (section() === 'Overview' || section() === 'Listings' || section() === 'Listing Editor') {
         <section class="marketplace-card">
           <h2>Listings</h2>
-          <div class="marketplace-table">
+          <div class="marketplace-table" tabindex="0" role="region" aria-label="Meesho listings">
             <table>
               <caption>
                 Meesho listings
@@ -384,7 +384,7 @@ interface PriceDraft {
               @if (matrixError()) {
                 <app-error-state title="Variant setup needs attention" [message]="matrixError()" />
               }
-              <div class="marketplace-table">
+              <div class="marketplace-table" tabindex="0" role="region" aria-label="Deterministic variant matrix">
                 <table>
                   <caption>
                     Deterministic variant matrix
@@ -606,7 +606,7 @@ interface PriceDraft {
         <section class="marketplace-card">
           <h2>Orders and fulfilment</h2>
           <button type="button" (click)="importOrders()">Import orders</button>
-          <div class="marketplace-table">
+          <div class="marketplace-table" tabindex="0" role="region" aria-label="Read-only Meesho orders">
             <table>
               <caption>
                 Read-only Meesho orders
@@ -647,7 +647,7 @@ interface PriceDraft {
         <section class="marketplace-card">
           <h2>Financials and profitability</h2>
           <button type="button" (click)="importFinancials()">Import settlements</button>
-          <div class="marketplace-table">
+          <div class="marketplace-table" tabindex="0" role="region" aria-label="Settlement summaries">
             <table>
               <caption>
                 Settlement summaries

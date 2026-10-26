@@ -1,0 +1,8 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Phase 2 seller journey QA finding",
+  "allOf": [
+    { "$ref": "finding.schema.json" },
+    { "type": "object", "required": ["area", "journey", "business_impact"] }
+  ]
+}

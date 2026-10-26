@@ -93,5 +93,10 @@ describe('TrendIntelligenceWorkspaceComponent', () => {
     expect(fixture.componentInstance.selected()?.id).toBe('trend-context-1');
     expect(service.createContext).not.toHaveBeenCalled();
     expect(service.ingest).not.toHaveBeenCalled();
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.querySelectorAll('#context-heading')).toHaveLength(1);
+    expect(root.querySelector('#trend-context-list-heading')).not.toBeNull();
+    expect(root.querySelectorAll('main')).toHaveLength(0);
   });
 });

@@ -1,0 +1,3791 @@
+{
+  "generated_at": "2026-10-25T15:23:11.437Z",
+  "phase": "QA_AGENT_PHASE_3",
+  "status": "INCOMPLETE",
+  "executive_summary": {
+    "passed": 6,
+    "failed": 5,
+    "total": 12,
+    "full_application_coverage": false,
+    "api_passed": 17,
+    "api_failed": 15,
+    "api_errors": 4
+  },
+  "coverage": {
+    "inventoried_routes": 154,
+    "api_declarations": 1610,
+    "runtime_api_operations": [
+      1629,
+      1629
+    ],
+    "models": 421,
+    "existing_backend_test_files": 388,
+    "existing_angular_spec_files": 66,
+    "historical_tests_rerun": false
+  },
+  "reports": [
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-25T15:21:13.486Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "failed",
+      "executive_summary": {
+        "passed": 3,
+        "failed": 2,
+        "skipped": 1,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-P3-01",
+          "title": "QA-P3-01 seller adjusts stock, reopens ledger and rejects stale balance",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 3242,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-inventory-stale-adjustment",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-01/0-axe-inventory-stale-adjustment.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-01/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-01/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              },
+              {
+                "path": "/api/v1/inventory/eb84649e-121d-4a0f-a75a-b5bf4ebf880f/adjust",
+                "status": 409
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+              "Failed to load resource: the server responded with a status of 409 (Conflict)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-inventory-stale-adjustment",
+              "route": "/marketplaces/inventory",
+              "violations": [],
+              "incomplete": [],
+              "passes": 47
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P3-02",
+          "title": "QA-P3-02 order timeline, source, empty filter and reload agree with API",
+          "project": "desktop",
+          "status": "skipped",
+          "duration_ms": 364,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-02/0-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-02/1-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P3-03",
+          "title": "QA-P3-03 financial decimals, loss, missing settlements and seller explanations",
+          "project": "desktop",
+          "status": "failed",
+          "duration_ms": 13602,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Marketplace', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-03/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-03/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-desktop/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/marketplaces/financials",
+              "/marketplaces/financials"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P3-04",
+          "title": "QA-P3-04 HUMAN signal acknowledgement, audit and resolved status filter",
+          "project": "desktop",
+          "status": "failed",
+          "duration_ms": 16277,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Status', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-04/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-04/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-desktop/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/operations/action-center",
+              "/operations/action-center"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P3-05",
+          "title": "QA-P3-05 API failure, timeout recovery and committed-response interruption",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 3632,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "interruption-recovery",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-05/0-interruption-recovery.json"
+            },
+            {
+              "name": "axe-financial-recovered",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-05/1-axe-financial-recovered.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-05/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-05/3-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/marketplaces/financials",
+              "/marketplaces/financials"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+              "Failed to load resource: net::ERR_TIMED_OUT",
+              "Failed to load resource: net::ERR_CONNECTION_RESET"
+            ],
+            "failed_requests": [
+              {
+                "path": "/api/v1/financial/summary",
+                "code": "net::ERR_TIMED_OUT"
+              },
+              {
+                "path": "/api/v1/inventory/eb84649e-121d-4a0f-a75a-b5bf4ebf880f/adjust",
+                "code": "net::ERR_CONNECTION_RESET"
+              }
+            ],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-financial-recovered",
+              "route": "/marketplaces/financials",
+              "violations": [],
+              "incomplete": [],
+              "passes": 49
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P3-06",
+          "title": "QA-P3-06 investigate original mobile obscured-table contrast states",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 9576,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-review-due-diligence",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/0-axe-review-due-diligence.json"
+            },
+            {
+              "name": "obscured-table-due-diligence",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/1-obscured-table-due-diligence.json"
+            },
+            {
+              "name": "scrolled-due-diligence",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/2-scrolled-due-diligence.png"
+            },
+            {
+              "name": "axe-review-economics",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/3-axe-review-economics.json"
+            },
+            {
+              "name": "obscured-table-economics",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/4-obscured-table-economics.json"
+            },
+            {
+              "name": "scrolled-economics",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/5-scrolled-economics.png"
+            },
+            {
+              "name": "axe-review-stale-economics",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/6-axe-review-stale-economics.json"
+            },
+            {
+              "name": "obscured-table-stale-economics",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/7-obscured-table-stale-economics.json"
+            },
+            {
+              "name": "scrolled-stale-economics",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/8-scrolled-stale-economics.png"
+            },
+            {
+              "name": "axe-review-human-decision",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/9-axe-review-human-decision.json"
+            },
+            {
+              "name": "obscured-table-human-decision",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/10-obscured-table-human-decision.json"
+            },
+            {
+              "name": "scrolled-human-decision",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/11-scrolled-human-decision.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/12-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-06/13-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/intelligence/due-diligence",
+              "/intelligence/due-diligence",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-review-due-diligence",
+              "route": "/intelligence/due-diligence",
+              "violations": [],
+              "incomplete": [],
+              "passes": 39
+            },
+            {
+              "state": "axe-review-economics",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [],
+              "passes": 50
+            },
+            {
+              "state": "axe-review-stale-economics",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [],
+              "passes": 50
+            },
+            {
+              "state": "axe-review-human-decision",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [],
+              "passes": 50
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [
+        {
+          "id": "QA-RUN-DESKTOP-001",
+          "feature": "QA-P3-03 financial decimals, loss, missing settlements and seller explanations",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Marketplace', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P3-03 (desktop)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-03/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-03/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-desktop/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-DESKTOP-002",
+          "feature": "QA-P3-04 HUMAN signal acknowledgement, audit and resolved status filter",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Status', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P3-04 (desktop)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-desktop/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-04/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-04/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-desktop/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-desktop/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        }
+      ],
+      "confirmed_bugs": [],
+      "usability_findings": [],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "api_results": {
+        "tests": [
+          {
+            "id": "test_01_stock_adjustment_replay_stale_and_negative",
+            "status": "PASS"
+          },
+          {
+            "id": "test_02_reservation_release_consume_and_invalid_transition",
+            "status": "PASS"
+          },
+          {
+            "id": "test_03_order_cancel_ship_return_and_no_automatic_refund",
+            "status": "ERROR",
+            "error_type": "InvalidOperation"
+          },
+          {
+            "id": "test_04_concurrent_final_unit_duplicate_delivery_and_multiline_rollback",
+            "status": "PASS"
+          },
+          {
+            "id": "test_05_conflicting_stock_key_is_not_silently_accepted",
+            "status": "FAIL",
+            "error": "200 != 409 : Same key with a different stock delta must not report success"
+          },
+          {
+            "id": "test_06_financial_event_rounding_loss_and_reconciliation_oracle",
+            "status": "PASS"
+          },
+          {
+            "id": "test_07_conflicting_financial_event_is_rejected",
+            "status": "FAIL",
+            "error": "201 != 409 : Conflicting monetary evidence must not be acknowledged as an identical replay"
+          },
+          {
+            "id": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+            "status": "FAIL",
+            "error": "'-103.04' != 'UNKNOWN'\n- -103.04\n+ UNKNOWN\n : A newer UNKNOWN revision must not silently fall back to superseded cost evidence"
+          },
+          {
+            "id": "test_09_immutable_financial_snapshots_and_later_refund",
+            "status": "FAIL",
+            "error": "'69343602-11cb-441d-81c6-95683fa9bf6c' == '69343602-11cb-441d-81c6-95683fa9bf6c'"
+          },
+          {
+            "id": "test_10_settlement_unknown_mismatch_revision_and_precision",
+            "status": "PASS"
+          },
+          {
+            "id": "test_11_business_agent_unknowns_loss_and_default_deny",
+            "status": "PASS"
+          },
+          {
+            "id": "test_12_action_center_persisted_replay_concurrency_and_history",
+            "status": "FAIL",
+            "error": "False is not true"
+          },
+          {
+            "id": "test_13_conflicting_signal_transition_key_rejected",
+            "status": "ERROR",
+            "error_type": "KeyError"
+          },
+          {
+            "id": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+            "status": "ERROR",
+            "error_type": "KeyError"
+          },
+          {
+            "id": "test_15_source_changes_rescan_and_signal_resolution",
+            "status": "ERROR",
+            "error_type": "KeyError"
+          },
+          {
+            "id": "test_16_fresh_process_database_reconstruction",
+            "status": "PASS"
+          },
+          {
+            "id": "test_17_canonical_order_synthetic_provenance_and_state_change",
+            "status": "FAIL",
+            "error": "False is not true : Fake order fallback must not be labelled non-synthetic canonical evidence"
+          },
+          {
+            "id": "test_18_prepare_original_mobile_states_and_operational_browser_data",
+            "status": "PASS"
+          }
+        ],
+        "passed": 8,
+        "failed": 6,
+        "errors": 4,
+        "skipped": 0,
+        "process_exit_code": 1
+      },
+      "process_exit_code": 1,
+      "runtime_api_operations": 1629
+    },
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-25T15:23:09.515Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "failed",
+      "executive_summary": {
+        "passed": 3,
+        "failed": 3,
+        "skipped": 0,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-P3-01",
+          "title": "QA-P3-01 seller adjusts stock, reopens ledger and rejects stale balance",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 2992,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-inventory-stale-adjustment",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-01/0-axe-inventory-stale-adjustment.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-01/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-01/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              },
+              {
+                "path": "/api/v1/inventory/62a4c1d4-851f-42b3-b600-dc75e92dd388/adjust",
+                "status": 409
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+              "Failed to load resource: the server responded with a status of 409 (Conflict)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-inventory-stale-adjustment",
+              "route": "/marketplaces/inventory",
+              "violations": [],
+              "incomplete": [],
+              "passes": 46
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P3-02",
+          "title": "QA-P3-02 order timeline, source, empty filter and reload agree with API",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 1969,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-orders-persisted",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-02/0-axe-orders-persisted.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-02/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-02/2-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/marketplaces/orders",
+              "/marketplaces/orders",
+              "/marketplaces/orders",
+              "/marketplaces/orders"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-orders-persisted",
+              "route": "/marketplaces/orders",
+              "violations": [],
+              "incomplete": [],
+              "passes": 46
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P3-03",
+          "title": "QA-P3-03 financial decimals, loss, missing settlements and seller explanations",
+          "project": "mobile",
+          "status": "failed",
+          "duration_ms": 13076,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Marketplace', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-03/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-03/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-mobile/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/marketplaces/financials",
+              "/marketplaces/financials"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P3-04",
+          "title": "QA-P3-04 HUMAN signal acknowledgement, audit and resolved status filter",
+          "project": "mobile",
+          "status": "failed",
+          "duration_ms": 14382,
+          "steps": [],
+          "error": [
+            "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Status', { exact: true })\n"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-04/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-04/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-mobile/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/operations/action-center",
+              "/operations/action-center"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P3-05",
+          "title": "QA-P3-05 API failure, timeout recovery and committed-response interruption",
+          "project": "mobile",
+          "status": "failed",
+          "duration_ms": 2764,
+          "steps": [],
+          "error": [
+            "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 200\nReceived: 403"
+          ],
+          "evidence": [
+            {
+              "name": "interruption-recovery",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-05/0-interruption-recovery.json"
+            },
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-05-API-failur-c97a2-itted-response-interruption-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-05/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-05/3-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-05-API-failur-c97a2-itted-response-interruption-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-05-API-failur-c97a2-itted-response-interruption-mobile/trace.zip"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/marketplaces/financials",
+              "/marketplaces/financials"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+              "Failed to load resource: net::ERR_TIMED_OUT",
+              "Failed to load resource: net::ERR_CONNECTION_RESET"
+            ],
+            "failed_requests": [
+              {
+                "path": "/api/v1/financial/summary",
+                "code": "net::ERR_TIMED_OUT"
+              },
+              {
+                "path": "/api/v1/inventory/62a4c1d4-851f-42b3-b600-dc75e92dd388/adjust",
+                "code": "net::ERR_CONNECTION_RESET"
+              }
+            ],
+            "page_errors": []
+          },
+          "axe": [],
+          "usability": []
+        },
+        {
+          "id": "QA-P3-06",
+          "title": "QA-P3-06 investigate original mobile obscured-table contrast states",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 15441,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-review-due-diligence",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/0-axe-review-due-diligence.json"
+            },
+            {
+              "name": "obscured-table-due-diligence",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/1-obscured-table-due-diligence.json"
+            },
+            {
+              "name": "scrolled-due-diligence",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/2-scrolled-due-diligence.png"
+            },
+            {
+              "name": "axe-review-economics",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/3-axe-review-economics.json"
+            },
+            {
+              "name": "obscured-table-economics",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/4-obscured-table-economics.json"
+            },
+            {
+              "name": "scrolled-economics",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/5-scrolled-economics.png"
+            },
+            {
+              "name": "axe-review-stale-economics",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/6-axe-review-stale-economics.json"
+            },
+            {
+              "name": "obscured-table-stale-economics",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/7-obscured-table-stale-economics.json"
+            },
+            {
+              "name": "scrolled-stale-economics",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/8-scrolled-stale-economics.png"
+            },
+            {
+              "name": "axe-review-human-decision",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/9-axe-review-human-decision.json"
+            },
+            {
+              "name": "obscured-table-human-decision",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/10-obscured-table-human-decision.json"
+            },
+            {
+              "name": "scrolled-human-decision",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/11-scrolled-human-decision.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/12-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-06/13-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/intelligence/due-diligence",
+              "/intelligence/due-diligence",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics",
+              "/intelligence/sourcing-economics"
+            ],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "failed_requests": [],
+            "page_errors": []
+          },
+          "axe": [
+            {
+              "state": "axe-review-due-diligence",
+              "route": "/intelligence/due-diligence",
+              "violations": [],
+              "incomplete": [],
+              "passes": 36
+            },
+            {
+              "state": "axe-review-economics",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "count": 37,
+                  "nodes": [
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > caption"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > caption"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 49
+            },
+            {
+              "state": "axe-review-stale-economics",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "count": 27,
+                  "nodes": [
+                    {
+                      "target": [
+                        "caption"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "th[scope=\"col\"]:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "th[scope=\"col\"]:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(1) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(1) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(2) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(2) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 49
+            },
+            {
+              "state": "axe-review-human-decision",
+              "route": "/intelligence/sourcing-economics",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "count": 37,
+                  "nodes": [
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > caption"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(3) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(4) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(5) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(6) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(7) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(8) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(9) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(10) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(11) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(12) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > caption"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(3)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 49
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [
+        {
+          "id": "QA-RUN-MOBILE-001",
+          "feature": "QA-P3-03 financial decimals, loss, missing settlements and seller explanations",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Marketplace', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P3-03 (mobile)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-03/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-03/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-mobile/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-MOBILE-002",
+          "feature": "QA-P3-04 HUMAN signal acknowledgement, audit and resolved status filter",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Status', { exact: true })\n",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P3-04 (mobile)"
+          ],
+          "evidence": [
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-04/1-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-04/2-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-mobile/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        },
+        {
+          "id": "QA-RUN-MOBILE-003",
+          "feature": "QA-P3-05 API failure, timeout recovery and committed-response interruption",
+          "route": "See screenshot/trace; failure may be in test harness",
+          "type": "SUSPECTED_DEFECT",
+          "severity": "MAJOR",
+          "priority": "P1",
+          "expected": "Scenario assertions pass using canonical disposable data.",
+          "actual": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 200\nReceived: 403",
+          "reproduction_steps": [
+            "npm.cmd run qa:smoke",
+            "Inspect QA-P3-05 (mobile)"
+          ],
+          "evidence": [
+            {
+              "name": "interruption-recovery",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-05/0-interruption-recovery.json"
+            },
+            {
+              "name": "screenshot",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-05-API-failur-c97a2-itted-response-interruption-mobile/test-failed-1.png"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-05/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-05/3-final-screen.png"
+            },
+            {
+              "name": "error-context",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-05-API-failur-c97a2-itted-response-interruption-mobile/error-context.md"
+            },
+            {
+              "name": "trace",
+              "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-05-API-failur-c97a2-itted-response-interruption-mobile/trace.zip"
+            }
+          ],
+          "confidence": "SUSPECTED",
+          "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+          "retest_status": "NOT_RETESTED"
+        }
+      ],
+      "confirmed_bugs": [],
+      "usability_findings": [],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "api_results": {
+        "tests": [
+          {
+            "id": "test_01_stock_adjustment_replay_stale_and_negative",
+            "status": "PASS"
+          },
+          {
+            "id": "test_02_reservation_release_consume_and_invalid_transition",
+            "status": "PASS"
+          },
+          {
+            "id": "test_03_order_cancel_ship_return_and_no_automatic_refund",
+            "status": "PASS"
+          },
+          {
+            "id": "test_04_concurrent_final_unit_duplicate_delivery_and_multiline_rollback",
+            "status": "PASS"
+          },
+          {
+            "id": "test_05_conflicting_stock_key_is_not_silently_accepted",
+            "status": "FAIL",
+            "error": "200 != 409 : Same key with a different stock delta must not report success"
+          },
+          {
+            "id": "test_06_financial_event_rounding_loss_and_reconciliation_oracle",
+            "status": "PASS"
+          },
+          {
+            "id": "test_07_conflicting_financial_event_is_rejected",
+            "status": "FAIL",
+            "error": "201 != 409 : Conflicting monetary evidence must not be acknowledged as an identical replay"
+          },
+          {
+            "id": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+            "status": "FAIL",
+            "error": "'-103.04' != 'UNKNOWN'\n- -103.04\n+ UNKNOWN\n : A newer UNKNOWN revision must not silently fall back to superseded cost evidence"
+          },
+          {
+            "id": "test_09_immutable_financial_snapshots_and_later_refund",
+            "status": "FAIL",
+            "error": "'a91b1abf-3285-4804-9a0f-f4b00c48f45d' == 'a91b1abf-3285-4804-9a0f-f4b00c48f45d'"
+          },
+          {
+            "id": "test_10_settlement_unknown_mismatch_revision_and_precision",
+            "status": "PASS"
+          },
+          {
+            "id": "test_11_business_agent_unknowns_loss_and_default_deny",
+            "status": "PASS"
+          },
+          {
+            "id": "test_12_action_center_persisted_replay_concurrency_and_history",
+            "status": "FAIL",
+            "error": "False is not true : Concurrent replay statuses: [422, 422, 422, 422]"
+          },
+          {
+            "id": "test_13_conflicting_signal_transition_key_rejected",
+            "status": "FAIL",
+            "error": "422 != 409 : Resolve cannot reuse an acknowledge identity and report successful resolution"
+          },
+          {
+            "id": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+            "status": "FAIL",
+            "error": "422 != 403"
+          },
+          {
+            "id": "test_15_source_changes_rescan_and_signal_resolution",
+            "status": "FAIL",
+            "error": "'NEW' not found in {'STALE', 'RESOLVED'} : A replenished source must not leave an old out-of-stock signal authoritative"
+          },
+          {
+            "id": "test_16_fresh_process_database_reconstruction",
+            "status": "PASS"
+          },
+          {
+            "id": "test_17_canonical_order_synthetic_provenance_and_state_change",
+            "status": "FAIL",
+            "error": "False is not true : Fake order fallback must not be labelled non-synthetic canonical evidence"
+          },
+          {
+            "id": "test_18_prepare_original_mobile_states_and_operational_browser_data",
+            "status": "PASS"
+          }
+        ],
+        "passed": 9,
+        "failed": 9,
+        "errors": 0,
+        "skipped": 0,
+        "process_exit_code": 1
+      },
+      "process_exit_code": 1,
+      "runtime_api_operations": 1629
+    }
+  ],
+  "cleanup": [
+    {
+      "project": "desktop",
+      "database": "vayujit_qac1cd0957876c8469_test",
+      "status": "BLOCKED",
+      "child_exit": "TIMEOUT",
+      "proof": null
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qa89cb8d256f1b0c6c_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa89cb8d256f1b0c6c_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    }
+  ],
+  "findings": [
+    {
+      "id": "QA-P3-ASSERT-DESKTOP-QA-P3-03",
+      "feature": "QA-P3-03 financial decimals, loss, missing settlements and seller explanations",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Marketplace', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "Inspect QA-P3-03 (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-03/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-03/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-desktop/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED",
+      "area": "QA-P3-03 financial decimals, loss, missing settlements and seller explanations",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-ASSERT-DESKTOP-QA-P3-04",
+      "feature": "QA-P3-04 HUMAN signal acknowledgement, audit and resolved status filter",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Status', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "Inspect QA-P3-04 (desktop)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-desktop/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-04/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/c1cd0957876c8469/evidence/desktop-QA-P3-04/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-desktop/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/c1cd0957876c8469/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-desktop/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED",
+      "area": "QA-P3-04 HUMAN signal acknowledgement, audit and resolved status filter",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-ASSERT-MOBILE-QA-P3-03",
+      "feature": "QA-P3-03 financial decimals, loss, missing settlements and seller explanations",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Marketplace', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "Inspect QA-P3-03 (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-03/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-03/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-03-financial--d1323-nts-and-seller-explanations-mobile/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED",
+      "area": "QA-P3-03 financial decimals, loss, missing settlements and seller explanations",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-ASSERT-MOBILE-QA-P3-04",
+      "feature": "QA-P3-04 HUMAN signal acknowledgement, audit and resolved status filter",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "TimeoutError: locator.selectOption: Timeout 12000ms exceeded.\nCall log:\n  - waiting for getByLabel('Status', { exact: true })\n",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "Inspect QA-P3-04 (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-04/1-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-04/2-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-04-HUMAN-sign-7b7d9--and-resolved-status-filter-mobile/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED",
+      "area": "QA-P3-04 HUMAN signal acknowledgement, audit and resolved status filter",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-ASSERT-MOBILE-QA-P3-05",
+      "feature": "QA-P3-05 API failure, timeout recovery and committed-response interruption",
+      "route": "See screenshot/trace; failure may be in test harness",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Scenario assertions pass using canonical disposable data.",
+      "actual": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: 200\nReceived: 403",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "Inspect QA-P3-05 (mobile)"
+      ],
+      "evidence": [
+        {
+          "name": "interruption-recovery",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-05/0-interruption-recovery.json"
+        },
+        {
+          "name": "screenshot",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-05-API-failur-c97a2-itted-response-interruption-mobile/test-failed-1.png"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-05/2-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/evidence/mobile-QA-P3-05/3-final-screen.png"
+        },
+        {
+          "name": "error-context",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-05-API-failur-c97a2-itted-response-interruption-mobile/error-context.md"
+        },
+        {
+          "name": "trace",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/browser-artifacts/phase3-QA-P3-05-API-failur-c97a2-itted-response-interruption-mobile/trace.zip"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+      "retest_status": "NOT_RETESTED",
+      "area": "QA-P3-05 API failure, timeout recovery and committed-response interruption",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-DESKTOP-TEST-03-ORDER-CANCEL-SHIP-RETURN-AND-NO-AUTOMATIC-REFUND",
+      "feature": "test_03_order_cancel_ship_return_and_no_automatic_refund",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "InvalidOperation",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_03_order_cancel_ship_return_and_no_automatic_refund"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_03_order_cancel_ship_return_and_no_automatic_refund",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-DESKTOP-TEST-05-CONFLICTING-STOCK-KEY-IS-NOT-SILENTLY-ACCEPTED",
+      "feature": "test_05_conflicting_stock_key_is_not_silently_accepted",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "200 != 409 : Same key with a different stock delta must not report success",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_05_conflicting_stock_key_is_not_silently_accepted"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_05_conflicting_stock_key_is_not_silently_accepted",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-DESKTOP-TEST-07-CONFLICTING-FINANCIAL-EVENT-IS-REJECTED",
+      "feature": "test_07_conflicting_financial_event_is_rejected",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "201 != 409 : Conflicting monetary evidence must not be acknowledged as an identical replay",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_07_conflicting_financial_event_is_rejected"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_07_conflicting_financial_event_is_rejected",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-DESKTOP-TEST-08-UNKNOWN-COST-REVISION-DOES-NOT-RESURRECT-OLD-KNOWN-COST",
+      "feature": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "'-103.04' != 'UNKNOWN'\n- -103.04\n+ UNKNOWN\n : A newer UNKNOWN revision must not silently fall back to superseded cost evidence",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-DESKTOP-TEST-09-IMMUTABLE-FINANCIAL-SNAPSHOTS-AND-LATER-REFUND",
+      "feature": "test_09_immutable_financial_snapshots_and_later_refund",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "'69343602-11cb-441d-81c6-95683fa9bf6c' == '69343602-11cb-441d-81c6-95683fa9bf6c'",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_09_immutable_financial_snapshots_and_later_refund"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_09_immutable_financial_snapshots_and_later_refund",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-DESKTOP-TEST-12-ACTION-CENTER-PERSISTED-REPLAY-CONCURRENCY-AND-HISTORY",
+      "feature": "test_12_action_center_persisted_replay_concurrency_and_history",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "False is not true",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_12_action_center_persisted_replay_concurrency_and_history"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_12_action_center_persisted_replay_concurrency_and_history",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-DESKTOP-TEST-13-CONFLICTING-SIGNAL-TRANSITION-KEY-REJECTED",
+      "feature": "test_13_conflicting_signal_transition_key_rejected",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "KeyError",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_13_conflicting_signal_transition_key_rejected"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_13_conflicting_signal_transition_key_rejected",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-DESKTOP-TEST-14-HUMAN-IMPERSONATION-EXTERNAL-ACTION-AND-UNAUTHORIZED-RESOURCES",
+      "feature": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "KeyError",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_14_human_impersonation_external_action_and_unauthorized_resources"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-DESKTOP-TEST-15-SOURCE-CHANGES-RESCAN-AND-SIGNAL-RESOLUTION",
+      "feature": "test_15_source_changes_rescan_and_signal_resolution",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "KeyError",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_15_source_changes_rescan_and_signal_resolution"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_15_source_changes_rescan_and_signal_resolution",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-DESKTOP-TEST-17-CANONICAL-ORDER-SYNTHETIC-PROVENANCE-AND-STATE-CHANGE",
+      "feature": "test_17_canonical_order_synthetic_provenance_and_state_change",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "False is not true : Fake order fallback must not be labelled non-synthetic canonical evidence",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_17_canonical_order_synthetic_provenance_and_state_change"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_17_canonical_order_synthetic_provenance_and_state_change",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-MOBILE-TEST-05-CONFLICTING-STOCK-KEY-IS-NOT-SILENTLY-ACCEPTED",
+      "feature": "test_05_conflicting_stock_key_is_not_silently_accepted",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "200 != 409 : Same key with a different stock delta must not report success",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_05_conflicting_stock_key_is_not_silently_accepted"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_05_conflicting_stock_key_is_not_silently_accepted",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-MOBILE-TEST-07-CONFLICTING-FINANCIAL-EVENT-IS-REJECTED",
+      "feature": "test_07_conflicting_financial_event_is_rejected",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "201 != 409 : Conflicting monetary evidence must not be acknowledged as an identical replay",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_07_conflicting_financial_event_is_rejected"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_07_conflicting_financial_event_is_rejected",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-MOBILE-TEST-08-UNKNOWN-COST-REVISION-DOES-NOT-RESURRECT-OLD-KNOWN-COST",
+      "feature": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "'-103.04' != 'UNKNOWN'\n- -103.04\n+ UNKNOWN\n : A newer UNKNOWN revision must not silently fall back to superseded cost evidence",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-MOBILE-TEST-09-IMMUTABLE-FINANCIAL-SNAPSHOTS-AND-LATER-REFUND",
+      "feature": "test_09_immutable_financial_snapshots_and_later_refund",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "'a91b1abf-3285-4804-9a0f-f4b00c48f45d' == 'a91b1abf-3285-4804-9a0f-f4b00c48f45d'",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_09_immutable_financial_snapshots_and_later_refund"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_09_immutable_financial_snapshots_and_later_refund",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-MOBILE-TEST-12-ACTION-CENTER-PERSISTED-REPLAY-CONCURRENCY-AND-HISTORY",
+      "feature": "test_12_action_center_persisted_replay_concurrency_and_history",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "False is not true : Concurrent replay statuses: [422, 422, 422, 422]",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_12_action_center_persisted_replay_concurrency_and_history"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_12_action_center_persisted_replay_concurrency_and_history",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-MOBILE-TEST-13-CONFLICTING-SIGNAL-TRANSITION-KEY-REJECTED",
+      "feature": "test_13_conflicting_signal_transition_key_rejected",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "422 != 409 : Resolve cannot reuse an acknowledge identity and report successful resolution",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_13_conflicting_signal_transition_key_rejected"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_13_conflicting_signal_transition_key_rejected",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-MOBILE-TEST-14-HUMAN-IMPERSONATION-EXTERNAL-ACTION-AND-UNAUTHORIZED-RESOURCES",
+      "feature": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "422 != 403",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_14_human_impersonation_external_action_and_unauthorized_resources"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-MOBILE-TEST-15-SOURCE-CHANGES-RESCAN-AND-SIGNAL-RESOLUTION",
+      "feature": "test_15_source_changes_rescan_and_signal_resolution",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "'NEW' not found in {'STALE', 'RESOLVED'} : A replenished source must not leave an old out-of-stock signal authoritative",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_15_source_changes_rescan_and_signal_resolution"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_15_source_changes_rescan_and_signal_resolution",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    },
+    {
+      "id": "QA-P3-API-MOBILE-TEST-17-CANONICAL-ORDER-SYNTHETIC-PROVENANCE-AND-STATE-CHANGE",
+      "feature": "test_17_canonical_order_synthetic_provenance_and_state_change",
+      "route": "See canonical route and API artifact in phase3_api.py",
+      "type": "SUSPECTED_DEFECT",
+      "severity": "MAJOR",
+      "priority": "P1",
+      "expected": "Persisted canonical operational scenario satisfies its explicit financial/security/lifecycle assertions.",
+      "actual": "False is not true : Fake order fallback must not be labelled non-synthetic canonical evidence",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase3",
+        "test_17_canonical_order_synthetic_provenance_and_state_change"
+      ],
+      "evidence": [
+        {
+          "name": "Persisted API assertions",
+          "path": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+        }
+      ],
+      "confidence": "SUSPECTED",
+      "suggested_fix": "Review captured canonical response and source contract before authorizing a production correction.",
+      "retest_status": "NOT_RETESTED",
+      "area": "test_17_canonical_order_synthetic_provenance_and_state_change",
+      "journey": "Operational seller lifecycle",
+      "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+    }
+  ],
+  "confirmed_bugs": [],
+  "usability_findings": [],
+  "next_phase": "Risk-first persisted seller journey, financial oracle and foreign-ID matrices; no autonomous production fixes.",
+  "api_tests": [
+    {
+      "id": "test_01_stock_adjustment_replay_stale_and_negative",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_02_reservation_release_consume_and_invalid_transition",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_03_order_cancel_ship_return_and_no_automatic_refund",
+      "status": "ERROR",
+      "error_type": "InvalidOperation",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_04_concurrent_final_unit_duplicate_delivery_and_multiline_rollback",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_05_conflicting_stock_key_is_not_silently_accepted",
+      "status": "FAIL",
+      "error": "200 != 409 : Same key with a different stock delta must not report success",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_06_financial_event_rounding_loss_and_reconciliation_oracle",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_07_conflicting_financial_event_is_rejected",
+      "status": "FAIL",
+      "error": "201 != 409 : Conflicting monetary evidence must not be acknowledged as an identical replay",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+      "status": "FAIL",
+      "error": "'-103.04' != 'UNKNOWN'\n- -103.04\n+ UNKNOWN\n : A newer UNKNOWN revision must not silently fall back to superseded cost evidence",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_09_immutable_financial_snapshots_and_later_refund",
+      "status": "FAIL",
+      "error": "'69343602-11cb-441d-81c6-95683fa9bf6c' == '69343602-11cb-441d-81c6-95683fa9bf6c'",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_10_settlement_unknown_mismatch_revision_and_precision",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_11_business_agent_unknowns_loss_and_default_deny",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_12_action_center_persisted_replay_concurrency_and_history",
+      "status": "FAIL",
+      "error": "False is not true",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_13_conflicting_signal_transition_key_rejected",
+      "status": "ERROR",
+      "error_type": "KeyError",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+      "status": "ERROR",
+      "error_type": "KeyError",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_15_source_changes_rescan_and_signal_resolution",
+      "status": "ERROR",
+      "error_type": "KeyError",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_16_fresh_process_database_reconstruction",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_17_canonical_order_synthetic_provenance_and_state_change",
+      "status": "FAIL",
+      "error": "False is not true : Fake order fallback must not be labelled non-synthetic canonical evidence",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_18_prepare_original_mobile_states_and_operational_browser_data",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/c1cd0957876c8469/api-results.json"
+    },
+    {
+      "id": "test_01_stock_adjustment_replay_stale_and_negative",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_02_reservation_release_consume_and_invalid_transition",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_03_order_cancel_ship_return_and_no_automatic_refund",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_04_concurrent_final_unit_duplicate_delivery_and_multiline_rollback",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_05_conflicting_stock_key_is_not_silently_accepted",
+      "status": "FAIL",
+      "error": "200 != 409 : Same key with a different stock delta must not report success",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_06_financial_event_rounding_loss_and_reconciliation_oracle",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_07_conflicting_financial_event_is_rejected",
+      "status": "FAIL",
+      "error": "201 != 409 : Conflicting monetary evidence must not be acknowledged as an identical replay",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+      "status": "FAIL",
+      "error": "'-103.04' != 'UNKNOWN'\n- -103.04\n+ UNKNOWN\n : A newer UNKNOWN revision must not silently fall back to superseded cost evidence",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_09_immutable_financial_snapshots_and_later_refund",
+      "status": "FAIL",
+      "error": "'a91b1abf-3285-4804-9a0f-f4b00c48f45d' == 'a91b1abf-3285-4804-9a0f-f4b00c48f45d'",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_10_settlement_unknown_mismatch_revision_and_precision",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_11_business_agent_unknowns_loss_and_default_deny",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_12_action_center_persisted_replay_concurrency_and_history",
+      "status": "FAIL",
+      "error": "False is not true : Concurrent replay statuses: [422, 422, 422, 422]",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_13_conflicting_signal_transition_key_rejected",
+      "status": "FAIL",
+      "error": "422 != 409 : Resolve cannot reuse an acknowledge identity and report successful resolution",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+      "status": "FAIL",
+      "error": "422 != 403",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_15_source_changes_rescan_and_signal_resolution",
+      "status": "FAIL",
+      "error": "'NEW' not found in {'STALE', 'RESOLVED'} : A replenished source must not leave an old out-of-stock signal authoritative",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_16_fresh_process_database_reconstruction",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_17_canonical_order_synthetic_provenance_and_state_change",
+      "status": "FAIL",
+      "error": "False is not true : Fake order fallback must not be labelled non-synthetic canonical evidence",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    },
+    {
+      "id": "test_18_prepare_original_mobile_states_and_operational_browser_data",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/89cb8d256f1b0c6c/api-results.json"
+    }
+  ],
+  "reviewed_findings": [],
+  "manual_accessibility_reviews": [
+    {
+      "route": "/intelligence/sourcing-economics",
+      "state": "axe-review-economics",
+      "id": "color-contrast",
+      "impact": "serious",
+      "count": 37,
+      "nodes": [
+        {
+          "target": [
+            ".landed-cost-breakdown > table > caption"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(3) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(3) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(4) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(4) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(5) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(5) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(6) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(6) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(7) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(7) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(8) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(8) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(9) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(9) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(10) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(10) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(11) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(11) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(12) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(12) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > caption"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(3)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(3)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(3)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        }
+      ]
+    },
+    {
+      "route": "/intelligence/sourcing-economics",
+      "state": "axe-review-stale-economics",
+      "id": "color-contrast",
+      "impact": "serious",
+      "count": 27,
+      "nodes": [
+        {
+          "target": [
+            "caption"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "th[scope=\"col\"]:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "th[scope=\"col\"]:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(1) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(1) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(2) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(2) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(3) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(3) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(4) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(4) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(5) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(5) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(6) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(6) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(7) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(7) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(8) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(8) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(9) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(9) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(10) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(10) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(11) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(11) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(12) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(12) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        }
+      ]
+    },
+    {
+      "route": "/intelligence/sourcing-economics",
+      "state": "axe-review-human-decision",
+      "id": "color-contrast",
+      "impact": "serious",
+      "count": 37,
+      "nodes": [
+        {
+          "target": [
+            ".landed-cost-breakdown > table > caption"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".landed-cost-breakdown > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(3) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(3) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(4) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(4) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(5) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(5) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(6) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(6) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(7) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(7) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(8) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(8) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(9) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(9) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(10) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(10) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(11) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(11) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(12) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            "tr:nth-child(12) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > caption"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(3)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > thead > tr > th[scope=\"col\"]:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(3)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(1) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(3)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(4)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        },
+        {
+          "target": [
+            ".breakdown-scroll > table > tbody > tr:nth-child(2) > td:nth-child(5)"
+          ],
+          "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+        }
+      ]
+    }
+  ],
+  "inherited_open_findings": [
+    {
+      "id": "QA-UX-CURRENCY-DESKTOP",
+      "feature": "Indian seller product creation",
+      "route": "/products/new",
+      "type": "USABILITY",
+      "severity": "MINOR",
+      "priority": "P2",
+      "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+      "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+      "reproduction_steps": [
+        "Create a brand",
+        "Open /products/new",
+        "Inspect Currency before entering a price"
+      ],
+      "evidence": [
+        {
+          "name": "axe-catalog-empty",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/0-axe-catalog-empty.json"
+        },
+        {
+          "name": "ux-observations",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/1-ux-observations.json"
+        },
+        {
+          "name": "axe-catalog-detail",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/2-axe-catalog-detail.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+      "retest_status": "NOT_RETESTED",
+      "area": "Indian seller product creation",
+      "journey": "Original seller usability review",
+      "business_impact": "Seller clarity recommendation retained; not automatically closed by functional test success."
+    },
+    {
+      "id": "QA-UX-CURRENCY-MOBILE",
+      "feature": "Indian seller product creation",
+      "route": "/products/new",
+      "type": "USABILITY",
+      "severity": "MINOR",
+      "priority": "P2",
+      "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+      "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+      "reproduction_steps": [
+        "Create a brand",
+        "Open /products/new",
+        "Inspect Currency before entering a price"
+      ],
+      "evidence": [
+        {
+          "name": "axe-catalog-empty",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/0-axe-catalog-empty.json"
+        },
+        {
+          "name": "ux-observations",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/1-ux-observations.json"
+        },
+        {
+          "name": "axe-catalog-detail",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/2-axe-catalog-detail.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+      "retest_status": "NOT_RETESTED",
+      "area": "Indian seller product creation",
+      "journey": "Original seller usability review",
+      "business_impact": "Seller clarity recommendation retained; not automatically closed by functional test success."
+    },
+    {
+      "id": "QA-UX-NAV-CURRENT-001",
+      "feature": "Seller navigation current-location clarity",
+      "route": "/intelligence/business-agent",
+      "type": "USABILITY",
+      "severity": "MINOR",
+      "priority": "P2",
+      "expected": "The seller can distinguish the current page from its broader research section.",
+      "actual": "In the reviewed 25 October 2026 synthetic desktop screenshot, Business Agent and My Research both use the same active sidebar treatment. The navigation uses prefix matching for the parent /intelligence link. This is a usability recommendation, not an authorization or navigation failure.",
+      "reproduction_steps": [
+        "Run the QA smoke suite",
+        "Create a goal and plan",
+        "Review the sidebar on /intelligence/business-agent"
+      ],
+      "evidence": [
+        {
+          "name": "reviewed-desktop-screenshot",
+          "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider exact matching for the current page or a visually distinct parent-section state. Preserve all routes and access guards.",
+      "retest_status": "NOT_RETESTED",
+      "area": "Seller navigation current-location clarity",
+      "journey": "Original seller usability review",
+      "business_impact": "Seller clarity recommendation retained; not automatically closed by functional test success."
+    },
+    {
+      "id": "QA-P2-UX-ECONOMICS-DESKTOP",
+      "feature": "Commercial decision brief information hierarchy",
+      "route": "/intelligence/sourcing-economics",
+      "type": "USABILITY",
+      "severity": "MODERATE",
+      "priority": "P2",
+      "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+      "actual": "The populated page is 16260px high at a 1000px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase2",
+        "Open the populated economics scenario and review its full-page screenshot."
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+      "retest_status": "NOT_RETESTED",
+      "evidence": [
+        {
+          "name": "ux-observations",
+          "path": "tmp/qa-agent/e1abcb69f08bab54/evidence/desktop-QA-P2-02/0-ux-observations.json"
+        },
+        {
+          "name": "axe-economics",
+          "path": "tmp/qa-agent/e1abcb69f08bab54/evidence/desktop-QA-P2-02/1-axe-economics.json"
+        },
+        {
+          "name": "economics-overview",
+          "path": "tmp/qa-agent/e1abcb69f08bab54/evidence/desktop-QA-P2-02/2-economics-overview.png"
+        },
+        {
+          "name": "axe-stale-economics",
+          "path": "tmp/qa-agent/e1abcb69f08bab54/evidence/desktop-QA-P2-02/3-axe-stale-economics.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/e1abcb69f08bab54/evidence/desktop-QA-P2-02/4-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/e1abcb69f08bab54/evidence/desktop-QA-P2-02/5-final-screen.png"
+        }
+      ],
+      "area": "Commercial decision brief information hierarchy",
+      "journey": "Phase 2 seller journey",
+      "business_impact": "May prevent trustworthy, repeatable seller decisions; inspect the specific evidence before remediation."
+    },
+    {
+      "id": "QA-P2-UX-ECONOMICS-MOBILE",
+      "feature": "Commercial decision brief information hierarchy",
+      "route": "/intelligence/sourcing-economics",
+      "type": "USABILITY",
+      "severity": "MODERATE",
+      "priority": "P2",
+      "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+      "actual": "The populated page is 43325px high at a 844px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+      "reproduction_steps": [
+        "npm.cmd run qa:phase2",
+        "Open the populated economics scenario and review its full-page screenshot."
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+      "retest_status": "NOT_RETESTED",
+      "evidence": [
+        {
+          "name": "ux-observations",
+          "path": "tmp/qa-agent/e20e342f7309cbbf/evidence/mobile-QA-P2-02/0-ux-observations.json"
+        },
+        {
+          "name": "axe-economics",
+          "path": "tmp/qa-agent/e20e342f7309cbbf/evidence/mobile-QA-P2-02/1-axe-economics.json"
+        },
+        {
+          "name": "economics-overview",
+          "path": "tmp/qa-agent/e20e342f7309cbbf/evidence/mobile-QA-P2-02/2-economics-overview.png"
+        },
+        {
+          "name": "axe-stale-economics",
+          "path": "tmp/qa-agent/e20e342f7309cbbf/evidence/mobile-QA-P2-02/3-axe-stale-economics.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/e20e342f7309cbbf/evidence/mobile-QA-P2-02/4-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/e20e342f7309cbbf/evidence/mobile-QA-P2-02/5-final-screen.png"
+        }
+      ],
+      "area": "Commercial decision brief information hierarchy",
+      "journey": "Phase 2 seller journey",
+      "business_impact": "May prevent trustworthy, repeatable seller decisions; inspect the specific evidence before remediation."
+    },
+    {
+      "id": "QA-UX-PRE-RUN-MODE-001",
+      "feature": "First research plan guidance",
+      "route": "/intelligence/business-agent",
+      "type": "USABILITY",
+      "severity": "INFO",
+      "priority": "P3",
+      "expected": "A first-time seller understands what is known before the first run and the single next action.",
+      "actual": "The reviewed synthetic planned-goal state displays a provider-mode-not-recorded warning, a DISABLED research-mode banner, journey research links, a separate confirm-context action and Start run. These describe different authorities, but their relationship may be unclear to a first-time seller. No blocked live-provider flow was executed.",
+      "reproduction_steps": [
+        "Use a fresh synthetic owner",
+        "Create the kids-category goal",
+        "Create a versioned plan without starting it",
+        "Review the journey header and goal card together"
+      ],
+      "evidence": [
+        {
+          "name": "reviewed-desktop-screenshot",
+          "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Review pre-run wording and action hierarchy with a seller. Distinguish global configured mode from not-yet-recorded per-run mode; do not hide actual provider restrictions.",
+      "retest_status": "NOT_RETESTED",
+      "area": "First research plan guidance",
+      "journey": "Original seller usability review",
+      "business_impact": "Seller clarity recommendation retained; not automatically closed by functional test success."
+    }
+  ],
+  "gaps": [
+    "Real provider, external publication, payment/refund dispatch, supplier contact and marketplace authorization are intentionally not executed.",
+    "Order creation/lifecycle uses the actual synthetic-provider API; the UI is a read-only projection, not a seller order-entry or refund-dispatch authority.",
+    "Action Center supports local signal acknowledge/snooze/resolve/reopen, not a complete persisted approval/rejection/execution workflow. Its request-action response is not proof of an executed or durably approved action.",
+    "Independent fresh-process database reconstruction is tested; database service outage and publishing-worker restart remain NOT EXECUTED to avoid interacting with unrelated runtime/backup services.",
+    "Browser failures/timeouts and committed-response loss use explicit network interception, not a claim of real infrastructure failure or worker recovery.",
+    "ORM metadata fixtures do not validate the complete migration chain. No migration certification is claimed.",
+    "No applicable GST treatment, real marketplace fee schedule, bank reconciliation or complete net-profit accounting is inferred from hypothetical synthetic evidence.",
+    "Keyboard checks are bounded; screen-reader/assistive-technology certification and comprehensive modal focus-trap testing remain unexecuted."
+  ]
+}

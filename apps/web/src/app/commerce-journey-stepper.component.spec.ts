@@ -27,4 +27,20 @@ describe('CommerceJourneyStepperComponent', () => {
     expect(element.querySelector('.blocked')).toBeTruthy();
     expect(element.querySelector('.review')).toBeTruthy();
   });
+
+  it('keeps blocked links readable and keyboard reachable instead of fading their text', async () => {
+    await TestBed.configureTestingModule({
+      imports: [CommerceJourneyStepperComponent],
+      providers: [provideRouter([])],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(CommerceJourneyStepperComponent);
+    fixture.componentInstance.stages = [
+      { key: 'SOURCE', label: 'Source', status: 'BLOCKED', route: '/source' },
+    ];
+    fixture.detectChanges();
+    const link = fixture.nativeElement.querySelector('a.blocked') as HTMLAnchorElement;
+    expect(link.href).toContain('/source');
+    expect(link.tabIndex).toBe(0);
+    expect(getComputedStyle(link).opacity).not.toBe('0.72');
+  });
 });

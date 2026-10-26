@@ -13,7 +13,7 @@ import { intelligenceErrorMessage } from './intelligence-error';
   imports: [RouterLink, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="autonomous-page" aria-labelledby="autonomous-title">
+    <section class="autonomous-page" aria-labelledby="autonomous-title">
       <header class="page-header">
         <div>
           <p class="eyebrow">Slice 5 · controlled research runtime</p>
@@ -217,7 +217,7 @@ import { intelligenceErrorMessage } from './intelligence-error';
           </article>
         }
       </section>
-    </main>
+    </section>
   `,
   styles: `
     :host {
