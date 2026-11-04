@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
 import { PageHeaderComponent } from '../shared/page-header.component';
 import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
 import { ErrorStateComponent } from '../shared/state-components';
@@ -11,7 +12,7 @@ type Plan = {
   id: string;
   objective: string;
   target_channels: string[];
-  budget_envelope: { total?: string; currency?: string };
+  budget_envelope: { total?: string; currency?: string; allocations?: Record<string, string> };
   status: string;
   current_version: number;
   update_available?: boolean;
@@ -104,7 +105,19 @@ type Plan = {
               <label>Total budget <input type="number" min="0" [(ngModel)]="draft.total" /></label>
               <label>Currency <input [(ngModel)]="draft.currency" maxlength="3" /></label>
             }
-            @if (wizardStep() > 2 && wizardStep() !== 6) {
+            @if (wizardStep() === 7) {
+              <p>
+                Total budget applies to the whole plan. Enter known allocations explicitly; leave
+                unknown channel amounts blank.
+              </p>
+              @for (channel of selectedChannels(); track channel) {
+                <label
+                  >{{ channel }} allocation
+                  <input type="text" inputmode="decimal" [(ngModel)]="allocations[channel]"
+                /></label>
+              }
+            }
+            @if (wizardStep() > 2 && wizardStep() !== 6 && wizardStep() !== 7) {
               <p class="step-hint">Review this step before continuing.</p>
             }
             <div class="wizard-actions">
@@ -143,6 +156,7 @@ type Plan = {
                   <h3>{{ plan.objective | titlecase }}</h3>
                   <p>{{ plan.target_channels.join(' - ') }}</p>
                 </div>
+                <button type="button" (click)="openPlan(plan)">Review plan details</button>
                 <div class="plan-meta">
                   <strong>{{ plan.status | titlecase }}</strong
                   ><span>v{{ plan.current_version }}</span
@@ -156,6 +170,42 @@ type Plan = {
           </div>
         }
       </section>
+      @if (selectedPlan(); as plan) {
+        <section class="card" aria-label="Saved marketing plan">
+          <h2>Saved plan v{{ plan.current_version }}</h2>
+          <p>{{ plan.id }} — {{ plan.status }}</p>
+          <p>
+            Local preparation only. Recommendations are not verified returns, and UNKNOWN inputs
+            remain unknown.
+          </p>
+          <h3>Canonical recommendations</h3>
+          <pre>{{ recommendations() | json }}</pre>
+          <h3>Persisted history</h3>
+          <pre>{{ planHistory() | json }}</pre>
+          <label
+            >Proposed total budget
+            <input type="text" inputmode="decimal" [(ngModel)]="proposedTotal"
+          /></label>
+          <p>
+            Existing explicit channel allocations are preserved; absent allocations are not replaced
+            with zero.
+          </p>
+          <button type="button" (click)="previewBudget()" [disabled]="submitting()">
+            Preview budget revision
+          </button>
+          @if (budgetPreview(); as preview) {
+            <p>Revision preview: {{ preview.valid ? 'Valid' : 'Blocked' }}</p>
+            <p>{{ preview.blockers.join(', ') }}</p>
+            <button
+              type="button"
+              (click)="confirmBudget()"
+              [disabled]="submitting() || !preview.valid"
+            >
+              Confirm reviewed budget revision
+            </button>
+          }
+        </section>
+      }
     </section>
   `,
   styles: [
@@ -164,6 +214,10 @@ type Plan = {
         display: block;
         min-height: 100%;
         color: #102b38;
+      }
+      pre {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
       }
       .marketing-shell {
         max-width: 1180px;
@@ -274,6 +328,95 @@ type Plan = {
   ],
 })
 export class MarketingPlanComponent {
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  readonly selectedPlan = signal<Plan | null>(null);
+  readonly recommendations = signal<Record<string, unknown> | null>(null);
+  readonly planHistory = signal<unknown[]>([]);
+  readonly budgetPreview = signal<{
+    fingerprint: string;
+    valid: boolean;
+    blockers: string[];
+    proposed: Record<string, unknown>;
+  } | null>(null);
+  proposedTotal = '';
+  private budgetKey = '';
+  async openPlan(plan: Plan): Promise<void> {
+    this.error.set('');
+    this.selectedPlan.set(null);
+    this.budgetPreview.set(null);
+    try {
+      const [current, recommendations, history] = await Promise.all([
+        firstValueFrom(this.http.get<Plan>(`/api/v1/ads/marketing/plans/${plan.id}`)),
+        firstValueFrom(
+          this.http.get<Record<string, unknown>>(
+            `/api/v1/ads/marketing/plans/${plan.id}/optimization`,
+          ),
+        ),
+        firstValueFrom(this.http.get<unknown[]>(`/api/v1/ads/marketing/plans/${plan.id}/history`)),
+      ]);
+      this.selectedPlan.set(current);
+      this.proposedTotal = current.budget_envelope.total || '';
+      this.recommendations.set(recommendations);
+      this.planHistory.set(history);
+      await this.router.navigate([], { relativeTo: this.route, queryParams: { plan: current.id } });
+    } catch {
+      this.error.set('The exact saved plan is unavailable. No other plan was substituted.');
+    }
+  }
+  async previewBudget(): Promise<void> {
+    const plan = this.selectedPlan();
+    if (!plan || this.submitting()) return;
+    this.submitting.set(true);
+    this.budgetPreview.set(null);
+    const proposed = { ...plan.budget_envelope, total: this.proposedTotal };
+    try {
+      const preview = await firstValueFrom(
+        this.http.post<{ fingerprint: string; valid: boolean; blockers: string[] }>(
+          `/api/v1/ads/marketing/plans/${plan.id}/budget/preview`,
+          {
+            proposed,
+            expected_version: plan.current_version,
+            preview_fingerprint: 'preview-not-confirmed',
+          },
+        ),
+      );
+      this.budgetPreview.set({ ...preview, proposed });
+      this.budgetKey = 'web-budget-' + crypto.randomUUID();
+    } catch {
+      this.error.set('Budget preview rejected. Reload the current plan and retry.');
+    } finally {
+      this.submitting.set(false);
+    }
+  }
+  async confirmBudget(): Promise<void> {
+    const plan = this.selectedPlan(),
+      preview = this.budgetPreview();
+    if (!plan || !preview?.valid || this.submitting()) return;
+    if (preview.proposed['total'] !== this.proposedTotal) {
+      this.budgetPreview.set(null);
+      this.error.set('Budget inputs changed. Preview again before confirmation.');
+      return;
+    }
+    this.submitting.set(true);
+    try {
+      const saved = await firstValueFrom(
+        this.http.post<Plan>(`/api/v1/ads/marketing/plans/${plan.id}/budget/confirm`, {
+          proposed: preview.proposed,
+          expected_version: plan.current_version,
+          preview_fingerprint: preview.fingerprint,
+          idempotency_key: this.budgetKey,
+          confirm: true,
+        }),
+      );
+      await this.load();
+      await this.openPlan(saved);
+    } catch {
+      this.error.set('Budget revision rejected safely. The reviewed version may be stale.');
+    } finally {
+      this.submitting.set(false);
+    }
+  }
   private readonly http = inject(HttpClient);
   readonly plans = signal<Plan[]>([]);
   readonly capabilities = signal<{ channels: string[] } | null>(null);
@@ -304,6 +447,13 @@ export class MarketingPlanComponent {
     total: '100',
     currency: 'INR',
   };
+  readonly allocations: Record<string, string> = {};
+  selectedChannels(): string[] {
+    return this.draft.channels
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean);
+  }
 
   constructor() {
     void this.load();
@@ -333,7 +483,11 @@ export class MarketingPlanComponent {
       budget_envelope: {
         total: this.draft.total,
         currency: this.draft.currency.toUpperCase(),
-        allocations: Object.fromEntries(channels.map((channel) => [channel, this.draft.total])),
+        allocations: Object.fromEntries(
+          channels
+            .filter((channel) => this.allocations[channel]?.trim())
+            .map((channel) => [channel, this.allocations[channel].trim()]),
+        ),
       },
       strategy_mode: 'manual',
       automation_mode: 'manual',
@@ -376,6 +530,12 @@ export class MarketingPlanComponent {
       ]);
       this.plans.set(plans);
       this.capabilities.set(capabilities);
+      const requested = this.route.snapshot.queryParamMap.get('plan');
+      if (requested && !this.selectedPlan()) {
+        const exact = plans.find((p) => p.id === requested);
+        if (exact) await this.openPlan(exact);
+        else this.error.set('The requested saved plan is unavailable.');
+      }
     } catch {
       this.error.set('Marketing Plan data is unavailable. Check the authenticated API connection.');
     }

@@ -23,6 +23,7 @@ from vayujit_api.social.schemas import (
     SocialAccountCreate,
     SocialAccountResponse,
     SocialAccountUpdate,
+    SocialApprovalRequest,
     SocialBulkRequest,
     SocialBulkScheduleRequest,
     SocialHistoryItem,
@@ -294,8 +295,19 @@ def post_preview(post_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
 
 
 @router.post("/posts/{post_id}/approve", response_model=SocialPostResponse)
-def post_approve(post_id: uuid.UUID, db: DB, owner: Owner) -> SocialPost:
-    return approve_post(db, owner, post_get(post_id, db, owner))
+def post_approve(
+    post_id: uuid.UUID, db: DB, owner: Owner, data: SocialApprovalRequest | None = None
+) -> SocialPost:
+    post = post_get(post_id, db, owner)
+    if not post.video_output_id and (data is None or not data.confirm):
+        raise HTTPException(
+            409, "Explicit HUMAN confirmation of the exact image preview is required."
+        )
+    if data is not None and not data.confirm:
+        raise HTTPException(409, "Explicit HUMAN confirmation is required.")
+    return approve_post(
+        db, owner, post, reviewed_fingerprint=data.preview_fingerprint if data else None
+    )
 
 
 @router.post("/posts/{post_id}/schedule", response_model=SocialPostResponse)

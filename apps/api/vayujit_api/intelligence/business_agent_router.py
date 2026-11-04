@@ -672,8 +672,10 @@ def revise(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
     }
 
 
-@router.get("/goals/{goal_id}/plan", response_model=PlanResponse)
-def get_plan(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
+@router.get("/goals/{goal_id}/plan", response_model=PlanResponse | None)
+def get_plan(
+    goal_id: uuid.UUID, db: DB, owner: Owner, allow_missing: bool = False
+) -> dict[str, object] | None:
     goal = get_goal(db, owner, goal_id)
     value = db.scalar(
         select(BusinessAgentPlan)
@@ -684,6 +686,8 @@ def get_plan(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
         .order_by(BusinessAgentPlan.version.desc())
     )
     if value is None:
+        if allow_missing:
+            return None
         raise HTTPException(404, "Business agent plan not found.")
     return _plan_payload(db, value, owner)
 
@@ -693,8 +697,10 @@ def run_create(goal_id: uuid.UUID, data: RunCreate, db: DB, owner: Owner) -> dic
     return _run_payload(db, start_run(db, owner, get_goal(db, owner, goal_id), data), owner)
 
 
-@router.get("/goals/{goal_id}/runs/latest", response_model=RunResponse)
-def latest_run(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
+@router.get("/goals/{goal_id}/runs/latest", response_model=RunResponse | None)
+def latest_run(
+    goal_id: uuid.UUID, db: DB, owner: Owner, allow_missing: bool = False
+) -> dict[str, object] | None:
     goal = get_goal(db, owner, goal_id)
     value = db.scalar(
         select(BusinessAgentRun)
@@ -705,6 +711,8 @@ def latest_run(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
         .order_by(BusinessAgentRun.updated_at.desc(), BusinessAgentRun.created_at.desc())
     )
     if value is None:
+        if allow_missing:
+            return None
         raise HTTPException(404, "Business agent run not found.")
     return _run_payload(db, value, owner)
 

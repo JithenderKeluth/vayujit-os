@@ -11,7 +11,6 @@ from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
-
 from vayujit_api.brands.models import Brand
 from vayujit_api.commerce.models import (
     MarketplaceAccount,
@@ -414,7 +413,8 @@ def test_financial_rounding_refunds_lineage_and_warning_states(financial_context
     assert summary["fees"] == "2.01"
     assert summary["known_direct_costs"] == "3.01"
     assert summary["contribution"] == "3.97"
-    assert summary["calculation_version"] == "pr-sos-05-v1"
+    # WP6B changed the projection policy, not these independently expected amounts.
+    assert summary["calculation_version"] == "pr-sos-05-v2"
     events = client.get("/api/v1/financial/events", headers=ORIGIN).json()
     assert len(events) == 4
     assert [row["source_event_id"] for row in events] == [

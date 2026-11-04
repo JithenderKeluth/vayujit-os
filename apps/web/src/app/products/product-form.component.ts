@@ -94,12 +94,21 @@ import { ProductService } from './product.service';
               >Price<input formControlName="price_amount" inputmode="decimal" placeholder="19.99"
             /></label>
             <label
-              >Currency<input formControlName="price_currency" maxlength="3" placeholder="USD"
+              >Currency<input formControlName="price_currency" maxlength="3" placeholder="INR"
             /></label>
             <label
               >Compare-at price<input formControlName="compare_at_price_amount" inputmode="decimal"
             /></label>
-            <label>Cost<input formControlName="cost_amount" inputmode="decimal" /></label>
+            <label
+              >Product master cost (optional)<input
+                formControlName="cost_amount"
+                inputmode="decimal"
+            /></label>
+            <p>
+              These are seller-entered product values, not verified supplier costs, fees, tax or net
+              profit. Leave unknown amounts blank. Catalog offers a separate, provenance-labelled
+              known-cost estimate.
+            </p>
             <label>Tax code<input formControlName="tax_code" maxlength="50" /></label>
           </fieldset>
           <fieldset>
@@ -108,13 +117,20 @@ import { ProductService } from './product.service';
             <label>Barcode<input formControlName="barcode" maxlength="100" /></label>
           </fieldset>
           <fieldset>
-            <legend>Inventory</legend>
+            <legend>Product master inventory metadata</legend>
+            <p>
+              This does not record counted stock or available-to-promise units. After saving, use
+              Record counted opening stock in Catalog. Do not count the same units twice.
+            </p>
             <label class="checkbox"
               ><input type="checkbox" formControlName="inventory_tracking_enabled" /> Track
               inventory</label
             >
             <label
-              >Quantity<input type="number" min="0" formControlName="inventory_quantity"
+              >Product master quantity (not stock ledger)<input
+                type="number"
+                min="0"
+                formControlName="inventory_quantity"
             /></label>
             <label
               >Low-stock threshold<input
@@ -190,7 +206,7 @@ export class ProductFormComponent {
     short_description: ['', Validators.maxLength(500)],
     description: ['', Validators.maxLength(10000)],
     price_amount: ['', Validators.pattern(this.moneyPattern)],
-    price_currency: ['USD', Validators.pattern(/^[A-Za-z]{3}$/)],
+    price_currency: ['INR', Validators.pattern(/^[A-Za-z]{3}$/)],
     compare_at_price_amount: ['', Validators.pattern(this.moneyPattern)],
     cost_amount: ['', Validators.pattern(this.moneyPattern)],
     tax_code: ['', Validators.maxLength(50)],
@@ -253,6 +269,7 @@ export class ProductFormComponent {
   }
 
   async save(): Promise<void> {
+    if (this.saving()) return;
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;

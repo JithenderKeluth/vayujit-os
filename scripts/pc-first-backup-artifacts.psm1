@@ -44,7 +44,7 @@ $script:SafeBackupFailureCodes = @(
   "postgres_container_unavailable", "restore_report_invalid", "service_recovery_failed",
   "restored_canonical_records_or_financial_precision_mismatch", "source_canonical_data_changed_during_backup_rehearsal",
   "source_integrity_verification_failed", "worker_container_unavailable",
-  "worker_not_running_before_backup", "worker_pause_failed", "worker_restart_failed",
+  "worker_not_running_before_backup", "worker_pause_failed", "worker_pause_timeout", "worker_not_quiescent", "worker_restart_failed",
   "worker_restart_not_healthy", "worker_health_check_failed", "worker_state_check_failed",
   "wrong_key_test_failed", "wrong_key_was_accepted"
 )
@@ -306,7 +306,9 @@ function Invoke-VayujitWorkerRecovery {
 
   $dockerExitCode = $null
   try { $start = & $StartWorker } catch {
-    return [pscustomobject]@{ Status = "FAIL"; FailureCode = "worker_restart_failed"; DockerExitCode = $null; LastHealth = "unknown" }
+    $exitValue = $_.Exception.Data["native_exit_code"]
+    $safeExit = if ($null -ne $exitValue -and [string]$exitValue -match '^-?\d{1,9}$') { [int]$exitValue } else { $null }
+    return [pscustomobject]@{ Status = "FAIL"; FailureCode = "worker_restart_failed"; DockerExitCode = $safeExit; LastHealth = "unknown" }
   }
   $startExit = if ($null -ne $start) { $start.PSObject.Properties["ExitCode"] } else { $null }
   if (-not $startExit -or [string]$startExit.Value -notmatch '^-?\d{1,9}$') {
@@ -320,7 +322,9 @@ function Invoke-VayujitWorkerRecovery {
   $lastHealth = "starting"
   for ($attempt = 0; $attempt -lt $MaxAttempts; $attempt++) {
     try { $health = & $GetHealth } catch {
-      return [pscustomobject]@{ Status = "FAIL"; FailureCode = "worker_health_check_failed"; DockerExitCode = $null; LastHealth = $lastHealth }
+      $exitValue = $_.Exception.Data["native_exit_code"]
+      $safeExit = if ($null -ne $exitValue -and [string]$exitValue -match '^-?\d{1,9}$') { [int]$exitValue } else { $null }
+      return [pscustomobject]@{ Status = "FAIL"; FailureCode = "worker_health_check_failed"; DockerExitCode = $safeExit; LastHealth = $lastHealth }
     }
     $healthExit = if ($null -ne $health) { $health.PSObject.Properties["ExitCode"] } else { $null }
     $healthStatus = if ($null -ne $health -and $health.PSObject.Properties["Status"]) { ([string]$health.Status).ToLowerInvariant() } else { "unknown" }
@@ -418,4 +422,234 @@ function Set-VayujitDisposableBackupFailure {
   $Certification["error"] = "Encrypted backup failed during $operation ($code$exitDescription).$recoveryDescription"
 }
 
-Export-ModuleMember -Function Assert-VayujitBackupArtifact, Get-VayujitMediaBackupArtifacts, Invoke-VayujitBackupStage, Invoke-VayujitWorkerRecovery, New-VayujitBackupFailureReport, Resolve-VayujitBackupChildReport, Set-VayujitBackupRecoveryFailure, Set-VayujitDisposableBackupFailure
+function Get-VayujitBackupCheckpointStages {
+  return @("bootstrap load", "report boundary initialization", "key security module import", "backup artifact module import", "profile path resolution", "profile files check", "disposable argument validation", "profile configuration", "recipient validation", "identity ACL verification", "age dependency check", "age keygen dependency check", "Docker dependency check", "staging directory creation", "destination write probe", "PostgreSQL storage evidence", "media storage evidence", "destination independence check", "runtime initialization", "runtime staging creation", "child report write", "service recovery", "backup finalization") + $script:SafeBackupOperations
+}
+
+function ConvertTo-VayujitSafeStageLedger {
+  param([object]$Ledger)
+  $read = {
+    param([string]$Name)
+    if ($null -eq $Ledger) { return $null }
+    if ($Ledger -is [System.Collections.IDictionary]) { return $Ledger[$Name] }
+    $p = $Ledger.PSObject.Properties[$Name]
+    if ($p) { return $p.Value }
+    return $null
+  }
+  $safe = [ordered]@{}
+  $stages = Get-VayujitBackupCheckpointStages
+  foreach ($name in @("last_entered_stage", "last_completed_stage", "failed_stage")) {
+    $value = [string](& $read $name)
+    $safe[$name] = if ($value -in $stages) { $value } else { $null }
+  }
+  $kind = [string](& $read "failure_classification")
+  $safe.failure_classification = if ($kind -in @("none", "powershell_error", "native_failure", "report_write_failed", "unhandled_process_exit", "unobserved")) { $kind } else { "unobserved" }
+  $line = & $read "source_line"
+  $safe.source_line = if ([string]$line -match '^\d{1,6}$' -and [int]$line -gt 0) { [int]$line } else { $null }
+  $file = [string](& $read "source_file")
+  $safe.source_file = if ($file -in @("backup-pc-first.ps1", "pc-first-backup-bootstrap.ps1", "pc-first-key-security.psm1", "pc-first-backup-artifacts.psm1")) { $file } else { "unavailable" }
+  $exitValue = & $read "process_exit_code"
+  $safe.process_exit_code = if ($null -ne $exitValue -and [string]$exitValue -match '^-?\d{1,9}$') { [int]$exitValue } else { $null }
+  $written = & $read "expected_report_written"
+  $safe.expected_report_written = if ($written -is [bool]) { $written } else { $null }
+  $count = & $read "checkpoint_count"
+  $safe.checkpoint_count = if ([string]$count -match '^\d{1,5}$') { [int]$count } else { 0 }
+  return $safe
+}
+
+function Read-VayujitBackupStageLedger {
+  param([string]$StdOut, [Nullable[int]]$ProcessExitCode, [string]$ReportPath)
+  $ledger = @{last_entered_stage=$null; last_completed_stage=$null; failed_stage=$null; failure_classification="unobserved"; source_line=$null; source_file="unavailable"; process_exit_code=$ProcessExitCode; expected_report_written=$null; checkpoint_count=0}
+  $stages = Get-VayujitBackupCheckpointStages
+  $pattern = '(?m)^VAYUJIT_BACKUP_STAGE=(ENTER|COMPLETE|FAIL)\|([^|\r\n]{1,100})\|(none|powershell_error|native_failure|report_write_failed)\|(\d{1,6})\|(backup-pc-first\.ps1|pc-first-backup-bootstrap\.ps1|pc-first-key-security\.psm1|pc-first-backup-artifacts\.psm1|unavailable)\r?$'
+  foreach ($match in [regex]::Matches([string]$StdOut, $pattern)) {
+    $stage = $match.Groups[2].Value
+    if ($stage -notin $stages) { continue }
+    $ledger.checkpoint_count++
+    if ($match.Groups[1].Value -eq "ENTER") { $ledger.last_entered_stage = $stage }
+    elseif ($match.Groups[1].Value -eq "COMPLETE" -and $stage -eq $ledger.last_entered_stage) { $ledger.last_completed_stage = $stage }
+    elseif ($match.Groups[1].Value -eq "FAIL" -and $stage -eq $ledger.last_entered_stage -and -not $ledger.failed_stage) {
+      $ledger.failed_stage = $stage
+      $ledger.failure_classification = $match.Groups[3].Value
+      $ledger.source_line = [int]$match.Groups[4].Value
+      $ledger.source_file = $match.Groups[5].Value
+    }
+    if (-not $ledger.failed_stage) {
+      $ledger.source_line = [int]$match.Groups[4].Value
+      $ledger.source_file = $match.Groups[5].Value
+    }
+  }
+  if ($ReportPath) {
+    try { $ledger.expected_report_written = [bool](Test-Path -LiteralPath $ReportPath -PathType Leaf -ErrorAction Stop) } catch { }
+  }
+  if (-not $ledger.failed_stage -and $ledger.last_entered_stage) {
+    $ledger.failure_classification = "none"
+    if (($null -ne $ProcessExitCode -and $ProcessExitCode -ne 0) -or ($ledger.expected_report_written -ceq $false -and $ledger.last_entered_stage -ne $ledger.last_completed_stage)) {
+      $ledger.failure_classification = "unhandled_process_exit"
+      $ledger.failed_stage = $ledger.last_entered_stage
+    }
+  }
+  return ConvertTo-VayujitSafeStageLedger -Ledger $ledger
+}
+
+function ConvertTo-VayujitSafeChildDiagnostic {
+  param([Parameter(Mandatory = $true)][object]$Diagnostic)
+  $read = {
+    param([string]$Name)
+    if ($Diagnostic -is [System.Collections.IDictionary]) { return $Diagnostic[$Name] }
+    $p = $Diagnostic.PSObject.Properties[$Name]
+    if ($p) { return $p.Value }
+    return $null
+  }
+  $messages = @{
+    executable_unavailable = "The selected child executable is unavailable."
+    process_launch_failed = "The child process could not be launched; raw launch exceptions were omitted."
+    script_path_unavailable = "The selected child script is unavailable."
+    script_parse_failed = "PowerShell could not parse the child script; only a safe error identifier and source line are retained."
+    argument_binding_failed = "PowerShell rejected child arguments before normal script execution."
+    execution_policy_rejected = "PowerShell reported an execution-policy or script authorization failure."
+    module_import_failed = "PowerShell reported a module import failure."
+    dependency_unavailable = "PowerShell reported a missing command or executable dependency."
+    report_write_failed = "The child reported that structured evidence could not be written."
+    initialization_failed = "The child reported an initialization failure."
+    preflight_failed = "The child reported a preflight failure."
+    nonzero_exit_unclassified = "The child exited unsuccessfully; stderr was captured but has no recognized safe signature."
+    completed = "The child exited zero; stderr warnings alone do not establish failure."
+    unclassified = "No recognized safe child-process diagnostic is available."
+  }
+  $classification = [string](& $read "classification")
+  if (-not $messages.ContainsKey($classification)) { $classification = "unclassified" }
+  $errorId = [string](& $read "powershell_error_id")
+  if ($errorId -notin @("ParserError", "UnexpectedToken", "IfStatementMissingCondition", "MissingEndCurlyBrace", "MissingEndParenthesisInExpression", "MissingEndParenthesisInFunctionParameterList", "TerminatorExpectedAtEndOfString", "NamedParameterNotFound", "PositionalParameterNotFound", "MissingMandatoryParameter", "MissingArgument", "ParameterArgumentValidationError", "ParameterBindingException", "UnauthorizedAccess", "PSSecurityException", "Modules_ModuleNotFound", "CommandNotFoundException")) { $errorId = $null }
+  $engine = [string](& $read "engine")
+  if ($engine -notin @("WindowsPowerShell", "PowerShell")) { $engine = "UNVERIFIED" }
+  $exitValue = & $read "process_exit_code"
+  $exitNumber = if ($null -ne $exitValue -and [string]$exitValue -match '^-?\d{1,9}$') { [int]$exitValue } else { $null }
+  $lineValue = & $read "source_line"
+  $lineNumber = if ([string]$lineValue -match '^\d{1,6}$' -and [int]$lineValue -gt 0) { [int]$lineValue } else { $null }
+  return [ordered]@{
+    schema_version = 1
+    classification = $classification
+    safe_stderr_summary = $messages[$classification]
+    powershell_error_id = $errorId
+    source_line = $lineNumber
+    source_location = "backup_child_script_or_powershell_startup"
+    process_exit_code = $exitNumber
+    launch_succeeded = ((& $read "launch_succeeded") -ceq $true)
+    script_started_token_observed = ((& $read "script_started_token_observed") -ceq $true)
+    stderr_captured = ((& $read "stderr_captured") -ceq $true)
+    stdout_captured = ((& $read "stdout_captured") -ceq $true)
+    engine = $engine
+    invocation = "NoProfile_NonInteractive_File"
+    working_directory = "repository_root"
+    report_path_contract = "marked_disposable_profile/backup-rehearsal.json"
+    raw_output_persisted = $false
+    diagnostic_is_not_backup_certification = $true
+    stage_ledger = (ConvertTo-VayujitSafeStageLedger -Ledger (& $read "stage_ledger"))
+  }
+}
+
+function Get-VayujitBackupChildDiagnostic {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $true)][bool]$LaunchSucceeded,
+    [Nullable[int]]$ProcessExitCode,
+    [string]$ExecutablePath,
+    [string]$ChildScriptPath,
+    [string]$StdOut,
+    [string]$StdErr,
+    [string]$ReportPath
+  )
+  # Positive allowlisting, not regex removal of known secrets: unrecognized
+  # free text, paths, argument values and stdout are never returned or saved.
+  $kind = "unclassified"
+  $errorId = $null
+  $sourceLine = $null
+  $exeExists = $false
+  $scriptExists = $false
+  $engine = "UNVERIFIED"
+  try { $exeExists = $ExecutablePath -and (Test-Path -LiteralPath $ExecutablePath -PathType Leaf -ErrorAction Stop) } catch { }
+  try { $scriptExists = $ChildScriptPath -and (Test-Path -LiteralPath $ChildScriptPath -PathType Leaf -ErrorAction Stop) } catch { }
+  try {
+    $engine = switch ([System.IO.Path]::GetFileName([string]$ExecutablePath).ToLowerInvariant()) {
+      "powershell.exe" { "WindowsPowerShell"; break }
+      "pwsh.exe" { "PowerShell"; break }
+      default { "UNVERIFIED" }
+    }
+  } catch { } # Invalid/inaccessible diagnostic paths must not erase the failure.
+  if (-not $LaunchSucceeded) {
+    $kind = if (-not $exeExists) { "executable_unavailable" } else { "process_launch_failed" }
+  } elseif (-not $scriptExists) {
+    $kind = "script_path_unavailable"
+  } elseif ($null -ne $ProcessExitCode -and $ProcessExitCode -eq 0) {
+    $kind = "completed"
+  } else {
+    $kind = "nonzero_exit_unclassified"
+    # Use the parent's PS parser as a read-only, locale-independent additional
+    # witness. Never execute the child here or copy parser exception messages.
+    try {
+      $tokens = $null
+      $parseErrors = $null
+      [System.Management.Automation.Language.Parser]::ParseFile($ChildScriptPath, [ref]$tokens, [ref]$parseErrors) | Out-Null
+      if ($parseErrors.Count -gt 0) {
+        $kind = "script_parse_failed"
+        $errorId = [string]$parseErrors[0].ErrorId
+        $sourceLine = [int]$parseErrors[0].Extent.StartLineNumber
+      }
+    } catch { } # Diagnostics must not erase the already-observed process exit.
+    if ($kind -ne "script_parse_failed") {
+      $safeIds = 'NamedParameterNotFound|PositionalParameterNotFound|MissingMandatoryParameter|MissingArgument|ParameterArgumentValidationError|ParameterBindingException|UnauthorizedAccess|PSSecurityException|Modules_ModuleNotFound|CommandNotFoundException|ParserError|UnexpectedToken'
+      $match = [regex]::Match([string]$StdErr, '(?m)^\s*\+?\s*FullyQualifiedErrorId\s*:\s*(' + $safeIds + ')(?=,|\s|$)')
+      if ($match.Success) { $errorId = $match.Groups[1].Value }
+      switch -Regex ([string]$errorId) {
+        '^(NamedParameterNotFound|PositionalParameterNotFound|MissingMandatoryParameter|MissingArgument|ParameterArgumentValidationError|ParameterBindingException)$' { $kind = "argument_binding_failed"; break }
+        '^(UnauthorizedAccess|PSSecurityException)$' { $kind = "execution_policy_rejected"; break }
+        '^Modules_ModuleNotFound$' { $kind = "module_import_failed"; break }
+        '^CommandNotFoundException$' { $kind = "dependency_unavailable"; break }
+        '^(ParserError|UnexpectedToken)$' { $kind = "script_parse_failed"; break }
+      }
+      # Bootstrap tokens may reach stdout when the child can execute but cannot
+      # produce its file. They remain diagnostic hints, never success evidence.
+      $boundary = [regex]::Match([string]$StdOut, '(?m)^VAYUJIT_BACKUP_CHILD_BOUNDARY=(backup_evidence_report_write_failed|backup_initialization_failed|backup_arguments_invalid|backup_preflight_failed)\s*$')
+      if ($boundary.Success) {
+        $kind = switch ($boundary.Groups[1].Value) {
+          "backup_evidence_report_write_failed" { "report_write_failed" }
+          "backup_initialization_failed" { "initialization_failed" }
+          "backup_arguments_invalid" { "argument_binding_failed" }
+          "backup_preflight_failed" { "preflight_failed" }
+        }
+      }
+    }
+  }
+  return ConvertTo-VayujitSafeChildDiagnostic -Diagnostic @{
+    classification = $kind; powershell_error_id = $errorId; source_line = $sourceLine
+    process_exit_code = $ProcessExitCode; launch_succeeded = $LaunchSucceeded; engine = $engine
+    script_started_token_observed = ([string]$StdOut -match '(?m)^VAYUJIT_BACKUP_CHILD_STARTED=1\s*$')
+    stderr_captured = (-not [string]::IsNullOrWhiteSpace($StdErr))
+    stdout_captured = (-not [string]::IsNullOrWhiteSpace($StdOut))
+    stage_ledger = (Read-VayujitBackupStageLedger -StdOut $StdOut -ProcessExitCode $ProcessExitCode -ReportPath $ReportPath)
+  }
+}
+
+function Write-VayujitBackupChildDiagnostic {
+  [CmdletBinding()]
+  param(
+    [Parameter(Mandatory = $true)][string]$Directory,
+    [Parameter(Mandatory = $true)][ValidatePattern('^[a-f0-9]{10}$')][string]$BackupId,
+    [Parameter(Mandatory = $true)][object]$Diagnostic
+  )
+  $safe = ConvertTo-VayujitSafeChildDiagnostic -Diagnostic $Diagnostic
+  $target = Join-Path ([System.IO.Path]::GetFullPath($Directory)) "backup-child-$BackupId.json"
+  try {
+    if (-not (Test-Path -LiteralPath $Directory -PathType Container)) {
+      New-Item -ItemType Directory -Path $Directory -Force -ErrorAction Stop | Out-Null
+    }
+    # Never overwrite an existing diagnostic artifact or follow its symlink.
+    $bytes = [System.Text.UTF8Encoding]::new($false).GetBytes((ConvertTo-Json -InputObject $safe -Depth 4) + "`n")
+    $stream = [System.IO.File]::Open($target, [System.IO.FileMode]::CreateNew, [System.IO.FileAccess]::Write, [System.IO.FileShare]::None)
+    try { $stream.Write($bytes, 0, $bytes.Length) } finally { $stream.Dispose() }
+  } catch { throw "backup_parent_diagnostic_write_failed" }
+  return $target
+}
+
+Export-ModuleMember -Function Assert-VayujitBackupArtifact, Get-VayujitMediaBackupArtifacts, Invoke-VayujitBackupStage, Invoke-VayujitWorkerRecovery, New-VayujitBackupFailureReport, Resolve-VayujitBackupChildReport, Set-VayujitBackupRecoveryFailure, Set-VayujitDisposableBackupFailure, Get-VayujitBackupChildDiagnostic, Write-VayujitBackupChildDiagnostic

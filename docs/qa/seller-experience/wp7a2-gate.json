@@ -1,0 +1,545 @@
+{
+  "package": "WP7A-2",
+  "date": "2026-10-31T16:41:16.097Z",
+  "status": "INCOMPLETE",
+  "bounded_four_scenarios": "PASS",
+  "application_certification": "INCOMPLETE / original WP7 decision unchanged",
+  "reason": "The four named WP7A scenarios are bounded additions; the authoritative original L row also retains unexecuted supported creative/artifact workflows. No whole-family or application PASS is inferred.",
+  "targeted_matrix_ids": [
+    "B",
+    "L"
+  ],
+  "scenarios": [
+    {
+      "id": "A",
+      "matrix_id": "B-07",
+      "name": "Changed-input research freshness",
+      "executed": 4,
+      "passed": 4,
+      "status": "PASS"
+    },
+    {
+      "id": "B",
+      "matrix_id": "L-06",
+      "name": "Failed creative-job retry",
+      "executed": 4,
+      "passed": 4,
+      "status": "PASS"
+    },
+    {
+      "id": "C",
+      "matrix_id": "L-07",
+      "name": "Approved storyboard cloning",
+      "executed": 4,
+      "passed": 4,
+      "status": "PASS"
+    },
+    {
+      "id": "D",
+      "matrix_id": "L-08",
+      "name": "Persisted Ads recovery",
+      "executed": 4,
+      "passed": 4,
+      "status": "PASS"
+    }
+  ],
+  "additional_required_gaps": [
+    "Original WP7 matrix L: other supported AI/image/content/campaign preparation and artifact-review actions remain unexecuted; route rendering is not functional certification."
+  ],
+  "environment_gate": "DATABASES_ABSENT_ENVIRONMENT_BASELINE_DRIFT",
+  "quality_evidence": {
+    "full": "quality-1793464470382.json",
+    "post_audit": "post-audit-1793464742350.json"
+  },
+  "browser": {
+    "token": "2903a4e2ff3d08df",
+    "status": "PASS",
+    "checks": 16,
+    "passed": 16,
+    "failed": 0,
+    "versions": {
+      "chrome": "156.0.8078.76",
+      "msedge": "156.0.4314.50"
+    },
+    "evidence": "tmp/qa-seller-browser/2903a4e2ff3d08df"
+  },
+  "backend": {
+    "token": "6097ae72026143d4",
+    "exit_code": 0,
+    "tests": 84,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "evidence": "tmp/qa-wp7a2-backend/6097ae72026143d4"
+  },
+  "quality": [
+    {
+      "name": "node-qa",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "tests": 81,
+      "pass": 81,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "python-qa",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "tests": 80
+    },
+    {
+      "name": "angular",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "passed": 387,
+      "test_files": 83
+    },
+    {
+      "name": "typescript-app",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "typescript-spec",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "eslint-web",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "errors": 0,
+      "warnings": 2
+    },
+    {
+      "name": "eslint-qa",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "ruff",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "black",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "mypy-video/service.py",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "diagnostics": []
+    },
+    {
+      "name": "mypy-ads/router.py",
+      "status": "FAIL",
+      "exit_code": 1,
+      "raw_output_persisted": false,
+      "diagnostics": [
+        "apps\\api\\vayujit_api\\ads\\router.py:81\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:89\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:94\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:136\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:147\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:149\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:152\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:154\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:157\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:161\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:164\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:166\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:169\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:187\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:190\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:206\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:209\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:221\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:224\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:231\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:234\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:247\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:262\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:290\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:307\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:340\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:342\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:345\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:347\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:350\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:353\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:363\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:393\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:421\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:454\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:473\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:477\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:480\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:492\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:511\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:530\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:544\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:563\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:605\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:712\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:731\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:733\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:736\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:768\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:939\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1063\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1116\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1197\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1320\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1343\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1413\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1483\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1484\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1529\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1530\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1583\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1669\r",
+        "apps\\api\\vayujit_api\\ads\\router.py:1701\r"
+      ]
+    },
+    {
+      "name": "mypy-ads/service.py",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "diagnostics": []
+    },
+    {
+      "name": "compileall",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "powershell-parser",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "diff-check",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "production-build",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    }
+  ],
+  "typing_debt": {
+    "baseline": "HEAD Ads router source; no source files checked out or replaced",
+    "strict": true,
+    "follow_imports": "skip",
+    "baseline_errors": 78,
+    "current_errors": 78,
+    "added_diagnostic_count": 0,
+    "added_diagnostics": [],
+    "status": "NO_NEW_DIAGNOSTICS",
+    "whole_repository_typing_certified": false
+  },
+  "accessibility": {
+    "scans": 24,
+    "violations": 0,
+    "incomplete_rule_instances": 14,
+    "manual_wcag_compliance": "NOT_CLAIMED"
+  },
+  "lifecycle_audit": {
+    "status": "DATABASES_ABSENT_ENVIRONMENT_BASELINE_DRIFT",
+    "read_only": true,
+    "databases": [
+      {
+        "token": "081819f0cfccd47e",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "2903a4e2ff3d08df",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "2afea66f51527a0a",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "325de41be0b7492f",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": true,
+        "recovery_statement_timeout_ms": 90000
+      },
+      {
+        "token": "6097ae72026143d4",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "67abc9a3296a0694",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "6b6c73e48c2d76eb",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "6cac925c2188b486",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "82449c619a644e3b",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "c0a145c7b8d54b07",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "d127abe23d5d2f3a",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "e3062eccca8546d1",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "e9e1a76dd2edc3bb",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "eb0da709784a6fe9",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      }
+    ],
+    "traces": [
+      {
+        "path": "tmp/qa-seller-browser/081819f0cfccd47e/wp7a2-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/2903a4e2ff3d08df/wp7a2-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/2903a4e2ff3d08df/wp7a2-chrome-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/2903a4e2ff3d08df/wp7a2-msedge-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/2903a4e2ff3d08df/wp7a2-msedge-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/2afea66f51527a0a/wp7a2-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/2afea66f51527a0a/wp7a2-chrome-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/2afea66f51527a0a/wp7a2-msedge-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/2afea66f51527a0a/wp7a2-msedge-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/67abc9a3296a0694/wp7a2-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/6b6c73e48c2d76eb/wp7a2-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/6b6c73e48c2d76eb/wp7a2-chrome-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/6b6c73e48c2d76eb/wp7a2-msedge-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/6b6c73e48c2d76eb/wp7a2-msedge-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/6cac925c2188b486/wp7a2-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/82449c619a644e3b/wp7a2-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/d127abe23d5d2f3a/wp7a2-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/e9e1a76dd2edc3bb/wp7a2-chrome-1440/trace.zip",
+        "crc": "PASS"
+      }
+    ],
+    "docker_preservation": {
+      "status": "HISTORICAL_BASELINE_CHANGED",
+      "strict_original_check": "FAIL",
+      "original_containers_inspected": 10,
+      "differences": [
+        {
+          "container": "/infrastructure-postgres-1",
+          "changed_fields": [
+            "started",
+            "finished"
+          ],
+          "runtime_only": true
+        }
+      ],
+      "collections": {
+        "network": {
+          "missing": 0,
+          "added": 0
+        },
+        "volume": {
+          "missing": 0,
+          "added": 0
+        }
+      },
+      "structural_identity_unchanged": true,
+      "cause": "UNATTRIBUTED; no unrelated Docker resource is changed to restore an old runtime state"
+    },
+    "secret_scan": {
+      "credential_matches": 0,
+      "raw_container_logs_persisted": false
+    },
+    "historical_baseline_unchanged": true,
+    "extended_secret_scan": {
+      "files": 223,
+      "traces": 18,
+      "matches": 0
+    },
+    "approved_recoveries": [
+      {
+        "token": "325de41be0b7492f",
+        "status": "PASS",
+        "human_approved_scope": true,
+        "original_signature_unavailable": true,
+        "database_previously_present": true,
+        "database_absent": true,
+        "marker_reverified": false,
+        "absence_only_attestation": false,
+        "human_authorized_tombstone_marker_exception": true,
+        "force_or_session_termination": false
+      },
+      {
+        "token": "67abc9a3296a0694",
+        "status": "PASS",
+        "human_approved_scope": true,
+        "original_signature_unavailable": true,
+        "database_previously_present": false,
+        "database_absent": true,
+        "marker_reverified": false,
+        "absence_only_attestation": true,
+        "force_or_session_termination": false
+      }
+    ],
+    "database_absence_status": "PASS"
+  },
+  "historical_ads_502": "UNREPRODUCED / CAUSE UNCLASSIFIED / NOT RESOLVED",
+  "backup_certification": "PARKED",
+  "wp7b_started": false,
+  "wp7c_started": false,
+  "wp8_started": false,
+  "no_live_provider_calls": true,
+  "no_permanent_database_modifications": true,
+  "no_commits_pushes_or_branches": true,
+  "historical_baseline_preserved": [
+    {
+      "file": "docs/qa/seller-experience/wp7a-coverage-closure.md",
+      "sha256": "6012afe158e8aaf39ce7f6ddc4c85de6d45e28ae79d7a692425f9b0509adea17"
+    },
+    {
+      "file": "docs/qa/seller-experience/wp7a-browser-evidence.md",
+      "sha256": "98113f8efcb75bc32996af20439dc044d8e7c82764c328b808bba4ee86bd2cfa"
+    },
+    {
+      "file": "docs/qa/seller-experience/wp7a-defect-resolution.md",
+      "sha256": "b4f09a446a23f1462b16ad74dc717f86c7dd41a6db9a84f0abe48bdb97c1e4fd"
+    },
+    {
+      "file": "docs/qa/seller-experience/wp7a-gate.json",
+      "sha256": "671727c4309187394c4a43965b32b24c778ee480a3aee5c5f627bd4979024b67"
+    },
+    {
+      "file": "docs/qa/seller-experience/wp7-journey-coverage-matrix.md",
+      "sha256": "51c271b64978c57c776c122aa9dff1af68971e7b7c15f298cbeb665b27d2cdc0"
+    },
+    {
+      "file": "docs/qa/seller-experience/wp7-defect-register.md",
+      "sha256": "62bafa243d7e14e8b0c5b5e9109d0eb78197e273e465ebd35a244769c1205c79"
+    },
+    {
+      "file": "docs/qa/seller-experience/wp7-journey-coverage-matrix-wp7a-addendum.md",
+      "sha256": "cc613e4256f7aae7d343a7776f74d87694bd830a9c71d4c13efdbefb8b3845a7"
+    }
+  ]
+}

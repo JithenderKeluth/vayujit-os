@@ -17,12 +17,57 @@ import type {
   RestoreCheck,
 } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
+import type {
+  MarketplaceAccount,
+  InventoryItem,
+  UnifiedOrder,
+  FinancialSummary,
+} from '../marketplaces/marketplace.service';
+import type { OperationalBriefing } from './action-center.service';
+
+export type DailyStatus = {
+  accounts: MarketplaceAccount[] | null;
+  inventory: InventoryItem[] | null;
+  orders: UnifiedOrder[] | null;
+  financial: FinancialSummary | null;
+  briefing: OperationalBriefing | null;
+  unavailable: string[];
+  loadedAt: string;
+};
 
 @Injectable({ providedIn: 'root' })
 export class OperationsService {
   private readonly http = inject(HttpClient);
   private readonly base = environment.apiUrl;
   private readonly options = { withCredentials: true } as const;
+
+  async dailyStatus(): Promise<DailyStatus> {
+    const unavailable: string[] = [];
+    const read = async <T>(route: string, label: string): Promise<T | null> => {
+      try {
+        return await firstValueFrom(this.http.get<T>(`${this.base}/${route}`, this.options));
+      } catch {
+        unavailable.push(label);
+        return null;
+      }
+    };
+    const [accounts, inventory, orders, financial, briefing] = await Promise.all([
+      read<MarketplaceAccount[]>('marketplaces/accounts', 'Seller accounts'),
+      read<InventoryItem[]>('inventory', 'Inventory'),
+      read<UnifiedOrder[]>('orders', 'Orders'),
+      read<FinancialSummary>('financial/summary', 'Financial evidence'),
+      read<OperationalBriefing>('operations/action-center/briefing', 'Operational briefing'),
+    ]);
+    return {
+      accounts,
+      inventory,
+      orders,
+      financial,
+      briefing,
+      unavailable: unavailable.sort(),
+      loadedAt: new Date().toISOString(),
+    };
+  }
   dashboard(brandId = ''): Promise<DashboardResponse> {
     const params = brandId ? new HttpParams().set('brand_id', brandId) : undefined;
     return firstValueFrom(

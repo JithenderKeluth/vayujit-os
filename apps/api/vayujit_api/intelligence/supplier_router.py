@@ -264,10 +264,13 @@ def research_results(
                 str(value) for value in (row.get("identity", {}) or {}).get("supplier_ids", [])
             )
         ]
+    elif opportunity_id is not None:
+        suppliers = []
 
     if isinstance(opportunity, ProductOpportunity):
         product_context = {
             "opportunity_id": str(opportunity.id),
+            "product_id": str(opportunity.product_id) if opportunity.product_id else None,
             "product": opportunity.name,
             "description": opportunity.description,
             "category": opportunity.category,
@@ -291,10 +294,12 @@ def research_results(
     next_action = (
         "Review supplier candidates"
         if suppliers
-        else "Start supplier research" if search is None else "Review supplier research gaps"
+        else ("Start supplier research" if search is None else "Review supplier research gaps")
     )
     return {
         "product_context": product_context,
+        # Intended operation is configuration, not the mode of an older search.
+        "execution_mode": get_settings().intelligence_external_provider_mode,
         "research": {
             "status": status,
             "mode": summary.get("mode")

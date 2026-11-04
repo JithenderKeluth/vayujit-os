@@ -17,6 +17,20 @@ describe('AIService', () => {
 
   afterEach(() => http.verify());
 
+  it('pins the source version for a human edit and targets one recovery job', async () => {
+    const editing = service.studioEdit('artifact-1', { product_title: 'Revised' }, 3);
+    const req = http.expectOne((r) => r.url.endsWith('/studio/artifacts/artifact-1'));
+    expect(req.request.body.expected_source_version).toBe(3);
+    expect(req.request.withCredentials).toBe(true);
+    req.flush({ id: 'revision' });
+    await editing;
+    const recovery = service.studioRetry('generation', 'job');
+    const retry = http.expectOne((r) => r.url.endsWith('/studio/recovery/actions'));
+    expect(retry.request.body).toEqual({ action: 'retry_generation', job_id: 'job' });
+    retry.flush({ status: 'retry_wait' });
+    await recovery;
+  });
+
   it('creates a credentialed generation request', async () => {
     const result = service.generate({
       product_id: 'product-1',

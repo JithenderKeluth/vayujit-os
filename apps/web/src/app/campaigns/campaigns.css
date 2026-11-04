@@ -1,4 +1,5 @@
 .page {
+  min-width: 0;
   padding: 1.5rem;
   max-width: 1200px;
   margin: auto;
@@ -46,9 +47,11 @@
 }
 form {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
 }
 label {
+  min-width: 0;
   display: grid;
   gap: 0.3rem;
 }
@@ -56,8 +59,15 @@ input,
 select,
 textarea,
 button {
+  min-width: 0;
+  max-width: 100%;
   font: inherit;
   padding: 0.55rem;
+}
+input:not([type='checkbox']):not([type='radio']),
+select,
+textarea {
+  width: 100%;
 }
 progress {
   width: 100%;

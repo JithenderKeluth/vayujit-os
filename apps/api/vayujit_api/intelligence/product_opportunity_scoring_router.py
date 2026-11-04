@@ -36,6 +36,8 @@ from vayujit_api.intelligence.product_opportunity_scoring_service import (
     add_decision,
     calculate_score,
     compare_scores,
+    current_product_decision,
+    current_product_selection,
     get_score,
     model_definition,
     rank_scores,
@@ -224,19 +226,7 @@ def research_results(
     score_by_assessment: dict[uuid.UUID, ProductOpportunityScore] = {}
     for score_row in scores:
         score_by_assessment.setdefault(score_row.assessment_id, score_row)
-    decisions = (
-        list(
-            db.scalars(
-                select(ProductOpportunityDecision).where(
-                    ProductOpportunityDecision.owner_id == owner.id,
-                    ProductOpportunityDecision.opportunity_id.in_(opportunity_ids),
-                )
-            )
-        )
-        if opportunity_ids
-        else []
-    )
-    selected = {row.opportunity_id for row in decisions if row.action == "shortlist"}
+    selected = {row.id for row in opportunities if current_product_selection(db, owner, row.id)}
     cards: list[dict[str, Any]] = []
     for opportunity in opportunities:
         assessment = assessment_by_opportunity.get(opportunity.id)
@@ -259,6 +249,7 @@ def research_results(
                 "display_name": str(profile.get("display_name") or opportunity.name),
                 "observed_name": str(profile.get("observed_name") or opportunity.name),
                 "description": opportunity.description or opportunity.product_concept,
+                "origin": opportunity.origin,
                 "product_concept": opportunity.product_concept,
                 "category": opportunity.category,
                 "subcategory": opportunity.subcategory,
@@ -273,6 +264,17 @@ def research_results(
                 "assessment_id": str(assessment.id) if assessment else None,
                 "candidate_state": _candidate_state(opportunity, score),
                 "selected": opportunity.id in selected,
+                "decision": (
+                    {
+                        "id": str(current_decision.id),
+                        "action": current_decision.action,
+                        "assessment_id": str(current_decision.assessment_id),
+                        "current_assessment": current_decision.assessment_id
+                        == opportunity.current_assessment_id,
+                    }
+                    if (current_decision := current_product_decision(db, owner, opportunity.id))
+                    else None
+                ),
                 "score": _response(score) if score else None,
                 "why_this_surfaced": [item for item in profile_why_list if isinstance(item, str)]
                 or positive
@@ -325,6 +327,21 @@ def research_results(
             if active_goal
             else None
         ),
+        "research_execution": {
+            "run_count": len(active_run_ids),
+            "latest_status": (
+                db.scalar(
+                    select(BusinessAgentRun.status)
+                    .where(
+                        BusinessAgentRun.owner_id == owner.id,
+                        BusinessAgentRun.id.in_(active_run_ids),
+                    )
+                    .order_by(BusinessAgentRun.created_at.desc())
+                )
+                if active_run_ids
+                else None
+            ),
+        },
         "status": (
             "RESEARCH_COMPLETED_WITH_GAPS"
             if cards and ready < len(cards)
@@ -348,6 +365,31 @@ def research_results(
 @router.get("/scoring-model")
 def scoring_model(owner: Owner) -> dict[str, Any]:
     return model_definition()
+
+
+@router.get("/{opportunity_id}/decisions", response_model=list[DecisionResponse])
+def decision_history(
+    opportunity_id: uuid.UUID, db: DB, owner: Owner
+) -> list[ProductOpportunityDecision]:
+    opportunity = db.scalar(
+        select(ProductOpportunity).where(
+            ProductOpportunity.owner_id == owner.id, ProductOpportunity.id == opportunity_id
+        )
+    )
+    if opportunity is None:
+        raise HTTPException(404, "Product opportunity not found.")
+    return list(
+        db.scalars(
+            select(ProductOpportunityDecision)
+            .where(
+                ProductOpportunityDecision.owner_id == owner.id,
+                ProductOpportunityDecision.opportunity_id == opportunity_id,
+            )
+            .order_by(
+                ProductOpportunityDecision.created_at.desc(), ProductOpportunityDecision.id.desc()
+            )
+        )
+    )
 
 
 @router.post(

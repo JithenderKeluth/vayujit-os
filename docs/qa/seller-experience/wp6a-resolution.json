@@ -1,0 +1,99 @@
+{
+  "schema_version": "seller-wp6a-resolution-v1",
+  "date": "2026-10-30",
+  "classification": "WP6A PASS / LOCAL SCHEMA AND BROWSER VALIDATED",
+  "application_certification": "INCOMPLETE",
+  "migration_chain": ["20261204_0147", "20261205_0148", "20261206_0149"],
+  "resolved": [
+    {"id":"SE-WP6-VIDEO-001","status":"RESOLVED_LOCAL_MIGRATION_API_BROWSER","fix":"Data-preserving in-place version column rename."},
+    {"id":"SE-WP6-ADS-001","status":"RESOLVED_LOCAL_MIGRATION_API_BROWSER","fix":"Nullable campaign recovery fields and correlation index; no invented backfill."},
+    {"id":"SE-WP6A-SCENE-001","status":"RESOLVED_LOCAL_MIGRATION_API_BROWSER","fix":"Preserve storyboard-only draft scene authority through nullable generation link."},
+    {"id":"SE-WP6A-RETRY-001","status":"RESOLVED_ANGULAR_AND_BROWSER","fix":"Clear prior Video error on load and stale result rows on failure."}
+  ],
+  "remaining": [
+    {"id":"SE-WP6-ADS-502-001","status":"NOT_REPRODUCED_CAUSE_UNCLASSIFIED"},
+    {"id":"SE-WP6A-SCHEMA-DEBT-001","status":"OPEN_REVIEW","actual":"Three historical nullable mismatches;105 missing ORM index names, equivalent access paths not reconciled; three FLOAT/DOUBLE PRECISION renderings not coerced."},
+    {"id":"SE-WP6A-A11Y-MANUAL-001","status":"OPEN","actual":"16 axe incomplete rule occurrences/29 nodes; no WCAG compliance claim."},
+    {"id":"SE-WP5-PRICE-001","status":"UNCHANGED_OPEN_PRECISION_CONTRACT"},
+    {"id":"QA-P3-GAP-001","status":"UNCHANGED_OPEN_FINANCIAL_HISTORY"},
+    {"id":"QA-P3-GAP-002","status":"UNCHANGED_NO_GENERIC_EXECUTION_AUTHORITY"}
+  ],
+  "evidence": {
+    "before":"tmp/qa-seller-browser/b7004c64985747de",
+    "post_schema_inventory":"tmp/qa-seller-browser/eb682f109ceff301/wp6a-schema-inventory.json",
+    "final_browser":"tmp/qa-seller-browser/a373ab59c1c0c318/wp6a-retest.json",
+    "migration":"tmp/qa-wp6a-backend/e0792d218c174a3e/backend-results.xml",
+    "service":"tmp/qa-wp6a-backend/bd2d7343bbfd48f9/backend-results.xml",
+    "adjacent":"tmp/qa-wp6a-backend/1203b9aa570247fe/backend-results.xml",
+    "audit":"tmp/qa-wp6a-final-audit.json",
+    "rotation":"tmp/qa-wp6a-credential-rotation.json"
+  },
+  "counts": {
+    "migration_passed":8,"service_passed":13,"adjacent_backend_passed":28,
+    "final_backend_failed":0,"final_backend_skipped":0,
+    "browser_grouped_checks_passed":9,"browser_grouped_checks_failed":0,
+    "browser_pngs":52,"browser_traces":4,
+    "axe_scans":27,"axe_violations":0,"axe_incomplete_rule_occurrences":16,"axe_incomplete_nodes":29,
+    "angular_passed":371,"angular_files":81,"node_qa_passed":63,"python_qa_passed":54,
+    "schema_tables_inventoried":42,"schema_columns_inventoried":712
+  },
+  "counting_notes": [
+    "Grouped browser checks are not comprehensive feature certification.",
+    "Reruns and repeated accessibility states are not summed as unique coverage.",
+    "Original failed/intermediate reports retained; credential-bearing failure artifact redacted with counts preserved."
+  ],
+  "quality": {
+    "ruff_black_project_config":"PASS",
+    "strict_mypy_two_migrations":"PASS_NO_SUPPRESSION",
+    "compileall":"PASS","javascript_syntax":"PASS","powershell_5_1_parser":"PASS",
+    "focused_eslint":"PASS","typescript_app_spec":"PASS","production_build":"PASS",
+    "git_diff_check":"PASS_WITH_EXISTING_CRLF_WARNINGS",
+    "initial_bundle_kb":422.71,"unchanged_warning_budget_kb":500,
+    "repository_wide_historical_debt":"NOT_RECERTIFIED"
+  },
+  "cleanup": {
+    "status":"PASS","signed_dropped_independently_absent":9,"guarded_recoveries":0,
+    "original_docker_containers_preserved":10,"original_networks_volumes_preserved":true,
+    "retained_trace_crc_passed":6,"current_credential_matches":0,"raw_container_logs_persisted":false
+  },
+  "security_incident": {
+    "scope":"QA_ONLY_CREDENTIAL_EXPOSED_IN_INITIAL_TEST_TRACEBACK",
+    "cause":"Plain ConfigParser rejected percent-encoded URL; now existing QaMigrationConfig is reused.",
+    "generated_artifact_credential_occurrences_redacted":21,
+    "tool_transcript_retractable":false,
+    "human_authorized_rotation":"PASS",
+    "private_acl_verified":true,"new_login_verified":true,"old_credential_rejected":true,
+    "production_env_changed":false
+  },
+  "changed_files": [
+    "apps/api/alembic/versions/20261205_0148_video_ads_schema_compatibility.py",
+    "apps/api/alembic/versions/20261206_0149_storyboard_scene_generation_optional.py",
+    "apps/api/tests/test_seller_wp6a.py",
+    "apps/api/tests/test_seller_wp6a_migration.py",
+    "apps/web/src/app/ai/ai-video.component.ts",
+    "apps/web/src/app/ai/ai-video.component.spec.ts",
+    "scripts/test-seller-wp6a.ps1",
+    "qa/wp6a-before.mjs","qa/wp6a-browser-retest.mjs",
+    "qa/wp6a_schema_probe.py","qa/wp6a_final_audit.py",
+    "qa/wp6a_redact_failure.py","qa/wp6a_rotate_qa_credential.py",
+    "qa/unit/wp6a-safety.test.mjs",
+    "qa/fixture_server.py","qa/wp4_final_audit.py",
+    "qa/seller-browser-session.mjs","qa/seller-browser-explore.mjs",
+    "qa/safety.mjs","qa/server.mjs",
+    "docs/qa/seller-experience/wp6a-schema-remediation.md",
+    "docs/qa/seller-experience/wp6a-migration-validation.md",
+    "docs/qa/seller-experience/wp6a-browser-retest.md",
+    "docs/qa/seller-experience/wp6a-resolution.json",
+    "docs/qa/seller-experience/wp6-remediation.md",
+    "docs/qa/seller-experience/wp6-quality-debt.md",
+    "docs/qa/seller-experience/wp6-resolution.json",
+    "docs/qa/seller-experience/browser-journey-coverage.md",
+    "docs/qa/seller-experience/prioritized-completion-backlog.md"
+  ],
+  "safety": {
+    "single_owner_constraint_preserved":true,"permanent_golden_database_changes":false,
+    "live_provider_calls":false,"commercial_writes":false,"human_approval_bypass":false,
+    "historical_migrations_modified":false,"backup_certification":"PARKED_UNTOUCHED",
+    "branches_commits_pushes":false,"wp7_started":false
+  }
+}

@@ -47,6 +47,53 @@ describe('MarketingPlanComponent UX state matrix', () => {
     return { fixture, component: fixture.componentInstance, http };
   }
 
+  const allocationCases: Record<string, string>[] = [{}, { social: '125.25', campaign: '125.25' }];
+  it.each(allocationCases)(
+    'submits only explicit allocations, never repeating the total for every channel',
+    async (allocations: Record<string, string>) => {
+      const { component, http } = create();
+      component.draft.total = '250.50';
+      Object.assign(component.allocations, allocations);
+      const pending = component.submitWizard();
+      const preview = http.expectOne('/api/v1/ads/marketing/plans/preview');
+      expect(preview.request.body.plan.budget_envelope).toEqual({
+        total: '250.50',
+        currency: 'INR',
+        allocations,
+      });
+      preview.flush(
+        { detail: 'invalid fixture plan' },
+        { status: 422, statusText: 'Unprocessable Entity' },
+      );
+      await pending;
+      http.expectNone('/api/v1/ads/marketing/plans/confirm');
+      expect(component.wizardError()).toBeTruthy();
+    },
+  );
+  it('pins budget preview to the saved version and rejects changed inputs before HUMAN confirmation', async () => {
+    const { component, http } = create();
+    component.selectedPlan.set({
+      id: 'plan',
+      objective: 'sales',
+      target_channels: ['social'],
+      status: 'blocked',
+      current_version: 3,
+      budget_envelope: { total: '250.50', currency: 'INR', allocations: { social: '125.25' } },
+    });
+    component.proposedTotal = '300.50';
+    const pending = component.previewBudget();
+    const request = http.expectOne('/api/v1/ads/marketing/plans/plan/budget/preview');
+    expect(request.request.body.expected_version).toBe(3);
+    expect(request.request.body.proposed.allocations).toEqual({ social: '125.25' });
+    request.flush({ fingerprint: 'f'.repeat(64), valid: true, blockers: [] });
+    await pending;
+    component.proposedTotal = '400.50';
+    await component.confirmBudget();
+    http.expectNone('/api/v1/ads/marketing/plans/plan/budget/confirm');
+    expect(component.budgetPreview()).toBeNull();
+    expect(component.error()).toContain('changed');
+    http.verify();
+  });
   it('covers 20 user-visible plan states with safe controls and status text', () => {
     const { fixture, component, http } = create();
     expect(cases).toHaveLength(20);

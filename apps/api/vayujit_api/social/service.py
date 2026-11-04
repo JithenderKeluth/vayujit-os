@@ -235,7 +235,9 @@ def _readiness(
     return {"ready": not blockers, "warnings": warnings, "blockers": blockers}
 
 
-def preview(db: Session, owner: User, post: SocialPost) -> dict[str, object]:
+def preview(
+    db: Session, owner: User, post: SocialPost, *, persist: bool = True
+) -> dict[str, object]:
     account = _owned_account(db, owner, post.account_id)
     readiness = _readiness(db, owner, post, account)
     payload = {
@@ -260,8 +262,9 @@ def preview(db: Session, owner: User, post: SocialPost) -> dict[str, object]:
     fingerprint = hashlib.sha256(
         json.dumps(payload, sort_keys=True, default=str).encode()
     ).hexdigest()
-    post.preview_fingerprint = fingerprint
-    db.commit()
+    if persist:
+        post.preview_fingerprint = fingerprint
+        db.commit()
     return {
         "post_id": post.id,
         "platform": post.platform,
@@ -383,6 +386,8 @@ def sync_campaign_activity(db: Session, owner: User, post: SocialPost) -> Campai
 
 
 def create_post(db: Session, owner: User, data: SocialPostCreate) -> SocialPost:
+    # The per-owner idempotency identity must serialize even across accounts.
+    db.refresh(owner, with_for_update=True)
     brand = db.scalar(select(Brand).where(Brand.id == data.brand_id, Brand.owner_id == owner.id))
     account = _owned_account(db, owner, data.account_id)
     artifact = db.scalar(
@@ -458,6 +463,7 @@ def create_post(db: Session, owner: User, data: SocialPostCreate) -> SocialPost:
 
 
 def update_post(db: Session, owner: User, post: SocialPost, data: SocialPostUpdate) -> SocialPost:
+    db.refresh(post, with_for_update=True)
     if post.lifecycle_status not in {"draft", "failed"}:
         raise HTTPException(409, "Only draft or failed social posts can be edited.")
     values = data.model_dump(exclude_unset=True)
@@ -481,10 +487,31 @@ def update_post(db: Session, owner: User, post: SocialPost, data: SocialPostUpda
     return post
 
 
-def approve_post(db: Session, owner: User, post: SocialPost) -> SocialPost:
+def approve_post(
+    db: Session, owner: User, post: SocialPost, *, reviewed_fingerprint: str | None = None
+) -> SocialPost:
+    # Serialize with other approvals/edits and re-read persisted state. Approval
+    # is not scheduling and cannot downgrade a scheduled/published publication.
+    post = db.scalars(
+        select(SocialPost)
+        .where(SocialPost.id == post.id, SocialPost.owner_id == owner.id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    ).one()
+    if reviewed_fingerprint is not None:
+        current = preview(db, owner, post, persist=False)
+        if (
+            post.preview_fingerprint != reviewed_fingerprint
+            or current["fingerprint"] != reviewed_fingerprint
+        ):
+            raise HTTPException(409, "The image review is stale. Preview the current draft again.")
     readiness = _readiness(db, owner, post, _owned_account(db, owner, post.account_id))
     if not readiness["ready"]:
         raise HTTPException(409, {"code": "social_not_ready", "readiness": readiness})
+    if post.lifecycle_status == "approved":
+        return post
+    if post.lifecycle_status not in {"draft", "failed"}:
+        raise HTTPException(409, "Only a current draft or failed post can be approved.")
     post.lifecycle_status = "approved"
     post.updated_at = utcnow()
     record_event(

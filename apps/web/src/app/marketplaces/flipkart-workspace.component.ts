@@ -22,6 +22,9 @@ interface Account {
 }
 interface Listing {
   id: string;
+  account_id?: string;
+  product_id?: string;
+  brand_id?: string;
   title: string;
   marketplace_sku: string;
   category?: string | null;
@@ -327,7 +330,7 @@ interface PriceDraft {
               role="tablist"
               aria-label="Listing editor sections"
             >
-                @for (tab of editorTabs; track tab) {
+              @for (tab of editorTabs; track tab) {
                 <button
                   type="button"
                   role="tab"
@@ -403,7 +406,12 @@ interface PriceDraft {
               @if (matrixError()) {
                 <app-error-state title="Variant setup needs attention" [message]="matrixError()" />
               }
-              <div class="marketplace-table" role="region" tabindex="0" aria-label="Flipkart listing details">
+              <div
+                class="marketplace-table"
+                role="region"
+                tabindex="0"
+                aria-label="Flipkart listing details"
+              >
                 <table>
                   <caption>
                     Deterministic variant matrix
@@ -516,21 +524,29 @@ interface PriceDraft {
               </p>
             }
             @if (editorSection() === 'Pricing') {
+              @if (listingLoading()) {
+                <p role="status">
+                  Loading the exact listing's saved price. Please wait before editing.
+                </p>
+              }
               <form class="workspace-grid-form" (ngSubmit)="savePrice()">
                 <label
                   >Currency<input
                     name="currency"
+                    [disabled]="listingLoading()"
                     [(ngModel)]="priceDraft.currency"
                     maxlength="3" /></label
                 ><label
                   >MRP/list price<input
                     name="list"
+                    [disabled]="listingLoading()"
                     type="number"
                     [(ngModel)]="priceDraft.list_price"
                     min="0" /></label
                 ><label
                   >Selling price<input
                     name="selling"
+                    [disabled]="listingLoading()"
                     type="number"
                     [(ngModel)]="priceDraft.selling_price"
                     min="0"
@@ -538,10 +554,13 @@ interface PriceDraft {
                 ><label
                   >Sale price<input
                     name="sale"
+                    [disabled]="listingLoading()"
                     type="number"
                     [(ngModel)]="priceDraft.sale_price"
                     min="0" /></label
-                ><button type="submit">Review and confirm price</button>
+                ><button type="submit" [disabled]="listingLoading()">
+                  Review and confirm price
+                </button>
               </form>
             }
             @if (editorSection() === 'Inventory') {
@@ -687,7 +706,12 @@ interface PriceDraft {
         <section class="marketplace-card">
           <h2>Financials and profitability</h2>
           <button type="button" (click)="importFinancials()">Import settlements</button>
-          <div class="marketplace-table" role="region" tabindex="0" aria-label="Flipkart settlements">
+          <div
+            class="marketplace-table"
+            role="region"
+            tabindex="0"
+            aria-label="Flipkart settlements"
+          >
             <table>
               <caption>
                 Settlement summaries
@@ -819,6 +843,8 @@ export class FlipkartWorkspaceComponent implements OnInit {
   readonly diagnostics = signal<Record<string, unknown> | null>(null);
   readonly profitability = signal<Profitability | null>(null);
   readonly activeListing = signal<Listing | null>(null);
+  readonly listingLoading = signal(false);
+  private listingLoadVersion = 0;
   readonly message = signal('');
   readonly error = signal('');
   readonly accountDraft = { display_name: '', seller_account_id: '', credentials: { token: '' } };
@@ -862,8 +888,13 @@ export class FlipkartWorkspaceComponent implements OnInit {
       ]);
       this.accounts.set(accounts);
       this.listings.set(listings);
-      this.products.set(await this.safeGet<CatalogItem[]>(`${environment.apiUrl}/products`));
-      this.brands.set(await this.safeGet<CatalogItem[]>(`${environment.apiUrl}/brands`));
+      this.products.set(
+        (await this.safeGet<{ items: CatalogItem[] }>(`${environment.apiUrl}/products`)).items ??
+          [],
+      );
+      this.brands.set(
+        (await this.safeGet<{ items: CatalogItem[] }>(`${environment.apiUrl}/brands`)).items ?? [],
+      );
       if (accounts[0]) {
         this.listingDraft.account_id ||= accounts[0].id;
         this.categories.set(
@@ -957,6 +988,10 @@ export class FlipkartWorkspaceComponent implements OnInit {
   }
   selectListing(listing: Listing): void {
     this.activeListing.set(listing);
+    this.listingDraft.account_id = listing.account_id || '';
+    this.listingDraft.product_id = listing.product_id || '';
+    this.listingDraft.brand_id = listing.brand_id || '';
+    this.listingDraft.artifact_id = listing.content_artifact_id || '';
     this.listingDraft.category = listing.category || '';
     this.listingDraft.title = listing.title;
     this.listingDraft.marketplace_sku = listing.marketplace_sku;
@@ -964,30 +999,73 @@ export class FlipkartWorkspaceComponent implements OnInit {
     void this.loadListingData(listing);
   }
   async loadListingData(listing: Listing): Promise<void> {
+    const version = ++this.listingLoadVersion;
+    this.listingLoading.set(true);
+    this.priceDraft.selling_price = this.priceDraft.list_price = this.priceDraft.sale_price = null;
+    this.readiness.set(null);
+    this.review.set(null);
+    this.authorization.set(null);
+    this.variants.set([]);
     await this.act(async () => {
-      const account = this.listingDraft.account_id || this.accounts()[0]?.id;
-      if (!account) return;
-      this.categories.set(
-        await this.safeGet<CatalogItem[]>(`${this.base}/accounts/${account}/categories`),
+      const account = listing.account_id;
+      if (!account) {
+        this.error.set(
+          'The exact listing account is unavailable. Reload the listing; no other account was substituted.',
+        );
+        return;
+      }
+      const categories = await this.safeGet<CatalogItem[]>(
+        `${this.base}/accounts/${account}/categories`,
       );
-      this.readiness.set(
-        await this.safeGet<Readiness>(`${this.base}/listings/${listing.id}/readiness`),
+      const readiness = await this.safeGet<Readiness>(
+        `${this.base}/listings/${listing.id}/readiness`,
       );
-      this.review.set(
-        await firstValueFrom(
-          this.http.get<ListingReview>(`${this.base}/listings/${listing.id}/review`, this.options),
+      const price = await this.safeGet<{
+        selling_price: string | null;
+        list_price: string | null;
+        sale_price: string | null;
+        currency: string | null;
+      }>(`${environment.apiUrl}/marketplaces/listings/${listing.id}/pricing`);
+      const variants = await this.safeGet<
+        Array<
+          Omit<Variant, 'options' | 'price'> & {
+            options: Record<string, string>;
+            price: string | null;
+          }
+        >
+      >(`${this.base}/listings/${listing.id}/variants`);
+      const review = await firstValueFrom(
+        this.http.get<ListingReview>(`${this.base}/listings/${listing.id}/review`, this.options),
+      );
+      const authorization = await firstValueFrom(
+        this.http.get<ExecutionAuthorization>(
+          `${this.base}/listings/${listing.id}/execution-authorizations/latest`,
+          this.options,
         ),
       );
-      this.authorization.set(
-        await firstValueFrom(
-          this.http.get<ExecutionAuthorization>(
-            `${this.base}/listings/${listing.id}/execution-authorizations/latest`,
-            this.options,
-          ),
-        ),
+      const drift = await this.safeGet<DriftState>(`${this.base}/listings/${listing.id}/drift`);
+      if (version !== this.listingLoadVersion || this.activeListing()?.id !== listing.id) return;
+      this.categories.set(categories);
+      this.readiness.set(readiness);
+      this.priceDraft.selling_price =
+        price.selling_price == null ? null : Number(price.selling_price);
+      this.priceDraft.list_price = price.list_price == null ? null : Number(price.list_price);
+      this.priceDraft.sale_price = price.sale_price == null ? null : Number(price.sale_price);
+      if (price.currency) this.priceDraft.currency = price.currency;
+      this.variants.set(
+        variants.map((row) => ({
+          ...row,
+          options: Object.entries(row.options || {})
+            .map(([key, value]) => key + '=' + value)
+            .join(', '),
+          price: row.price == null ? null : Number(row.price),
+        })),
       );
-      this.drift.set(await this.safeGet<DriftState>(`${this.base}/listings/${listing.id}/drift`));
+      this.review.set(review);
+      this.authorization.set(authorization);
+      this.drift.set(drift);
     });
+    if (version === this.listingLoadVersion) this.listingLoading.set(false);
   }
   async loadAttributes(): Promise<void> {
     const account = this.listingDraft.account_id || this.accounts()[0]?.id;
@@ -1131,7 +1209,7 @@ export class FlipkartWorkspaceComponent implements OnInit {
     });
   }
   async savePrice(): Promise<void> {
-    if (!this.activeListing()) return;
+    if (!this.activeListing() || this.listingLoading()) return;
     await this.act(async () => {
       await firstValueFrom(
         this.http.put(
@@ -1144,7 +1222,16 @@ export class FlipkartWorkspaceComponent implements OnInit {
           this.options,
         ),
       );
-      this.message.set('Price queued and confirmed.');
+      this.readiness.set(
+        await this.safeGet<Readiness>(
+          `${this.base}/listings/${this.activeListing()!.id}/readiness`,
+        ),
+      );
+      this.message.set(
+        this.activeListing()!.remote_listing_id
+          ? 'Price update confirmed.'
+          : 'Local draft price saved. Not submitted or published.',
+      );
     });
   }
   async saveInventory(): Promise<void> {
@@ -1237,13 +1324,25 @@ export class FlipkartWorkspaceComponent implements OnInit {
   }
   async authorizeListing(): Promise<void> {
     if (!this.activeListing() || !this.review()?.id) return;
+    const intent = JSON.stringify([
+      this.activeListing()!.id,
+      this.review()?.id,
+      this.authorization()?.id,
+      this.authorization()?.status,
+    ]);
+    if (intent !== this.authorizationIntent) {
+      this.authorizationIntent = intent;
+      this.authorizationKey =
+        'flipkart-ui-submit-' + this.activeListing()!.id + '-' + crypto.randomUUID();
+    }
     await this.act(async () => {
       const value = await firstValueFrom(
         this.http.post<ExecutionAuthorization>(
           `${this.base}/listings/${this.activeListing()!.id}/execution-authorizations`,
           {
             review_id: this.review()!.id,
-            idempotency_key: `flipkart-ui-submit-${this.activeListing()!.id}`,
+            idempotency_key: this.authorizationKey,
+            expires_seconds: 600,
             confirm: true,
           },
           this.options,
@@ -1267,6 +1366,8 @@ export class FlipkartWorkspaceComponent implements OnInit {
       this.message.set('Execution authorization revoked.');
     });
   }
+  private authorizationIntent = '';
+  private authorizationKey = '';
   async reconcile(): Promise<void> {
     if (!this.activeListing()) return;
     await this.act(async () => {

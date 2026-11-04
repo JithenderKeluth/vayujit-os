@@ -21,6 +21,19 @@ def cleanup(token: str) -> dict[str, object]:
     url = make_url(os.environ["QA_DATABASE_ADMIN_URL"])
     if url.host != "127.0.0.1" or url.database != "postgres":
         raise ValueError("QA_CLEANUP_ADMIN_DENIED")
+    from qa.postgres_instance import approved_guard
+
+    guarded_instance = approved_guard(url)
+    if guarded_instance is not None:
+        guarded_instance.drop(token)
+        return {
+            "status": "PASS",
+            "database": name,
+            "database_absent": True,
+            "marker_verified_before_drop": True,
+            "signed_lifecycle": True,
+            "session_termination_used": False,
+        }
     admin = create_engine(url, isolation_level="AUTOCOMMIT", poolclass=NullPool)
     target = create_engine(url.set(database=name), poolclass=NullPool)
     from vayujit_api.core.test_database import PROJECT_MARKER
@@ -42,7 +55,8 @@ def cleanup(token: str) -> dict[str, object]:
         target.dispose()
         with admin.connect() as connection:
             active = connection.scalar(
-                text("select count(*) from pg_stat_activity where datname=:name"), {"name": name}
+                text("select count(*) from pg_stat_activity where datname=:name"),
+                {"name": name},
             )
             if active:
                 raise ValueError("QA_CLEANUP_ACTIVE_SESSIONS_DENIED")

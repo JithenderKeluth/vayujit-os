@@ -78,13 +78,16 @@ import { CommerceJourneyService } from '../commerce-journey.service';
         <h2 id="overview">Shortlisting Overview</h2>
         <div class="metrics">
           <span
-            >Active contexts <strong>{{ metrics()?.['active_contexts'] ?? 0 }}</strong></span
+            >Active contexts <strong>{{ metrics()?.['active_contexts'] ?? 'UNKNOWN' }}</strong></span
           ><span
-            >Shortlists <strong>{{ metrics()?.['shortlist_count'] ?? 0 }}</strong></span
+            >Shortlists <strong>{{ metrics()?.['shortlist_count'] ?? 'UNKNOWN' }}</strong></span
           ><span
-            >Handoffs <strong>{{ metrics()?.['handoff_count'] ?? 0 }}</strong></span
+            >Handoffs <strong>{{ metrics()?.['handoff_count'] ?? 'UNKNOWN' }}</strong></span
           >
         </div>
+        @if (!loading() && !metrics()) {
+          <p role="status">Overview counts are unavailable. Saved evaluations and HUMAN decisions are unchanged; refresh to retry the summary.</p>
+        }
       </section>
       @if (carriedContext(); as context) {
         <p class="context-note" role="status">
@@ -145,8 +148,20 @@ import { CommerceJourneyService } from '../commerce-journey.service';
                   <p>{{ shortlistSummary(item) }}</p>
                   <p class="muted">{{ firstReason(item) }}</p>
                 </div>
-                @if (decisionFor(item['supplier_id'])) {
-                  <span class="decision-state">Shortlisted for verification</span>
+                @if (decisionFor(item['supplier_id']) || hasVerification(item['supplier_id'])) {
+                  <span class="decision-state">{{
+                    decisionFor(item['supplier_id'])
+                      ? 'Shortlisted for verification'
+                      : 'Existing verification available — review current evidence'
+                  }}</span>
+                  <a
+                    routerLink="/intelligence/due-diligence"
+                    [queryParams]="{
+                      opportunity_id: carriedContext()?.opportunityId,
+                      supplier_id: item['supplier_id'],
+                    }"
+                    >Assess this supplier's evidence</a
+                  >
                 } @else {
                   <button
                     type="button"
@@ -176,7 +191,7 @@ import { CommerceJourneyService } from '../commerce-journey.service';
       }
       <section aria-labelledby="next-step">
         <h2 id="next-step">Next step</h2>
-        @if (decisions().size) {
+        @if (decisions().size || existingVerification().size) {
           <p>Review evidence gaps and contradictions for the suppliers you shortlisted.</p>
           <a routerLink="/intelligence/due-diligence">Verify shortlisted suppliers</a>
         } @else {
@@ -272,6 +287,10 @@ export class SupplierShortlistingComponent {
   readonly metrics = signal<Record<string, unknown> | null>(null);
   readonly result = signal<Record<string, unknown> | null>(null);
   readonly decisions = signal<Map<string, Record<string, unknown>>>(new Map());
+  readonly existingVerification = signal<Set<string>>(new Set());
+  hasVerification(id: unknown): boolean {
+    return typeof id === 'string' && this.existingVerification().has(id);
+  }
   readonly error = signal('');
   readonly loading = signal(false);
   readonly carriedContext = signal<{
@@ -331,6 +350,15 @@ export class SupplierShortlistingComponent {
         idempotency_key: `gp4-shortlist-${opportunityId}`,
       });
       this.contextId = typeof context['id'] === 'string' ? context['id'] : '';
+      const verification = await this.api.verificationContexts();
+      this.existingVerification.set(
+        new Set(
+          verification
+            .filter((item) => item.opportunity_id === opportunityId)
+            .map((item) => item.supplier_id),
+        ),
+      );
+      await this.refreshMetrics();
     } catch (error: unknown) {
       this.error.set(
         intelligenceErrorMessage(error, 'The supplier shortlist context could not be prepared.'),
@@ -354,6 +382,7 @@ export class SupplierShortlistingComponent {
     }
   }
   async evaluate() {
+    if (this.loading() || !this.contextId) return;
     this.loading.set(true);
     this.error.set('');
     try {
@@ -365,6 +394,7 @@ export class SupplierShortlistingComponent {
           idempotency_key: `ui-${Date.now()}`,
         }),
       );
+      await this.refreshMetrics();
     } catch (error: unknown) {
       this.error.set(
         intelligenceErrorMessage(error, 'The shortlist could not be evaluated safely.'),
@@ -407,6 +437,7 @@ export class SupplierShortlistingComponent {
     return typeof id === 'string' ? this.decisions().get(id) || null : null;
   }
   async shortlistForVerification(item: Record<string, unknown>): Promise<void> {
+    if (this.loading()) return;
     const supplierId = this.displayValue(item['supplier_id']);
     if (!this.contextId || !supplierId || !this.result()?.['id']) return;
     this.loading.set(true);
@@ -423,6 +454,7 @@ export class SupplierShortlistingComponent {
       const next = new Map(this.decisions());
       next.set(supplierId, decision);
       this.decisions.set(next);
+      await this.refreshMetrics();
     } catch (error: unknown) {
       this.error.set(
         intelligenceErrorMessage(error, 'The supplier could not be shortlisted safely.'),
@@ -433,6 +465,16 @@ export class SupplierShortlistingComponent {
   }
   private displayValue(value: unknown): string {
     return typeof value === 'string' || typeof value === 'number' ? String(value) : '';
+  }
+  private async refreshMetrics(): Promise<void> {
+    // A summary read must not turn a successfully persisted HUMAN action into
+    // a failed action, or leave old counts masquerading as current values.
+    this.metrics.set(null);
+    try {
+      this.metrics.set(await this.api.operations());
+    } catch {
+      // UNKNOWN is rendered; the saved decision/evaluation remains available.
+    }
   }
   shortlistStatus(): string {
     const status = this.result()?.['status'];

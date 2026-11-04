@@ -40,9 +40,19 @@ def owned_activity(
 def create_activity(
     db: Session, owner: User, campaign_id: uuid.UUID, data: ActivityCreate
 ) -> CampaignActivity:
-    campaign = owned_campaign(db, owner.id, campaign_id)
+    campaign = owned_campaign(db, owner.id, campaign_id, lock=True)
     if campaign.status not in {"draft", "planning", "ready", "paused"}:
         raise HTTPException(409, "Activities cannot be added in this Campaign state.")
+    existing = db.scalar(
+        select(CampaignActivity.id).where(
+            CampaignActivity.campaign_id == campaign.id,
+            CampaignActivity.sequence == data.sequence,
+        )
+    )
+    if existing is not None:
+        raise HTTPException(
+            409, "This Campaign sequence is already used. Choose an unused sequence."
+        )
     count = db.scalar(
         select(func.count())
         .select_from(CampaignActivity)

@@ -163,7 +163,8 @@
   align-items: center;
 }
 button,
-.primary-action {
+.primary-action,
+.action-link {
   min-height: 2.5rem;
   padding: 0.55rem 0.9rem;
   border: 0;
@@ -433,7 +434,8 @@ button:disabled {
     grid-template-columns: 1fr;
   }
   button,
-  .primary-action {
+  .primary-action,
+  .action-link {
     width: 100%;
   }
 }

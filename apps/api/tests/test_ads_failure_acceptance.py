@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import uuid
 from typing import cast
+from unittest.mock import patch
 
 import pytest
-
 from vayujit_api.ads.connectors import (
     AdsConnectorError,
     FakeAdsState,
@@ -82,6 +83,37 @@ def test_recovery_projection_and_action_matrix_is_complete(client) -> None:
         assert isinstance(item["retryable"], bool)
         spec = cast(dict[str, object], ADS_FAILURE_TAXONOMY[item["failure_code"]])
         action = str(cast(list[object], spec["recovery_actions"])[0])
+        if action == "retry":
+            # A taxonomy entry alone is not an observed failure. Exercise the
+            # canonical queue/worker failure path before asking it to retry.
+            import test_ai_integration
+            from vayujit_api.ads.connectors import connector_for
+            from vayujit_api.ads.models import AdJob
+            from vayujit_api.ads.service import run_job
+
+            queued = client.post(
+                f"/api/v1/ads/campaigns/{campaign['id']}/action",
+                json={
+                    "action": "pause",
+                    "confirm": True,
+                    "idempotency_key": f"fixture-failure-{index}",
+                },
+                headers=ORIGIN,
+            )
+            assert queued.status_code == 200
+            assert test_ai_integration.factory is not None
+            with test_ai_integration.factory() as db:
+                job = db.get(AdJob, uuid.UUID(queued.json()["job_id"]))
+                assert job is not None
+                with patch.object(
+                    connector_for("meta"),
+                    "pause_campaign",
+                    side_effect=AdsConnectorError(
+                        item["failure_code"], str(spec["safe_message"]), retryable=True
+                    ),
+                ):
+                    run_job(db, job)
+                assert job.failure_code == item["failure_code"] and job.status == "retry_wait"
         response = client.post(
             "/api/v1/ads/recovery",
             json={

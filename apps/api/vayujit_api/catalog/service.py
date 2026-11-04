@@ -5,19 +5,20 @@ import uuid
 from typing import Any
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
 from vayujit_api.identity.models import User
 from vayujit_api.identity.service import now
-from vayujit_api.intelligence.business_agent_models import BusinessAgentGoal
+from vayujit_api.intelligence.business_agent_models import BusinessAgentGoal, BusinessAgentRun
 from vayujit_api.intelligence.economic_integration_service import (
     project_economics_for_opportunity,
 )
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
 from vayujit_api.intelligence.product_opportunity_scoring_models import ProductOpportunityDecision
+from vayujit_api.intelligence.product_opportunity_scoring_service import current_product_selection
 from vayujit_api.intelligence.supplier_models import Supplier
 from vayujit_api.media.models import MediaAsset
 from vayujit_api.media.service import response as media_response
@@ -101,16 +102,7 @@ def lineage_for(db: Session, owner: User, product_id: uuid.UUID) -> CatalogProdu
 def latest_shortlist(
     db: Session, owner: User, opportunity_id: uuid.UUID
 ) -> ProductOpportunityDecision | None:
-    return db.scalar(
-        select(ProductOpportunityDecision)
-        .where(
-            ProductOpportunityDecision.owner_id == owner.id,
-            ProductOpportunityDecision.opportunity_id == opportunity_id,
-            ProductOpportunityDecision.action == "shortlist",
-        )
-        .order_by(ProductOpportunityDecision.created_at.desc())
-        .limit(1)
-    )
+    return current_product_selection(db, owner, opportunity_id)
 
 
 def _variant_option_fingerprint(option_values: dict[str, object]) -> str:
@@ -151,6 +143,11 @@ def _ensure_unique_option_combination(
 def convert_opportunity(
     db: Session, owner: User, opportunity_id: uuid.UUID, data: OpportunityConversionRequest
 ) -> Product:
+    if db.get_bind().dialect.name == "postgresql":
+        db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
+            {"key": f"catalog-conversion:{owner.id}:{opportunity_id}"},
+        )
     opportunity = _opportunity(db, owner, opportunity_id)
     decision = latest_shortlist(db, owner, opportunity.id)
     if decision is None:
@@ -169,6 +166,18 @@ def convert_opportunity(
         )
         if goal is None:
             raise HTTPException(404, "Business goal not found.")
+        linked = (goal.structured_goal or {}).get("product_opportunity_id")
+        run_ids = db.scalars(
+            select(BusinessAgentRun.id).where(
+                BusinessAgentRun.owner_id == owner.id, BusinessAgentRun.goal_id == goal.id
+            )
+        )
+        scoped = str(linked) == str(opportunity_id) or any(
+            opportunity.idempotency_key.startswith(f"business-agent:{run_id}:candidate:")
+            for run_id in run_ids
+        )
+        if not scoped:
+            raise HTTPException(409, "This goal belongs to another product opportunity.")
 
     # ProductOpportunity.product_id is the canonical product identity already
     # established by research.  It is not proof that the seller has selected
@@ -242,7 +251,7 @@ def convert_opportunity(
         inventory_quantity=0,
         low_stock_threshold=0,
     )
-    product = create_product(db, owner, product_data)
+    product = create_product(db, owner, product_data, commit=False)
     stamp = now()
     lineage = CatalogProductLineage(
         owner_id=owner.id,

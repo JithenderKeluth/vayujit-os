@@ -1,3 +1,10 @@
+import { wp7aPath } from './wp7a-safety.mjs';
+import { wp7a3Path } from './wp7a3-safety.mjs';
+import { wp7a4Path } from './wp7a4-safety.mjs';
+import { wp7a5Path } from './wp7a5-safety.mjs';
+import { wp7a6Path } from './wp7a6-safety.mjs';
+import { wp7a7Path } from './wp7a7-safety.mjs';
+import { wp7a2Path } from './wp7a2-safety.mjs';
 export const allowedMutations = [
   /^\/api\/v1\/auth\/(setup-owner|login|logout)$/,
   /^\/api\/v1\/brands(?:\/[a-f0-9-]+)?$/,
@@ -6,7 +13,22 @@ export const allowedMutations = [
   /^\/api\/v1\/intelligence\/business-agent\/goals\/[a-f0-9-]+\/plan$/,
 ];
 
+// The host must allow the already bounded guarded DROP to finish before killing
+// its own fixture child. This changes no database identity/deletion authority.
+export function cleanupWaitMs(value) {
+  if (value === undefined) return 45000;
+  if (!/^\d+$/.test(String(value))) throw new Error('QA_DELETE_TIMEOUT_DENIED');
+  const timeout = Number(value);
+  if (!Number.isInteger(timeout) || timeout < 15000 || timeout > 90000)
+    throw new Error('QA_DELETE_TIMEOUT_DENIED');
+  return timeout + 30000;
+}
+
 export const phase2Mutations = [
+  // Local preparation records only: never dispatch, contact, execute or approve.
+  /^\/api\/v1\/intelligence\/sourcing\/(requirements|rfqs|quotes)$/,
+  /^\/api\/v1\/intelligence\/product-opportunities\/score\/(compare|rank)$/,
+  /^\/api\/v1\/intelligence\/business-agent\/goals\/[a-f0-9-]+\/runs$/,
   /^\/api\/v1\/intelligence\/sourcing-economics\/customs-tax\/(contexts|rates|snapshots)$/,
   /^\/api\/v1\/intelligence\/sourcing-economics\/(contexts|snapshots(?:\/[a-f0-9-]+\/calculate)?)$/,
   /^\/api\/v1\/intelligence\/product-opportunities(?:\/[a-f0-9-]+)?$/,
@@ -34,8 +56,47 @@ export const phase3Mutations = [
   /^\/api\/v1\/operations\/action-center\/signals\/[a-f0-9-]+\/(acknowledge|resolve|reopen|snooze|action)$/,
 ];
 
+// WP4 local preparation only. No marketplace adapters, account authorization,
+// execution, publishing, imports or arbitrary media mutations are admitted.
+export function wp4PreparationRequest(path, method) {
+  return (
+    (method === 'POST' && /^\/api\/v1\/media$/.test(path)) ||
+    (method === 'POST' && /^\/api\/v1\/inventory\/items$/.test(path)) ||
+    (method === 'POST' &&
+      /^\/api\/v1\/catalog\/products\/[a-f0-9-]+\/(variants|images|listing-drafts)$/.test(path)) ||
+    (method === 'PATCH' &&
+      /^\/api\/v1\/catalog\/(variants|images|listing-drafts)\/[a-f0-9-]+$/.test(path)) ||
+    (method === 'DELETE' && /^\/api\/v1\/catalog\/images\/[a-f0-9-]+$/.test(path)) ||
+    (method === 'POST' && /^\/api\/v1\/catalog\/listing-drafts\/[a-f0-9-]+\/review$/.test(path)) ||
+    (method === 'POST' && /^\/api\/v1\/intelligence\/sourcing-economics\/quotes$/.test(path))
+  );
+}
+
 export const journeyContextPath =
   /^\/api\/v1\/intelligence\/(trends|reviews|competitors)\/contexts$/;
+export function safeWp6ActivationPayload(payload) {
+  return !!payload && !Array.isArray(payload) && typeof payload === 'object' && Object.keys(payload).length === 0;
+}
+export function wp6aPreparationPath(path, method) {
+  return (method === 'POST' && ['/api/v1/ads/accounts','/api/v1/ads/campaigns/preview','/api/v1/ai/video/storyboards','/api/v1/ai/video/styles','/api/v1/ai/video/scripts'].includes(path)) || (method === 'PUT' && /^\/api\/v1\/ai\/video\/storyboards\/[a-f0-9-]+$/.test(path));
+}
+export function safeWp6aPayload(path, payload) {
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) return false;
+  if (path === '/api/v1/ads/accounts') return payload.environment === 'local' && payload.provider === 'meta' && payload.external_account_id?.startsWith('qa-wp6a-') && payload.display_name?.startsWith('[QA SYNTHETIC] WP6A') && payload.credentials && Object.keys(payload.credentials).length === 0 && Object.keys(payload).every(k=>['provider','environment','external_account_id','display_name','credentials'].includes(k));
+  if (path === '/api/v1/ads/campaigns/preview') return payload.name?.startsWith('[QA SYNTHETIC] WP6A') && payload.provider === 'meta' && !payload.confirm && !payload.credentials;
+  if (path.endsWith('/styles') || path.endsWith('/scripts')) return payload.name?.startsWith('[QA SYNTHETIC] WP6A') && !payload.credentials;
+  return Object.keys(payload).every(k=>['brand_id','product_id','video_type','target_channel','locale','aspect_ratio','resolution','scenes','expected_row_version'].includes(k)) && Array.isArray(payload.scenes) && payload.scenes.every(s=>!s.source_media_id && (s.scene_text || '').startsWith('[QA SYNTHETIC]'));
+}
+export function safeWp5DestinationPayload(payload) {
+  return (
+    payload?.connector_key === 'mock_publisher_v1' &&
+    typeof payload.name === 'string' &&
+    payload.name?.startsWith('[QA SYNTHETIC] WP5') &&
+    Object.keys(payload).every((k) => ['connector_key', 'name', 'configuration'].includes(k)) &&
+    payload.configuration?.channel_name === 'QA-WP5-LOCAL' &&
+    Object.keys(payload.configuration).every((k) => k === 'channel_name')
+  );
+}
 export function safeJourneyContextPayload(path, payload) {
   const kind = path.match(journeyContextPath)?.[1];
   if (!kind || !payload || Array.isArray(payload) || typeof payload !== 'object') return false;
@@ -78,6 +139,24 @@ export function safeJourneyContextPayload(path, payload) {
 export function allowRequest(url, method, origin, phase = '1') {
   const parsed = new URL(url);
   if (parsed.origin !== origin) return false;
+  if (phase === 'WP7A7') return wp7a7Path(parsed.pathname, method) || allowRequest(url, method, origin, 'WP7A6');
+  if (phase === 'WP7A6') return wp7a6Path(parsed.pathname, method) || allowRequest(url, method, origin, 'WP7A5');
+  if (phase === 'WP7A5') return wp7a5Path(parsed.pathname, method) || allowRequest(url, method, origin, 'WP7A4');
+  if (phase === 'WP7A4') return wp7a4Path(parsed.pathname, method) || allowRequest(url, method, origin, 'WP7A3');
+  if (phase === 'WP7A3') return wp7a3Path(parsed.pathname, method) || allowRequest(url, method, origin, 'WP7A2');
+  if (phase === 'WP7A2') return wp7a2Path(parsed.pathname, method) || allowRequest(url, method, origin, 'WP7A');
+  if (phase === 'WP7A') return wp7aPath(parsed.pathname, method) || allowRequest(url, method, origin, 'WP6B');
+  if (phase === 'WP6B') return allowRequest(url, method, origin, 'WP6A');
+  if (phase === 'WP6A') return wp6aPreparationPath(parsed.pathname,method) || allowRequest(url,method,origin,'WP6');
+  if (phase === 'WP6') {
+    return (method === 'POST' && /^\/api\/v1\/products\/[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}\/activate$/.test(parsed.pathname)) || allowRequest(url, method, origin, '4');
+  }
+  if (phase === 'WP5') {
+    return (
+      (method === 'POST' && parsed.pathname === '/api/v1/publishing/destinations') ||
+      allowRequest(url, method, origin, '4')
+    );
+  }
   if (phase === '4B') {
     return (
       ['GET', 'HEAD', 'OPTIONS'].includes(method) ||
@@ -94,6 +173,7 @@ export function allowRequest(url, method, origin, phase = '1') {
   if (phase === '4') {
     if (parsed.pathname === '/__qa/restart') return false;
     return (
+      wp4PreparationRequest(parsed.pathname, method) ||
       (method === 'POST' && journeyContextPath.test(parsed.pathname)) ||
       allowRequest(url, method, origin, '2') ||
       (method === 'POST' && phase3Mutations.some((r) => r.test(parsed.pathname)))

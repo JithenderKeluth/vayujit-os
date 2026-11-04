@@ -1,0 +1,136 @@
+{
+  "package": "WP7A-7",
+  "status": "PASS",
+  "application_certification": "INCOMPLETE",
+  "independent_final_angular_retest": {
+    "evidence": "tmp/qa-wp7a7/angular-final.json",
+    "passed": 438,
+    "failed": 0,
+    "test_files_passed": 88
+  },
+  "accessibility_scope": {
+    "automated_scans": 40,
+    "reported_violations": 0,
+    "incomplete_rule_context_occurrences": 22,
+    "manual_review_node_occurrences": 76,
+    "full_wcag_certification": "NOT_CLAIMED"
+  },
+  "original_denominator": 48,
+  "inherited_closed": 41,
+  "targeted": 7,
+  "closed": 48,
+  "remaining": 0,
+  "open_entries": [],
+  "exact_scope": true,
+  "cleanup": "PASS",
+  "regressions": "PASS",
+  "blockers": [],
+  "ads_scope_approved": true,
+  "live_provider_expiry": "UNVERIFIED",
+  "browser_run": "daf1450bc1179b3d",
+  "backend": {
+    "token": "f38c0a55864b4da1",
+    "tests": 105,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "complete": true,
+    "current_source_matches": true
+  },
+  "browser_counts": {
+    "PASS": 28,
+    "FAIL": 0,
+    "PARTIAL": 0,
+    "BLOCKED": 0
+  },
+  "quality_checks": [
+    {
+      "id": "node_qa",
+      "command": "npm.cmd run qa:unit",
+      "exit_code": 0,
+      "status": "PASS",
+      "passed": 128
+    },
+    {
+      "id": "python_qa",
+      "command": "apps/api/.venv/Scripts/python.exe -m pytest qa/unit -q",
+      "exit_code": 0,
+      "status": "PASS",
+      "passed": 161
+    },
+    {
+      "id": "angular",
+      "command": "npm.cmd run test --workspace @vayujit/web",
+      "exit_code": 0,
+      "status": "PASS",
+      "passed": 437
+    },
+    {
+      "id": "build",
+      "command": "npm.cmd run build --workspace @vayujit/web",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "lint",
+      "command": "npx.cmd eslint apps/web/src/app/social/social-workspace.component.ts apps/web/src/app/social/social.service.ts apps/web/src/app/social/social-workspace.component.spec.ts apps/web/src/app/marketplaces/amazon-workspace.component.ts apps/web/src/app/marketplaces/amazon-workspace.component.spec.ts apps/web/src/app/marketplaces/flipkart-workspace.component.ts apps/web/src/app/marketplaces/flipkart-workspace.component.spec.ts apps/web/src/app/marketplaces/meesho-workspace.component.ts apps/web/src/app/marketplaces/meesho-workspace.component.spec.ts apps/web/src/app/ads/ads-workspace.component.ts apps/web/src/app/ads/ads-workspace.component.spec.ts",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "typescript_app",
+      "command": "npx.cmd tsc -p apps/web/tsconfig.app.json --noEmit",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "typescript_spec",
+      "command": "npx.cmd tsc -p apps/web/tsconfig.spec.json --noEmit",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "mypy",
+      "command": "apps/api/.venv/Scripts/mypy.exe --strict --config-file apps/api/pyproject.toml apps/api/vayujit_api/commerce/amazon_router.py apps/api/vayujit_api/commerce/router.py apps/api/vayujit_api/commerce/flipkart_router.py apps/api/vayujit_api/commerce/meesho_router.py apps/api/vayujit_api/commerce/schemas.py apps/api/vayujit_api/social/service.py apps/api/vayujit_api/social/router.py apps/api/vayujit_api/social/schemas.py apps/api/vayujit_api/campaigns/recovery_service.py apps/api/vayujit_api/ads/schemas.py apps/api/vayujit_api/ads/service.py apps/api/vayujit_api/ads/router.py",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "ruff",
+      "command": "apps/api/.venv/Scripts/ruff.exe check apps/api/vayujit_api/commerce/amazon_router.py apps/api/vayujit_api/commerce/router.py apps/api/vayujit_api/commerce/flipkart_router.py apps/api/vayujit_api/commerce/meesho_router.py apps/api/vayujit_api/commerce/schemas.py apps/api/vayujit_api/social/service.py apps/api/vayujit_api/social/router.py apps/api/vayujit_api/social/schemas.py apps/api/vayujit_api/campaigns/recovery_service.py apps/api/vayujit_api/ads/schemas.py apps/api/vayujit_api/ads/service.py apps/api/vayujit_api/ads/router.py apps/api/tests/test_seller_wp7a7.py qa/fixture_server.py qa/wp7a_fixture.py qa/wp7a2_fixture.py qa/wp7a3_fixture.py qa/wp7a4_fixture.py qa/wp7a7_snapshot.py qa/wp7a7_fixture.py",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "black_backend",
+      "command": "apps/api/.venv/Scripts/black.exe --check --config apps/api/pyproject.toml apps/api/vayujit_api/commerce/amazon_router.py apps/api/vayujit_api/commerce/router.py apps/api/vayujit_api/commerce/flipkart_router.py apps/api/vayujit_api/commerce/meesho_router.py apps/api/vayujit_api/commerce/schemas.py apps/api/vayujit_api/social/service.py apps/api/vayujit_api/social/router.py apps/api/vayujit_api/social/schemas.py apps/api/vayujit_api/campaigns/recovery_service.py apps/api/vayujit_api/ads/schemas.py apps/api/vayujit_api/ads/service.py apps/api/vayujit_api/ads/router.py apps/api/tests/test_seller_wp7a7.py",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "black_qa",
+      "command": "apps/api/.venv/Scripts/black.exe --check qa/fixture_server.py qa/wp7a_fixture.py qa/wp7a2_fixture.py qa/wp7a3_fixture.py qa/wp7a4_fixture.py qa/wp7a7_snapshot.py qa/wp7a7_fixture.py",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "compile",
+      "command": "apps/api/.venv/Scripts/python.exe -m compileall -q apps/api/vayujit_api/commerce/amazon_router.py apps/api/vayujit_api/commerce/router.py apps/api/vayujit_api/commerce/flipkart_router.py apps/api/vayujit_api/commerce/meesho_router.py apps/api/vayujit_api/commerce/schemas.py apps/api/vayujit_api/social/service.py apps/api/vayujit_api/social/router.py apps/api/vayujit_api/social/schemas.py apps/api/vayujit_api/campaigns/recovery_service.py apps/api/vayujit_api/ads/schemas.py apps/api/vayujit_api/ads/service.py apps/api/vayujit_api/ads/router.py apps/api/tests/test_seller_wp7a7.py qa/fixture_server.py qa/wp7a_fixture.py qa/wp7a2_fixture.py qa/wp7a3_fixture.py qa/wp7a4_fixture.py qa/wp7a7_snapshot.py qa/wp7a7_fixture.py",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "parser",
+      "command": "$tokens=$null; $errors=$null; [void][Management.Automation.Language.Parser]::ParseFile((Join-Path (Get-Location) 'scripts/test-seller-wp7a7.ps1'),[ref]$tokens,[ref]$errors); if($errors.Count){exit 1}; node --check qa/wp7a7-scenarios.mjs; if($LASTEXITCODE){exit $LASTEXITCODE}; node --check qa/wp7a7-safety.mjs; exit $LASTEXITCODE",
+      "exit_code": 0,
+      "status": "PASS"
+    },
+    {
+      "id": "diff",
+      "command": "git -c safe.directory=C:/Users/jithe/Documents/vayujit-os diff --check",
+      "exit_code": 0,
+      "status": "PASS"
+    }
+  ],
+  "audit": "tmp/qa-wp7a7-final-audit.json"
+}

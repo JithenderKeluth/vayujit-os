@@ -16,6 +16,7 @@ from vayujit_api.ai.models import GeneratedArtifact
 from vayujit_api.campaigns.models import (
     Campaign,
     CampaignActivity,
+    CampaignActivityDependency,
     CampaignMissedActivityResolution,
 )
 from vayujit_api.campaigns.schemas import (
@@ -79,6 +80,23 @@ def reschedule_fingerprint(
         "artifact_status": artifact.status if artifact else None,
         "destination_id": str(activity.destination_id) if activity.destination_id else None,
         "destination_status": destination.status if destination else None,
+        # The reviewed impact includes ordering and manual-release prerequisites,
+        # not only the selected Activity row. Keep the existing fingerprint authority.
+        "dependencies": sorted(
+            (
+                str(edge.id),
+                str(edge.predecessor_activity_id),
+                str(edge.successor_activity_id),
+                edge.dependency_type,
+                edge.released_at.isoformat() if edge.released_at else "",
+            )
+            for edge in db.scalars(
+                select(CampaignActivityDependency).where(
+                    CampaignActivityDependency.owner_id == owner_id,
+                    CampaignActivityDependency.campaign_id == campaign.id,
+                )
+            )
+        ),
     }
     return hashlib.sha256(json.dumps(payload, sort_keys=True).encode()).hexdigest()
 

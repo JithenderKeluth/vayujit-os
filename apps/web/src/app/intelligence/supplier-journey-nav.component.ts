@@ -13,6 +13,7 @@ type JourneyLink = {
   key: SupplierJourneyStep;
   label: string;
   url: string;
+  fragment?: string;
 };
 
 @Component({
@@ -29,7 +30,12 @@ type JourneyLink = {
             @if (step.key === current()) {
               <span aria-current="step">{{ step.label }}</span>
             } @else {
-              <a [routerLink]="step.url">{{ step.label }}</a>
+              <a
+                [routerLink]="step.url"
+                [fragment]="step.fragment"
+                queryParamsHandling="preserve"
+                >{{ step.label }}</a
+              >
             }
           </li>
         }
@@ -112,7 +118,12 @@ export class SupplierJourneyNavComponent {
   readonly current = input.required<SupplierJourneyStep>();
   readonly steps: JourneyLink[] = [
     { key: 'discover', label: 'Find suppliers', url: '/intelligence/cross-marketplace' },
-    { key: 'compare', label: 'Compare', url: '/intelligence/cross-marketplace#comparison' },
+    {
+      key: 'compare',
+      label: 'Compare',
+      url: '/intelligence/cross-marketplace',
+      fragment: 'comparison',
+    },
     { key: 'shortlist', label: 'Shortlist', url: '/intelligence/supplier-shortlisting' },
     { key: 'verify', label: 'Verify', url: '/intelligence/due-diligence' },
     { key: 'scenarios', label: 'Sourcing scenarios', url: '/intelligence/sourcing-scenarios' },

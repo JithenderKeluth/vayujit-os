@@ -220,10 +220,18 @@ def test_bulk_concurrent_retry_reuses_one_child_attempt(client: Any) -> None:
         )
         return response.status_code, response.json()
 
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        results = list(pool.map(lambda _: retry(), range(2)))
+    # Status polling persists projections too; interleave it with both original
+    # concurrent retries to exercise the parent-before-children lock boundary.
+    def poll_or_retry(index: int) -> tuple[int, dict[str, Any]]:
+        if index < 2:
+            return retry()
+        response = client.get(f"/api/v1/ai/video/bulk/{bulk_id}", headers=ORIGIN)
+        return response.status_code, response.json()
+
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        results = list(pool.map(poll_or_retry, range(6)))
     assert all(status == 200 for status, _ in results), results
-    assert sum(int(result["retried_count"]) for _, result in results) == 1
+    assert sum(int(result.get("retried_count", 0)) for _, result in results) == 1
     assert test_ai_integration.factory is not None
     with test_ai_integration.factory() as db:
         assert db.scalar(select(func.count()).select_from(VideoGeneration)) == 1

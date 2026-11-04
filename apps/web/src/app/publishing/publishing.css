@@ -49,11 +49,15 @@
 }
 .pub-form {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 1rem;
   max-width: 760px;
+  min-width: 0;
+  width: 100%;
 }
 .pub-form label {
   display: grid;
+  min-width: 0;
   gap: 0.4rem;
   font-weight: 600;
 }
@@ -64,6 +68,13 @@
   border: 1px solid #9aaab3;
   border-radius: 0.4rem;
   font: inherit;
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+.pub-form input[type='checkbox'] {
+  width: auto;
+  justify-self: start;
 }
 .pub-form input:focus,
 .pub-form select:focus,

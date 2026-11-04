@@ -1,0 +1,706 @@
+{
+  "package": "WP7A-5",
+  "status": "INCOMPLETE",
+  "application_certification": "INCOMPLETE",
+  "original_denominator": 48,
+  "inherited_closed": 32,
+  "targeted": 16,
+  "newly_closed": 9,
+  "open_entries": [
+    "R-3feda36d",
+    "R-55e822d5",
+    "R-551d2f8c",
+    "R-db243c36",
+    "R-d6a495d5",
+    "L-16",
+    "L-17"
+  ],
+  "exact_scope": true,
+  "cleanup": "PASS",
+  "regressions": "PASS",
+  "blockers": [
+    "R-3feda36d: Video draft with exact thumbnail/metadata is targeted; separate image-only draft and stale review permutations remain incomplete.",
+    "R-55e822d5: Configured-only overview checked; connected/revoked/expired account projections not fully exercised.",
+    "R-551d2f8c: Exact draft/reload checked; full prerequisite correction and missing/expired/revoked/stale HUMAN authorization permutations unexecuted.",
+    "R-db243c36: Exact draft/reload checked; supported manual preparation/readiness/review permutations incomplete. No invented Meesho OAuth or dispatch.",
+    "R-d6a495d5: Exact draft/reload checked; full readiness and HUMAN authorization permutations incomplete. Authorization/readiness guard requires separate focused reproduction.",
+    "L-16: Exact binding and disabled-destination recovery tested; artifact-version replacement and dependency ordering still require browser evidence.",
+    "L-17: Local fake account/wizard checked; content/image creative and missing/expired/disabled authorization permutations remain unexecuted."
+  ],
+  "backend": {
+    "complete": true,
+    "tests": 93,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "cases": [
+      {
+        "key": "tests.test_seller_wp7a5::test_scoped_keyword_revision_and_conflict_preserve_saved_data",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_seller_wp7a5::test_tag_update_normalization_and_archive_do_not_mutate_product_tags",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_seller_wp7a5::test_missing_owned_resource_does_not_fall_back_to_another_record[ai/video/bulk/]",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_seller_wp7a5::test_missing_owned_resource_does_not_fall_back_to_another_record[ai/seo/analyses/]",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_seller_wp7a5::test_missing_owned_resource_does_not_fall_back_to_another_record[social/posts/]",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_ai_seo::test_keyword_normalization_conflicts_and_seo_explainability",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_ai_seo::test_localized_artifacts_and_independent_analysis_lineages",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_ai_seo::test_hostile_seo_keyword_input_is_safe_and_actions_are_typed",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_ai_video_bulk_e2e::test_bulk_normal_15_output_e2e_has_exact_durable_lineage",
+        "status": "PASS",
+        "token": "948ff77cdb5743ec"
+      },
+      {
+        "key": "tests.test_ai_video_bulk_e2e::test_bulk_partial_failure_retry_and_cancel_isolates_siblings",
+        "status": "PASS",
+        "token": "948ff77cdb5743ec"
+      },
+      {
+        "key": "tests.test_ai_video_bulk_e2e::test_bulk_concurrent_creation_reuses_one_parent_and_child_set",
+        "status": "PASS",
+        "token": "948ff77cdb5743ec"
+      },
+      {
+        "key": "tests.test_ai_video_bulk_e2e::test_bulk_concurrent_retry_reuses_one_child_attempt",
+        "status": "PASS",
+        "token": "948ff77cdb5743ec"
+      },
+      {
+        "key": "tests.test_ai_video_bulk_e2e::test_bulk_performance_samples_are_recorded_with_local_provider",
+        "status": "PASS",
+        "token": "948ff77cdb5743ec"
+      },
+      {
+        "key": "tests.test_ai_video_bulk_e2e::test_bulk_cancellation_is_idempotent_and_isolates_succeeded_siblings",
+        "status": "PASS",
+        "token": "948ff77cdb5743ec"
+      },
+      {
+        "key": "tests.test_ai_video_bulk_e2e::test_bulk_exact_version_lineage_survives_new_context_versions_and_retry",
+        "status": "PASS",
+        "token": "948ff77cdb5743ec"
+      },
+      {
+        "key": "tests.test_ai_video_bulk_restart::test_bulk_api_restart_preserves_mixed_parent_and_child_state",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_ai_video_bulk_restart::test_bulk_worker_restart_executes_persisted_queued_child_once",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_metadata_version_safety",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_thumbnail_version_safety",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_caption_version_safety",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_recovery_sequential_idempotency",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_recovery_concurrent_idempotency",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_account_disable_video_e2e",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_new_video_version_safety_and_product_channel_update",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_replacement_preview_and_confirmation",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_three_platform_publication_isolation",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_metrics_exact_video_identity_and_history_safety",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[youtube_video]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[youtube_short]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[instagram_reel]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[instagram_story]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[facebook_reel]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[facebook_story]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_product_channel_action_matrix",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[wrong-owner-video]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[wrong-product-video]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[draft-video]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[rejected-video]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[failed-video]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[stale-video]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[invalid-video-media]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[disabled-account]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[incompatible-format]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[stale-preview]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[hostile-title]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[hostile-description]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[hostile-caption]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[unsafe-url]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[duplicate-confirmation]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[cross-owner-account]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[cross-owner-thumbnail]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[cross-owner-caption]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[unapproved-thumbnail]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[incompatible-caption-locale]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_has_twenty_cases",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_connector_privacy_and_storage_integrity",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_http_confirm_does_not_call_connector_and_pins_context",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_remote_checkpoint_is_normalized_and_secret_free",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_crash_after_checkpoint_recovers_without_second_connector_call",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_ambiguous_publication_reconciles_without_republish",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_calendar_analytics_and_channel_projection_pin_identity",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_crash_before_connector_invocation_recovers_once",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.account_disabled-expected_actions0]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.invalid_credentials-expected_actions1]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.unsupported_format-expected_actions2]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.video_not_ready-expected_actions3]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.throttled-expected_actions4]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.timeout-expected_actions5]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.connector_unavailable-expected_actions6]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.ambiguous_publication-expected_actions7]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.stale_video-expected_actions8]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.stale_post-expected_actions9]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.scheduling_failure-expected_actions10]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.policy_rejection-expected_actions11]",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_trend_analysis_api::test_analysis_is_snapshot_bound_descriptive_and_idempotent",
+        "status": "PASS",
+        "token": "948ff77cdb5743ec"
+      },
+      {
+        "key": "tests.test_pr_sos_02_amazon_controls::test_listing_requires_review_then_single_use_authorization",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_pr_sos_02_amazon_controls::test_listing_authorization_is_stale_after_payload_change",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_pr_sos_02_amazon_controls::test_amazon_drift_serializes_media_identifiers",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_pr_sos_02_amazon_controls::test_keep_remote_clears_listing_readiness_drift_blocker",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_pr_sos_02_amazon_controls::test_amazon_authorization_rejects_expired_revoked_and_kill_switch_states",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_pr_sos_03_flipkart_controls::test_flipkart_requires_human_review_and_single_use_authorization",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_pr_sos_03_flipkart_controls::test_flipkart_authorization_is_stale_after_listing_change",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_pr_sos_03_flipkart_controls::test_flipkart_provider_rejection_does_not_claim_existing_remote_listing",
+        "status": "PASS",
+        "token": "86f53545074f4cbb"
+      },
+      {
+        "key": "tests.test_seller_wp7a5::test_video_draft_confirmation_returns_exact_durable_identity_without_dispatch",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_seller_wp7a5::test_image_failure_and_same_job_retry_preserve_output_history",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_seller_wp7a5::test_bulk_polling_and_concurrent_retry_share_parent_lock_order",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_ai_studio_e2e::test_ai_studio_three_marketplace_e2e",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_ai_images_integration::test_image_generation_preserves_source_and_supports_review_readiness",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_ai_images_integration::test_image_generation_idempotency_and_safe_failure",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_ai_images_integration::test_review_rejection_and_regeneration_preserve_exact_lineage",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_ai_images_integration::test_approval_concurrency_uses_row_lock",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_ai_images_bulk::test_bulk_image_preview_enqueue_and_15_output_journey",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      },
+      {
+        "key": "tests.test_ai_images_bulk::test_bulk_image_partial_failure_retry_cancel_and_owner_scope",
+        "status": "PASS",
+        "token": "5860720339c24810"
+      }
+    ],
+    "runs": [
+      {
+        "token": "dd1d53c4ae164f85",
+        "file": "tmp/qa-wp7a5-backend/dd1d53c4ae164f85/backend-results.xml",
+        "at": "2026-11-02T04:06:00.741Z",
+        "exit_code": 1,
+        "tests": 83,
+        "passed": 60,
+        "failed": 23,
+        "skipped": 0
+      },
+      {
+        "token": "7c964edbf2794a02",
+        "file": "tmp/qa-wp7a5-backend/7c964edbf2794a02/backend-results.xml",
+        "at": "2026-11-02T04:21:42.927Z",
+        "exit_code": 0,
+        "tests": 84,
+        "passed": 84,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "token": "86f53545074f4cbb",
+        "file": "tmp/qa-wp7a5-backend/86f53545074f4cbb/backend-results.xml",
+        "at": "2026-11-02T17:12:28.503Z",
+        "exit_code": 1,
+        "tests": 86,
+        "passed": 85,
+        "failed": 1,
+        "skipped": 0
+      },
+      {
+        "token": "6c829c08655a4a3f",
+        "file": "tmp/qa-wp7a5-backend/6c829c08655a4a3f/backend-results.xml",
+        "at": "2026-11-02T17:16:33.302Z",
+        "exit_code": 1,
+        "tests": 15,
+        "passed": 14,
+        "failed": 1,
+        "skipped": 0
+      },
+      {
+        "token": "8c1f15dd336f4879",
+        "file": "tmp/qa-wp7a5-backend/8c1f15dd336f4879/backend-results.xml",
+        "at": "2026-11-02T17:20:58.806Z",
+        "exit_code": 1,
+        "tests": 16,
+        "passed": 15,
+        "failed": 1,
+        "skipped": 0
+      },
+      {
+        "token": "948ff77cdb5743ec",
+        "file": "tmp/qa-wp7a5-backend/948ff77cdb5743ec/backend-results.xml",
+        "at": "2026-11-02T17:29:52.900Z",
+        "exit_code": 0,
+        "tests": 16,
+        "passed": 16,
+        "failed": 0,
+        "skipped": 0
+      },
+      {
+        "token": "5860720339c24810",
+        "file": "tmp/qa-wp7a5-backend/5860720339c24810/backend-results.xml",
+        "at": "2026-11-02T17:35:59.215Z",
+        "exit_code": 0,
+        "tests": 15,
+        "passed": 15,
+        "failed": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "quality": {
+    "started_at": "2026-11-02T17:34:01.493Z",
+    "raw_output_persisted": false,
+    "checks": [
+      {
+        "id": "node_qa",
+        "command": "npm.cmd run qa:unit",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 4.144,
+        "passed": 112,
+        "reported_error_lines": 1
+      },
+      {
+        "id": "python_qa",
+        "command": "apps/api/.venv/Scripts/python.exe -m pytest qa/unit -q",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 8.984,
+        "passed": 80,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "angular",
+        "command": "npm.cmd run test --workspace @vayujit/web",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 103.789,
+        "passed": 426,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "build",
+        "command": "npm.cmd run build --workspace @vayujit/web",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 36.323,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "lint",
+        "command": "npx.cmd eslint apps/web/src/app/ai/ai-wp7a5.spec.ts apps/web/src/app/ai/ai-seo.component.ts apps/web/src/app/campaigns/campaign-video.component.ts apps/web/src/app/ai/ai-video.component.ts apps/web/src/app/ai/ai-video-bulk.component.ts apps/web/src/app/ai/ai-image-review.component.ts apps/web/src/app/social/social.service.ts apps/web/src/app/social/social-workspace.component.ts apps/web/src/app/social/social-workspace.component.spec.ts apps/web/src/app/ads/marketing-plan.component.ts apps/web/src/app/ads/marketing-plan.component.spec.ts apps/web/src/app/ai/ai-image-review.component.spec.ts apps/web/src/app/ai/ai.service.ts apps/web/src/app/intelligence/trend-intelligence.service.ts apps/web/src/app/intelligence/trend-intelligence-workspace.component.ts apps/web/src/app/intelligence/trend-intelligence-workspace.component.spec.ts",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 17.52,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "typescript_app",
+        "command": "npx.cmd tsc -p apps/web/tsconfig.app.json --noEmit",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 8.363,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "typescript_spec",
+        "command": "npx.cmd tsc -p apps/web/tsconfig.spec.json --noEmit",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 11.017,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "mypy",
+        "command": "apps/api/.venv/Scripts/mypy.exe --strict --config-file apps/api/pyproject.toml apps/api/vayujit_api/ai/bulk_service.py apps/api/vayujit_api/ai/studio_worker.py apps/api/vayujit_api/ai/studio_router.py apps/api/vayujit_api/ai/seo_router.py apps/api/vayujit_api/video/bulk.py apps/api/vayujit_api/video/channels.py apps/api/vayujit_api/intelligence/trend_router.py",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 2.639,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "ruff",
+        "command": "apps/api/.venv/Scripts/ruff.exe check apps/api/vayujit_api/ai/bulk_service.py apps/api/vayujit_api/ai/studio_worker.py apps/api/vayujit_api/ai/studio_router.py apps/api/vayujit_api/ai/seo_router.py apps/api/vayujit_api/video/bulk.py apps/api/vayujit_api/video/channels.py apps/api/vayujit_api/intelligence/trend_router.py apps/api/tests/test_seller_wp7a5.py qa/wp7a5_snapshot.py qa/wp7a5_lifecycle_status.py qa/wp7a5_recover_approved.py qa/wp7a5_final_audit.py qa/wp4_final_audit.py qa/wp7a4_final_audit.py",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 0.487,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "black_backend",
+        "command": "apps/api/.venv/Scripts/black.exe --check --config apps/api/pyproject.toml apps/api/vayujit_api/ai/bulk_service.py apps/api/vayujit_api/ai/studio_worker.py apps/api/vayujit_api/ai/studio_router.py apps/api/vayujit_api/ai/seo_router.py apps/api/vayujit_api/video/bulk.py apps/api/vayujit_api/video/channels.py apps/api/vayujit_api/intelligence/trend_router.py apps/api/tests/test_seller_wp7a5.py apps/api/tests/test_ai_video_bulk_e2e.py apps/api/tests/test_trend_analysis_api.py",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 1.429,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "black_qa",
+        "command": "apps/api/.venv/Scripts/black.exe --check qa/wp7a5_snapshot.py qa/wp7a5_lifecycle_status.py qa/wp7a5_recover_approved.py qa/wp7a5_final_audit.py qa/wp4_final_audit.py qa/wp7a4_final_audit.py",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 1.162,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "compile",
+        "command": "apps/api/.venv/Scripts/python.exe -m compileall -q qa apps/api/vayujit_api/ai apps/api/vayujit_api/video apps/api/vayujit_api/intelligence/trend_router.py",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 0.914,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "parser",
+        "command": "$tokens=$null; $errors=$null; [void][Management.Automation.Language.Parser]::ParseFile((Join-Path (Get-Location) 'scripts/test-seller-wp7a5.ps1'),[ref]$tokens,[ref]$errors); if($errors.Count){exit 1}; node --check qa/wp7a5-scenarios.mjs; if($LASTEXITCODE){exit $LASTEXITCODE}; node --check qa/wp7a5-safety.mjs; exit $LASTEXITCODE",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 0.838,
+        "reported_error_lines": 0
+      },
+      {
+        "id": "diff",
+        "command": "git -c safe.directory=C:/Users/jithe/Documents/vayujit-os diff --check",
+        "exit_code": 0,
+        "status": "PASS",
+        "duration_seconds": 0.742,
+        "reported_error_lines": 0
+      }
+    ],
+    "completed_at": "2026-11-02T17:37:19.947Z"
+  },
+  "accessibility": {
+    "executed_scans": 252,
+    "latest_scans": 64,
+    "violations": 0,
+    "incomplete": 20,
+    "manual_review": "Automated axe and focus/Tab/Shift+Tab checks do not certify complete WCAG compliance; incomplete nodes and full screen-reader/keyboard workflows remain manual review."
+  },
+  "generated_at": "2026-11-02T17:41:37.658Z"
+}

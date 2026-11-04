@@ -39,7 +39,11 @@ import {
         ><a
           page-header-actions
           routerLink="/marketplaces/inventory/opening"
-          [queryParams]="{ sku: skuFilter || null, low_stock: lowStockOnly || null }"
+          [queryParams]="{
+            sku: skuFilter || null,
+            low_stock: lowStockOnly || null,
+            product_id: productFilter || null,
+          }"
           >Add opening stock</a
         ></app-page-header
       >
@@ -48,6 +52,12 @@ import {
         human-reviewed adjustment for receipts, damage, or reconciliation; this workspace never
         writes to a channel.
       </div>
+      @if (productFilter) {
+        <p>
+          Showing this product and its variants only. Product reference: {{ productFilter }}.
+          Summary totals below describe the whole installation.
+        </p>
+      }
       @if (error()) {
         <app-error-state
           title="Inventory is unavailable"
@@ -87,7 +97,7 @@ import {
         <app-loading-state message="Loading canonical inventory..." />
       }
       @if (!loading() && !error() && !items().length) {
-        @if (skuFilter.trim() || lowStockOnly) {
+        @if (skuFilter.trim() || lowStockOnly || productFilter) {
           <app-empty-state
             title="No matching inventory"
             message="Change the SKU search or clear Low stock only to see other balances."
@@ -306,6 +316,7 @@ export class UnifiedInventoryComponent {
   readonly mappingSuccess = signal('');
   skuFilter = this.route.snapshot.queryParamMap.get('sku') || '';
   lowStockOnly = this.route.snapshot.queryParamMap.get('low_stock') === 'true';
+  readonly productFilter = this.route.snapshot.queryParamMap.get('product_id') || '';
   delta = 0;
   reason = '';
   mappingAccountId = '';
@@ -328,7 +339,9 @@ export class UnifiedInventoryComponent {
         this.service.accounts(),
         this.service.inventoryMappings(),
       ]);
-      this.items.set(items);
+      this.items.set(
+        this.productFilter ? items.filter((item) => item.product_id === this.productFilter) : items,
+      );
       this.summary.set(summary);
       this.accounts.set(accounts);
       this.mappings.set(mappings);

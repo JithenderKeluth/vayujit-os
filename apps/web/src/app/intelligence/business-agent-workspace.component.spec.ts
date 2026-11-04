@@ -286,8 +286,8 @@ describe('BusinessAgentWorkspaceComponent', () => {
     const text = (fixture.nativeElement as HTMLElement).textContent ?? '';
     expect(text).toContain('Research progress');
     expect(text).toContain('Research plan');
-    expect(service.latestPlan).toHaveBeenCalledWith('goal-1');
-    expect(service.latestRun).toHaveBeenCalledWith('goal-1');
+    expect(service.latestPlan).toHaveBeenCalledWith('goal-1', true);
+    expect(service.latestRun).toHaveBeenCalledWith('goal-1', true);
   });
   it('surfaces a failed live discovery as the next actionable product step', async () => {
     const fixture = await create();
@@ -460,5 +460,35 @@ describe('BusinessAgentWorkspaceComponent', () => {
     expect(root.textContent).not.toContain('Resume failed step');
     expect(root.textContent).toContain('Review blocked sources');
     expect(root.textContent).toContain('0 successful page fetches');
+  });
+
+  it('uses actionable cached-plan guidance and the actual retry label after reload', async () => {
+    const fixture = await create();
+    const guidance = 'No new provider search was made. Review final eligibility before retrying.';
+    fixture.componentInstance.runs.set({
+      'goal-1': {
+        ...run,
+        status: 'PARTIAL',
+        candidates: [],
+        approvals: [],
+        failure: { message: 'Historical generic no-product failure.' },
+        steps: [
+          {
+            id: 'source-step',
+            key: 'opportunity',
+            capability_id: 'product_opportunity.create',
+            status: 'FAILED',
+            attempt_count: 1,
+            result: { details: { queries: [], fetches: [], review_guidance: guidance } },
+          },
+        ],
+      },
+    });
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain(guidance);
+    expect(root.textContent).toContain('Retry product discovery');
+    expect(root.textContent).not.toContain('Continue product discovery');
+    expect(root.textContent).not.toContain('Historical generic no-product failure.');
   });
 });

@@ -382,6 +382,13 @@ export interface SourcingEconomicsProjection {
   external_writes: string[];
 }
 export interface ResearchCandidate {
+  origin?: string;
+  decision?: {
+    id: string;
+    action: string;
+    assessment_id: string;
+    current_assessment: boolean;
+  } | null;
   research_run_id: string | null;
   id: string;
   name: string;
@@ -423,6 +430,7 @@ export interface ProductResearchResponse {
   gaps: string[];
 }
 export interface ResearchResults {
+  research_execution?: { run_count: number; latest_status: string | null };
   status: string;
   active_goal_id?: string | null;
   active_run_ids?: string[];
@@ -449,9 +457,12 @@ export class ProductOpportunityService {
   private readonly base = `${environment.apiUrl}/intelligence/product-opportunities`;
   private readonly options = { withCredentials: true } as const;
 
-  getResearchResults(): Promise<ResearchResults> {
+  getResearchResults(goalId = ''): Promise<ResearchResults> {
     return firstValueFrom(
-      this.http.get<ResearchResults>(`${this.base}/research-results`, this.options),
+      this.http.get<ResearchResults>(`${this.base}/research-results`, {
+        ...this.options,
+        ...(goalId ? { params: { goal_id: goalId } } : {}),
+      }),
     );
   }
   researchMarketEvidence(
@@ -825,11 +836,28 @@ export class ProductOpportunityService {
   decide(
     opportunityId: string,
     assessmentId: string,
-    payload: { action: string; rationale: string },
+    payload: { action: string; rationale: string; idempotency_key?: string },
   ): Promise<Record<string, unknown>> {
     return firstValueFrom(
       this.http.post<Record<string, unknown>>(
         `${this.base}/${opportunityId}/assessments/${assessmentId}/decision`,
+        payload,
+        this.options,
+      ),
+    );
+  }
+  decisions(opportunityId: string): Promise<OpportunityDecision[]> {
+    return firstValueFrom(
+      this.http.get<OpportunityDecision[]>(`${this.base}/${opportunityId}/decisions`, this.options),
+    );
+  }
+  convert(
+    opportunityId: string,
+    payload: { brand_id?: string; goal_id?: string; idempotency_key: string },
+  ): Promise<{ product: { id: string } }> {
+    return firstValueFrom(
+      this.http.post<{ product: { id: string } }>(
+        `${environment.apiUrl}/catalog/opportunities/${opportunityId}/convert`,
         payload,
         this.options,
       ),
@@ -887,4 +915,13 @@ export class ProductOpportunityService {
       ),
     );
   }
+}
+
+export interface OpportunityDecision {
+  id: string;
+  opportunity_id: string;
+  assessment_id: string;
+  action: string;
+  rationale: string;
+  created_at: string;
 }

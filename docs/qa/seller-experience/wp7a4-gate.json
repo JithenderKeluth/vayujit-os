@@ -1,0 +1,126 @@
+{
+  "package": "WP7A-4",
+  "status": "INCOMPLETE",
+  "application_certification": "INCOMPLETE",
+  "required_entries": 48,
+  "exact_scope": true,
+  "closed": 32,
+  "open_entries": [
+    "R-184826c3",
+    "R-794214d7",
+    "R-3feda36d",
+    "R-55e822d5",
+    "R-551d2f8c",
+    "R-db243c36",
+    "R-d6a495d5",
+    "L-10",
+    "L-12",
+    "L-13",
+    "L-15",
+    "L-16",
+    "L-17",
+    "L-21",
+    "L-22",
+    "L-23"
+  ],
+  "cleanup": "PASS",
+  "regressions": "PASS",
+  "blockers": [
+    {
+      "id": "R-184826c3",
+      "status": "PARTIAL",
+      "reason": "Owned context/reload verified; populated observation/source analysis remains unverified."
+    },
+    {
+      "id": "R-794214d7",
+      "status": "PARTIAL",
+      "reason": "Exact approved Video binding and reload verified; the activityId route renders an overview rather than an activity-specific detail."
+    },
+    {
+      "id": "R-3feda36d",
+      "status": "PARTIAL",
+      "reason": "Canonical social draft and persisted identity checked; image/video-specific and stale-review permutations remain."
+    },
+    {
+      "id": "R-55e822d5",
+      "status": "PARTIAL",
+      "reason": "Overview and reload checked; full configured-channel snapshot requires remaining account fixtures."
+    },
+    {
+      "id": "R-551d2f8c",
+      "status": "PARTIAL",
+      "reason": "Exact catalog-linked draft/default-deny reviewed; complete channel readiness/review authorization transitions remain."
+    },
+    {
+      "id": "R-db243c36",
+      "status": "PARTIAL",
+      "reason": "Exact catalog-linked draft/default-deny reviewed; complete channel readiness/review authorization transitions remain."
+    },
+    {
+      "id": "R-d6a495d5",
+      "status": "PARTIAL",
+      "reason": "Exact catalog-linked draft/default-deny reviewed; complete channel readiness/review authorization transitions remain."
+    },
+    {
+      "id": "L-10",
+      "status": "PARTIAL",
+      "reason": "Completed snapshot retained; queued old-context work rejects as stale after a Product change. Provider retry/supersession permutations remain."
+    },
+    {
+      "id": "L-12",
+      "status": "PARTIAL",
+      "reason": "Image regeneration/reload/source approval retained; injected provider failure/recovery still requires exact child controls."
+    },
+    {
+      "id": "L-13",
+      "status": "PARTIAL",
+      "reason": "Canonical cancellation/reload exercised; partial success/provider retry combinations remain."
+    },
+    {
+      "id": "L-15",
+      "status": "PARTIAL",
+      "reason": "Keyword/tag creation and tag reload executed; analysis history/reanalysis/context permutations remain."
+    },
+    {
+      "id": "L-16",
+      "status": "PARTIAL",
+      "reason": "Canonical product/approved-content activity binding persisted; full recovery/stale binding permutations remain."
+    },
+    {
+      "id": "L-17",
+      "status": "PARTIAL",
+      "reason": "Persisted fake Ads campaign, explicit HUMAN confirmation and reload checked; creative/stale/expired-authorization permutations remain."
+    },
+    {
+      "id": "L-21",
+      "status": "PARTIAL",
+      "reason": "Actual local deterministic bulk Video preview, fingerprint, queued child and worker completion executed; cancel/retry/partial and browser reload identity remain."
+    },
+    {
+      "id": "L-22",
+      "status": "PARTIAL",
+      "reason": "Supported composer and persisted text draft exercised; Video composer needs a canonical approved Video output."
+    },
+    {
+      "id": "L-23",
+      "status": "PARTIAL",
+      "reason": "Manual persisted plan preview/confirmation/reload exercised; recommendation/version/change permutations remain."
+    }
+  ],
+  "counts": {
+    "PASS": 32,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "PARTIAL": 16,
+    "NOT_TESTED": 0,
+    "NOT_SUPPORTED": 0
+  },
+  "historical_risks": [
+    "Historical Ads 502 unclassified",
+    "Historical PostgreSQL lifecycle timestamps unattributed; no container restart used to explain them",
+    "Ads-router typing debt (not the focused changed-module mypy result)",
+    "Axe incomplete/manual checks",
+    "Financial-history/reconciliation limitations",
+    "PC-first backup/restore remains parked"
+  ]
+}

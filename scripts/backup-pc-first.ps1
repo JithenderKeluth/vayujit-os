@@ -5,27 +5,85 @@ param(
   [string]$BackupReportPath
 )
 $ErrorActionPreference = "Stop"
+if ($DisposableCertification) { [Console]::Out.WriteLine("VAYUJIT_BACKUP_CHILD_STARTED=1") }
+function Write-BackupCheckpoint {
+  param([string]$Stage, [ValidateSet("ENTER", "COMPLETE", "FAIL")][string]$State,
+    [string]$Classification = "none", [int]$SourceLine = 0, [string]$SourceFile)
+  if (-not $DisposableCertification) { return }
+  try {
+    # Available before bootstrap/modules. Runtime stages reuse the existing
+    # failure-report operation allowlist; no user-controlled text is emitted.
+    $startupStages = @("bootstrap load", "report boundary initialization", "key security module import", "backup artifact module import", "profile path resolution", "profile files check", "disposable argument validation", "profile configuration", "recipient validation", "identity ACL verification", "age dependency check", "age keygen dependency check", "Docker dependency check", "staging directory creation", "destination write probe", "PostgreSQL storage evidence", "media storage evidence", "destination independence check", "runtime initialization", "runtime staging creation", "child report write", "service recovery", "backup finalization")
+    if ($Stage -notin $startupStages) {
+      if (-not (Get-Command New-VayujitBackupFailureReport -ErrorAction SilentlyContinue)) { return }
+      $safeStage = New-VayujitBackupFailureReport -BackupId "checkpoint" -FailureOperation $Stage -FailureCode "backup_unexpected_exception"
+      if ($safeStage.failure_operation -ne $Stage) { return }
+    }
+    if ($Classification -notin @("none", "powershell_error", "native_failure", "report_write_failed")) { $Classification = "powershell_error" }
+    if ($SourceLine -le 0) { $SourceLine = $MyInvocation.ScriptLineNumber }
+    if ($SourceLine -lt 0 -or $SourceLine -gt 999999) { $SourceLine = 0 }
+    if (-not $SourceFile) { $SourceFile = [System.IO.Path]::GetFileName($MyInvocation.ScriptName) }
+    if ($SourceFile -notin @("backup-pc-first.ps1", "pc-first-backup-bootstrap.ps1", "pc-first-key-security.psm1", "pc-first-backup-artifacts.psm1")) { $SourceFile = "unavailable" }
+    if ($State -eq "ENTER") { $script:backupCheckpointStage = $Stage }
+    [Console]::Out.WriteLine("VAYUJIT_BACKUP_STAGE=$State|$Stage|$Classification|$SourceLine|$SourceFile")
+    [Console]::Out.Flush()
+  } catch { } # Observability must not replace or bypass the backup's checks.
+}
+function Write-BackupCaughtCheckpoint {
+  param([System.Management.Automation.ErrorRecord]$Record)
+  try {
+  $stageVariable = Get-Variable -Name backupCheckpointStage -Scope Script -ErrorAction SilentlyContinue
+  if (-not $stageVariable) { return }
+  $kind = "powershell_error"
+  if ($null -ne $Record.Exception.Data["native_exit_code"]) { $kind = "native_failure" }
+  foreach ($name in @("backupNativeExitCode", "dockerFailureExitCode")) {
+    $nativeVariable = Get-Variable -Name $name -Scope Script -ErrorAction SilentlyContinue
+    if ($nativeVariable -and $null -ne $nativeVariable.Value) { $kind = "native_failure" }
+  }
+  Write-BackupCheckpoint -Stage $stageVariable.Value -State FAIL -Classification $kind `
+    -SourceLine $Record.InvocationInfo.ScriptLineNumber -SourceFile ([System.IO.Path]::GetFileName($Record.InvocationInfo.ScriptName))
+  } catch { } # Preserve the original exception if its diagnostic metadata is absent.
+}
+Write-BackupCheckpoint -Stage "bootstrap load" -State ENTER
 try {
   $bootstrapScript = Join-Path $PSScriptRoot "pc-first-backup-bootstrap.ps1"
   . $bootstrapScript
+  Write-BackupCheckpoint -Stage "bootstrap load" -State COMPLETE
 } catch {
+  Write-BackupCaughtCheckpoint -Record $_
   if ($DisposableCertification) {
     [Console]::Out.WriteLine("VAYUJIT_BACKUP_CHILD_BOUNDARY=backup_initialization_failed")
     throw "backup_initialization_failed"
   }
   throw
 }
-$script:backupBootstrapBoundary = Initialize-VayujitBackupReportBoundary `
-  -DisposableCertification ([bool]$DisposableCertification) `
-  -DataRoot $DataRoot `
-  -BackupReportPath $BackupReportPath `
-  -RepositoryRoot (Join-Path $PSScriptRoot "..")
+Write-BackupCheckpoint -Stage "report boundary initialization" -State ENTER
+try {
+  $script:backupBootstrapBoundary = Initialize-VayujitBackupReportBoundary `
+    -DisposableCertification ([bool]$DisposableCertification) `
+    -DataRoot $DataRoot `
+    -BackupReportPath $BackupReportPath `
+    -RepositoryRoot (Join-Path $PSScriptRoot "..")
+  Write-BackupCheckpoint -Stage "report boundary initialization" -State COMPLETE
+} catch {
+  Write-BackupCaughtCheckpoint -Record $_
+  if ($DisposableCertification) {
+    [Console]::Out.WriteLine("VAYUJIT_BACKUP_CHILD_BOUNDARY=backup_initialization_failed")
+    throw "backup_initialization_failed"
+  }
+  throw
+}
 $script:backupBootstrapFailureCode = "backup_initialization_failed"
 $script:backupBootstrapFailureOperation = "backup child initialization"
 $script:backupReportWriteFailed = $false
 try {
+Write-BackupCheckpoint -Stage "key security module import" -State ENTER
 Import-Module (Join-Path $PSScriptRoot "pc-first-key-security.psm1") -Force
+Write-BackupCheckpoint -Stage "key security module import" -State COMPLETE
+Write-BackupCheckpoint -Stage "backup artifact module import" -State ENTER
 Import-Module (Join-Path $PSScriptRoot "pc-first-backup-artifacts.psm1") -Force
+Write-BackupCheckpoint -Stage "backup artifact module import" -State COMPLETE
+Write-BackupCheckpoint -Stage "profile path resolution" -State ENTER
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $dataFull = [System.IO.Path]::GetFullPath($DataRoot)
 $backupReportFullPath = if ($script:backupBootstrapBoundary.IsValid) { $script:backupBootstrapBoundary.ReportPath } else { $null }
@@ -38,11 +96,14 @@ function Test-PathWithin([string]$Path, [string]$BasePath) {
 $configRoot = Join-Path $dataFull "config"
 $markerPath = if ($DisposableCertification) { Join-Path $dataFull "disposable-profile.marker" } else { Join-Path $configRoot "pc-install.json" }
 $composeEnvPath = Join-Path $configRoot "compose.env"
+Write-BackupCheckpoint -Stage "profile path resolution" -State COMPLETE
 $script:backupBootstrapFailureCode = "backup_preflight_failed"
 $script:backupBootstrapFailureOperation = "backup preflight"
+Write-BackupCheckpoint -Stage "profile files check" -State ENTER
 foreach ($required in @($markerPath, $composeEnvPath)) {
   if (-not (Test-Path -LiteralPath $required)) { throw "The PC profile has not been initialized." }
 }
+Write-BackupCheckpoint -Stage "profile files check" -State COMPLETE
 $composeFile = Join-Path $repo "infrastructure\docker-compose.pc.yml"
 $volumePrefix = $null
 $project = $null
@@ -53,6 +114,7 @@ $identityPath = Join-Path $configRoot $(if ($DisposableCertification) { "disposa
 $stageRoot = Join-Path $dataFull "backup-stage"
 $backupRoot = $null
 
+Write-BackupCheckpoint -Stage "disposable argument validation" -State ENTER
 if ($DisposableCertification) {
   $script:backupBootstrapFailureCode = "backup_arguments_invalid"
   $script:backupBootstrapFailureOperation = "backup child argument validation"
@@ -115,9 +177,11 @@ if ($DisposableCertification) {
   $project = "vayujit-pc-business"
   $volumePrefix = "vayujit_pc_business"
 }
+Write-BackupCheckpoint -Stage "disposable argument validation" -State COMPLETE
 
 $script:backupBootstrapFailureCode = "backup_preflight_failed"
 $script:backupBootstrapFailureOperation = "backup preflight"
+Write-BackupCheckpoint -Stage "profile configuration" -State ENTER
 foreach ($line in Get-Content -LiteralPath $composeEnvPath) {
   if ($line -match '^VAYUJIT_PC_PROJECT_NAME=(.+)$') { $configuredProject = $Matches[1] }
   if ($line -match '^VAYUJIT_PC_VOLUME_PREFIX=(.+)$') { $configuredVolumePrefix = $Matches[1] }
@@ -128,24 +192,39 @@ foreach ($line in Get-Content -LiteralPath $composeEnvPath) {
 if ($configuredProject -ne $project -or $configuredVolumePrefix -ne $volumePrefix -or $dbName -ne "vayujit_business") {
   throw "Compose profile does not match the marker-protected backup target."
 }
+Write-BackupCheckpoint -Stage "profile configuration" -State COMPLETE
+Write-BackupCheckpoint -Stage "recipient validation" -State ENTER
 if (-not $recipient -or $recipient -notmatch '^age1[0-9a-z]+$') {
   throw "PC backup recipient is invalid or missing."
 }
 if (-not (Test-Path -LiteralPath $identityPath)) { throw "The age decryption identity is missing; no backup was attempted." }
+Write-BackupCheckpoint -Stage "recipient validation" -State COMPLETE
+Write-BackupCheckpoint -Stage "identity ACL verification" -State ENTER
 Assert-VayujitPrivateAcl -Path $identityPath -Kind File | Out-Null
+Write-BackupCheckpoint -Stage "identity ACL verification" -State COMPLETE
+Write-BackupCheckpoint -Stage "age dependency check" -State ENTER
 if (-not (Get-Command age -ErrorAction SilentlyContinue)) { throw "The age encryption tool is not installed." }
+Write-BackupCheckpoint -Stage "age dependency check" -State COMPLETE
+Write-BackupCheckpoint -Stage "age keygen dependency check" -State ENTER
 if ($DisposableCertification -and -not (Get-Command age-keygen -ErrorAction SilentlyContinue)) { throw "age-keygen is required for disposable wrong-key rejection testing." }
+Write-BackupCheckpoint -Stage "age keygen dependency check" -State COMPLETE
+Write-BackupCheckpoint -Stage "Docker dependency check" -State ENTER
 $docker = Get-Command docker -ErrorAction SilentlyContinue
 if (-not $docker -and $env:PC_CERT_DOCKER_PATH -and (Test-Path -LiteralPath $env:PC_CERT_DOCKER_PATH)) {
   $docker = [pscustomobject]@{ Source = $env:PC_CERT_DOCKER_PATH }
 }
 if (-not $docker) { throw "Docker Desktop is unavailable; backup did not run." }
+Write-BackupCheckpoint -Stage "Docker dependency check" -State COMPLETE
+Write-BackupCheckpoint -Stage "staging directory creation" -State ENTER
 New-Item -ItemType Directory -Path $backupRoot, $stageRoot -Force | Out-Null
+Write-BackupCheckpoint -Stage "staging directory creation" -State COMPLETE
+Write-BackupCheckpoint -Stage "destination write probe" -State ENTER
 $writeProbe = Join-Path $backupRoot (".vayujit-backup-write-probe-" + [guid]::NewGuid().ToString("N"))
 try {
   [System.IO.File]::WriteAllText($writeProbe, "probe")
 } catch { throw "Backup destination is not writable." }
 finally { if (Test-Path -LiteralPath $writeProbe) { Remove-Item -LiteralPath $writeProbe -Force } }
+Write-BackupCheckpoint -Stage "destination write probe" -State COMPLETE
 
 function Get-HostPhysicalDiskNumber([string]$Path) {
   $fullPath = [System.IO.Path]::GetFullPath($Path)
@@ -232,8 +311,13 @@ function Get-DockerVolumeStorageEvidence([string]$VolumeName) {
 
 $postgresVolume = "${volumePrefix}_postgres_data"
 $mediaVolume = "${volumePrefix}_media_data"
+Write-BackupCheckpoint -Stage "PostgreSQL storage evidence" -State ENTER
 $postgresStorage = Get-DockerVolumeStorageEvidence $postgresVolume
+Write-BackupCheckpoint -Stage "PostgreSQL storage evidence" -State COMPLETE
+Write-BackupCheckpoint -Stage "media storage evidence" -State ENTER
 $mediaStorage = Get-DockerVolumeStorageEvidence $mediaVolume
+Write-BackupCheckpoint -Stage "media storage evidence" -State COMPLETE
+Write-BackupCheckpoint -Stage "destination independence check" -State ENTER
 $independence = 'UNVERIFIED'
 try {
   $backupDisk = Get-HostPhysicalDiskNumber $backupRoot
@@ -254,6 +338,8 @@ if ($backupRoot -match '^\\\\wsl(\$|\.localhost)\\docker-desktop') {
 if (-not $DisposableCertification -and $independence -ne "VERIFIED_DIFFERENT_PHYSICAL_DISK") {
   throw "Permanent backup destination independence is $independence; a verified different physical disk is required."
 }
+Write-BackupCheckpoint -Stage "destination independence check" -State COMPLETE
+Write-BackupCheckpoint -Stage "runtime initialization" -State ENTER
 $backupId = [DateTime]::UtcNow.ToString("yyyyMMddTHHmmssZ") + "-" + [guid]::NewGuid().ToString("N").Substring(0, 12)
 $workRoot = Join-Path $stageRoot $backupId
 $containerRoot = "/tmp/vayujit-pc-$backupId"
@@ -264,6 +350,7 @@ $statusPath = Join-Path $backupRoot "last-backup-status.json"
 $maintenanceOwned = $false
 $workerStopped = $false
 $apiStopped = $false
+$servicePauseTimedOut = $false
 $backupTimer = [System.Diagnostics.Stopwatch]::new()
 $restoreSeconds = $null
 $canonicalSnapshot = $null
@@ -323,6 +410,8 @@ function Add-CleanupFailure([string]$Message) {
   else { $script:cleanupFailure = $Message }
 }
 function Set-BackupStage([string]$Operation, [string]$FailureCode) {
+  if ($script:backupCurrentOperation) { Write-BackupCheckpoint -Stage $script:backupCurrentOperation -State COMPLETE }
+  Write-BackupCheckpoint -Stage $Operation -State ENTER
   $script:backupCurrentOperation = $Operation
   $script:backupCurrentFailureCode = $FailureCode
   $script:backupNativeExitCode = $null
@@ -330,6 +419,7 @@ function Set-BackupStage([string]$Operation, [string]$FailureCode) {
   $script:dockerFailureExitCode = $null
 }
 function Complete-BackupStage {
+  if ($script:backupCurrentOperation) { Write-BackupCheckpoint -Stage $script:backupCurrentOperation -State COMPLETE }
   $script:backupCurrentOperation = $null
   $script:backupCurrentFailureCode = $null
   $script:backupNativeExitCode = $null
@@ -341,6 +431,50 @@ function Assert-BackupNativeExit([string]$FailureCode) {
     $script:dockerFailureExitCode = [int]$LASTEXITCODE
     throw $FailureCode
   }
+}
+function Invoke-BackupDockerCaptured {
+  param(
+    [Parameter(Mandatory = $true)][string[]]$CommandArguments,
+    [Parameter(Mandatory = $true)][string]$FailureCode,
+    [string]$Operation = $script:backupCurrentOperation,
+    [string]$TimeoutFailureCode = $FailureCode,
+    [ValidateRange(1, 3600)][int]$TimeoutSeconds = 60,
+    [switch]$Direct
+  )
+  try {
+    # Compose progress is stderr even on success. Do not let PS 5.1 convert
+    # it to NativeCommandError before we can observe the actual process exit.
+    $arguments = if ($Direct) { $CommandArguments } else { @($composeArgs) + $CommandArguments }
+    $result = Invoke-VayujitNativeCapture -FilePath $docker.Source `
+      -Arguments $arguments -TimeoutSeconds $TimeoutSeconds
+  } catch [System.TimeoutException] {
+    if ($Operation -in @("worker pause", "API pause")) { $script:servicePauseTimedOut = $true }
+    throw $TimeoutFailureCode
+  }
+  catch { throw $FailureCode }
+  if ($result.ExitCode -ne 0) {
+    $script:dockerFailureExitCode = [int]$result.ExitCode
+    $script:dockerFailureOperation = $Operation
+  }
+  # Existing canonical stage exceptions retain only the operation and exit code.
+  return Invoke-VayujitBackupStage -Operation $Operation -FailureCode $FailureCode -Action { $result }
+}
+function Get-BackupWorkerState {
+  param([Parameter(Mandatory = $true)][string]$ContainerId, [switch]$RequireQuiescent)
+  $stateResult = Invoke-BackupDockerCaptured -Direct -TimeoutSeconds 15 `
+    -CommandArguments @("inspect", "--format", "{{json .State}}", $ContainerId) -FailureCode "worker_state_check_failed"
+  try {
+    $state = $stateResult.StdOut | ConvertFrom-Json -ErrorAction Stop
+    if ($state.Running -isnot [bool] -or $state.Paused -isnot [bool] -or $state.Restarting -isnot [bool]) { throw "invalid_worker_state" }
+  } catch { throw "worker_state_check_failed" }
+  if ($RequireQuiescent) {
+    if ($state.Running -or $state.Paused -or $state.Restarting -or $state.Status -ne "exited") { throw "worker_not_quiescent" }
+  } elseif (-not $state.Running -or $state.Paused -or $state.Restarting -or $state.Status -ne "running" -or $state.Health.Status -ne "healthy") {
+    # Do not start a previously stopped/paused/unhealthy worker as a side effect
+    # of backup. Recovery is armed only after this precondition and maintenance.
+    throw "worker_not_running_before_backup"
+  }
+  return $state
 }
 function Invoke-BackupAgeStage {
   param(
@@ -387,6 +521,7 @@ function Invoke-DockerExecCapturedOutput {
   return ($output -join "")
 }
 } catch {
+  Write-BackupCaughtCheckpoint -Record $_
   if ($DisposableCertification) {
     Stop-VayujitDisposableBackupBootstrap `
       -Boundary $script:backupBootstrapBoundary `
@@ -395,34 +530,32 @@ function Invoke-DockerExecCapturedOutput {
   }
   throw
 }
+Write-BackupCheckpoint -Stage "runtime initialization" -State COMPLETE
+Write-BackupCheckpoint -Stage "runtime staging creation" -State ENTER
 try {
   New-Item -ItemType Directory -Path $workRoot -Force | Out-Null
+  Write-BackupCheckpoint -Stage "runtime staging creation" -State COMPLETE
   Set-BackupStage -Operation "maintenance status check" -FailureCode "maintenance_status_failed"
-  $maintenanceStatus = & $docker.Source @composeArgs exec -T api python -m vayujit_api.maintenance_cli maintenance-status 2>$null | ConvertFrom-Json
-  Assert-BackupNativeExit -FailureCode "maintenance_status_failed"
-  if ($LASTEXITCODE -ne 0 -or $maintenanceStatus.maintenance) { throw "maintenance_already_enabled_or_unavailable" }
+  $maintenanceResult = Invoke-BackupDockerCaptured -CommandArguments @("exec", "-T", "api", "python", "-m", "vayujit_api.maintenance_cli", "maintenance-status") -FailureCode "maintenance_status_failed"
+  $maintenanceStatus = $maintenanceResult.StdOut | ConvertFrom-Json
+  if ($maintenanceStatus.maintenance -isnot [bool] -or $maintenanceStatus.maintenance -cne $false) { throw "maintenance_already_enabled_or_unavailable" }
   Set-BackupStage -Operation "worker state check" -FailureCode "worker_state_check_failed"
-  $workerContainer = (& $docker.Source @composeArgs ps -q worker 2>$null) -join ""
-  Assert-BackupNativeExit -FailureCode "worker_container_unavailable"
-  if ($LASTEXITCODE -ne 0 -or -not $workerContainer) { throw "worker_container_unavailable" }
-  $workerRunning = (& $docker.Source inspect --format '{{.State.Running}}' $workerContainer 2>$null) -join ""
-  Assert-BackupNativeExit -FailureCode "worker_state_check_failed"
-  if ($LASTEXITCODE -ne 0 -or $workerRunning -ne "true") { throw "worker_not_running_before_backup" }
+  $workerLookup = Invoke-BackupDockerCaptured -CommandArguments @("ps", "-q", "worker") -FailureCode "worker_container_unavailable"
+  $workerContainer = $workerLookup.StdOut.Trim()
+  if ($workerContainer -notmatch '^[a-f0-9]{12,64}$') { throw "worker_container_unavailable" }
+  Get-BackupWorkerState -ContainerId $workerContainer | Out-Null
   Set-BackupStage -Operation "maintenance enable" -FailureCode "maintenance_enable_failed"
-  $maintenanceOn = & $docker.Source @composeArgs exec -T api python -m vayujit_api.maintenance_cli maintenance-on --confirm 2>$null | ConvertFrom-Json
-  Assert-BackupNativeExit -FailureCode "maintenance_enable_failed"
-  if ($LASTEXITCODE -ne 0 -or -not $maintenanceOn.maintenance) { throw "maintenance_enable_failed" }
+  $maintenanceResult = Invoke-BackupDockerCaptured -CommandArguments @("exec", "-T", "api", "python", "-m", "vayujit_api.maintenance_cli", "maintenance-on", "--confirm") -FailureCode "maintenance_enable_failed"
+  $maintenanceOn = $maintenanceResult.StdOut | ConvertFrom-Json
+  if ($maintenanceOn.maintenance -isnot [bool] -or $maintenanceOn.maintenance -cne $true) { throw "maintenance_enable_failed" }
   $maintenanceOwned = $true
   $workerStopped = $true
   Set-BackupStage -Operation "worker pause" -FailureCode "worker_pause_failed"
-  & $docker.Source @composeArgs stop --timeout 45 worker 2>$null | Out-Null
-  Assert-BackupNativeExit -FailureCode "worker_pause_failed"
-  if ($LASTEXITCODE -ne 0) { throw "worker_pause_failed" }
+  Invoke-BackupDockerCaptured -CommandArguments @("stop", "--timeout", "45", "worker") -FailureCode "worker_pause_failed" -TimeoutFailureCode "worker_pause_timeout" -TimeoutSeconds 90 | Out-Null
+  Get-BackupWorkerState -ContainerId $workerContainer -RequireQuiescent | Out-Null
   $apiStopped = $true
   Set-BackupStage -Operation "API pause" -FailureCode "api_pause_failed"
-  & $docker.Source @composeArgs stop --timeout 30 api 2>$null | Out-Null
-  Assert-BackupNativeExit -FailureCode "api_pause_failed"
-  if ($LASTEXITCODE -ne 0) { throw "api_pause_failed" }
+  Invoke-BackupDockerCaptured -CommandArguments @("stop", "--timeout", "30", "api") -FailureCode "api_pause_failed" | Out-Null
 
   Set-BackupStage -Operation "PostgreSQL container lookup" -FailureCode "postgres_container_unavailable"
   $postgresContainer = (& $docker.Source @composeArgs ps -q postgres 2>$null) -join ""
@@ -653,12 +786,15 @@ try {
       restore_duration_seconds = $restoreSeconds
       evidence = "Synthetic randomized disposable fixture only; never copy or promote to the permanent owner profile."
     }
+    Write-BackupCheckpoint -Stage "child report write" -State ENTER
     [System.IO.File]::WriteAllText($backupReportFullPath, (($certification | ConvertTo-Json -Depth 8) + "`n"), [System.Text.UTF8Encoding]::new($false))
+    Write-BackupCheckpoint -Stage "child report write" -State COMPLETE
   }
   Complete-BackupStage
   $backupCompleted = $true
 } catch {
   $caughtFailure = $_
+  Write-BackupCaughtCheckpoint -Record $caughtFailure
   foreach ($partial in @(
     "pc-backup-$backupId.database.dump.age",
     "pc-backup-$backupId.media.zip.age",
@@ -678,13 +814,17 @@ try {
   $failureOperation = if ($stageFailureOperation) { [string]$stageFailureOperation } elseif ($backupCurrentOperation) { $backupCurrentOperation } elseif ($dockerFailureOperation) { $dockerFailureOperation } elseif ($knownFailureMarker) { $knownFailureMarker } else { "backup stage unclassified" }
   $nativeFailureExitCode = if ($null -ne $dockerFailureExitCode) { [int]$dockerFailureExitCode } elseif ($null -ne $stageNativeExitCode) { [int]$stageNativeExitCode } elseif ($null -ne $backupNativeExitCode) { [int]$backupNativeExitCode } else { $null }
   $failure = New-VayujitBackupFailureReport -BackupId $backupId -FailureOperation $failureOperation -FailureCode $failureCode -NativeExitCode $nativeFailureExitCode -DockerExitCode $dockerFailureExitCode -CleanupFailure $cleanupFailure
-  $statusFailure = $failure.Clone()
+  $statusFailure = [ordered]@{}
+  foreach ($key in $failure.Keys) { $statusFailure[$key] = $failure[$key] }
   $statusFailure.status = "failed"
   try { [System.IO.File]::WriteAllText($statusPath, (($statusFailure | ConvertTo-Json -Depth 4) + "`n"), [System.Text.UTF8Encoding]::new($false)) } catch { }
   if ($DisposableCertification -and $backupReportFullPath) {
     try {
+      Write-BackupCheckpoint -Stage "child report write" -State ENTER
       [System.IO.File]::WriteAllText($backupReportFullPath, (($failure | ConvertTo-Json -Depth 5) + "`n"), [System.Text.UTF8Encoding]::new($false))
+      Write-BackupCheckpoint -Stage "child report write" -State COMPLETE
     } catch {
+      Write-BackupCheckpoint -Stage "child report write" -State FAIL -Classification report_write_failed
       $script:backupReportWriteFailed = $true
     }
   }
@@ -694,21 +834,25 @@ try {
     "Encrypted backup failed during $failureOperation ($failureCode). No partial backup was certified."
   }
 } finally {
+  Write-BackupCheckpoint -Stage "service recovery" -State ENTER
   if ($DisposableCertification) {
     $wrongIdentityPath = Join-Path $configRoot "wrong-test-identity.agekey"
     if (Test-Path -LiteralPath $wrongIdentityPath) { Remove-Item -LiteralPath $wrongIdentityPath -Force -ErrorAction SilentlyContinue }
   }
   $apiReady = -not $apiStopped
-  if ($apiStopped) {
+  $workerReady = -not $workerStopped
+  if ($apiStopped -or $maintenanceOwned) {
     try {
-      & $docker.Source @composeArgs start api 2>$null | Out-Null
-      if ($LASTEXITCODE -ne 0) { throw "api_restart_failed" }
+      if ($apiStopped) {
+        Invoke-BackupDockerCaptured -CommandArguments @("start", "api") -Operation "application service recovery" -FailureCode "api_restart_failed" | Out-Null
+      }
       $apiReady = $false
       for ($attempt = 0; $attempt -lt 60; $attempt++) {
-        $apiContainer = (& $docker.Source @composeArgs ps -q api 2>$null) -join ""
-        if ($LASTEXITCODE -eq 0 -and $apiContainer) {
-          $health = (& $docker.Source inspect --format '{{.State.Health.Status}}' $apiContainer 2>$null) -join ""
-          if ($LASTEXITCODE -eq 0 -and $health -eq "healthy") { $apiReady = $true; break }
+        $lookup = Invoke-BackupDockerCaptured -CommandArguments @("ps", "-q", "api") -Operation "application service recovery" -FailureCode "api_restart_failed" -TimeoutSeconds 15
+        $apiContainer = $lookup.StdOut.Trim()
+        if ($apiContainer -match '^[a-f0-9]{12,64}$') {
+          $healthResult = Invoke-BackupDockerCaptured -Direct -CommandArguments @("inspect", "--format", "{{.State.Health.Status}}", $apiContainer) -Operation "application service recovery" -FailureCode "api_restart_failed" -TimeoutSeconds 15
+          if ($healthResult.StdOut.Trim() -eq "healthy") { $apiReady = $true; break }
         }
         Start-Sleep -Seconds 2
       }
@@ -720,16 +864,16 @@ try {
   }
   if ($workerStopped) {
     $workerRecovery = Invoke-VayujitWorkerRecovery -StartWorker {
-      & $docker.Source @composeArgs start worker 2>$null | Out-Null
-      [pscustomobject]@{ ExitCode = [int]$LASTEXITCODE }
+      Invoke-BackupDockerCaptured -CommandArguments @("start", "worker") -Operation "publishing worker restart and health verification" -FailureCode "worker_restart_failed"
     } -GetHealth {
-      $workerContainer = (& $docker.Source @composeArgs ps -q worker 2>$null) -join ""
-      $lookupExit = [int]$LASTEXITCODE
-      if ($lookupExit -ne 0) { return [pscustomobject]@{ ExitCode = $lookupExit; Status = "unknown" } }
+      $lookup = Invoke-BackupDockerCaptured -CommandArguments @("ps", "-q", "worker") -Operation "publishing worker restart and health verification" -FailureCode "worker_health_check_failed" -TimeoutSeconds 15
+      $workerContainer = $lookup.StdOut.Trim()
       if (-not $workerContainer) { return [pscustomobject]@{ ExitCode = 0; Status = "starting" } }
-      $health = (& $docker.Source inspect --format '{{.State.Health.Status}}' $workerContainer 2>$null) -join ""
-      [pscustomobject]@{ ExitCode = [int]$LASTEXITCODE; Status = $health }
+      if ($workerContainer -notmatch '^[a-f0-9]{12,64}$') { throw "worker_health_check_failed" }
+      $healthResult = Invoke-BackupDockerCaptured -Direct -CommandArguments @("inspect", "--format", "{{.State.Health.Status}}", $workerContainer) -Operation "publishing worker restart and health verification" -FailureCode "worker_health_check_failed" -TimeoutSeconds 15
+      [pscustomobject]@{ ExitCode = 0; Status = $healthResult.StdOut.Trim() }
     }
+    $workerReady = $workerRecovery.Status -eq "PASS"
     if ($workerRecovery.Status -ne "PASS") {
       Add-CleanupFailure $workerRecovery.FailureCode
       if ($null -ne $workerRecovery.DockerExitCode) {
@@ -740,13 +884,18 @@ try {
     }
   }
   if ($maintenanceOwned) {
-    if (-not $apiReady) {
-      Add-CleanupFailure "maintenance_marker_preserved_because_api_is_not_healthy"
-      Write-Warning "The persistent maintenance marker was kept because the API is not healthy."
+    if (-not $apiReady -or -not $workerReady -or $servicePauseTimedOut) {
+      if (-not $apiReady) { Add-CleanupFailure "maintenance_marker_preserved_because_api_is_not_healthy" }
+      if (-not $workerReady) { Add-CleanupFailure "maintenance_marker_preserved_because_worker_is_not_healthy" }
+      if ($servicePauseTimedOut) { Add-CleanupFailure "maintenance_marker_preserved_because_service_stop_timed_out" }
+      # Terminating a timed-out Docker client cannot cancel an unknown server
+      # stop operation. Keep writes blocked even if a later health probe passes.
+      Write-Warning "The persistent maintenance marker was kept because application recovery or stop completion requires review."
     } else {
       try {
-        $maintenanceOff = (& $docker.Source @composeArgs exec -T api python -m vayujit_api.maintenance_cli maintenance-off --confirm 2>$null | ConvertFrom-Json)
-        if ($LASTEXITCODE -ne 0 -or $maintenanceOff.maintenance) { throw "maintenance_clear_failed" }
+        $maintenanceResult = Invoke-BackupDockerCaptured -CommandArguments @("exec", "-T", "api", "python", "-m", "vayujit_api.maintenance_cli", "maintenance-off", "--confirm") -Operation "application service recovery" -FailureCode "maintenance_clear_failed"
+        $maintenanceOff = $maintenanceResult.StdOut | ConvertFrom-Json
+        if ($maintenanceOff.maintenance -isnot [bool] -or $maintenanceOff.maintenance -cne $false) { throw "maintenance_clear_failed" }
       } catch {
         Add-CleanupFailure "maintenance_clear_failed"
         Write-Warning "Maintenance remains enabled; do not resume business writes until service health and the maintenance marker are reviewed."
@@ -761,14 +910,15 @@ try {
   }
   foreach ($service in @('postgres', 'api')) {
     try {
-      & $docker.Source @composeArgs exec -T $service rm -rf "/tmp/vayujit-pc-$backupId" 2>$null | Out-Null
-      if ($LASTEXITCODE -ne 0) { throw "container_temporary_staging_cleanup_failed" }
+      Invoke-BackupDockerCaptured -CommandArguments @("exec", "-T", $service, "rm", "-rf", "/tmp/vayujit-pc-$backupId") -Operation "application service recovery" -FailureCode "container_temporary_staging_cleanup_failed" | Out-Null
     } catch {
       Add-CleanupFailure "container_temporary_staging_cleanup_failed"
       Write-Warning "Temporary container staging cleanup needs manual review; no database or media volume was removed."
     }
   }
 }
+Write-BackupCheckpoint -Stage "service recovery" -State COMPLETE
+Write-BackupCheckpoint -Stage "backup finalization" -State ENTER
 if ($cleanupFailure) {
   if ($backupCompleted) {
     $failedStatus = [ordered]@{ status = "failed"; backup_id = $backupId; recorded_at_utc = [DateTime]::UtcNow.ToString("o"); failure_code = "service_recovery_failed"; recovery_hint = "Backup may have completed, but application recovery did not. Confirm API/worker health and maintenance marker before resuming writes." }
@@ -801,3 +951,4 @@ if ($backupFailureMessage) {
 if ($cleanupFailure) {
   throw "Backup artifacts may exist, but service recovery failed: $cleanupFailure"
 }
+Write-BackupCheckpoint -Stage "backup finalization" -State COMPLETE

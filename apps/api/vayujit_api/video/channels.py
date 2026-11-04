@@ -823,6 +823,7 @@ def handoff_confirm(
     if handoff.state == "confirmed":
         return {
             "id": handoff.id,
+            "social_post_id": handoff.social_post_id,
             "state": handoff.state,
             "idempotent_reuse": True,
             "fingerprint": handoff.handoff_fingerprint,
@@ -1001,6 +1002,7 @@ def handoff_confirm(
         "state": handoff.state,
         "idempotent_reuse": False,
         "fingerprint": handoff.handoff_fingerprint,
+        "social_post_id": handoff.social_post_id,
     }
 
 

@@ -1,0 +1,96 @@
+{
+  "work_package": "WP0 Restore Real Browser QA",
+  "status": "BLOCKED_MISSING_EXPLICIT_DATABASE_AUTHORIZATION",
+  "completion_gate_passed": false,
+  "application_certification": "INCOMPLETE",
+  "authorization": {
+    "specific_instance_approved": false,
+    "host": null,
+    "port": null,
+    "instance_identity": null,
+    "qa_role": null,
+    "approved_database_scope": null,
+    "connection_string_alone_is_authorization": false,
+    "qa_database_admin_url_present": false,
+    "connection_string_or_credentials_recorded": false,
+    "database_connection_attempted": false
+  },
+  "checks": [
+    {
+      "name": "current process QA_DATABASE_ADMIN_URL presence-only check",
+      "kind": "READ_ONLY_ENVIRONMENT_INSPECTION",
+      "result": "ABSENT",
+      "secret_value_printed": false
+    },
+    {
+      "name": "existing fixture, native runtime probe, guard and cleanup source review",
+      "kind": "STATIC_REVIEW_NOT_RUNTIME_TEST",
+      "result": "EXISTING_MECHANISMS_IDENTIFIED_FOR_REUSE",
+      "sources": [
+        "qa/fixture_server.py",
+        "qa/probe-owned-runtime.mjs",
+        "qa/cleanup_disposable.py",
+        "qa/verify-phase4c-cleanup.py",
+        "apps/api/vayujit_api/core/test_database.py",
+        "scripts/run-qa-phase1.ps1",
+        "docs/qa/architecture.md",
+        "docs/qa/seller-experience/audit-execution.json"
+      ]
+    }
+  ],
+  "fresh_execution": {
+    "tests_executed": 0,
+    "passed": 0,
+    "failed": 0,
+    "skipped": 0,
+    "authenticated_browser_tests": 0,
+    "persisted_api_tests": 0,
+    "axe_scans": 0,
+    "desktop_browser_runs": 0,
+    "mobile_browser_runs": 0,
+    "database_isolation_runtime_verified": false,
+    "commands_blocked_before_invocation": [
+      "node qa/probe-owned-runtime.mjs",
+      "authenticated Playwright and persisted API suites"
+    ]
+  },
+  "journey_groups": [
+    { "name": "Goal creation", "status": "BLOCKED" },
+    { "name": "Opportunity discovery/review", "status": "BLOCKED" },
+    { "name": "Research", "status": "BLOCKED" },
+    { "name": "Selection/rejection", "status": "BLOCKED" },
+    { "name": "Catalog", "status": "BLOCKED" },
+    { "name": "Supplier entry", "status": "BLOCKED" },
+    { "name": "Sourcing economics", "status": "BLOCKED" },
+    { "name": "Marketplace readiness", "status": "BLOCKED" },
+    { "name": "Dashboard and Action Center", "status": "BLOCKED" }
+  ],
+  "findings": {
+    "new_confirmed_application_defects": [],
+    "previous_suspicions_disproven": [],
+    "historical_open_findings_closed": [],
+    "historical_counts_reused_as_current_results": false
+  },
+  "cleanup": {
+    "status": "NOT_APPLICABLE_NO_WP0_RESOURCES_CREATED",
+    "databases_created": 0,
+    "databases_modified": 0,
+    "databases_dropped": 0,
+    "sessions_terminated": 0,
+    "runtime_database_absence_verified": false,
+    "unrelated_database_state_queried": false,
+    "docker_resources_modified": false
+  },
+  "safety": {
+    "permanent_business_database_initialized": false,
+    "production_data_modified": false,
+    "live_marketplace_or_provider_calls": false,
+    "human_controls_bypassed": false,
+    "production_or_qa_harness_code_changed": false,
+    "historical_reports_or_backlog_overwritten": false,
+    "pc_first_backup_workstream": "PARKED_UNCHANGED",
+    "wp1_started": false,
+    "branch_commit_or_push": false
+  },
+  "required_human_action": "Approve a specific QA-only PostgreSQL instance, loopback port, dedicated role and fresh token-marked database create/test/exact-cleanup scope; provide the credential privately in the same execution environment. Do not paste credentials into chat or infer approval from a URL."
+}

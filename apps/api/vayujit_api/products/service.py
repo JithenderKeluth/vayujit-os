@@ -71,7 +71,9 @@ def commit_or_conflict(db: Session) -> None:
         ) from error
 
 
-def create_product(db: Session, owner: User, data: ProductCreate) -> Product:
+def create_product(
+    db: Session, owner: User, data: ProductCreate, *, commit: bool = True
+) -> Product:
     brand = resolve_create_brand(db, owner, data.brand_id)
     stamp = now()
     product = Product(
@@ -117,7 +119,8 @@ def create_product(db: Session, owner: User, data: ProductCreate) -> Product:
                 "sku_present": bool(product.sku),
             },
         )
-        db.commit()
+        if commit:
+            db.commit()
     except IntegrityError as error:
         db.rollback()
         raise HTTPException(

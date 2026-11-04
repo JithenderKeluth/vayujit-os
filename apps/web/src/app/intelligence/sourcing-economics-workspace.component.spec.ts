@@ -11,6 +11,8 @@ describe('SourcingEconomicsWorkspaceComponent', () => {
       providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
     }).compileComponents();
     const fixture = TestBed.createComponent(SourcingEconomicsWorkspaceComponent);
+    // Initialize route state before supplying the restored-context render fixture.
+    fixture.detectChanges();
     fixture.componentInstance.context.set({
       id: 'context-1',
       status: 'ready',
@@ -67,5 +69,24 @@ describe('SourcingEconomicsWorkspaceComponent', () => {
 
     expect(component.decisionActionAvailable('PROCEED_TO_LAUNCH_PREPARATION')).toBe(false);
     expect(component.decisionActionAvailable('RESEARCH_FURTHER')).toBe(true);
+  });
+
+  it('explains a missing supplier evaluation without enabling a no-op brief action', async () => {
+    await TestBed.configureTestingModule({
+      imports: [SourcingEconomicsWorkspaceComponent],
+      providers: [provideHttpClient(), provideHttpClientTesting(), provideRouter([])],
+    }).compileComponents();
+    const fixture = TestBed.createComponent(SourcingEconomicsWorkspaceComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component.opportunityId = 'product-a';
+    component.supplierId = 'supplier-a';
+    component.scopeLoading.set(false);
+    fixture.detectChanges();
+    const button = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)
+      .find((item) => item.textContent?.trim() === 'Load decision brief');
+    expect(button?.disabled).toBe(true);
+    expect(fixture.nativeElement.textContent).toContain('A product-wide calculation will not be substituted');
+    expect(fixture.nativeElement.querySelector('a[href*="#context-title"]')).not.toBeNull();
   });
 });

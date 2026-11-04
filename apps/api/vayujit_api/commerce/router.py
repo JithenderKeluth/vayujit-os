@@ -17,6 +17,7 @@ from vayujit_api.commerce.models import (
     MarketplaceInventory,
     MarketplaceListing,
     MarketplaceOrder,
+    MarketplacePrice,
     MarketplaceSettlement,
 )
 from vayujit_api.commerce.schemas import (
@@ -270,6 +271,8 @@ def list_listings(
 @router.post("/listings", response_model=ListingResponse, status_code=201)
 def create_listing(data: ListingCreate, db: DatabaseSession, user: Owner) -> ListingResponse:
     account = ensure_account(db, user, data.account_id)
+    if data.prepare_only:
+        db.refresh(account, with_for_update=True)
     brand = db.scalar(select(Brand).where(Brand.id == data.brand_id, Brand.owner_id == user.id))
     product = db.scalar(
         select(Product).where(
@@ -303,10 +306,16 @@ def create_listing(data: ListingCreate, db: DatabaseSession, user: Owner) -> Lis
         if existing:
             return listing_response(existing)
     stamp = now()
-    remote = connector_for(account.marketplace).create_listing(
-        title=data.title,
-        sku=data.marketplace_sku,
-        idempotency_key=data.idempotency_key or str(uuid.uuid4()),
+    # Unpublished preparation uses the same owned listing and lineage authority,
+    # never the connector (including its fake transport).
+    remote = (
+        {}
+        if data.prepare_only
+        else connector_for(account.marketplace).create_listing(
+            title=data.title,
+            sku=data.marketplace_sku,
+            idempotency_key=data.idempotency_key or str(uuid.uuid4()),
+        )
     )
     row = MarketplaceListing(
         owner_id=user.id,
@@ -315,18 +324,18 @@ def create_listing(data: ListingCreate, db: DatabaseSession, user: Owner) -> Lis
         account_id=account.id,
         marketplace=account.marketplace,
         local_listing_id=f"local-{uuid.uuid4().hex[:16]}",
-        remote_listing_id=str(remote["remote_id"]),
-        marketplace_sku=str(remote["remote_sku"]),
+        remote_listing_id=None if data.prepare_only else str(remote["remote_id"]),
+        marketplace_sku=data.marketplace_sku if data.prepare_only else str(remote["remote_sku"]),
         title=data.title.strip(),
         description_source="artifact" if artifact else "product",
         category=data.category,
-        status="active",
-        publication_state="active",
-        external_url=str(remote["url"]),
-        raw_safe_status="active",
-        remote_created_at=stamp,
-        remote_updated_at=stamp,
-        last_synchronized_at=stamp,
+        status="draft" if data.prepare_only else "active",
+        publication_state="draft" if data.prepare_only else "active",
+        external_url=None if data.prepare_only else str(remote["url"]),
+        raw_safe_status=None if data.prepare_only else "active",
+        remote_created_at=None if data.prepare_only else stamp,
+        remote_updated_at=None if data.prepare_only else stamp,
+        last_synchronized_at=None if data.prepare_only else stamp,
         drift_state="none",
         content_artifact_id=artifact.id if artifact else None,
         content_artifact_version=artifact.version_number if artifact else None,
@@ -380,14 +389,21 @@ def update_listing(
     )
     if row is None:
         raise HTTPException(404, "Marketplace listing was not found.")
+    if not row.remote_listing_id:
+        db.refresh(row, with_for_update=True)
     previous = idempotent_resource(
         db, user.id, row.account_id, "listing:update", data.idempotency_key
     )
     if previous:
         return listing_response(row)
-    remote = connector_for(row.marketplace).update_listing(
-        remote_id=row.remote_listing_id or str(row.id), title=data.title, sku=data.marketplace_sku
-    )
+    if row.remote_listing_id:
+        remote = connector_for(row.marketplace).update_listing(
+            remote_id=row.remote_listing_id, title=data.title, sku=data.marketplace_sku
+        )
+    else:
+        if data.status not in {None, "draft"}:
+            raise HTTPException(409, "Local preparation cannot publish or activate a listing.")
+        remote = {}
     if data.title is not None:
         row.title = data.title.strip()
     if data.category is not None:
@@ -396,8 +412,9 @@ def update_listing(
         row.marketplace_sku = data.marketplace_sku
     if data.status is not None:
         row.status = data.status
-    row.remote_updated_at = now()
-    row.last_synchronized_at = now()
+    if row.remote_listing_id:
+        row.remote_updated_at = now()
+        row.last_synchronized_at = now()
     row.updated_at = now()
     db.flush()
     remember_idempotency(
@@ -419,6 +436,31 @@ def update_listing(
     )
     db.commit()
     return listing_response(row)
+
+
+@router.get("/listings/{listing_id}/pricing")
+def local_listing_price(
+    listing_id: uuid.UUID, db: DatabaseSession, user: Owner
+) -> dict[str, object]:
+    """Owned persisted price projection; no provider lookup or UNKNOWN coercion."""
+    get_listing(listing_id, db, user)
+    price = db.scalar(
+        select(MarketplacePrice)
+        .where(
+            MarketplacePrice.owner_id == user.id,
+            MarketplacePrice.listing_id == listing_id,
+            MarketplacePrice.variant_id.is_(None),
+        )
+        .order_by(MarketplacePrice.effective_from.desc(), MarketplacePrice.id)
+    )
+    return {
+        "listing_id": listing_id,
+        "selling_price": str(price.amount) if price else None,
+        "list_price": str(price.mrp_amount) if price and price.mrp_amount is not None else None,
+        "sale_price": str(price.sale_amount) if price and price.sale_amount is not None else None,
+        "currency": price.currency if price else None,
+        "availability": "KNOWN" if price else "UNKNOWN",
+    }
 
 
 @router.post("/listings/{listing_id}/preview")

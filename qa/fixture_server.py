@@ -27,6 +27,7 @@ def run() -> None:
     parser.add_argument("--port", type=int, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--token", required=True)
+    parser.add_argument("--migrate", action="store_true")
     parser.add_argument(
         "--pytest",
         nargs="+",
@@ -41,6 +42,50 @@ def run() -> None:
             "test_qa_phase3a_remediation.py",
             "test_qa_phase3b_remediation.py",
             "test_qa_phase4b_opening_stock.py",
+            "test_seller_wp1.py",
+            "test_seller_wp2.py",
+            "test_seller_wp3.py",
+            "test_seller_wp4.py",
+            "test_seller_wp5.py",
+            "test_seller_wp6.py",
+            "test_seller_wp6a.py",
+            "test_seller_wp6b.py",
+            "test_seller_wp6a_migration.py",
+            "test_product_opportunity_scoring.py",
+            "test_pr_sos_01_catalog.py",
+            "test_business_agent_orchestration.py",
+            "test_product_source_review_integration.py",
+            "test_intelligence_economic_foundation.py",
+            "test_intelligence_economic_calculation.py",
+            "test_supplier_due_diligence.py",
+            "test_seller_wp7a.py",
+            "test_seller_wp7a2.py",
+            "test_seller_wp7a3.py",
+            "test_seller_wp7a4.py",
+            "test_seller_wp7a5.py",
+            "test_seller_wp7a6.py",
+            "test_seller_wp7a7.py",
+            "test_campaign_activity_rescheduling.py",
+            "test_campaign_recovery_dispatch.py",
+            "test_ai_seo.py",
+            "test_ai_video_bulk_e2e.py",
+            "test_ai_video_bulk_restart.py",
+            "test_social_video_acceptance.py",
+            "test_social_video_durable.py",
+            "test_trend_analysis_api.py",
+            "test_pr_sos_02_amazon_controls.py",
+            "test_pr_sos_03_flipkart_controls.py",
+            "test_marketing_plan.py",
+            "test_supplier_portfolio_integration.py",
+            "test_ai_studio_e2e.py",
+            "test_ai_images_bulk.py",
+            "test_ai_images_integration.py",
+            "test_ai_images_handoff.py",
+            "test_ai_video_recovery.py",
+            "test_ads_failure_acceptance.py",
+            "test_ads_concurrency_acceptance.py",
+            "test_ads_security_privacy_acceptance.py",
+            "test_ads_version_safety_acceptance.py",
         ],
     )
     args = parser.parse_args()
@@ -50,6 +95,9 @@ def run() -> None:
     if admin_url.host != "127.0.0.1" or admin_url.database != "postgres":
         raise ValueError("QA_ADMIN_MUST_BE_LOOPBACK_POSTGRES")
     db_url = admin_url.set(database=name)
+    from qa.postgres_instance import approved_guard
+
+    guarded_instance = approved_guard(admin_url)
     # Do not load any .env or inherited business credentials into this process.
     for key in list(os.environ):
         if key.startswith("VAYUJIT_") or key in {
@@ -93,32 +141,47 @@ def run() -> None:
     created = False
     engine = None
     try:
+        if guarded_instance is not None:
+            guarded_instance.create(args.token)
+            created = True
         with admin.connect() as connection:
             exists = connection.scalar(
                 text("select 1 from pg_database where datname=:name"), {"name": name}
             )
-            if exists:
+            if exists and guarded_instance is None:
                 raise ValueError("QA_DATABASE_ALREADY_EXISTS_REFUSING_REUSE")
-            connection.execute(text(f'CREATE DATABASE "{name}"'))
+            if guarded_instance is None:
+                connection.execute(text(f'CREATE DATABASE "{name}"'))
             created = True
         engine = create_engine(db_url, poolclass=NullPool)
         with engine.begin() as connection:
-            connection.execute(
-                text(
-                    "CREATE TABLE test_database_marker (marker_id integer PRIMARY KEY, "
-                    "project_identifier text NOT NULL, suite_token text NOT NULL)"
+            if guarded_instance is not None:
+                assert_safe_test_database(
+                    connection, database_url=str(db_url), environment="test"
                 )
-            )
-            connection.execute(
-                text("INSERT INTO test_database_marker VALUES (1, :marker, :token)"),
-                {"marker": PROJECT_MARKER, "token": args.token},
-            )
-            assert_safe_test_database(connection, database_url=str(db_url), environment="test")
+        if guarded_instance is None:
+            with engine.begin() as connection:
+                connection.execute(
+                    text(
+                        "CREATE TABLE test_database_marker (marker_id integer PRIMARY KEY, "
+                        "project_identifier text NOT NULL, suite_token text NOT NULL)"
+                    )
+                )
+                connection.execute(
+                    text(
+                        "INSERT INTO test_database_marker VALUES (1, :marker, :token)"
+                    ),
+                    {"marker": PROJECT_MARKER, "token": args.token},
+                )
+                assert_safe_test_database(
+                    connection, database_url=str(db_url), environment="test"
+                )
         # Block outbound socket connections in addition to canonical kill switches.
         from qa.network_guard import restrict_egress
 
         restrict_egress(
-            admin_url.port or 5432, local_supplier_fixture=os.environ.get("QA_PHASE") in {"2", "3"}
+            admin_url.port or 5432,
+            local_supplier_fixture=os.environ.get("QA_PHASE") in {"2", "3"},
         )
         from vayujit_api.core.config import get_settings
         from vayujit_api.core.database import Base
@@ -126,12 +189,34 @@ def run() -> None:
         from vayujit_api.main import app
 
         cfg = get_settings()
+        if os.environ.get("QA_BROWSER_PHASE") == "WP7A7":
+            from qa.wp7a7_fixture import install as install_closure_clock
+
+            install_closure_clock(app, args.token, engine)
         if cfg.live_mutations_enabled or not cfg.external_mutations_emergency_stop:
             raise ValueError("QA_PROVIDER_SAFETY_DENIED")
-        Base.metadata.create_all(engine)
+        if os.environ.get("QA_BROWSER_PHASE") in {"WP7A5", "WP7A6", "WP7A7"}:
+            from cryptography.fernet import Fernet
+
+            # Local metadata/analysis only; all external kill switches and socket guards remain.
+            cfg.intelligence_enabled = True
+            cfg.credential_encryption_key = Fernet.generate_key().decode("ascii")
+        if args.migrate:
+            from alembic import command
+
+            from qa.validate_postgres_instance import QaMigrationConfig
+
+            root = Path(__file__).resolve().parents[1]
+            migration = QaMigrationConfig(str(root / "apps/api/alembic.ini"))
+            migration.set_main_option("script_location", str(root / "apps/api/alembic"))
+            command.upgrade(migration, "head")
+        else:
+            Base.metadata.create_all(engine)
         args.output.mkdir(parents=True, exist_ok=True)
         schema = app.openapi()
-        (args.output / "openapi.json").write_text(json.dumps(schema, indent=2), encoding="utf-8")
+        (args.output / "openapi.json").write_text(
+            json.dumps(schema, indent=2), encoding="utf-8"
+        )
         if args.pytest:
             # Same fresh marked database, egress guard and finally cleanup as browsers.
             # Do not reuse shared development/integration/golden databases.
@@ -175,16 +260,18 @@ def run() -> None:
                     ),
                     encoding="utf-8",
                 )
-            raise SystemExit(
-                pytest.main(
-                    [
-                        *[str(Path("apps/api/tests") / name) for name in args.pytest],
-                        "-o",
-                        "addopts=",
-                        "--junitxml=" + str(args.output / "backend-results.xml"),
-                    ]
-                )
+            result = pytest.main(
+                [
+                    *[str(Path("apps/api/tests") / name) for name in args.pytest],
+                    "-o",
+                    "addopts=",
+                    "--junitxml=" + str(args.output / "backend-results.xml"),
+                ]
             )
+            # Alembic uses the app engine too. Release this owned pool before
+            # signed cleanup checks for active sessions; never terminate sessions.
+            app_engine.dispose()
+            raise SystemExit(result)
 
         if os.environ.get("QA_PHASE") == "3":
             from qa.runtime_supervisor import supervise
@@ -197,7 +284,9 @@ def run() -> None:
         def witness() -> dict[str, object]:
             assert engine is not None
             with engine.connect() as connection:
-                assert_safe_test_database(connection, database_url=str(db_url), environment="test")
+                assert_safe_test_database(
+                    connection, database_url=str(db_url), environment="test"
+                )
             return {
                 "token": args.token,
                 "disposable": True,
@@ -206,9 +295,53 @@ def run() -> None:
 
         import uvicorn
 
+        if os.environ.get("QA_BROWSER_PHASE") in {
+            "WP7A",
+            "WP7A2",
+            "WP7A3",
+            "WP7A4",
+            "WP7A5",
+            "WP7A6",
+            "WP7A7",
+        }:
+            from qa.wp7a_fixture import install
+
+            install(app, args.token, engine, args.output)
+        if os.environ.get("QA_BROWSER_PHASE") in {
+            "WP7A2",
+            "WP7A3",
+            "WP7A4",
+            "WP7A5",
+            "WP7A6",
+            "WP7A7",
+        }:
+            from qa.wp7a2_fixture import install as install_followup
+
+            install_followup(app, args.token, engine, args.output)
+
+        if os.environ.get("QA_BROWSER_PHASE") in {
+            "WP7A3",
+            "WP7A4",
+            "WP7A5",
+            "WP7A6",
+            "WP7A7",
+        }:
+            from qa.wp7a3_fixture import install as install_third
+
+            install_third(app, args.token, engine, args.output)
+
+        if os.environ.get("QA_BROWSER_PHASE") in {"WP7A4", "WP7A5", "WP7A6", "WP7A7"}:
+            from qa.wp7a4_fixture import install as install_fourth
+
+            install_fourth(app, args.token, engine, args.output)
+
         server = uvicorn.Server(
             uvicorn.Config(
-                app, host="127.0.0.1", port=args.port, log_level="error", access_log=False
+                app,
+                host="127.0.0.1",
+                port=args.port,
+                log_level="error",
+                access_log=False,
             )
         )
 
@@ -221,21 +354,49 @@ def run() -> None:
         server.run()
         app_engine.dispose()
     finally:
+        # Release this process's application pool even if fixture installation fails.
+        # Never terminate sessions belonging to another process or weaken drop guards.
+        if "app_engine" in locals():
+            app_engine.dispose()
         if engine is not None:
             with engine.connect() as connection:
-                assert_safe_test_database(connection, database_url=str(db_url), environment="test")
+                assert_safe_test_database(
+                    connection, database_url=str(db_url), environment="test"
+                )
                 actual = connection.scalar(
-                    text("select suite_token from test_database_marker where marker_id=1")
+                    text(
+                        "select suite_token from test_database_marker where marker_id=1"
+                    )
                 )
                 if actual != args.token:
                     raise ValueError("QA_CLEANUP_MARKER_MISMATCH")
             engine.dispose()
-        if created:
+        if created and guarded_instance is not None:
+            drop_timeout_ms = int(
+                os.environ.get("QA_DATABASE_DROP_TIMEOUT_MS", "15000")
+            )
+            guarded_instance.drop(args.token, timeout_ms=drop_timeout_ms)
+            args.output.mkdir(parents=True, exist_ok=True)
+            (args.output / "cleanup.json").write_text(
+                json.dumps(
+                    {
+                        "status": "PASS",
+                        "database": name,
+                        "marker_verified": True,
+                        "database_absent": True,
+                        "drop_statement_timeout_ms": drop_timeout_ms,
+                        "signed_lifecycle": True,
+                    }
+                ),
+                encoding="utf-8",
+            )
+        if created and guarded_instance is None:
             with admin.connect() as connection:
                 # Exact fresh QA database only; never terminate another database's sessions.
                 connection.execute(text(f'DROP DATABASE "{name}" WITH (FORCE)'))
                 remains = connection.scalar(
-                    text("select 1 from pg_database where datname=:name"), {"name": name}
+                    text("select 1 from pg_database where datname=:name"),
+                    {"name": name},
                 )
                 if remains:
                     raise ValueError("QA_CLEANUP_DATABASE_REMAINS")
@@ -258,7 +419,7 @@ if __name__ == "__main__":
     # SIGINT is handled by uvicorn; finally validates the token before cleanup.
     try:
         run()
-    except Exception as error:
+    except Exception as error:  # noqa: BLE001 - sanitized CLI boundary
         # No exception text, SQL, environment, credentials or raw subprocess output.
         diagnostic = {
             "code": "QA_FIXTURE_FAILED",

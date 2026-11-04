@@ -1,5 +1,5 @@
 import { Component, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import type { MediaAsset } from '@vayujit/shared';
 import { MediaService } from './media.service';
 
@@ -13,7 +13,13 @@ import { MediaService } from './media.service';
           <h1 id="upload-title">Upload image</h1>
           <p>JPEG, PNG, or WebP up to 10 MB.</p>
         </div>
-        <a routerLink="/media">Back to library</a>
+        @if (catalogProductId) {
+          <a [routerLink]="['/catalog', catalogProductId]" fragment="images-title"
+            >Back to product images</a
+          >
+        } @else {
+          <a routerLink="/media">Back to library</a>
+        }
       </header>
       @if (error()) {
         <p class="media-error" role="alert">{{ error() }}</p>
@@ -66,6 +72,11 @@ import { MediaService } from './media.service';
 export class MediaUploadComponent {
   private readonly api = inject(MediaService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  readonly catalogProductId = (() => {
+    const id = this.route.snapshot.queryParamMap.get('catalog_product_id') || '';
+    return /^[a-f0-9]{8}(-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i.test(id) ? id : null;
+  })();
   readonly selected = signal<File | null>(null);
   readonly preview = signal('');
   readonly dragging = signal(false);
@@ -114,7 +125,12 @@ export class MediaUploadComponent {
         item.duplicate_reused ? 'Duplicate detected; existing media reused.' : 'Media is ready.',
       );
       this.clear();
-      void this.router.navigate(['/media', item.id]);
+      if (this.catalogProductId) {
+        await this.router.navigate(['/catalog', this.catalogProductId], {
+          queryParams: { media_id: item.id },
+          fragment: 'images-title',
+        });
+      } else await this.router.navigate(['/media', item.id]);
     } catch {
       this.error.set('The image was rejected or could not be stored.');
       this.status.set('Upload failed.');

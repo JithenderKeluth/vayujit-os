@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { HttpErrorResponse } from '@angular/common/http';
 import { JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { PageHeaderComponent } from '../shared/page-header.component';
 import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
@@ -13,6 +15,8 @@ import {
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
 import { IntelligenceService } from './intelligence.service';
 import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
+import { ProductOpportunityService } from './product-opportunity.service';
+import { CrossMarketplaceService } from './cross-marketplace.service';
 
 @Component({
   selector: 'app-sourcing-workspace',
@@ -36,13 +40,26 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
       <app-page-header
         headingId="sourcing-title"
         eyebrow="Intelligence / Sourcing workspace"
-        title="Make a sourcing decision"
-        description="Move from a selected product and shortlisted suppliers to evidence-backed commercial review. Supplier contact, purchasing, and payments remain disabled."
+        title="Requirements and supplier quotes"
+        description="Prepare local requirements and record supplier terms for the selected product. Evidence review, HUMAN shortlisting and due diligence remain separate; supplier contact, purchasing and payments stay disabled."
       >
         <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
       </app-page-header>
       <app-supplier-journey-nav current="scenarios" />
       <app-commerce-journey-context />
+      <p class="boundary-note">
+        Local preparation only. Record terms you actually received; leave unknown price, MOQ,
+        freight and tax blank. A saved quote is seller-entered evidence, not verified supplier terms
+        or approval to purchase.
+      </p>
+      @if (scopeError()) {
+        <app-blocked-state title="Sourcing context needs attention" [reason]="scopeError()" />
+        @if (selectedContext(); as context) {
+          <a [routerLink]="['/intelligence/product-opportunities', context.id]"
+            >Return to this product and prepare its Catalog draft</a
+          >
+        }
+      }
       @if (selectedContext(); as context) {
         <section class="context-banner" aria-label="Selected product context">
           <strong>Selected product:</strong> {{ context.name || context.product }} ·
@@ -62,7 +79,7 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
             <span>{{ context.marketplace || 'Marketplace unknown' }}</span>
             <span>{{ context.market || 'Market unknown' }}</span>
             <span>{{ context.currency || 'Currency unknown' }}</span>
-            <span>{{ supplierOptions().length }} shortlisted supplier(s)</span>
+            <span>{{ supplierOptions().length }} product-related supplier record(s)</span>
             <span>{{ context.verification }}</span>
           </div>
           <small
@@ -106,7 +123,7 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
           </article>
           <article>
             <span>Suppliers</span
-            ><strong>{{ supplierOptions().length ? 'SHORTLISTED' : 'NEEDS REVIEW' }}</strong
+            ><strong>{{ supplierOptions().length ? 'AVAILABLE FOR REVIEW' : 'NEEDS REVIEW' }}</strong
             ><small>{{ supplierOptions().length }} supplier(s) carried from research</small>
           </article>
           <article>
@@ -211,7 +228,10 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
             >Maximum MOQ <small class="field-help">Leave blank if unknown</small>
             <input name="moq" type="number" min="1" [(ngModel)]="requirement.payload.maximum_moq"
           /></label>
-          <button type="submit" [disabled]="busy() || !selectedContext()">
+          <button
+            type="submit"
+            [disabled]="busy() || !selectedContext() || !requirement.product_id || !!scopeError()"
+          >
             Confirm requirement
           </button>
         </form>
@@ -244,13 +264,26 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
           Prepare an RFQ for human review. Preparing it never sends a message or contacts a
           supplier.
         </p>
+        @if (savedRFQs().length) {
+          <label
+            >Saved local pricing draft
+            <select name="saved-rfq" [ngModel]="rfqId()" (ngModelChange)="selectRFQ($event)">
+              <option value="">Choose a saved draft explicitly</option>
+              @for (row of savedRFQs(); track row['id']) {
+                <option [value]="row['id']">
+                  {{ row['title'] }} · v{{ row['version'] }} · {{ row['dispatch_status'] }}
+                </option>
+              }
+            </select>
+          </label>
+        }
         @if (!requirements().length || !supplierOptions().length) {
           <app-blocked-state
             title="Prepare an RFQ after the requirement and shortlist are ready"
             [reason]="
               !requirements().length
                 ? 'Confirm the sourcing requirement first.'
-                : 'Shortlist suppliers before preparing an RFQ.'
+                : 'Review and choose product-related supplier records before preparing a local draft.'
             "
           />
           <a routerLink="/intelligence/cross-marketplace">Review Supplier Intelligence</a>
@@ -305,11 +338,16 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
           Quotes are supplier-provided or manually entered evidence. Currency is shown as supplied;
           no silent conversion occurs.
         </p>
+        <p>
+          First save a local pricing draft and select its exact supplier identity. Recording a quote
+          never sends that draft. Quotes are not automatically imported into authoritative
+          economics; review provenance and deliberately record the applicable cost basis there.
+        </p>
         <form (submit)="$event.preventDefault(); createQuote()" class="form-grid">
           <label
             >Supplier
             <select name="quote-supplier" [(ngModel)]="quote.supplier_id">
-              <option value="">Select shortlisted supplier</option>
+              <option value="">Select product-related supplier record</option>
               @for (supplier of supplierOptions(); track supplier.id) {
                 <option [value]="supplier.id">{{ supplier.name }}</option>
               }
@@ -336,11 +374,19 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
               required
               type="number"
               min="0"
+              step="0.00000001"
               [(ngModel)]="quote.unit_price" /></label
           ><label
             >MOQ
             <small class="field-help">Unknown until supplied by the seller</small>
             <input name="quote-moq" required type="number" min="1" [(ngModel)]="quote.moq" /></label
+          ><label
+            >Quote valid until (optional ISO timestamp)
+            <input
+              name="quote-valid-until"
+              [(ngModel)]="quoteValidUntil"
+              placeholder="Leave blank if unknown"
+            /> </label
           ><button
             type="submit"
             [disabled]="busy() || !quote.supplier_id || !(quote.rfq_id || rfqId())"
@@ -356,6 +402,7 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
             <li>
               {{ row['quote_reference'] }} • v{{ row['version'] }} • {{ row['currency'] }}
               {{ row['unit_price'] }}
+              · {{ quoteValidity(row) }} · Seller-entered, unverified
             </li>
           }
         </ul>
@@ -384,7 +431,7 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
           <label
             >Supplier
             <select name="sample-supplier" [(ngModel)]="sample.supplier_id">
-              <option value="">Select shortlisted supplier</option>
+              <option value="">Select product-related supplier record</option>
               @for (supplier of supplierOptions(); track supplier.id) {
                 <option [value]="supplier.id">{{ supplier.name }}</option>
               }
@@ -528,10 +575,10 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
         <p>
           {{
             supplierOptions().length > 1
-              ? 'Multiple shortlisted suppliers are available for comparison.'
+              ? 'Multiple source records exist; they may represent the same company. Review canonical supplier identities before comparing concentration.'
               : supplierOptions().length === 1
-                ? 'Current sourcing evidence depends on one shortlisted supplier.'
-                : 'Supplier concentration cannot be assessed until suppliers are shortlisted.'
+                ? 'One product-related supplier record is available; independent supplier concentration is not established here.'
+                : 'No product-related supplier records are available. Concentration is not established.'
           }}
         </p>
       </section>
@@ -858,6 +905,16 @@ import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
 export class SourcingWorkspaceComponent {
   private readonly service = inject(IntelligenceService);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly opportunities = inject(ProductOpportunityService);
+  private readonly suppliers = inject(CrossMarketplaceService);
+  private readonly destroyRef = inject(DestroyRef);
+  private scopeEpoch = 0;
+  private routeScope = '';
+  readonly scopeError = signal('');
+  readonly savedRFQs = signal<Record<string, unknown>[]>([]);
+  private requirementKey = `requirement-${crypto.randomUUID()}`;
+  private rfqKey = `rfq-${crypto.randomUUID()}`;
   readonly breadcrumbs: BreadcrumbItem[] = [
     { label: 'Intelligence', url: '/intelligence' },
     { label: 'Sourcing workspace' },
@@ -895,6 +952,7 @@ export class SourcingWorkspaceComponent {
     unit_price: null as number | null,
     moq: null as number | null,
   };
+  quoteValidUntil = '';
   readonly sample = { rfq_id: '', supplier_id: '', quantity: 1 };
   readonly scenario = {
     requirement_id: '',
@@ -907,40 +965,101 @@ export class SourcingWorkspaceComponent {
   };
   readonly decision = { requirement_id: '', quote_id: '', decision: 'hold', confirmed: false };
   constructor() {
-    const params = this.route.snapshot.queryParamMap;
-    const id = params.get('opportunity_id');
-    if (id) {
-      const supplierIds = (params.get('supplier_ids') ?? '')
+    this.route.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const id = params.get('opportunity_id');
+      const supplierIds = (params.get('supplier_ids') || params.get('supplier_id') || '')
         .split(',')
-        .map((value) => value.trim())
         .filter(Boolean);
-      const context = {
+      const key = `${id || ''}:${supplierIds.join(',')}`;
+      if (key === this.routeScope) return;
+      this.routeScope = key;
+      const epoch = ++this.scopeEpoch;
+      this.busy.set(false);
+      this.error.set('');
+      this.requirementKey = `requirement-${crypto.randomUUID()}`;
+      this.rfqKey = `rfq-${crypto.randomUUID()}`;
+      this.selectedContext.set(null);
+      this.supplierOptions.set([]);
+      this.scopeError.set('');
+      this.requirements.set([]);
+      this.savedRFQs.set([]);
+      this.quotes.set([]);
+      this.lastScenario.set(null);
+      this.requirement.product_id = '';
+      this.requirement.opportunity_id = '';
+      this.rfq.requirement_id = '';
+      this.rfq.supplier_ids_text = '';
+      this.rfqId.set('');
+      this.quote.rfq_id = '';
+      this.quote.supplier_id = '';
+      this.quote.unit_price = null;
+      this.quote.moq = null;
+      this.quoteValidUntil = '';
+      this.decision.quote_id = '';
+      this.decision.requirement_id = '';
+      this.decision.confirmed = false;
+      this.scenario.requirement_id = '';
+      this.scenario.inputs.unit_supplier_price = null;
+      this.scenario.inputs.freight = null;
+      this.scenario.inputs.selling_price = null;
+      if (id) void this.prepareCanonicalScope(id, supplierIds, epoch);
+      else void this.load(epoch);
+    });
+  }
+  private async prepareCanonicalScope(
+    id: string,
+    supplierIds: string[],
+    epoch: number,
+  ): Promise<void> {
+    this.busy.set(true);
+    try {
+      const product = await this.opportunities.get(id);
+      if (epoch !== this.scopeEpoch) return;
+      this.selectedContext.set({
         id,
-        name: params.get('name') ?? '',
-        product: params.get('product') ?? '',
-        category: params.get('category') ?? '',
-        marketplace: params.get('marketplace') ?? '',
-        market: params.get('market') ?? params.get('region') ?? '',
-        currency: params.get('currency') ?? 'INR',
-        budget: params.get('budget') ?? '',
-        verification: params.get('verification') ?? 'Not yet verified',
-      };
-      this.selectedContext.set(context);
+        name: product.name,
+        product: product.name,
+        category: product.category,
+        marketplace: product.target_marketplace,
+        market: product.target_region,
+        currency: 'UNKNOWN',
+        budget: '',
+        verification: 'Not verified; review evidence',
+      });
+      if (product.lifecycle_status === 'archived' || !product.product_id)
+        throw new Error('CATALOG_PRODUCT_REQUIRED');
+      // SourcingRequirement supports a real Product FK, not ProductOpportunity in
+      // its legacy opportunity_id column. Never cast one identity into another.
+      this.requirement.product_id = product.product_id;
+      this.requirement.payload.category = product.category;
+      this.requirement.payload.target_market = product.target_region;
+      const result = await this.suppliers.researchResults(id);
+      if (epoch !== this.scopeEpoch) return;
+      const eligible = result['suppliers'] as Array<{ id: string }>;
+      if (supplierIds.some((sid) => !eligible?.some((row) => row.id === sid)))
+        throw new Error('SUPPLIER_CONTEXT_MISMATCH');
+      const details = await Promise.all(supplierIds.map((sid) => this.suppliers.detail(sid)));
+      if (epoch !== this.scopeEpoch) return;
       this.supplierOptions.set(
-        supplierIds.map((supplierId, index) => ({
-          id: supplierId,
-          name:
-            params.get('supplier_names')?.split(',')[index]?.trim() ||
-            'Shortlisted supplier ' + (index + 1),
-        })),
+        details.flatMap((supplier) =>
+          supplier.identity.supplier_ids.map((sourceId, index) => ({
+            id: sourceId,
+            name: `${supplier.display_name} · source identity ${index + 1} (unverified)`,
+          })),
+        ),
       );
-      this.requirement.opportunity_id = id;
-      this.requirement.payload.category = context.category;
-      this.requirement.payload.target_market = context.market || context.marketplace;
-      this.quote.supplier_id = supplierIds[0] ?? '';
-      this.sample.supplier_id = supplierIds[0] ?? '';
+      await this.load(epoch);
+      if (epoch !== this.scopeEpoch) return;
+      const savedId = this.route.snapshot.queryParamMap.get('rfq_id');
+      if (savedId) await this.selectRFQ(savedId);
+    } catch {
+      if (epoch === this.scopeEpoch)
+        this.scopeError.set(
+          'This product needs a valid Catalog product and product-related supplier identities before local quotation preparation. No other product, supplier, quote or cost basis was substituted. Return to the selected product; unknown terms remain UNKNOWN.',
+        );
+    } finally {
+      if (epoch === this.scopeEpoch) this.busy.set(false);
     }
-    void this.load();
   }
   activateSection(event: Event, sectionId: string): void {
     event.preventDefault();
@@ -970,11 +1089,17 @@ export class SourcingWorkspaceComponent {
         }
       : {};
   }
-  private async load(): Promise<void> {
+  private async load(epoch = this.scopeEpoch): Promise<void> {
     try {
-      this.overview.set(await this.service.sourcingOverview());
+      const overview = await this.service.sourcingOverview();
+      const rows =
+        ((await this.service.sourcingRequirements())['items'] as Record<string, unknown>[]) ?? [];
+      if (epoch !== this.scopeEpoch) return;
+      this.overview.set(overview);
       this.requirements.set(
-        ((await this.service.sourcingRequirements())['items'] as Record<string, unknown>[]) ?? [],
+        this.requirement.product_id
+          ? rows.filter((row) => row['product_id'] === this.requirement.product_id)
+          : [],
       );
       const current = this.requirements()[0];
       if (!this.rfq.requirement_id && typeof current?.['id'] === 'string') {
@@ -982,18 +1107,30 @@ export class SourcingWorkspaceComponent {
         this.scenario.requirement_id = current['id'];
         this.decision.requirement_id = current['id'];
       }
+      const drafts = await this.service.sourcingRFQs();
+      if (epoch !== this.scopeEpoch) return;
+      const ids = new Set(this.requirements().map((row) => row['id']));
+      this.savedRFQs.set(
+        ((drafts['items'] as Record<string, unknown>[]) || []).filter((row) =>
+          ids.has(row['requirement_id']),
+        ),
+      );
     } catch {
       this.error.set('Sourcing data is unavailable. Check the authenticated API connection.');
     }
   }
   async createRequirement(): Promise<void> {
+    if (!this.requirement.product_id || this.scopeError()) return;
+    const epoch = this.scopeEpoch;
     await this.run(async () => {
-      await this.service.createSourcingRequirement({
+      const response = await this.service.createSourcingRequirement({
         ...this.requirement,
-        idempotency_key: 'requirement-' + crypto.randomUUID(),
+        opportunity_id: null,
+        idempotency_key: this.requirementKey,
       });
+      if (epoch !== this.scopeEpoch) return;
       await this.load();
-      const current = this.requirements()[0];
+      const current = response['requirement'] as Record<string, unknown>;
       if (typeof current?.['id'] === 'string') {
         this.rfq.requirement_id = current['id'];
         this.scenario.requirement_id = current['id'];
@@ -1002,65 +1139,126 @@ export class SourcingWorkspaceComponent {
     });
   }
   async createRFQ(): Promise<void> {
+    const epoch = this.scopeEpoch;
     if (!this.rfq.requirement_id) {
       const current = this.requirements()[0];
       this.rfq.requirement_id = typeof current?.['id'] === 'string' ? current['id'] : '';
     }
     if (!this.rfq.requirement_id || !this.rfq.supplier_ids_text) {
       this.error.set(
-        'Confirm a requirement and select at least one shortlisted supplier before preparing an RFQ.',
+        'Confirm a requirement and explicitly select at least one product-related supplier record before preparing a local RFQ draft.',
       );
       return;
     }
     await this.run(async () => {
+      const requirement = this.requirements().find((row) => row['id'] === this.rfq.requirement_id);
+      if (
+        !requirement ||
+        this.rfq.supplier_ids_text
+          .split(',')
+          .some((id) => !this.supplierOptions().some((row) => row.id === id))
+      )
+        throw new Error('SOURCING_SCOPE_MISMATCH');
       const response = await this.service.createRFQ({
         requirement_id: this.rfq.requirement_id,
-        requirement_version: 1,
+        requirement_version: requirement['current_version'],
         title: this.rfq.title,
         supplier_ids: this.rfq.supplier_ids_text
           .split(',')
           .map((v) => v.trim())
           .filter(Boolean),
-        idempotency_key: 'rfq-' + crypto.randomUUID(),
+        idempotency_key: this.rfqKey,
         payload: {},
       });
-      if (typeof response['id'] === 'string') {
-        this.rfqId.set(response['id']);
-        this.quote.rfq_id = response['id'];
-        this.sample.rfq_id = response['id'];
+      if (epoch !== this.scopeEpoch) return;
+      const saved = response['rfq'] as Record<string, unknown>;
+      if (typeof saved?.['id'] === 'string') {
+        await this.load();
+        await this.selectRFQ(saved['id']);
       }
     });
   }
   async createQuote(): Promise<void> {
+    const epoch = this.scopeEpoch;
     if (this.quote.unit_price === null || this.quote.moq === null) {
       this.error.set('Enter a supplier unit price and MOQ before recording a quote.');
       return;
     }
     this.quote.rfq_id ||= this.rfqId();
-    if (!this.quote.rfq_id) {
+    if (
+      !this.quote.rfq_id ||
+      this.quote.rfq_id !== this.rfqId() ||
+      !this.supplierOptions().some((row) => row.id === this.quote.supplier_id)
+    ) {
       this.error.set('Prepare an RFQ before recording a supplier quote.');
       return;
     }
     await this.run(async () => {
-      await this.service.createSourcingQuote({
+      const request = {
         ...this.quote,
+        currency: this.quote.currency.trim().toUpperCase(),
+        valid_until: this.quoteValidUntil.trim() || null,
+      };
+      const digest = await crypto.subtle.digest(
+        'SHA-256',
+        new TextEncoder().encode(JSON.stringify(request)),
+      );
+      const replayKey =
+        'seller-quote-' +
+        Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+      await this.service.createSourcingQuote({
+        ...request,
+        idempotency_key: replayKey,
         lines: [],
-        payload: {},
+        payload: { input_method: 'SELLER_ENTERED', verification: 'UNVERIFIED' },
         evidence_refs: [],
       });
-      await this.loadQuotes();
+      if (epoch !== this.scopeEpoch) return;
+      await this.refreshQuotes();
     });
   }
   async loadQuotes(): Promise<void> {
-    await this.run(async () => {
-      this.quotes.set(
-        ((await this.service.sourcingQuotes())['items'] as Record<string, unknown>[]) ?? [],
+    await this.run(() => this.refreshQuotes());
+  }
+  quoteValidity(row: Record<string, unknown>): string {
+    const value = row['valid_until'];
+    const expiry = typeof value === 'string' ? Date.parse(value) : NaN;
+    if (!Number.isFinite(expiry)) return 'Validity UNKNOWN — do not assume current';
+    return expiry < Date.now()
+      ? 'EXPIRED — do not use as current terms'
+      : 'Within recorded expiry; still unverified';
+  }
+  private async refreshQuotes(): Promise<void> {
+    const epoch = this.scopeEpoch;
+    const rfqIds = new Set(this.savedRFQs().map((row) => row['id']));
+    const rows =
+      ((await this.service.sourcingQuotes())['items'] as Record<string, unknown>[]) ?? [];
+    if (epoch !== this.scopeEpoch) return;
+    this.quotes.set(
+      rows.filter(
+        (row) =>
+          rfqIds.has(row['rfq_id']) &&
+          this.supplierOptions().some((supplier) => supplier.id === row['supplier_id']),
+      ),
+    );
+  }
+  async selectRFQ(id: string): Promise<void> {
+    if (id && !this.savedRFQs().some((row) => row['id'] === id)) {
+      this.scopeError.set(
+        'This pricing draft does not belong to the current product. No alternative was selected.',
       );
-      const latest = this.quotes()[0];
-      if (!this.decision.quote_id && typeof latest?.['id'] === 'string') {
-        this.decision.quote_id = latest['id'];
-      }
+      return;
+    }
+    this.rfqId.set(id);
+    this.quote.rfq_id = id;
+    this.sample.rfq_id = id;
+    await this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { rfq_id: id || null },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
     });
+    await this.refreshQuotes();
   }
   async createSample(): Promise<void> {
     await this.run(async () => {
@@ -1095,14 +1293,23 @@ export class SourcingWorkspaceComponent {
     });
   }
   private async run(work: () => Promise<void>): Promise<void> {
+    if (this.busy() || this.scopeError()) return;
+    const epoch = this.scopeEpoch;
     this.busy.set(true);
     this.error.set('');
     try {
       await work();
-    } catch {
-      this.error.set('The sourcing operation could not be completed safely.');
+    } catch (error) {
+      if (epoch !== this.scopeEpoch) return;
+      this.error.set(
+        error instanceof HttpErrorResponse && error.status === 409
+          ? 'The saved requirement, pricing draft or replay changed. Reload this product and review the current version before preparing a new explicit request. No approval or supplier contact was performed.'
+          : error instanceof HttpErrorResponse && error.status === 422
+            ? 'Check the required fields: supplier identity, currency, unit price, MOQ and any expiry timestamp. Leave unknown terms blank; do not invent them.'
+            : 'The sourcing operation could not be completed safely. Check the authenticated API, then reload this product and its saved local draft before retrying.',
+      );
     } finally {
-      this.busy.set(false);
+      if (epoch === this.scopeEpoch) this.busy.set(false);
     }
   }
 }

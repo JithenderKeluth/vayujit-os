@@ -253,6 +253,15 @@ def _normalize(value: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
 
 
+def category_constraint_tokens(value: str) -> set[str]:
+    """Keep every category qualifier; conjunctions are not category evidence.
+
+    Deliberately do not infer synonyms or broaden unknown taxonomies. An
+    unsupported category uses category-led research, not unrelated fixtures.
+    """
+    return set(_normalize(value).split()) - {"and", "the", "of", "for", "category", "categories"}
+
+
 def _goal_fit(raw_goal: str, structured_goal: dict[str, Any]) -> list[str]:
     text = f"{raw_goal} {structured_goal}".casefold()
     matches: list[str] = []
@@ -287,12 +296,13 @@ def discover_local_product_candidates(
     requested_category = str(goal.get("category") or "").strip()
     candidates = list(LOCAL_PRODUCT_CANDIDATES)
     if requested_category:
-        requested_tokens = set(_normalize(requested_category).split())
+        requested_tokens = category_constraint_tokens(requested_category)
         candidates = [
             candidate
             for candidate in candidates
             if requested_tokens
-            & set(_normalize(f"{candidate.category} {candidate.subcategory}").split())
+            and requested_tokens
+            <= category_constraint_tokens(f"{candidate.category} {candidate.subcategory}")
         ]
     results: list[dict[str, object]] = []
     for candidate in candidates[:bounded]:

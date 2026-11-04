@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { EvidenceCardComponent } from '../shared/evidence-card.component';
 import { PageHeaderComponent } from '../shared/page-header.component';
@@ -210,6 +210,7 @@ import {
                   <th>Measurement</th>
                   <th>Value</th>
                   <th>Freshness</th>
+                  <th>Verification and provenance</th>
                 </tr>
               </thead>
               <tbody>
@@ -219,6 +220,13 @@ import {
                     <td>{{ item.measurement_type }}</td>
                     <td>{{ item.value_numeric ?? item.value_text ?? item.value_boolean }}</td>
                     <td>{{ item.freshness_state }}</td>
+                    <td>
+                      <strong>{{ item.verification_state || 'UNKNOWN' }}</strong>
+                      @if (item.raw_metadata?.['synthetic'] === true) {
+                        <span> — SYNTHETIC TEST DATA, not live market evidence</span>
+                      }
+                      <p>{{ item.provenance_note || 'Provenance detail unavailable' }}</p>
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -379,6 +387,8 @@ import {
 export class TrendIntelligenceWorkspaceComponent {
   private readonly service = inject(TrendIntelligenceService);
   private readonly journey = inject(CommerceJourneyService, { optional: true });
+  private readonly route = inject(ActivatedRoute, { optional: true });
+  private readonly routeContextId = this.route?.snapshot.paramMap.get('contextId') ?? '';
   readonly contexts = signal<TrendContext[]>([]);
   readonly selected = signal<TrendContext | null>(null);
   readonly observations = signal<TrendObservation[]>([]);
@@ -404,7 +414,7 @@ export class TrendIntelligenceWorkspaceComponent {
   fixtureValue = '1';
   constructor() {
     this.load();
-    void this.loadJourneyContext();
+    if (!this.routeContextId) void this.loadJourneyContext();
   }
   private async loadJourneyContext(): Promise<void> {
     if (!this.journey) return;
@@ -476,7 +486,21 @@ export class TrendIntelligenceWorkspaceComponent {
   load(): void {
     this.loading.set(true);
     this.service.contexts().subscribe({
-      next: (value) => this.contexts.set(value),
+      next: (value) => {
+        this.contexts.set(value);
+        if (this.routeContextId) {
+          const selected = value.find((context) => context.id === this.routeContextId);
+          if (selected) {
+            this.journeyContextResolved = true;
+            this.select(selected);
+          } else {
+            this.selected.set(null);
+            this.error.set(
+              'The requested trend context is unavailable. No other context was substituted.',
+            );
+          }
+        }
+      },
       error: (error: unknown) => {
         this.error.set(intelligenceErrorMessage(error, 'Trend data is unavailable.'));
         this.loading.set(false);

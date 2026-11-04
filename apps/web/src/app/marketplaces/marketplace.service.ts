@@ -224,6 +224,17 @@ export interface UnifiedOrder {
   reservation_state: string;
   line_count: number;
   fake_provider: boolean;
+  provenance_status?: string;
+  currency?: string | null;
+  lines?: Array<{
+    id: string;
+    product_id: string | null;
+    marketplace_sku: string | null;
+    title: string;
+    quantity: number;
+    unit_price: string;
+    total_price: string;
+  }>;
   ordered_at: string;
 }
 export interface ReconciliationSummary {

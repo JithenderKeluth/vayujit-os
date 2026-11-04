@@ -113,6 +113,8 @@ def test_business_agent_source_review_retry_persists_real_authorities_without_li
             "intelligence_external_kill_switch": False,
             "external_mutations_emergency_stop": False,
             "intelligence_product_search_max_requests": 3,
+            # This test replaces the provider and fetcher; process egress remains denied.
+            "intelligence_search_provider_kill_switch": False,
         }
     )
     for module in (business_agent_service, product_research):
@@ -246,6 +248,7 @@ def test_cross_query_cache_reconstructs_shared_results_from_execution_lineage(
     settings = get_settings().model_copy(
         update={
             "intelligence_external_provider_mode": "LOCAL_FIXTURE",
+            "intelligence_search_provider_kill_switch": False,
             "intelligence_external_approved_domains": "example.org",
             "intelligence_external_blocked_domains": "",
             "intelligence_external_kill_switch": False,

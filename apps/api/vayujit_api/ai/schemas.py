@@ -270,7 +270,9 @@ class ArtifactDetails(BaseModel):
     content_type: str
     locale: str
     status: Literal["pending_review", "approved", "rejected", "superseded"]
-    content: ProductContent
+    # Studio outputs have channel-specific schemas, not the legacy all-fields bundle.
+    # Return their exact persisted fields; never invent absent SEO or caption values.
+    content: ProductContent | dict[str, object]
     validation_result: dict[str, object]
     provider_metadata: dict[str, object]
     approved_at: datetime | None

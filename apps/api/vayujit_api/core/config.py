@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     # The migration head is deployment metadata, not a user secret.  Keeping
     # it configurable lets the release preflight pin a tested application
     # image to the schema it was built against.
-    expected_migration_revision: str = "20261203_0146"
+    expected_migration_revision: str = "20261207_0150"
     public_api_url: str | None = None
     public_web_url: str | None = None
     node_version: str = "22-or-24"

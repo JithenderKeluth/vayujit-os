@@ -47,6 +47,8 @@ const APPROVAL_REASON = 'External source approval is required before fetching.';
     }
     table {
       width: 100%;
+      min-width: 44rem;
+      table-layout: fixed;
       border-collapse: collapse;
       font-size: 0.9rem;
     }
@@ -82,7 +84,7 @@ const APPROVAL_REASON = 'External source approval is required before fetching.';
     button:disabled {
       cursor: not-allowed;
     }
-    :is(button, select, textarea, input, a):focus-visible {
+    :is(button, select, textarea, input, a, .table-wrap):focus-visible {
       outline: 3px solid #007b91;
       outline-offset: 3px;
     }
@@ -103,8 +105,8 @@ const APPROVAL_REASON = 'External source approval is required before fetching.';
           >
           <span>{{ skipped().length }} non-product pages skipped; no approval needed</span>
         </div>
-        @if (details()['review_guidance']) {
-          <p>{{ details()['review_guidance'] }}</p>
+        @if (reviewGuidance()) {
+          <p role="status">{{ reviewGuidance() }}</p>
         }
         <details>
           <summary>View search queries and page outcomes</summary>
@@ -113,15 +115,17 @@ const APPROVAL_REASON = 'External source approval is required before fetching.';
               <li>{{ query['query'] }} — {{ query['status'] }}</li>
             }
           </ul>
-          <div class="table-wrap">
-            <table>
-              <caption>
-                Recorded page-fetch outcomes; search snippets are not product evidence.
-              </caption>
+          <p>
+            Recorded page-fetch outcomes; search snippets are not product evidence. Scroll
+            horizontally on smaller screens to read all columns.
+          </p>
+          <div class="table-wrap" role="region" aria-label="Discovery page outcomes" tabindex="0">
+            <table aria-label="Recorded page-fetch outcomes">
               <thead>
                 <tr>
                   <th scope="col">URL / domain</th>
                   <th scope="col">Fetch outcome</th>
+                  <th scope="col">Final product eligibility</th>
                   <th scope="col">Reason / classification</th>
                 </tr>
               </thead>
@@ -134,6 +138,15 @@ const APPROVAL_REASON = 'External source approval is required before fetching.';
                         fetch['source_review_eligible'] === false
                           ? 'Not a product page'
                           : fetch['status']
+                      }}
+                    </td>
+                    <td>
+                      {{
+                        fetch['eligible'] === false
+                          ? 'Not eligible'
+                          : fetch['eligible'] === true
+                            ? 'Eligible product evidence'
+                            : 'Not established'
                       }}
                     </td>
                     <td>
@@ -211,8 +224,8 @@ const APPROVAL_REASON = 'External source approval is required before fetching.';
         }
         @if (approvalRecorded() && !domains().length) {
           <p role="status">
-            Recorded source approvals are available. Choose Continue product discovery to recheck
-            evidence through the normal runtime. Approval does not guarantee a product result.
+            Recorded source approvals are available. Approval permits read-only fetching; it does
+            not establish product identity or category suitability, or guarantee a product result.
           </p>
         }
         @if (error()) {
@@ -244,7 +257,31 @@ export class ProductDiscoveryReviewComponent implements OnChanges {
       (row) => row['reason_code'] === 'NON_PRODUCT_PAGE',
     ),
   );
-  readonly outcomes = computed(() => [...this.fetches(), ...this.skipped()]);
+  readonly outcomes = computed(() => {
+    const rejected = this.records(this.details()['rejected_results']);
+    const fetchedUrls = new Set(this.fetches().map((row) => row['url']));
+    return [
+      ...this.fetches().map((row) => {
+        const rejection = rejected.find((item) => !!item['url'] && item['url'] === row['url']);
+        // Historical fetch records could say eligible before category validation.
+        // Project the final rejection without mutating the saved source evidence.
+        return rejection ? { ...row, ...rejection, status: row['status'], eligible: false } : row;
+      }),
+      ...rejected.filter((row) => !fetchedUrls.has(row['url'])),
+    ];
+  });
+  readonly reviewGuidance = computed(() => {
+    const recorded = this.text(this.details()['review_guidance']);
+    if (recorded) return recorded;
+    const budget = this.details()['search_budget'] as RecordValue | undefined;
+    const observability = this.details()['observability'] as RecordValue | undefined;
+    if (
+      (budget?.['stop_reason'] || observability?.['stop_reason']) === 'CACHED_QUERY_PLAN_EXHAUSTED'
+    ) {
+      return 'No new provider search was made. Reused evidence did not establish an eligible product. Review final eligibility below. Retrying uses the current category query plan, but may reuse recent searches.';
+    }
+    return '';
+  });
   readonly completedFetches = computed(
     () => this.fetches().filter((row) => row['status'] === 'COMPLETED').length,
   );
@@ -389,7 +426,7 @@ export class ProductDiscoveryReviewComponent implements OnChanges {
       this.syncReviewDomain();
       this.resetReview();
       this.message.set(
-        `Approval recorded for ${domain}. No page was fetched. Review any other required sources, then choose Continue product discovery in the run controls.`,
+        `Approval recorded for ${domain}. No page was fetched. Review any other required sources, then use the discovery retry control. Approval does not establish product suitability.`,
       );
     } catch {
       this.error.set(

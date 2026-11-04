@@ -1,6 +1,6 @@
 ﻿import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 
 import { AmazonWorkspaceComponent } from './amazon-workspace.component';
@@ -12,6 +12,7 @@ describe('AmazonWorkspaceComponent', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
         {
           provide: ActivatedRoute,
           useValue: { snapshot: { paramMap: { get: () => 'listing-1' } } },
@@ -50,5 +51,24 @@ describe('AmazonWorkspaceComponent', () => {
     expect(component.variants()[1].sku).toBe('SKU-1-COPY');
     component.removeVariant(1);
     expect(component.variants().length).toBe(1);
+  });
+  it('uses local preparation, never remote POST, for unpublished variants', async () => {
+    const component = TestBed.createComponent(AmazonWorkspaceComponent).componentInstance;
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('http://127.0.0.1:8000/api/v1/marketplaces/amazon/accounts').flush([]);
+    component.localDraft.set(true);
+    component.addVariant();
+    const pending = component.saveVariants();
+    const save = http.expectOne((r) => r.url.endsWith('/listings/listing-1/variants'));
+    expect(save.request.method).toBe('PUT');
+    save.flush({ status: 'prepared' });
+    await Promise.resolve();
+    await Promise.resolve();
+    http
+      .expectOne((r) => r.url.endsWith('/readiness'))
+      .flush({ ready: false, blocking: [], warnings: [], informational: [] });
+    await pending;
+    expect(component.message()).toContain('Not published');
+    http.verify();
   });
 });

@@ -327,6 +327,18 @@ exit 19
   Assert-Regression ($workerNeverHealthy.FailureCode -eq "worker_restart_not_healthy" -and $workerNeverHealthy.LastHealth -eq "unhealthy") "successful start without healthy state is not reported as recovered"
   $workerHealthFailed = Invoke-VayujitWorkerRecovery -StartWorker { [pscustomobject]@{ ExitCode = 0 } } -GetHealth { [pscustomobject]@{ ExitCode = 17; Status = "unknown" } } -MaxAttempts 1
   Assert-Regression ($workerHealthFailed.FailureCode -eq "worker_health_check_failed" -and $workerHealthFailed.DockerExitCode -eq 17) "worker health-check Docker failure is explicit"
+  $workerStartThrew = Invoke-VayujitWorkerRecovery -StartWorker {
+    $failure = [Exception]::new("PRIVATE-START-STDERR")
+    $failure.Data["native_exit_code"] = 29
+    throw $failure
+  } -GetHealth { throw "must not query health after failed start" } -MaxAttempts 1
+  Assert-Regression ($workerStartThrew.FailureCode -eq "worker_restart_failed" -and $workerStartThrew.DockerExitCode -eq 29) "captured recovery start exception preserves its native exit without exposing stderr"
+  $workerHealthThrew = Invoke-VayujitWorkerRecovery -StartWorker { [pscustomobject]@{ ExitCode = 0 } } -GetHealth {
+    $failure = [Exception]::new("PRIVATE-HEALTH-STDERR")
+    $failure.Data["native_exit_code"] = 19
+    throw $failure
+  } -MaxAttempts 1
+  Assert-Regression ($workerHealthThrew.FailureCode -eq "worker_health_check_failed" -and $workerHealthThrew.DockerExitCode -eq 19) "captured recovery health exception preserves its own native exit independently"
 
   $backupScript = Get-Content -LiteralPath (Join-Path $PSScriptRoot "backup-pc-first.ps1") -Raw
   $runnerScript = Get-Content -LiteralPath (Join-Path $PSScriptRoot "test-pc-first-disposable.ps1") -Raw

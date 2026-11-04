@@ -93,6 +93,7 @@ describe('ProductDiscoveryReviewComponent', () => {
     const fixture = await render();
     expect(fixture.componentInstance.domains()).toEqual([]);
     expect(fixture.nativeElement.textContent).toContain('Recorded source approvals are available');
+    expect(fixture.nativeElement.textContent).not.toContain('Choose Continue product discovery');
     expect(service.approveExternalSource).not.toHaveBeenCalled();
   });
 
@@ -204,6 +205,83 @@ describe('ProductDiscoveryReviewComponent', () => {
     });
     expect(fixture.componentInstance.domains()).toEqual([]);
     expect(fixture.nativeElement.querySelector('fieldset')).toBeNull();
+  });
+
+  it('shows final rejection even when a historical fetch said eligible product detail', async () => {
+    const saved = {
+      queries: details.queries,
+      fetches: [
+        {
+          ...details.fetches[0],
+          status: 'COMPLETED',
+          page_type: 'PRODUCT_DETAIL',
+          eligible: true,
+          failure: '',
+        },
+      ],
+      rejected_results: [
+        {
+          url: details.fetches[0].url,
+          reason: 'Explicit category constraint was not established.',
+          eligible: false,
+        },
+      ],
+    };
+    const original = JSON.stringify(saved);
+    const fixture = await render(saved);
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('1 successful page fetches');
+    expect(root.textContent).toContain('Final product eligibility');
+    expect(root.textContent).toContain('Not eligible');
+    expect(root.textContent).toContain('Explicit category constraint was not established.');
+    expect(root.textContent).not.toContain('Eligible product evidence');
+    expect(root.querySelectorAll('tbody tr')).toHaveLength(1);
+    expect(JSON.stringify(saved)).toBe(original);
+  });
+
+  it('retains unfetched rejections without double-counting fetched pages', async () => {
+    const fixture = await render({
+      ...details,
+      rejected_results: [
+        { url: details.fetches[0].url, reason: 'Source review required.', eligible: false },
+        {
+          url: 'https://example.org/category/bands',
+          reason: 'Not a concrete product.',
+          reason_code: 'NON_PRODUCT_PAGE',
+          eligible: false,
+        },
+      ],
+    });
+    expect(fixture.nativeElement.querySelectorAll('tbody tr')).toHaveLength(2);
+    expect(fixture.nativeElement.textContent).toContain('1 non-product pages skipped');
+  });
+
+  it('explains exhausted cached evidence without claiming a provider outage or requesting approval', async () => {
+    const fixture = await render({
+      queries: [
+        {
+          query: 'Synthetic organization query',
+          status: 'COMPLETED',
+          provider_mode: 'REUSED_RECENT_SEARCH',
+        },
+      ],
+      fetches: [],
+      search_budget: { stop_reason: 'CACHED_QUERY_PLAN_EXHAUSTED' },
+    });
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('No new provider search was made');
+    expect(root.textContent).toContain('may reuse recent searches');
+    expect(root.textContent).not.toContain('Review blocked sources');
+    expect(root.textContent).not.toContain('Continue product discovery');
+    expect(service.approveExternalSource).not.toHaveBeenCalled();
+  });
+
+  it('does not invent an eligibility result when historical evidence has no final decision', async () => {
+    const fixture = await render({
+      queries: details.queries,
+      fetches: [{ url: details.fetches[0].url, status: 'COMPLETED' }],
+    });
+    expect(fixture.nativeElement.textContent).toContain('Not established');
   });
 
   it('has no serious or critical axe findings in the source-review state', async () => {

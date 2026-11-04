@@ -2,11 +2,23 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { environment } from '../../environments/environment';
 import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
 
-type BulkChild = { id: string; video_type: string; target_channel: string; status: string };
+type BulkChild = {
+  id: string;
+  video_type: string;
+  target_channel: string;
+  status: string;
+  generation_id?: string;
+  job_id?: string;
+  output_id?: string;
+  retryable?: boolean;
+  retry_count?: number;
+  failure_code?: string;
+  safe_error_message?: string;
+};
 type BulkPlan = {
   total_outputs: number;
   provider: string;
@@ -45,6 +57,13 @@ function safeError(error: unknown): string {
       <h1>Bulk Video Studio</h1>
       <p>Plan multi-product Videos, review the exact fingerprint, then queue durable child jobs.</p>
       <section class="card">
+        <h2>Reopen saved operation</h2>
+        <label>Operation ID <input [(ngModel)]="operationId" /></label>
+        <button type="button" (click)="openOperation()" [disabled]="busy() || !operationId">
+          Open operation
+        </button>
+      </section>
+      <section class="card">
         <h2>1. Plan</h2>
         <app-business-entity-selectors
           [multiProduct]="true"
@@ -76,16 +95,43 @@ function safeError(error: unknown): string {
       @if (operation(); as item) {
         <section class="card" aria-live="polite">
           <h2>Operation {{ item.status }}</h2>
+          <p class="identifier">Operation ID: {{ item.id }}</p>
           <p>
             {{ item.completed_count || 0 }} / {{ item.child_count }} complete -
             {{ item.progress_percentage }}%
           </p>
-          <button type="button" (click)="refresh()">Refresh status</button>
+          <button type="button" (click)="refresh()" [disabled]="busy()">Refresh status</button>
+          <button
+            type="button"
+            (click)="recover('retry-failed')"
+            [disabled]="busy() || !hasRetryable()"
+          >
+            Retry failed children
+          </button>
+          <button type="button" (click)="recover('cancel')" [disabled]="busy() || !hasActive()">
+            Cancel remaining children
+          </button>
           <ul>
             @for (child of item.children; track child.id) {
-              <li>{{ child.video_type }} - {{ child.target_channel }} - {{ child.status }}</li>
+              <li>
+                {{ child.video_type }} - {{ child.target_channel }} - {{ child.status }}
+                <p class="identifier">
+                  Job: {{ child.job_id || 'UNKNOWN' }}; output: {{ child.output_id || 'UNKNOWN' }};
+                  retries: {{ child.retry_count ?? 0 }}
+                </p>
+                @if (child.failure_code) {
+                  <p>{{ child.failure_code }} — {{ child.safe_error_message }}</p>
+                }
+                @if (child.generation_id) {
+                  <a routerLink="/ai/video" [queryParams]="{ generation: child.generation_id }"
+                    >Review child Video job</a
+                  >
+                }
+              </li>
             }
           </ul>
+          <h3>Persisted recovery history</h3>
+          <pre>{{ history() | json }}</pre>
         </section>
       }
       @if (error(); as message) {
@@ -107,6 +153,14 @@ function safeError(error: unknown): string {
         padding: 1.25rem;
         margin: 1rem 0;
         background: #fff;
+      }
+      code {
+        overflow-wrap: anywhere;
+      }
+      pre,
+      .identifier {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
       }
       label {
         display: inline-flex;
@@ -141,10 +195,66 @@ function safeError(error: unknown): string {
 })
 export class AIVideoBulkComponent {
   private readonly http = inject(HttpClient);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   readonly busy = signal(false);
   readonly plan = signal<BulkPlan | null>(null);
   readonly operation = signal<BulkOperation | null>(null);
   readonly error = signal('');
+  readonly history = signal<unknown[]>([]);
+  operationId = '';
+  constructor() {
+    this.route.queryParamMap.subscribe((params) => {
+      this.operationId = params.get('operation') || '';
+      this.operation.set(null);
+      this.history.set([]);
+      if (this.operationId) this.refresh();
+    });
+  }
+  openOperation(): void {
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { operation: this.operationId },
+    });
+  }
+  hasRetryable(): boolean {
+    return !!this.operation()?.children.some((c) => c.status === 'failed' && c.retryable);
+  }
+  hasActive(): boolean {
+    return !!this.operation()?.children.some((c) =>
+      ['queued', 'generating', 'validating', 'retry_wait'].includes(c.status),
+    );
+  }
+  recover(action: 'retry-failed' | 'cancel'): void {
+    const item = this.operation();
+    if (
+      !item ||
+      this.busy() ||
+      (action === 'retry-failed' ? !this.hasRetryable() : !this.hasActive())
+    )
+      return;
+    if (
+      action === 'cancel' &&
+      !window.confirm('Cancel unfinished children of this saved operation?')
+    )
+      return;
+    this.busy.set(true);
+    this.error.set('');
+    this.http
+      .post(`${environment.apiUrl}/ai/video/bulk/${item.id}/${action}`, {
+        idempotency_key: `web-bulk-${action}-${item.id}`,
+      })
+      .subscribe({
+        next: () => {
+          this.busy.set(false);
+          this.refresh();
+        },
+        error: (err) => {
+          this.busy.set(false);
+          this.error.set(safeError(err));
+        },
+      });
+  }
   productIds = '';
   videoTypes = 'product_showcase';
   targets = 'youtube';
@@ -187,7 +297,7 @@ export class AIVideoBulkComponent {
   }
   enqueue(): void {
     const value = this.plan();
-    if (!value) return;
+    if (!value || value.blockers?.length || this.busy()) return;
     this.busy.set(true);
     this.error.set('');
     this.http
@@ -199,6 +309,8 @@ export class AIVideoBulkComponent {
       .subscribe({
         next: (result) => {
           this.operation.set(result);
+          this.operationId = result.id;
+          this.openOperation();
           this.busy.set(false);
         },
         error: (err) => {
@@ -208,11 +320,27 @@ export class AIVideoBulkComponent {
       });
   }
   refresh(): void {
-    const id = this.operation()?.id;
+    const id = this.operationId || this.operation()?.id;
     if (!id) return;
+    this.error.set('');
     this.http.get<BulkOperation>(`${environment.apiUrl}/ai/video/bulk/${id}`).subscribe({
-      next: (value) => this.operation.set(value),
-      error: () => this.error.set('Bulk Video status is unavailable.'),
+      next: (value) => {
+        if (this.operationId === id) this.operation.set(value);
+      },
+      error: () => {
+        if (this.operationId === id) {
+          this.operation.set(null);
+          this.error.set('Bulk Video status is unavailable for this owned operation.');
+        }
+      },
+    });
+    this.http.get<unknown[]>(`${environment.apiUrl}/ai/video/bulk/${id}/history`).subscribe({
+      next: (value) => {
+        if (this.operationId === id) this.history.set(value);
+      },
+      error: () => {
+        if (this.operationId === id) this.error.set('Bulk Video history is unavailable.');
+      },
     });
   }
 }

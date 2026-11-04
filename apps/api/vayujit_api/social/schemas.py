@@ -93,6 +93,11 @@ class SocialScheduleRequest(BaseModel):
     fold: Literal[0, 1] = 0
 
 
+class SocialApprovalRequest(BaseModel):
+    confirm: bool = False
+    preview_fingerprint: str = Field(min_length=64, max_length=64)
+
+
 class SocialPreviewResponse(BaseModel):
     post_id: uuid.UUID
     platform: str

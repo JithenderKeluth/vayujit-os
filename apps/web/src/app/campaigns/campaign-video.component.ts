@@ -1,12 +1,13 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, JsonPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import type { CampaignActivity } from '@vayujit/shared';
 import { CampaignService } from './campaign.service';
 
 @Component({
   selector: 'app-campaign-video',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, JsonPipe, RouterLink],
   template: `
     <section class="page">
       <header class="page-header">
@@ -24,6 +25,29 @@ import { CampaignService } from './campaign.service';
       }
       @if (loading()) {
         <p aria-live="polite">Loading Campaign Video...</p>
+      }
+      @if (detail(); as value) {
+        <section class="panel" aria-label="Video activity detail">
+          <h2>{{ selectedActivity()?.name }}</h2>
+          <p>Activity {{ selectedActivity()?.id }} — {{ selectedActivity()?.status }}</p>
+          <p>Exact generation: {{ selectedActivity()?.video_generation_id || 'UNKNOWN' }}</p>
+          <p>Exact output: {{ selectedActivity()?.video_output_id || 'UNKNOWN' }}</p>
+          <p>Bound version: {{ selectedActivity()?.video_version || 'UNKNOWN' }}</p>
+          @if (selectedActivity()?.video_generation_id; as generation) {
+            <a routerLink="/ai/video" [queryParams]="{ generation: generation }"
+              >Review exact Video job</a
+            >
+          }
+          <h3>Recovery state</h3>
+          <pre style="white-space: pre-wrap; overflow-wrap: anywhere">{{
+            value['recovery'] | json
+          }}</pre>
+          <h3>Activity history</h3>
+          <pre style="white-space: pre-wrap; overflow-wrap: anywhere">{{
+            value['history'] | json
+          }}</pre>
+          <p>No release, materialization or external dispatch is performed by this view.</p>
+        </section>
       }
       @if (overview(); as state) {
         <section class="grid" aria-label="Campaign Video summary">
@@ -73,7 +97,14 @@ import { CampaignService } from './campaign.service';
 })
 export class CampaignVideoComponent {
   private readonly api = inject(CampaignService);
-  readonly campaignId = inject(ActivatedRoute).snapshot.paramMap.get('id')!;
+  private readonly route = inject(ActivatedRoute);
+  campaignId = this.route.snapshot.paramMap.get('id')!;
+  activityId = this.route.snapshot.paramMap.get('activityId');
+  private requestVersion = 0;
+  readonly detail = signal<Record<string, unknown> | null>(null);
+  selectedActivity(): CampaignActivity | null {
+    return (this.detail()?.['activity'] as CampaignActivity | undefined) ?? null;
+  }
   readonly loading = signal(true);
   readonly error = signal('');
   readonly campaignName = signal('');
@@ -81,7 +112,11 @@ export class CampaignVideoComponent {
   readonly activities = signal<CampaignActivity[]>([]);
 
   constructor() {
-    void this.load();
+    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      this.campaignId = params.get('id')!;
+      this.activityId = params.get('activityId');
+      void this.load();
+    });
   }
 
   countEntries(): Array<[string, number]> {
@@ -92,22 +127,41 @@ export class CampaignVideoComponent {
   }
 
   async load(): Promise<void> {
+    const version = ++this.requestVersion;
     this.loading.set(true);
+    this.error.set('');
+    this.detail.set(null);
+    this.activities.set([]);
+    this.overview.set(null);
+    this.campaignName.set('');
     try {
+      if (this.activityId) {
+        const detail = await this.api.videoDetail(this.campaignId, this.activityId);
+        if (version !== this.requestVersion) return;
+        this.detail.set(detail);
+        const activity = detail['activity'] as CampaignActivity;
+        this.activities.set([activity]);
+        this.campaignName.set((detail['campaign'] as { name: string }).name);
+        return;
+      }
       const [campaign, activities, overview] = await Promise.all([
         this.api.get(this.campaignId),
         this.api.activities(this.campaignId),
         this.api.videoOverview(this.campaignId),
       ]);
+      if (version !== this.requestVersion) return;
       this.campaignName.set(campaign.name);
       this.activities.set(
         activities.filter((activity) => activity.activity_type === 'video_campaign'),
       );
       this.overview.set(overview);
     } catch {
-      this.error.set('Campaign Video data is unavailable. Check the authenticated API connection.');
+      if (version === this.requestVersion)
+        this.error.set(
+          'Campaign Video data is unavailable. Check the authenticated API connection.',
+        );
     } finally {
-      this.loading.set(false);
+      if (version === this.requestVersion) this.loading.set(false);
     }
   }
 }

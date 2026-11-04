@@ -26,6 +26,27 @@ function flushOperations(http: HttpTestingController, metrics: Record<string, un
 }
 
 describe('SupplierShortlistingComponent', () => {
+  it('offers scoped review of existing verification without claiming a new HUMAN approval', async () => {
+    const { fixture, http } = create();
+    flushOperations(http);
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.carriedContext.set({
+      opportunityId: 'op-a',
+      product: 'Fixture',
+      category: 'Kids',
+      marketplace: 'AMAZON_IN',
+    });
+    component.result.set({ shortlist: [{ supplier_id: 'supplier-a' }] });
+    component.existingVerification.set(new Set(['supplier-a']));
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(root.textContent).toContain('Existing verification available');
+    expect(root.textContent).not.toContain('Shortlisted for verification');
+    const link = root.querySelector('a[href*="supplier_id=supplier-a"]');
+    expect(link?.getAttribute('href')).toContain('opportunity_id=op-a');
+    http.verify();
+  });
   it('renders loading and successful empty states accessibly', async () => {
     const { fixture, http } = create();
     fixture.detectChanges();
@@ -82,11 +103,14 @@ describe('SupplierShortlistingComponent', () => {
       true,
     );
     request.flush({ status: 'succeeded', shortlist: [{ supplier_id: 'supplier-1', score: 91 }] });
+    await Promise.resolve();
+    flushOperations(http, { active_contexts: 1, shortlist_count: 3 });
     await evaluate;
     await fixture.whenStable();
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
     expect(root.textContent).toContain('supplier-1');
+    expect(root.textContent).toContain('Shortlists 3');
     expect(root.textContent).toContain(
       'Eligibility, scoring, evidence, risk, freshness, and contradiction gates are server-derived.',
     );
@@ -106,12 +130,34 @@ describe('SupplierShortlistingComponent', () => {
     const evaluate = component.evaluate();
     const request = http.expectOne(base + '/contexts/context-x/shortlists');
     request.flush({ status: 'succeeded', message: '<script>alert(1)</script>' });
+    await Promise.resolve();
+    flushOperations(http);
     await evaluate;
     await fixture.whenStable();
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
     expect(root.innerHTML).not.toContain('<script>');
     expect(root.textContent).toContain('<script>alert(1)</script>');
+    http.verify();
+  });
+
+  it('retains the saved HUMAN decision when the counter refresh fails and prevents a pending replay', async () => {
+    const { fixture, http } = create();
+    flushOperations(http);
+    await fixture.whenStable();
+    const component = fixture.componentInstance;
+    component.contextId = 'context-1';
+    component.result.set({ id: 'version-1' });
+    const pending = component.shortlistForVerification({ supplier_id: 'supplier-1' });
+    await component.shortlistForVerification({ supplier_id: 'supplier-1' });
+    const save = http.expectOne(base + '/contexts/context-1/decisions');
+    save.flush({ id: 'decision-1', decision: 'KEEP_UNDER_REVIEW' });
+    await Promise.resolve();
+    http.expectOne(base + '/operations').flush({}, { status: 503, statusText: 'Unavailable' });
+    await pending;
+    expect(component.decisionFor('supplier-1')?.['id']).toBe('decision-1');
+    expect(component.error()).toBe('');
+    expect(component.metrics()).toBeNull();
     http.verify();
   });
 });

@@ -102,6 +102,8 @@ def terminate_test_database_sessions(database_url: str) -> int:
                     FROM pg_stat_activity
                     WHERE datname = :database
                       AND pid <> pg_backend_pid()
+                      AND usename = current_user
+                      AND backend_type = 'client backend'
                     """
                 ),
                 {"database": target.database},
@@ -133,9 +135,7 @@ def reset_test_schema(engine: Engine, metadata: MetaData, *, database_url: str) 
         if os.environ.get("VAYUJIT_FAST_TEST_RESET") == "1":
             inspector = inspect(connection)
             missing = [
-                table
-                for table in metadata.sorted_tables
-                if not inspector.has_table(table.name)
+                table for table in metadata.sorted_tables if not inspector.has_table(table.name)
             ]
             if missing:
                 metadata.create_all(connection, tables=missing)

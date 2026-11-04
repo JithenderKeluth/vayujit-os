@@ -941,6 +941,9 @@ export class IntelligenceService {
       this.http.get<Record<string, unknown>>(`${this.base}/sourcing/quotes`, this.options),
     );
   }
+  sourcingRFQs(): Promise<Record<string, unknown>> {
+    return firstValueFrom(this.http.get<Record<string, unknown>>(`${this.base}/sourcing/rfqs`, this.options));
+  }
   createSourcingQuote(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
     return firstValueFrom(
       this.http.post<Record<string, unknown>>(

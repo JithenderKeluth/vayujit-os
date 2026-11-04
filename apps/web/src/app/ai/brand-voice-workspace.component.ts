@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { AIService } from './ai.service';
@@ -59,6 +59,7 @@ import type { AIStudioBrandVoice } from '@vayujit/shared';
 })
 export class BrandVoiceWorkspaceComponent implements OnInit {
   private readonly ai = inject(AIService);
+  private readonly changeDetector = inject(ChangeDetectorRef);
   voices: AIStudioBrandVoice[] = [];
   editing = false;
   editingId = '';
@@ -82,6 +83,8 @@ export class BrandVoiceWorkspaceComponent implements OnInit {
       this.voices = await this.ai.studioBrandVoices();
     } catch {
       this.message = 'Brand Voices are unavailable right now.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
   edit(v: AIStudioBrandVoice) {
@@ -111,6 +114,8 @@ export class BrandVoiceWorkspaceComponent implements OnInit {
       await this.load();
     } catch {
       this.message = 'Could not save this Brand Voice.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
   async setDefault(v: AIStudioBrandVoice): Promise<void> {
@@ -120,6 +125,8 @@ export class BrandVoiceWorkspaceComponent implements OnInit {
       await this.load();
     } catch {
       this.message = 'Could not set the default Brand Voice.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
   async archive(v: AIStudioBrandVoice): Promise<void> {
@@ -129,6 +136,8 @@ export class BrandVoiceWorkspaceComponent implements OnInit {
       await this.load();
     } catch {
       this.message = 'Could not archive this Brand Voice.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
   async preview(v: AIStudioBrandVoice): Promise<void> {
@@ -145,6 +154,8 @@ export class BrandVoiceWorkspaceComponent implements OnInit {
       this.message = 'Preview: ' + JSON.stringify(result['sample']);
     } catch {
       this.message = 'Could not preview this Brand Voice.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
   async duplicate(v: AIStudioBrandVoice) {
@@ -154,6 +165,8 @@ export class BrandVoiceWorkspaceComponent implements OnInit {
       await this.load();
     } catch {
       this.message = 'Could not duplicate this Brand Voice.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
 }

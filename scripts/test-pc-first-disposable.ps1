@@ -65,6 +65,9 @@ $backupChildLaunchSucceeded = $false
 $backupChildExitCode = $null
 $backupChildBoundaryCode = $null
 $backupChildResolution = $null
+$backupChildDiagnostic = $null
+$childPowerShellPath = $null
+$childBackupScript = Join-Path $PSScriptRoot "backup-pc-first.ps1"
 
 function Add-Check([string]$Name, [bool]$Passed, [string]$Evidence = "") {
   $report.checks.Add([ordered]@{ name = $Name; status = $(if ($Passed) { "PASS" } else { "FAIL" }); evidence = $Evidence })
@@ -202,25 +205,28 @@ Write-EnvFile $composeEnvPath $composeLines
       if (-not $childPowerShellPath -or -not (Test-Path -LiteralPath $childPowerShellPath -PathType Leaf)) {
         throw "PowerShell executable unavailable for isolated backup invocation."
       }
-      $childBackupScript = Join-Path $PSScriptRoot "backup-pc-first.ps1"
       $childProcessResult = Invoke-VayujitNativeCapture -FilePath $childPowerShellPath -Arguments @(
         "-NoLogo", "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", $childBackupScript,
         "-DataRoot", $tempRoot, "-DisposableCertification", "-BackupDestination", $BackupDestination,
         "-BackupReportPath", $backupReportPath
-      ) -RemoveEnvironmentVariables @(
+      ) -WorkingDirectory $repo -RemoveEnvironmentVariables @(
         "PC_CERT_ORIGIN", "PC_CERT_EMAIL", "PC_CERT_PASSWORD", "PC_CERT_EVIDENCE",
         "PC_CERT_PRODUCT_ID", "PC_CERT_INVENTORY_ID", "PC_CERT_MEDIA_ID", "PC_CERT_COST_ID",
         "PC_CERT_CDP_PORT", "PC_CERT_SCREENSHOT_DIR"
       )
       $backupChildLaunchSucceeded = $true
       $backupChildExitCode = [int]$childProcessResult.ExitCode
+      $backupChildDiagnostic = Get-VayujitBackupChildDiagnostic -LaunchSucceeded $true `
+        -ProcessExitCode $backupChildExitCode -ExecutablePath $childPowerShellPath `
+        -ChildScriptPath $childBackupScript -StdOut $childProcessResult.StdOut -StdErr $childProcessResult.StdErr -ReportPath $backupReportPath
       $boundaryMatch = [regex]::Match([string]$childProcessResult.StdOut, '(?m)^VAYUJIT_BACKUP_CHILD_BOUNDARY=(backup_evidence_report_write_failed|backup_initialization_failed|backup_arguments_invalid|backup_preflight_failed)\s*$')
       if ($boundaryMatch.Success) { $backupChildBoundaryCode = $boundaryMatch.Groups[1].Value }
-      # Only a fixed allowlisted boundary token is consumed; raw stdout/stderr are never persisted.
+      # Persist only allowlisted classifications/locations, never raw captured streams.
       $childProcessResult = $null
     } catch {
-      $backupChildLaunchSucceeded = $false
-      $backupChildExitCode = $null
+      # Do not erase an observed exit if subsequent diagnostic processing fails.
+      $backupChildDiagnostic = Get-VayujitBackupChildDiagnostic -LaunchSucceeded $backupChildLaunchSucceeded `
+        -ProcessExitCode $backupChildExitCode -ExecutablePath $childPowerShellPath -ChildScriptPath $childBackupScript -ReportPath $backupReportPath
     }
     $backupChildResolution = Resolve-VayujitBackupChildReport `
       -LaunchSucceeded $backupChildLaunchSucceeded `
@@ -228,6 +234,7 @@ Write-EnvFile $composeEnvPath $composeLines
       -ReportPath $backupReportPath `
       -FallbackBackupId $id `
       -BootstrapFailureCode $backupChildBoundaryCode
+    $report.backup_child_diagnostic = $backupChildDiagnostic
     if ($backupChildResolution.Status -ne "PASS") { throw "Disposable backup rehearsal did not pass its structured validation." }
     $report.backup_restore = $backupChildResolution.Report
     Add-Check "encrypted disposable backup, negative-key tests, canonical DB comparison, media restore, and source integrity" $true ("backup_seconds={0}; restore_seconds={1}; destination={2}" -f $report.backup_restore.backup_duration_seconds,$report.backup_restore.restore_duration_seconds,$report.backup_restore.destination_independence)
@@ -311,6 +318,24 @@ Write-EnvFile $composeEnvPath $composeLines
         -BootstrapFailureCode $backupChildBoundaryCode
     }
     Set-VayujitDisposableBackupFailure -Certification $report -BackupFailure $backupChildResolution.Failure
+    if (-not $backupChildDiagnostic) {
+      $backupChildDiagnostic = Get-VayujitBackupChildDiagnostic -LaunchSucceeded $backupChildLaunchSucceeded `
+        -ProcessExitCode $backupChildExitCode -ExecutablePath $childPowerShellPath -ChildScriptPath $childBackupScript -ReportPath $backupReportPath
+    }
+    $report.backup_child_diagnostic = $backupChildDiagnostic
+    try {
+      # Outside tempRoot: retained even when -EvidencePath was omitted and the
+      # disposable profile (including the child's report) is removed below.
+      Write-VayujitBackupChildDiagnostic -Directory (Join-Path $repo "tmp\pc-first-certification") `
+        -BackupId $id -Diagnostic $backupChildDiagnostic | Out-Null
+      $report.backup_child_diagnostic_artifact = "tmp/pc-first-certification/backup-child-$id.json"
+      Write-Warning "Safe backup child diagnostic retained: tmp/pc-first-certification/backup-child-$id.json"
+    } catch {
+      $report.backup_child_diagnostic_persistence = "FAILED"
+      # A read-only filesystem cannot preserve an artifact; still return a safe
+      # parent-owned record on stdout, without replacing the original failure.
+      [Console]::Out.WriteLine("VAYUJIT_BACKUP_PARENT_DIAGNOSTIC=" + (ConvertTo-Json -InputObject $backupChildDiagnostic -Depth 4 -Compress))
+    }
   } else {
     $report.error = "Disposable certification failed outside the backup stage. Review the local PowerShell error interactively; raw diagnostics were omitted from the report."
   }

@@ -3,7 +3,8 @@ import { PageHeaderComponent } from '../shared/page-header.component';
 import { ErrorStateComponent } from '../shared/state-components';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 
@@ -128,7 +129,12 @@ interface AmazonProfitability {
 
 @Component({
   selector: 'app-amazon-workspace',
-  imports: [FormsModule, PageHeaderComponent, ErrorStateComponent],
+  imports: [
+    FormsModule,
+    PageHeaderComponent,
+    ErrorStateComponent,
+    BusinessEntitySelectorsComponent,
+  ],
   template: `
     <section class="marketplace-page">
       <app-page-header
@@ -210,6 +216,42 @@ interface AmazonProfitability {
 
       <section class="marketplace-card">
         <h2>Listing editor</h2>
+        @if (!listingId && account(); as current) {
+          <h3>Prepare unpublished Amazon draft</h3>
+          <p>Local preparation only. This does not connect, submit or publish to Amazon.</p>
+          <app-business-entity-selectors
+            [showBrand]="true"
+            [showArtifact]="true"
+            [approvedOnly]="true"
+            [brandId]="draft.brand_id"
+            [productId]="draft.product_id"
+            [artifactId]="draft.artifact_id"
+            (brandIdChange)="draft.brand_id = $event"
+            (productIdChange)="draft.product_id = $event"
+            (artifactIdChange)="draft.artifact_id = $event"
+          />
+          <label>Draft title<input [(ngModel)]="draft.title" /></label>
+          <label>Draft seller SKU<input [(ngModel)]="draft.marketplace_sku" /></label>
+          <label>Draft category<input [(ngModel)]="draft.category" /></label>
+          <p>
+            Destination account: {{ current.display_name }} (local configuration, not live
+            certification)
+          </p>
+          <button
+            type="button"
+            (click)="createLocalDraft()"
+            [disabled]="
+              preparing() ||
+              !draft.product_id ||
+              !draft.brand_id ||
+              !draft.artifact_id ||
+              !draft.title ||
+              !draft.marketplace_sku
+            "
+          >
+            Prepare local Amazon draft
+          </button>
+        }
         <p class="muted">
           Listing ID: {{ listingId || 'Select a listing route to enable mutations.' }}
         </p>
@@ -268,26 +310,49 @@ interface AmazonProfitability {
         }
         <div class="marketplace-actions">
           <button type="button" (click)="preview()">Preview readiness</button
-          ><button type="button" (click)="reviewListing()" [disabled]="!listingId || !readiness()?.ready"
-            >Approve listing for controlled submission</button
-          ><button type="button" (click)="issueAuthorization()" [disabled]="!review() || authorization()?.status === 'issued'"
-            >Issue one-time execution authorization</button
-          ><button type="button" (click)="submitListing()" [disabled]="authorization()?.status !== 'issued'"
-            >Submit approved listing</button
+          ><button
+            type="button"
+            (click)="reviewListing()"
+            [disabled]="!listingId || !readiness()?.ready"
+          >
+            Approve listing for controlled submission</button
+          ><button
+            type="button"
+            (click)="issueAuthorization()"
+            [disabled]="!review() || authorization()?.status === 'issued'"
+          >
+            Issue one-time execution authorization</button
+          ><button
+            type="button"
+            (click)="submitListing()"
+            [disabled]="authorization()?.status !== 'issued'"
+          >
+            Submit approved listing</button
           ><button type="button" (click)="reconcileListing()">Reconcile remote status</button
-          ><button type="button" (click)="submitPrice()">Confirm price update</button
+          ><button type="button" (click)="submitPrice()" [disabled]="sellingPrice === null">
+            Confirm price update</button
           ><button type="button" (click)="updateInventory()">Confirm inventory update</button>
         </div>
         <div class="marketplace-approval" aria-live="polite">
-          <p><strong>Safety boundary:</strong> content approval and execution authorization are separate HUMAN actions.</p>
+          <p>
+            <strong>Safety boundary:</strong> content approval and execution authorization are
+            separate HUMAN actions.
+          </p>
           <p>Provider mode: <strong>LOCAL_FAKE</strong>. Live Amazon mutations are disabled.</p>
           @if (review(); as currentReview) {
-            <p>Listing review: <strong>{{ currentReview.status }}</strong> (Artifact v{{ currentReview.artifact_version }})</p>
+            <p>
+              Listing review: <strong>{{ currentReview.status }}</strong> (Artifact v{{
+                currentReview.artifact_version
+              }})
+            </p>
           } @else {
             <p>Listing review required before authorization.</p>
           }
           @if (authorization(); as currentAuthorization) {
-            <p>Execution authorization: <strong>{{ currentAuthorization.status }}</strong> · expires {{ currentAuthorization.expires_at }}</p>
+            <p>
+              Execution authorization: <strong>{{ currentAuthorization.status }}</strong> · expires
+              {{ currentAuthorization.expires_at }}
+            </p>
             @if (currentAuthorization.status === 'issued') {
               <button type="button" (click)="revokeAuthorization()">Revoke authorization</button>
             }
@@ -307,8 +372,8 @@ interface AmazonProfitability {
           @if (ready.blocking.length > 0) {
             <p class="readiness-next-action" role="status">
               <strong>Next action:</strong> complete the blocking items above, then select
-              <strong>Preview readiness</strong>. HUMAN review and execution authorization
-              remain unavailable until the server reports Ready.
+              <strong>Preview readiness</strong>. HUMAN review and execution authorization remain
+              unavailable until the server reports Ready.
             </p>
           }
           <div class="readiness-grid">
@@ -359,7 +424,12 @@ interface AmazonProfitability {
           ><button type="button" (click)="addVariant()">Add variant</button
           ><button type="button" (click)="saveVariants()">Save variants</button>
         </div>
-        <div class="marketplace-table" role="region" tabindex="0" aria-label="Stable variant combinations">
+        <div
+          class="marketplace-table"
+          role="region"
+          tabindex="0"
+          aria-label="Stable variant combinations"
+        >
           <table>
             <caption>
               Stable variant combinations
@@ -438,6 +508,27 @@ interface AmazonProfitability {
 
       <section class="marketplace-card">
         <h2>Media editor</h2>
+        @if (localDraft()) {
+          <p>
+            Use an exact approved image output. The existing image handoff saves a local mapping
+            only.
+          </p>
+          <label
+            >Approved image Output ID<input
+              [(ngModel)]="approvedImageId"
+              (ngModelChange)="imageHandoff.set(null)"
+          /></label>
+          <button type="button" (click)="previewLocalImage()">Preview local main image</button>
+          @if (imageHandoff(); as handoff) {
+            <p role="status">
+              {{ handoff.ready ? 'Ready for local image review' : handoff.blockers.join(', ') }}.
+              Not published.
+            </p>
+            <button type="button" [disabled]="!handoff.ready" (click)="confirmLocalImage()">
+              Confirm exact local main image
+            </button>
+          }
+        }
         <div class="marketplace-form">
           <label for="amazon-media-id"
             >Media Asset ID<input
@@ -450,7 +541,9 @@ interface AmazonProfitability {
               name="mediaAlt"
               [(ngModel)]="newMediaAlt" /></label
           ><button type="button" (click)="addMedia()">Add media</button
-          ><button type="button" (click)="saveMedia()">Save ordered media</button>
+          ><button type="button" (click)="saveMedia()" [disabled]="localDraft()">
+            Save ordered media
+          </button>
         </div>
         <div class="marketplace-table" role="region" tabindex="0" aria-label="Ordered gallery">
           <table>
@@ -569,7 +662,12 @@ interface AmazonProfitability {
       <section class="marketplace-card">
         <h2>Returns and refunds</h2>
         <button type="button" (click)="importReturns()">Import return records</button>
-        <div class="marketplace-table" role="region" tabindex="0" aria-label="Read-only returns and refunds">
+        <div
+          class="marketplace-table"
+          role="region"
+          tabindex="0"
+          aria-label="Read-only returns and refunds"
+        >
           <table>
             <caption>
               Read-only returns and refunds
@@ -680,7 +778,12 @@ interface AmazonProfitability {
             State: {{ currentDrift.drift_state }} - Classification:
             {{ currentDrift.classification }}
           </p>
-          <div class="marketplace-table" role="region" tabindex="0" aria-label="Local versus remote drift">
+          <div
+            class="marketplace-table"
+            role="region"
+            tabindex="0"
+            aria-label="Local versus remote drift"
+          >
             <table>
               <caption>
                 Local versus remote
@@ -719,6 +822,28 @@ interface AmazonProfitability {
 export class AmazonWorkspaceComponent {
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  readonly localDraft = signal(false);
+  readonly preparing = signal(false);
+  approvedImageId = '';
+  readonly imageHandoff = signal<{
+    ready: boolean;
+    fingerprint: string;
+    blockers: string[];
+    output_id: string;
+  } | null>(null);
+  draft = {
+    brand_id: '',
+    product_id: '',
+    artifact_id: '',
+    title: '',
+    marketplace_sku: '',
+    category: '',
+  };
+  private draftInput = '';
+  private draftKey = '';
+  private authorizationIntent = '';
+  private authorizationKey = '';
   private readonly baseUrl = environment.apiUrl + '/marketplaces/amazon';
   readonly listingId = this.route.snapshot.paramMap.get('id');
   readonly account = signal<AmazonAccount | null>(null);
@@ -742,8 +867,8 @@ export class AmazonWorkspaceComponent {
   credential = '';
   productType = 'PRODUCT';
   title = '';
-  listPrice = 0;
-  sellingPrice = 0;
+  listPrice: number | null = null;
+  sellingPrice: number | null = null;
   quantity = 0;
   matrixDimensionsText = '';
   newMediaId = '';
@@ -789,7 +914,8 @@ export class AmazonWorkspaceComponent {
     this.displayName = accounts[0].display_name;
     this.sellerId = accounts[0].seller_account_id;
     await this.loadAttributes();
-    await Promise.all([this.loadDiagnostics(), this.loadListingData()]);
+    await this.loadListingData();
+    await this.loadDiagnostics();
   }
   async configure(): Promise<void> {
     const value = await this.request(
@@ -884,7 +1010,32 @@ export class AmazonWorkspaceComponent {
   }
   private async loadListingData(): Promise<void> {
     if (!this.listingId) return;
+    const listing = await this.request(() =>
+      this.http.get<{
+        remote_listing_id: string | null;
+        account_id: string;
+        title: string;
+        category: string | null;
+      }>(environment.apiUrl + '/marketplaces/listings/' + this.listingId, this.options),
+    );
+    if (!listing) return;
+    this.localDraft.set(!listing.remote_listing_id);
+    this.title = listing.title;
+    if (listing.category) this.productType = listing.category;
+    // An exact listing must never silently use the first seller account.
+    if (this.account()?.id !== listing.account_id) {
+      const accounts = await this.request(() =>
+        this.http.get<AmazonAccount[]>(this.baseUrl + '/accounts', this.options),
+      );
+      this.account.set(accounts?.find((a) => a.id === listing.account_id) || null);
+      if (!this.account()) {
+        this.error.set('The listing destination account is unavailable.');
+        return;
+      }
+    }
+    await this.loadAttributes();
     await Promise.all([
+      this.loadSavedPrice(),
       this.loadReadiness(),
       this.loadReview(),
       this.loadAuthorization(),
@@ -904,11 +1055,25 @@ export class AmazonWorkspaceComponent {
       if (value) this.readiness.set(value);
     }
   }
+  async loadSavedPrice(): Promise<void> {
+    if (!this.listingId) return;
+    const price = await this.request(() =>
+      this.http.get<{ selling_price: string | null; list_price: string | null }>(
+        environment.apiUrl + '/marketplaces/listings/' + this.listingId + '/pricing',
+        this.options,
+      ),
+    );
+    if (price) {
+      this.sellingPrice = price.selling_price === null ? null : Number(price.selling_price);
+      this.listPrice = price.list_price === null ? null : Number(price.list_price);
+    }
+  }
   async loadReview(): Promise<void> {
     if (!this.listingId) return;
     const value = await this.request<AmazonListingReview | { status: string }>(() =>
       this.http.get<AmazonListingReview | { status: string }>(
-        this.baseUrl + '/listings/' + this.listingId + '/review', this.options,
+        this.baseUrl + '/listings/' + this.listingId + '/review',
+        this.options,
       ),
     );
     if (value && 'id' in value) this.review.set(value);
@@ -917,7 +1082,8 @@ export class AmazonWorkspaceComponent {
     if (!this.listingId) return;
     const value = await this.request<AmazonExecutionAuthorization | { status: string }>(() =>
       this.http.get<AmazonExecutionAuthorization | { status: string }>(
-        this.baseUrl + '/listings/' + this.listingId + '/execution-authorizations/latest', this.options,
+        this.baseUrl + '/listings/' + this.listingId + '/execution-authorizations/latest',
+        this.options,
       ),
     );
     if (value && 'id' in value) this.authorization.set(value);
@@ -996,41 +1162,59 @@ export class AmazonWorkspaceComponent {
   }
   async reviewListing(): Promise<void> {
     if (!this.listingId) return;
-    const value = await this.request<AmazonListingReview>(() =>
-      this.http.post<AmazonListingReview>(
-        this.baseUrl + '/listings/' + this.listingId + '/review',
-        { product_type: this.productType, attributes: this.attributeValues, confirm: true },
-        this.options,
-      ),
+    const value = await this.request<AmazonListingReview>(
+      () =>
+        this.http.post<AmazonListingReview>(
+          this.baseUrl + '/listings/' + this.listingId + '/review',
+          { product_type: this.productType, attributes: this.attributeValues, confirm: true },
+          this.options,
+        ),
       'Listing payload approved for controlled submission.',
     );
     if (value) this.review.set(value);
   }
   async issueAuthorization(): Promise<void> {
     if (!this.listingId || !this.review()) return;
-    const value = await this.request<AmazonExecutionAuthorization>(() =>
-      this.http.post<AmazonExecutionAuthorization>(
-        this.baseUrl + '/listings/' + this.listingId + '/execution-authorizations',
-        {
-          review_id: this.review()?.id,
-          idempotency_key: 'amazon-ui-submit-' + this.listingId,
-          expires_seconds: 600,
-          confirm: true,
-        },
-        this.options,
-      ),
+    const intent = JSON.stringify([
+      this.listingId,
+      this.review()?.id,
+      this.authorization()?.id,
+      this.authorization()?.status,
+    ]);
+    if (intent !== this.authorizationIntent) {
+      this.authorizationIntent = intent;
+      this.authorizationKey = 'amazon-ui-submit-' + this.listingId + '-' + crypto.randomUUID();
+    }
+    const value = await this.request<AmazonExecutionAuthorization>(
+      () =>
+        this.http.post<AmazonExecutionAuthorization>(
+          this.baseUrl + '/listings/' + this.listingId + '/execution-authorizations',
+          {
+            review_id: this.review()?.id,
+            idempotency_key: this.authorizationKey,
+            expires_seconds: 600,
+            confirm: true,
+          },
+          this.options,
+        ),
       'One-time listing execution authorization issued.',
     );
     if (value) this.authorization.set(value);
   }
   async revokeAuthorization(): Promise<void> {
     if (!this.listingId || !this.authorization()) return;
-    const value = await this.request<AmazonExecutionAuthorization>(() =>
-      this.http.post<AmazonExecutionAuthorization>(
-        this.baseUrl + '/listings/' + this.listingId + '/execution-authorizations/' + this.authorization()?.id + '/revoke',
-        { confirm: true },
-        this.options,
-      ),
+    const value = await this.request<AmazonExecutionAuthorization>(
+      () =>
+        this.http.post<AmazonExecutionAuthorization>(
+          this.baseUrl +
+            '/listings/' +
+            this.listingId +
+            '/execution-authorizations/' +
+            this.authorization()?.id +
+            '/revoke',
+          { confirm: true },
+          this.options,
+        ),
       'Execution authorization revoked.',
     );
     if (value) this.authorization.set(value);
@@ -1051,19 +1235,23 @@ export class AmazonWorkspaceComponent {
     if (!this.listingId || !window.confirm('Confirm this price update?')) return;
     await this.request(
       () =>
-        this.http.post(
+        this.http.request(
+          this.localDraft() ? 'PUT' : 'POST',
           this.baseUrl + '/listings/' + this.listingId + '/pricing',
           {
-            list_price: this.listPrice,
-            selling_price: this.sellingPrice,
-            currency: this.account()?.currency || 'INR',
-            confirm: true,
-            idempotency_key: 'amazon-ui-price-' + Date.now(),
+            ...this.options,
+            body: {
+              list_price: this.listPrice,
+              selling_price: this.sellingPrice,
+              currency: this.account()?.currency || 'INR',
+              confirm: true,
+              idempotency_key: 'amazon-ui-price-' + Date.now(),
+            },
           },
-          this.options,
         ),
-      'Price update recorded.',
+      this.localDraft() ? 'Local draft price saved. Not published.' : 'Price update recorded.',
     );
+    await this.loadReadiness();
   }
   async updateInventory(): Promise<void> {
     if (!this.listingId || !window.confirm('Confirm this explicit inventory update?')) return;
@@ -1090,8 +1278,8 @@ export class AmazonWorkspaceComponent {
         variation_theme: 'Color',
         options: {},
         barcode: '',
-        price: this.sellingPrice || null,
-        compare_at_price: this.listPrice || null,
+        price: this.sellingPrice ?? null,
+        compare_at_price: this.listPrice ?? null,
         currency: this.account()?.currency || 'INR',
       },
     ];
@@ -1151,8 +1339,8 @@ export class AmazonWorkspaceComponent {
             variation_theme: dimensions.map((dimension) => dimension.name).join('-'),
             options,
             barcode: '',
-            price: this.sellingPrice || null,
-            compare_at_price: this.listPrice || null,
+            price: this.sellingPrice ?? null,
+            compare_at_price: this.listPrice ?? null,
             currency: this.account()?.currency || 'INR',
           },
       ),
@@ -1169,14 +1357,84 @@ export class AmazonWorkspaceComponent {
     if (!this.listingId) return;
     await this.request(
       () =>
-        this.http.post(
+        this.http.request(
+          this.localDraft() ? 'PUT' : 'POST',
           this.baseUrl + '/listings/' + this.listingId + '/variants',
-          { variants: this.variants(), idempotency_key: 'amazon-ui-variants-' + Date.now() },
-          this.options,
+          {
+            ...this.options,
+            body: {
+              variants: this.variants(),
+              idempotency_key: 'amazon-ui-variants-' + Date.now(),
+            },
+          },
         ),
-      'Variants saved.',
+      this.localDraft() ? 'Local draft variants saved. Not published.' : 'Variants saved.',
     );
     await this.loadReadiness();
+  }
+  async createLocalDraft(): Promise<void> {
+    const account = this.account();
+    if (!account || this.preparing()) return;
+    this.preparing.set(true);
+    const payload = { ...this.draft, account_id: account.id, prepare_only: true };
+    const input = JSON.stringify(payload);
+    if (input !== this.draftInput) {
+      this.draftInput = input;
+      this.draftKey = 'amazon-local-' + crypto.randomUUID();
+    }
+    try {
+      const saved = await this.request(() =>
+        this.http.post<{ id: string }>(
+          environment.apiUrl + '/marketplaces/listings',
+          { ...payload, idempotency_key: this.draftKey },
+          this.options,
+        ),
+      );
+      if (saved) await this.router.navigate(['/marketplaces/listings', saved.id, 'amazon']);
+    } finally {
+      this.preparing.set(false);
+    }
+  }
+  private imageHandoffBody() {
+    return {
+      marketplace: 'amazon',
+      listing_id: this.listingId,
+      position: 0,
+      role: 'main',
+      idempotency_key: 'amazon-image-' + this.listingId + '-' + this.approvedImageId,
+    };
+  }
+  async previewLocalImage(): Promise<void> {
+    this.imageHandoff.set(null);
+    if (!this.listingId || !this.localDraft() || !this.approvedImageId) return;
+    const result = await this.request(() =>
+      this.http.post<{
+        ready: boolean;
+        fingerprint: string;
+        blockers: string[];
+        output_id: string;
+      }>(
+        environment.apiUrl + '/ai/images/outputs/' + this.approvedImageId + '/handoff/preview',
+        this.imageHandoffBody(),
+        this.options,
+      ),
+    );
+    if (result) this.imageHandoff.set(result);
+  }
+  async confirmLocalImage(): Promise<void> {
+    const review = this.imageHandoff();
+    if (!review?.ready || review.output_id !== this.approvedImageId || !this.localDraft()) return;
+    const saved = await this.request(
+      () =>
+        this.http.post(
+          environment.apiUrl + '/ai/images/outputs/' + this.approvedImageId + '/handoff',
+          { ...this.imageHandoffBody(), fingerprint: review.fingerprint },
+          this.options,
+        ),
+      'Exact main image prepared locally. Not published.',
+    );
+    this.imageHandoff.set(null);
+    if (saved) await Promise.all([this.loadMedia(), this.loadReadiness()]);
   }
   addMedia(): void {
     if (!this.newMediaId.trim()) {

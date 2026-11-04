@@ -894,8 +894,6 @@ def save_price(
     )
     if issues:
         raise HTTPException(422, issues[0].message)
-    if not row.remote_listing_id:
-        raise HTTPException(409, "Submit the listing before changing its Meesho price.")
     previous = idempotent_resource(db, user.id, account.id, "price_update", data.idempotency_key)
     if previous == row.id:
         current = db.scalar(
@@ -912,15 +910,21 @@ def save_price(
                 "currency": current.currency,
                 "idempotent_reuse": True,
             }
-    remote = _connector(account).update_price(
-        remote_id=row.remote_listing_id,
-        payload={
-            "selling_price": str(data.selling_price),
-            "list_price": str(data.list_price) if data.list_price is not None else None,
-            "sale_price": str(data.sale_price) if data.sale_price is not None else None,
-            "currency": data.currency,
-        },
-        idempotency_key=data.idempotency_key,
+    # An unpublished draft needs a durable price before readiness can pass.
+    # Local preparation must never invoke even the fake provider connector.
+    remote = (
+        {"operation_status": "succeeded"}
+        if not row.remote_listing_id
+        else _connector(account).update_price(
+            remote_id=row.remote_listing_id,
+            payload={
+                "selling_price": str(data.selling_price),
+                "list_price": str(data.list_price) if data.list_price is not None else None,
+                "sale_price": str(data.sale_price) if data.sale_price is not None else None,
+                "currency": data.currency,
+            },
+            idempotency_key=data.idempotency_key,
+        )
     )
     operation_status = str(remote.get("operation_status", "succeeded"))
     if operation_status == "throttled":
@@ -975,6 +979,7 @@ def save_price(
         "mrp_amount": str(old.mrp_amount) if old.mrp_amount is not None else None,
         "currency": old.currency,
         "idempotent_reuse": False,
+        "draft": row.remote_listing_id is None,
     }
 
 

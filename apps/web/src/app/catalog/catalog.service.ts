@@ -55,12 +55,25 @@ export class CatalogService {
 
   updateVariant(
     variant: CatalogVariant,
-    data: Partial<Pick<CatalogVariant, 'variant_key' | 'title' | 'sku' | 'option_values' | 'attributes' | 'image_refs' | 'price_amount' | 'currency' | 'status'>>,
+    data: Partial<
+      Pick<
+        CatalogVariant,
+        | 'variant_key'
+        | 'title'
+        | 'sku'
+        | 'option_values'
+        | 'attributes'
+        | 'image_refs'
+        | 'price_amount'
+        | 'currency'
+        | 'status'
+      >
+    >,
   ): Promise<CatalogVariant> {
     return firstValueFrom(
       this.http.patch<CatalogVariant>(
         `${this.baseUrl}/variants/${variant.id}`,
-        { ...data, version: variant.version },
+        { variant_key: variant.variant_key, ...data, version: variant.version },
         this.options,
       ),
     );
@@ -68,7 +81,10 @@ export class CatalogService {
 
   images(productId: string): Promise<CatalogProductImage[]> {
     return firstValueFrom(
-      this.http.get<CatalogProductImage[]>(`${this.baseUrl}/products/${productId}/images`, this.options),
+      this.http.get<CatalogProductImage[]>(
+        `${this.baseUrl}/products/${productId}/images`,
+        this.options,
+      ),
     );
   }
 
@@ -77,7 +93,11 @@ export class CatalogService {
     data: { media_id: string; alt_text?: string | null; position?: number; is_primary?: boolean },
   ): Promise<CatalogProductImage> {
     return firstValueFrom(
-      this.http.post<CatalogProductImage>(`${this.baseUrl}/products/${productId}/images`, data, this.options),
+      this.http.post<CatalogProductImage>(
+        `${this.baseUrl}/products/${productId}/images`,
+        data,
+        this.options,
+      ),
     );
   }
 
@@ -95,21 +115,41 @@ export class CatalogService {
   }
 
   removeImage(image: CatalogProductImage): Promise<void> {
-    return firstValueFrom(this.http.delete<void>(`${this.baseUrl}/images/${image.id}`, this.options));
+    return firstValueFrom(
+      this.http.delete<void>(`${this.baseUrl}/images/${image.id}`, this.options),
+    );
   }
 
   economics(productId: string): Promise<CatalogEconomics> {
     return firstValueFrom(
-      this.http.get<CatalogEconomics>(`${this.baseUrl}/products/${productId}/economics`, this.options),
+      this.http.get<CatalogEconomics>(
+        `${this.baseUrl}/products/${productId}/economics`,
+        this.options,
+      ),
     );
   }
 
-  media(): Promise<{ items: Array<{ id: string; original_filename: string; preview_url: string; mime_type: string; status: string }>; total: number }> {
+  media(): Promise<{
+    items: Array<{
+      id: string;
+      original_filename: string;
+      preview_url: string;
+      mime_type: string;
+      status: string;
+    }>;
+    total: number;
+  }> {
     return firstValueFrom(
-      this.http.get<{ items: Array<{ id: string; original_filename: string; preview_url: string; mime_type: string; status: string }>; total: number }>(
-        `${environment.apiUrl}/media?page_size=100`,
-        this.options,
-      ),
+      this.http.get<{
+        items: Array<{
+          id: string;
+          original_filename: string;
+          preview_url: string;
+          mime_type: string;
+          status: string;
+        }>;
+        total: number;
+      }>(`${environment.apiUrl}/media?page_size=100`, this.options),
     );
   }
 

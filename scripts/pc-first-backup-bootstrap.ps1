@@ -94,12 +94,15 @@ function Write-VayujitBootstrapFailureReport {
   )
 
   try {
+    if (Get-Command Write-BackupCheckpoint -ErrorAction SilentlyContinue) { Write-BackupCheckpoint -Stage "child report write" -State ENTER }
     $parent = [System.IO.Path]::GetDirectoryName([System.IO.Path]::GetFullPath($ReportPath))
-    if ([string]::IsNullOrWhiteSpace($parent) -or -not (Test-Path -LiteralPath $parent -PathType Container)) { return $false }
+    if ([string]::IsNullOrWhiteSpace($parent) -or -not (Test-Path -LiteralPath $parent -PathType Container)) { throw "backup_evidence_report_write_failed" }
     $json = ConvertTo-Json -InputObject $Report -Depth 5
     [System.IO.File]::WriteAllText([System.IO.Path]::GetFullPath($ReportPath), ($json + "`n"), [System.Text.UTF8Encoding]::new($false))
+    if (Get-Command Write-BackupCheckpoint -ErrorAction SilentlyContinue) { Write-BackupCheckpoint -Stage "child report write" -State COMPLETE }
     return $true
   } catch {
+    if (Get-Command Write-BackupCheckpoint -ErrorAction SilentlyContinue) { Write-BackupCheckpoint -Stage "child report write" -State FAIL -Classification report_write_failed }
     # Deliberately return only a boolean. Callers use a reserved process exit
     # code so the parent can identify report-write failure without raw output.
     return $false

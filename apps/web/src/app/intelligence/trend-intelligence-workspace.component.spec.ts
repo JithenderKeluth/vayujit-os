@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { TrendIntelligenceWorkspaceComponent } from './trend-intelligence-workspace.component';
 import { TrendIntelligenceService } from './trend-intelligence.service';
 import { CommerceJourneyService } from '../commerce-journey.service';
@@ -22,6 +22,39 @@ describe('TrendIntelligenceWorkspaceComponent', () => {
     expect(fixture.nativeElement.textContent).toContain('Trend Intelligence');
     expect(fixture.nativeElement.textContent).toContain('Evidence-first');
     expect(fixture.nativeElement.querySelector('[aria-label=Breadcrumb]')).not.toBeNull();
+  });
+  it('does not upgrade missing verification or synthetic observations to verified market evidence', () => {
+    const component = fixture.componentInstance;
+    component.selected.set({
+      id: 'qa',
+      name: 'Synthetic',
+      subject_type: 'CUSTOM',
+      subject_key: 'fixture',
+      status: 'DRAFT',
+      version: 1,
+      created_at: '',
+      updated_at: '',
+    });
+    component.observations.set([
+      {
+        id: 'observation',
+        signal_definition_id: 'signal',
+        observed_at: '2026-10-20T00:00:00Z',
+        measurement_type: 'INDEX',
+        value_numeric: '10.0000000000',
+        geography_scope: 'GLOBAL',
+        freshness_state: 'STALE',
+        quality_state: 'UNKNOWN',
+        source_reference: 'fixture',
+        raw_metadata: { synthetic: true },
+        provenance_note: 'Invented test index',
+      },
+    ]);
+    fixture.detectChanges();
+    const text = (fixture.nativeElement as HTMLElement).textContent || '';
+    expect(text).toContain('UNKNOWN');
+    expect(text).toContain('SYNTHETIC TEST DATA, not live market evidence');
+    expect(text).toContain('Invented test index');
   });
 
   it('reuses the selected opportunity context without starting research', async () => {
@@ -99,4 +132,47 @@ describe('TrendIntelligenceWorkspaceComponent', () => {
     expect(root.querySelector('#trend-context-list-heading')).not.toBeNull();
     expect(root.querySelectorAll('main')).toHaveLength(0);
   });
+  it.each(['owned', 'missing'])(
+    'resolves the exact %s deep link without substituting journey context',
+    async (requested: string) => {
+      const context = {
+        id: 'owned',
+        name: 'Owned context',
+        subject_type: 'CUSTOM',
+        subject_key: 'synthetic',
+        status: 'DRAFT',
+        version: 1,
+        created_at: '',
+        updated_at: '',
+      };
+      const active = vi.fn();
+      const service = {
+        contexts: () => of([context]),
+        createContext: vi.fn(),
+        ingestions: () => of([]),
+        observations: () => of({ items: [] }),
+        snapshots: () => of([]),
+        currentValidation: () => of(null),
+        analyses: () => of({ items: [] }),
+        changes: () => of({ items: [] }),
+      };
+      TestBed.resetTestingModule().configureTestingModule({
+        providers: [
+          provideRouter([]),
+          {
+            provide: ActivatedRoute,
+            useValue: { snapshot: { paramMap: convertToParamMap({ contextId: requested }) } },
+          },
+          { provide: TrendIntelligenceService, useValue: service },
+          { provide: CommerceJourneyService, useValue: { active } },
+        ],
+      });
+      const c = TestBed.runInInjectionContext(() => new TrendIntelligenceWorkspaceComponent());
+      await Promise.resolve();
+      expect(c.selected()?.id ?? null).toBe(requested === 'owned' ? 'owned' : null);
+      expect(active).not.toHaveBeenCalled();
+      expect(service.createContext).not.toHaveBeenCalled();
+      if (requested === 'missing') expect(c.error()).toContain('No other context was substituted');
+    },
+  );
 });

@@ -115,13 +115,16 @@ function Invoke-VayujitNativeCapture {
   param(
     [Parameter(Mandatory = $true)][string]$FilePath,
     [string[]]$Arguments = @(),
-    [string[]]$RemoveEnvironmentVariables = @()
+    [string[]]$RemoveEnvironmentVariables = @(),
+    [string]$WorkingDirectory,
+    [ValidateRange(0, 3600)][int]$TimeoutSeconds = 0
   )
   $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
   $startInfo.FileName = $FilePath
   $startInfo.Arguments = (($Arguments | ForEach-Object { ConvertTo-VayujitWindowsArgument -Value ([string]$_) }) -join " ")
   $startInfo.UseShellExecute = $false
   $startInfo.CreateNoWindow = $true
+  if ($WorkingDirectory) { $startInfo.WorkingDirectory = [System.IO.Path]::GetFullPath($WorkingDirectory) }
   $startInfo.RedirectStandardOutput = $true
   $startInfo.RedirectStandardError = $true
   foreach ($environmentName in $RemoveEnvironmentVariables) {
@@ -135,7 +138,15 @@ function Invoke-VayujitNativeCapture {
     if (-not $process.Start()) { throw "Could not start the requested security utility." }
     $stdoutTask = $process.StandardOutput.ReadToEndAsync()
     $stderrTask = $process.StandardError.ReadToEndAsync()
-    $process.WaitForExit()
+    if ($TimeoutSeconds -gt 0) {
+      if (-not $process.WaitForExit($TimeoutSeconds * 1000)) {
+        # Kill only the native client launched by this helper, never Docker
+        # containers or unrelated processes. Its server operation may still be
+        # in progress: callers must fail closed and inspect/recover service state.
+        try { $process.Kill(); [void]$process.WaitForExit(2000) } catch { }
+        throw [System.TimeoutException]::new("native_process_timeout")
+      }
+    } else { $process.WaitForExit() }
     $stdout = $stdoutTask.GetAwaiter().GetResult()
     $stderr = $stderrTask.GetAwaiter().GetResult()
     return [pscustomobject]@{ ExitCode = $process.ExitCode; StdOut = $stdout; StdErr = $stderr }

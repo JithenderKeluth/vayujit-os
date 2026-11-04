@@ -9,7 +9,8 @@ from collections.abc import Iterable
 from decimal import ROUND_HALF_UP, Decimal, InvalidOperation
 from typing import Any
 
-from sqlalchemy import select
+from fastapi import HTTPException
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from vayujit_api.identity.models import User
@@ -22,7 +23,10 @@ from vayujit_api.intelligence.product_opportunity_feasibility_models import (
 from vayujit_api.intelligence.product_opportunity_intelligence_models import (
     ProductOpportunityIntelligenceOutput,
 )
-from vayujit_api.intelligence.product_opportunity_models import ProductOpportunityAssessment
+from vayujit_api.intelligence.product_opportunity_models import (
+    ProductOpportunity,
+    ProductOpportunityAssessment,
+)
 from vayujit_api.intelligence.product_opportunity_scoring_models import (
     CALCULATION_VERSION,
     PROFILE_VERSION,
@@ -600,6 +604,45 @@ def rank_scores(db: Session, owner: User, data: ComparisonRequest) -> dict[str, 
     return {**comparison, "ranking": ranking}
 
 
+def current_product_decision(
+    db: Session, owner: User, opportunity_id: uuid.UUID
+) -> ProductOpportunityDecision | None:
+    """Current HUMAN intent; historical shortlist is not continuing authorization."""
+    return db.scalar(
+        select(ProductOpportunityDecision)
+        .where(
+            ProductOpportunityDecision.owner_id == owner.id,
+            ProductOpportunityDecision.opportunity_id == opportunity_id,
+        )
+        .order_by(
+            ProductOpportunityDecision.created_at.desc(), ProductOpportunityDecision.id.desc()
+        )
+        .limit(1)
+    )
+
+
+def current_product_selection(
+    db: Session, owner: User, opportunity_id: uuid.UUID
+) -> ProductOpportunityDecision | None:
+    row = current_product_decision(db, owner, opportunity_id)
+    opportunity = db.scalar(
+        select(ProductOpportunity).where(
+            ProductOpportunity.owner_id == owner.id, ProductOpportunity.id == opportunity_id
+        )
+    )
+    return (
+        row
+        if (
+            row
+            and row.action == "shortlist"
+            and opportunity
+            and opportunity.lifecycle_status != "archived"
+            and row.assessment_id == opportunity.current_assessment_id
+        )
+        else None
+    )
+
+
 def add_decision(
     db: Session,
     owner: User,
@@ -608,7 +651,20 @@ def add_decision(
     data: DecisionRequest,
 ) -> ProductOpportunityDecision:
     score = get_score(db, owner, opportunity_id, assessment_id)
-    key = data.idempotency_key or f"opportunity-decision:{score.id}:{data.action}"
+    if db.get_bind().dialect.name == "postgresql":
+        db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
+            {"key": f"product-decision:{owner.id}:{opportunity_id}"},
+        )
+    latest = current_product_decision(db, owner, opportunity_id)
+    key = data.idempotency_key or (
+        latest.idempotency_key
+        if latest
+        and latest.assessment_id == assessment_id
+        and latest.action == data.action
+        and latest.rationale == data.rationale
+        else f"opportunity-decision:{uuid.uuid4()}"
+    )
     existing = db.scalar(
         select(ProductOpportunityDecision).where(
             ProductOpportunityDecision.owner_id == owner.id,
@@ -616,7 +672,25 @@ def add_decision(
         )
     )
     if existing is not None:
+        if (
+            existing.opportunity_id != opportunity_id
+            or existing.assessment_id != assessment_id
+            or existing.action != data.action
+            or existing.rationale != data.rationale
+        ):
+            raise HTTPException(409, "This decision request changed. Review the current decision.")
         return existing
+    opportunity = db.scalar(
+        select(ProductOpportunity).where(
+            ProductOpportunity.id == opportunity_id, ProductOpportunity.owner_id == owner.id
+        )
+    )
+    if (
+        not opportunity
+        or opportunity.current_assessment_id != assessment_id
+        or opportunity.lifecycle_status == "archived"
+    ):
+        raise HTTPException(409, "This assessment is no longer current. Reload before deciding.")
     row = ProductOpportunityDecision(
         owner_id=owner.id,
         opportunity_id=opportunity_id,

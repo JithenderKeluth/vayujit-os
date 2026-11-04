@@ -25,7 +25,10 @@ from vayujit_api.intelligence.external_service import (
 )
 from vayujit_api.intelligence.external_service import fetch as approved_fetch
 from vayujit_api.intelligence.external_service import search as external_search
-from vayujit_api.intelligence.product_discovery import generate_category_product_hypotheses
+from vayujit_api.intelligence.product_discovery import (
+    category_constraint_tokens,
+    generate_category_product_hypotheses,
+)
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
 
 STOP_WORDS = {
@@ -102,7 +105,7 @@ def _category_constraint_match(
     """Require an explicit category to be supported by fetched product evidence."""
     if not requested:
         return True, []
-    requested_tokens = _tokens(requested)
+    requested_tokens = category_constraint_tokens(requested)
     fields = {
         "name": name,
         "category": category,
@@ -110,8 +113,11 @@ def _category_constraint_match(
         "description": description,
         "canonical_url": canonical_url,
     }
-    matched = [key for key, value in fields.items() if requested_tokens & _tokens(str(value))]
-    return bool(matched), matched
+    observed = {key: category_constraint_tokens(str(value)) for key, value in fields.items()}
+    matched = [key for key, tokens in observed.items() if requested_tokens & tokens]
+    supported = set().union(*observed.values())
+    eligible = bool(requested_tokens) and requested_tokens <= supported
+    return eligible, matched if eligible else []
 
 
 def _meaningful(opportunity: ProductOpportunity) -> bool:
@@ -262,7 +268,7 @@ def _bounded_product_metadata(value: object) -> dict[str, object]:
     if not product:
         return {}
     projection: dict[str, object] = {}
-    for key in ("name", "sku", "mpn", "gtin", "description"):
+    for key in ("name", "sku", "mpn", "gtin", "description", "category"):
         item = product.get(key)
         if isinstance(item, str) and item:
             projection[key] = item[:2_000]
@@ -434,6 +440,23 @@ def _live_product_queries(concept: str) -> list[tuple[str, str]]:
     ]
 
 
+def _live_product_query_plan(
+    hypotheses: list[dict[str, object]], requested_category: str
+) -> list[tuple[dict[str, object], str, str]]:
+    """Search each relevant hypothesis before spending budget on refinements."""
+    variants = []
+    for hypothesis in hypotheses[:3]:
+        concept = str(hypothesis["product_concept"])
+        if requested_category and requested_category.casefold() not in concept.casefold():
+            concept = f"{requested_category} {concept}"
+        variants.append((hypothesis, _live_product_queries(concept)))
+    return [
+        (hypothesis, queries[index][0], queries[index][1])
+        for index in range(3)
+        for hypothesis, queries in variants
+    ]
+
+
 def non_product_discovery_url(url: str) -> tuple[str, str] | None:
     """Skip only clear non-product URL surfaces; never establish product eligibility."""
     parsed = urlparse(url)
@@ -480,8 +503,7 @@ def discovery_review_projection(result: dict[str, object]) -> dict[str, object]:
         return result
     details = dict(raw)
     rows = details.get("fetches")
-    if not isinstance(rows, list):
-        return result
+    rows = rows if isinstance(rows, list) else []
     reviewed = []
     for row in rows:
         if not isinstance(row, dict):
@@ -505,7 +527,21 @@ def discovery_review_projection(result: dict[str, object]) -> dict[str, object]:
         if isinstance(rejected, list)
         else []
     )
-    if (reviewed or skipped) and all(
+    budget = details.get("search_budget")
+    observability = details.get("observability")
+    stop_reason = (
+        budget.get("stop_reason")
+        if isinstance(budget, dict)
+        else observability.get("stop_reason") if isinstance(observability, dict) else None
+    )
+    if stop_reason == "CACHED_QUERY_PLAN_EXHAUSTED":
+        details["review_guidance"] = (
+            "No eligible product was established from reused search evidence. "
+            "No new provider search was made. Review the final product eligibility reasons below. "
+            "Retry product discovery uses the current category query plan, but recent searches "
+            "may still be reused. Source approval does not establish product suitability."
+        )
+    elif (reviewed or skipped) and all(
         row.get("source_review_eligible") is False for row in reviewed
     ):
         details["review_guidance"] = (
@@ -746,6 +782,9 @@ def run_live_product_discovery(
         }
         fetches.append(fetch_record)
         if not eligible:
+            fetch_record.update(
+                {"reason": page_reason, "reason_code": "PRODUCT_IDENTITY_NOT_ESTABLISHED"}
+            )
             rejected_results.append(
                 {
                     "url": canonical,
@@ -754,6 +793,7 @@ def run_live_product_discovery(
                     "page_type": page_type,
                     "eligible": False,
                     "reason": page_reason,
+                    "reason_code": "PRODUCT_IDENTITY_NOT_ESTABLISHED",
                 }
             )
             return False
@@ -775,6 +815,17 @@ def run_live_product_discovery(
             canonical_url=canonical,
         )
         if not category_ok:
+            category_reason = (
+                f"Explicit category constraint '{requested_category}' was not "
+                "established by fetched product evidence."
+            )
+            fetch_record.update(
+                {
+                    "eligible": False,
+                    "reason": category_reason,
+                    "reason_code": "CATEGORY_CONSTRAINT_NOT_ESTABLISHED",
+                }
+            )
             rejected_results.append(
                 {
                     "url": canonical,
@@ -782,10 +833,8 @@ def run_live_product_discovery(
                     "title": title,
                     "page_type": page_type,
                     "eligible": False,
-                    "reason": (
-                        f"Explicit category constraint '{requested_category}' was not "
-                        "established by fetched product evidence."
-                    ),
+                    "reason": category_reason,
+                    "reason_code": "CATEGORY_CONSTRAINT_NOT_ESTABLISHED",
                     "category_constraint": requested_category,
                 }
             )
@@ -934,83 +983,73 @@ def run_live_product_discovery(
         candidates.append(candidate)
         return True
 
-    for hypothesis in hypotheses[:max_hypotheses]:
-        query_concept = str(hypothesis["product_concept"])
-        if requested_category and requested_category.casefold() not in query_concept.casefold():
-            query_concept = f"{requested_category} {query_concept}"
-        for query, reason in _live_product_queries(query_concept):
-            if executed_requests >= configured_budget:
-                stop_reason = "SEARCH_BUDGET_EXHAUSTED"
-                break
-            query = re.sub(r"\s+", " ", query).strip()[:240]
-            report: dict[str, object] = {
-                "stage": "PRODUCT_SPECIFIC_SEARCH",
-                "objective": "PRODUCT_DISCOVERY",
-                "query": query,
-                "reason": reason,
-                "market": market,
-                "marketplace": marketplace,
-                "hypothesis": hypothesis["name"],
-                "source": "DETERMINISTIC_HYPOTHESIS",
-            }
-            executed_requests += 1
-            try:
-                response = external_search(
-                    db,
-                    owner,
-                    ExternalSearchRequestBody(
-                        query=query,
-                        market=market,
-                        max_results=max_search_results,
-                        safe_search=True,
-                        source_categories=["marketplace", "retailer", "editorial"],
-                        correlation_id=correlation_id or f"product-discovery:{uuid.uuid4()}",
-                    ),
-                )
-            except HTTPException as exc:
-                code, message = _normalize_live_search_failure(exc)
-                report.update(
-                    {"status": "FAILED", "failure": message, "provider_mode": "LIVE_PROVIDER"}
-                )
-                query_reports.append(report)
-                failures.append({"code": code, "message": message})
-                if code == "PROVIDER_QUOTA_EXHAUSTED":
-                    quota_exhausted = True
-                    stop_reason = "PROVIDER_QUOTA_EXHAUSTED"
-                    break
-                continue
-            reused = bool(response.get("reuse"))
-            if reused:
-                reused_requests += 1
-            report.update(
-                {
-                    "status": response.get("status", "COMPLETED"),
-                    "provider_mode": "REUSED_RECENT_SEARCH" if reused else "LIVE_PROVIDER",
-                    "freshness": response.get("freshness", "UNKNOWN"),
-                }
+    for hypothesis, query, reason in _live_product_query_plan(hypotheses, requested_category):
+        if executed_requests >= configured_budget:
+            stop_reason = "SEARCH_BUDGET_EXHAUSTED"
+            break
+        query = re.sub(r"\s+", " ", query).strip()[:240]
+        report: dict[str, object] = {
+            "stage": "PRODUCT_SPECIFIC_SEARCH",
+            "objective": "PRODUCT_DISCOVERY",
+            "query": query,
+            "reason": reason,
+            "market": market,
+            "marketplace": marketplace,
+            "hypothesis": hypothesis["name"],
+            "source": "DETERMINISTIC_HYPOTHESIS",
+        }
+        executed_requests += 1
+        try:
+            response = external_search(
+                db,
+                owner,
+                ExternalSearchRequestBody(
+                    query=query,
+                    market=market,
+                    max_results=max_search_results,
+                    safe_search=True,
+                    source_categories=["marketplace", "retailer", "editorial"],
+                    correlation_id=correlation_id or f"product-discovery:{uuid.uuid4()}",
+                ),
             )
-            result_rows = response.get("results", [])
-            rows = result_rows if isinstance(result_rows, list) else []
-            report["result_count"] = len(rows)
+        except HTTPException as exc:
+            code, message = _normalize_live_search_failure(exc)
+            report.update(
+                {"status": "FAILED", "failure": message, "provider_mode": "LIVE_PROVIDER"}
+            )
             query_reports.append(report)
-            for row in rows[:max_search_results]:
-                search_rows.append((hypothesis, row))
-                materialize(hypothesis, row)
-                if len(candidates) >= target_candidates:
-                    stop_reason = "EARLY_STOP_TARGET_REACHED"
-                    break
-            if len(candidates) < target_candidates and any(
-                item.get("reason_code") == "SOURCE_APPROVAL_REQUIRED" for item in fetches
-            ):
-                stop_reason = "SOURCE_APPROVAL_REQUIRED"
+            failures.append({"code": code, "message": message})
+            if code == "PROVIDER_QUOTA_EXHAUSTED":
+                quota_exhausted = True
+                stop_reason = "PROVIDER_QUOTA_EXHAUSTED"
                 break
+            continue
+        reused = bool(response.get("reuse"))
+        if reused:
+            reused_requests += 1
+        report.update(
+            {
+                "status": response.get("status", "COMPLETED"),
+                "provider_mode": "REUSED_RECENT_SEARCH" if reused else "LIVE_PROVIDER",
+                "freshness": response.get("freshness", "UNKNOWN"),
+            }
+        )
+        result_rows = response.get("results", [])
+        rows = result_rows if isinstance(result_rows, list) else []
+        report["result_count"] = len(rows)
+        query_reports.append(report)
+        for row in rows[:max_search_results]:
+            search_rows.append((hypothesis, row))
+            materialize(hypothesis, row)
             if len(candidates) >= target_candidates:
+                stop_reason = "EARLY_STOP_TARGET_REACHED"
                 break
-        if (
-            len(candidates) >= target_candidates
-            or quota_exhausted
-            or stop_reason == "SOURCE_APPROVAL_REQUIRED"
+        if len(candidates) < target_candidates and any(
+            item.get("reason_code") == "SOURCE_APPROVAL_REQUIRED" for item in fetches
         ):
+            stop_reason = "SOURCE_APPROVAL_REQUIRED"
+            break
+        if len(candidates) >= target_candidates:
             break
 
     if stop_reason == "SEARCH_BUDGET_EXHAUSTED" and executed_requests < configured_budget:
@@ -1087,7 +1126,7 @@ def run_live_product_discovery(
             else "SOURCE_APPROVAL_REQUIRED" if approval_domains else "NO_USEFUL_PRODUCT_CANDIDATES"
         )
     )
-    return {
+    result: dict[str, Any] = {
         "mode": settings.intelligence_external_provider_mode,
         "status": status,
         "hypotheses": hypotheses[:max_hypotheses],
@@ -1112,6 +1151,10 @@ def run_live_product_discovery(
         "search_budget": search_budget,
         "observability": observability,
     }
+    projected = discovery_review_projection({"details": result})["details"]
+    if isinstance(projected, dict) and "review_guidance" in projected:
+        result["review_guidance"] = projected["review_guidance"]
+    return result
 
 
 def run_product_research(

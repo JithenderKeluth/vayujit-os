@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, RouterLink } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
@@ -15,6 +15,9 @@ import {
 } from '../shared/state-components';
 import { PageHeaderComponent } from '../shared/page-header.component';
 import type { BreadcrumbItem } from '../shared/ux-foundation.types';
+import { supplierEvidenceOrigin } from './supplier-evidence-origin';
+import { SellerMoneyPipe, SellerPercentPipe, SellerComponentMoneyPipe } from './seller-financial-format';
+import { EconomicEvidenceNoteComponent } from './economic-evidence-note.component';
 
 interface EconomicContextView {
   id: string;
@@ -22,6 +25,9 @@ interface EconomicContextView {
   base_currency: string | null;
   target_quantity: number | string | null;
   quantity_unit: string | null;
+  product_opportunity_id?: string | null;
+  canonical_supplier_id?: string | null;
+  product_id?: string | null;
 }
 
 interface EconomicSnapshotView {
@@ -173,6 +179,7 @@ interface DecisionBriefView {
       total_included_cost: string;
       per_unit_cost: string | null;
       currency: string | null;
+      reporting_currency?: string | null;
       status: string;
       missing_inputs: string[];
       warnings: string[];
@@ -183,7 +190,7 @@ interface DecisionBriefView {
       scenario_name: string;
       comparability: string;
       baseline: { total: string | null; per_unit: string | null };
-      scenario: { total: string | null; per_unit: string | null };
+      scenario: { total: string | null; per_unit: string | null; currency?: string | null };
       warnings: string[];
     }>;
   };
@@ -642,6 +649,10 @@ interface EconomicSensitivityView {
 @Component({
   selector: 'app-sourcing-economics-workspace',
   imports: [
+    SellerMoneyPipe,
+    SellerComponentMoneyPipe,
+    SellerPercentPipe,
+    EconomicEvidenceNoteComponent,
     BlockedStateComponent,
     BreadcrumbsComponent,
     CommonModule,
@@ -664,8 +675,74 @@ interface EconomicSensitivityView {
       >
         <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
       </app-page-header>
-      <app-commerce-journey-context />
-      <section class="panel live-certification-panel" aria-labelledby="live-certification-title">
+      @if (!opportunityId) {
+        <app-commerce-journey-context />
+      }
+      <section class="panel" aria-labelledby="scope-title">
+        <h2 id="scope-title">Product and supplier for this evaluation</h2>
+        <p>{{ scopeLabel() }}</p>
+        <p role="note">{{ evidenceOrigin() }}</p>
+        @if (opportunityId && !scopeLoading() && !scopeError()) {
+          <a
+            [routerLink]="[]"
+            queryParamsHandling="preserve"
+            [fragment]="context() ? 'inputs-title' : 'context-title'"
+          >{{
+            context() ? 'Review saved economic inputs' : 'Set up economic inputs'
+          }}</a>
+          <p>
+            Local economic inputs do not require live source acquisition. Missing costs stay
+            UNKNOWN.
+          </p>
+        }
+        @if (supplierId) {
+          <p>
+            Supplier: {{ supplierName() || supplierId }}. Claims and missing prices remain
+            unverified; no quotation or cost basis is selected automatically.
+          </p>
+        }
+        @if (scopeError()) {
+          <p role="alert">{{ scopeError() }}</p>
+          <a routerLink="/intelligence/product-opportunities">Review product opportunities</a>
+        }
+        @if (scopeLoading()) {
+          <p role="status">Checking product and supplier context...</p>
+        }
+        @if (!opportunityId) {
+          <a routerLink="/intelligence/product-opportunities">Choose a product opportunity</a>
+        }
+        @if (context()) {
+          <p role="status">Saved evaluation restored. Missing commercial inputs remain UNKNOWN.</p>
+        }
+      </section>
+      @if (decisionBrief(); as brief) {
+        <section class="panel seller-cost-summary" aria-labelledby="seller-cost-summary-title">
+          <h2 id="seller-cost-summary-title">Your sourcing evaluation at a glance</h2>
+          <p>{{ brief.product.name }} · {{ supplierName() || 'Product-level scenario; no supplier cost basis selected' }}</p>
+          <p><strong>Evidence readiness:</strong> {{ brief.decision_evidence?.readiness_state || brief.decision_readiness }}.
+            This is not permission to buy or launch.</p>
+          @if (brief.economics.unit_economics; as unit) {
+            <p><strong>Input freshness:</strong> {{ unit.freshness?.status || 'UNKNOWN' }}.
+              {{ unit.safe_next_action || 'Review inputs and missing evidence before relying on this model.' }}</p>
+            <dl class="input-list">
+              <div><dt>Known landed cost / unit</dt><dd>{{ unit.per_unit_landed_cost | sellerMoney:unit.base_currency }}</dd></div>
+              <div><dt>Modeled contribution / unit</dt><dd>{{ unit.per_unit_contribution | sellerMoney:unit.base_currency }}</dd></div>
+              <div><dt>Modeled contribution margin</dt><dd>{{ unit.contribution_margin | sellerPercent }}</dd></div>
+              <div><dt>Capital required</dt><dd>{{ unit.capital_required | sellerMoney:unit.capital_currency }} · {{ unit.capital_fit_status || 'UNKNOWN' }}</dd></div>
+            </dl>
+            <p><strong>Unknown / excluded:</strong>
+              @for (item of unit.unknown_excluded; track $index) { {{ item.label || item.key }} ({{ item.status }}); }
+              Unknown fees, GST, returns or other costs are not zero. Modeled contribution is not verified net profit.</p>
+          } @else { <p>Cost and profitability are UNKNOWN until sufficient explicit inputs are recorded.</p> }
+          <nav aria-label="Sourcing evaluation sections">
+            <a [routerLink]="[]" queryParamsHandling="preserve" [fragment]="context() ? 'inputs-title' : 'context-title'">Review inputs</a> ·
+            @if (brief.economics.unit_economics) { <a [routerLink]="[]" queryParamsHandling="preserve" fragment="unit-economics-title">Review cost model</a> · }
+            <a [routerLink]="[]" queryParamsHandling="preserve" fragment="controlled-decision-title">Review HUMAN decision</a>
+          </nav>
+        </section>
+      }
+      <details class="panel"><summary>Optional: live supplier source certification</summary>
+      <section class="live-certification-panel" aria-labelledby="live-certification-title">
         <p class="eyebrow">PR-9A · LIVE SUPPLIER EVIDENCE</p>
         <h2 id="live-certification-title">Approve, authorize, then review one source</h2>
         <p>
@@ -833,6 +910,7 @@ interface EconomicSensitivityView {
           }
         }
       </section>
+      </details>
       @if (error()) {
         <app-error-state
           [message]="error()"
@@ -878,7 +956,11 @@ interface EconomicSensitivityView {
                 placeholder="Business Agent goal UUID"
             /></label>
           </details>
-          <button type="submit" [disabled]="busy()">Load decision brief</button>
+          @if (supplierId && !context()) {
+            <p role="status">Set up and save economic inputs for this product and supplier first. A product-wide calculation will not be substituted for this supplier.</p>
+            <a [routerLink]="[]" queryParamsHandling="preserve" fragment="context-title">Set up this supplier's economic inputs</a>
+          }
+          <button type="submit" [disabled]="busy() || scopeLoading() || !!scopeError() || !opportunityId || (!!supplierId && !context())">Load decision brief</button>
         </form>
         @if (decisionBrief(); as brief) {
           <div class="brief-summary" role="status">
@@ -1732,6 +1814,7 @@ interface EconomicSensitivityView {
             </section>
           }
           @if (brief.decision_evidence; as readiness) {
+            <details><summary>Review decision readiness, warnings and unknowns</summary>
             <section class="decision-readiness-panel" aria-labelledby="decision-readiness-title">
               <h3 id="decision-readiness-title">Decision readiness</h3>
               <p>
@@ -1742,7 +1825,7 @@ interface EconomicSensitivityView {
                 <h4>Blocking evidence</h4>
                 <ul>
                   @for (item of readiness.blockers; track $index + ':' + item.code) {
-                    <li>{{ item.message }}</li>
+                    <li><app-economic-evidence-note [code]="item.code" [message]="item.message" /></li>
                   }
                 </ul>
               }
@@ -1750,7 +1833,7 @@ interface EconomicSensitivityView {
                 <h4>Warnings</h4>
                 <ul>
                   @for (item of readiness.warnings; track $index + ':' + item.code) {
-                    <li>{{ item.message }}</li>
+                    <li><app-economic-evidence-note [code]="item.code" [message]="item.message" /></li>
                   }
                 </ul>
               }
@@ -1758,7 +1841,7 @@ interface EconomicSensitivityView {
                 <h4>Unknowns</h4>
                 <ul>
                   @for (item of readiness.unknowns; track $index + ':' + item.code) {
-                    <li>{{ item.message }}</li>
+                    <li><app-economic-evidence-note [code]="item.code" [message]="item.message" /></li>
                   }
                 </ul>
               }
@@ -1771,8 +1854,10 @@ interface EconomicSensitivityView {
                 This is evidence readiness only; it is not a recommendation or approval.
               </p>
             </section>
+            </details>
           }
           @if (brief.decision_synthesis; as synthesis) {
+            <details><summary>Review explainable decision synthesis</summary>
             <section class="decision-synthesis-panel" aria-labelledby="decision-synthesis-title">
               <h3 id="decision-synthesis-title">Explainable decision synthesis</h3>
               <p class="synthesis-posture" role="status">
@@ -1798,10 +1883,10 @@ interface EconomicSensitivityView {
                 <h4>What prevents stronger progression</h4>
                 <ul>
                   @for (item of synthesis.blockers; track $index + ':' + item.code) {
-                    <li>{{ item.code }}: {{ item.message }}</li>
+                    <li>{{ item.code }}: <app-economic-evidence-note [code]="item.code" [message]="item.message" /></li>
                   }
                   @for (item of synthesis.contradictions; track $index + ':' + item.code) {
-                    <li>{{ item.code }}: {{ item.message }}</li>
+                    <li>{{ item.code }}: <app-economic-evidence-note [code]="item.code" [message]="item.message" /></li>
                   }
                 </ul>
               }
@@ -1809,10 +1894,10 @@ interface EconomicSensitivityView {
                 <h4>Warnings and unknowns</h4>
                 <ul>
                   @for (item of synthesis.warnings; track $index + ':' + item.code) {
-                    <li>{{ item.code }}: {{ item.message }}</li>
+                    <li>{{ item.code }}: <app-economic-evidence-note [code]="item.code" [message]="item.message" /></li>
                   }
                   @for (item of synthesis.unknowns; track $index + ':' + item.code) {
-                    <li>{{ item.code }}: {{ item.message }}</li>
+                    <li>{{ item.code }}: <app-economic-evidence-note [code]="item.code" [message]="item.message" /></li>
                   }
                 </ul>
               }
@@ -1839,6 +1924,7 @@ interface EconomicSensitivityView {
                 launch, contact a supplier, or execute an external action.
               </p>
             </section>
+            </details>
           }
           <section class="decision-control-panel" aria-labelledby="controlled-decision-title">
             <h3 id="controlled-decision-title">Controlled recommendation and your decision</h3>
@@ -1955,11 +2041,11 @@ interface EconomicSensitivityView {
             <dl class="input-list">
               <div>
                 <dt>Total modeled cost</dt>
-                <dd>{{ cost.total_included_cost }} {{ cost.currency || '' }}</dd>
+                <dd>{{ cost.total_included_cost | sellerMoney:cost.currency }}</dd>
               </div>
               <div>
                 <dt>Per-unit cost</dt>
-                <dd>{{ cost.per_unit_cost || 'UNKNOWN' }}</dd>
+                <dd>{{ cost.per_unit_cost | sellerMoney:cost.currency }}</dd>
               </div>
               <div>
                 <dt>Calculation status</dt>
@@ -2003,8 +2089,8 @@ interface EconomicSensitivityView {
                     <tr>
                       <th scope="row">{{ line.category }}</th>
                       <td>
-                        {{ line.converted_amount ?? line.included_amount ?? 'UNKNOWN' }}
-                        {{ line.currency || '' }}
+                        {{ (line.converted_amount ?? line.included_amount) | sellerMoney:(line.converted_amount !== null && line.converted_amount !== undefined ? (brief.economics.calculation.reporting_currency || brief.economics.calculation.currency) : line.currency) }}
+                        <details><summary>Exact component values</summary><p>Original: {{ line.original_amount ?? 'UNKNOWN' }} {{ line.currency || 'Currency UNKNOWN' }}; included: {{ line.included_amount ?? 'UNKNOWN' }}; converted: {{ line.converted_amount ?? 'UNKNOWN' }} {{ brief.economics.calculation.reporting_currency || brief.economics.calculation.currency || 'Currency UNKNOWN' }}.</p></details>
                       </td>
                       <td>{{ line.basis || 'UNKNOWN' }}</td>
                       <td>
@@ -2045,37 +2131,36 @@ interface EconomicSensitivityView {
                   <div>
                     <dt>Selling price</dt>
                     <dd>
-                      {{ unit.selling_price ?? 'UNKNOWN' }}
-                      {{ unit.selling_price_currency || '' }} ({{ unit.selling_price_provenance }})
+                      {{ unit.selling_price | sellerMoney:unit.selling_price_currency }} ({{ unit.selling_price_provenance }})
                     </dd>
                   </div>
                   <div>
                     <dt>Landed cost / unit</dt>
                     <dd>
-                      {{ unit.per_unit_landed_cost ?? 'UNKNOWN' }} {{ unit.base_currency || '' }}
+                      {{ unit.per_unit_landed_cost | sellerMoney:unit.base_currency }}
                     </dd>
                   </div>
                   <div>
                     <dt>Selling costs / unit</dt>
                     <dd>
-                      {{ unit.per_unit_selling_cost ?? 'UNKNOWN' }} {{ unit.base_currency || '' }}
+                      {{ unit.per_unit_selling_cost | sellerMoney:unit.base_currency }}
                     </dd>
                   </div>
                   <div>
                     <dt>Modeled total cost / unit</dt>
                     <dd>
-                      {{ unit.per_unit_total_cost ?? 'UNKNOWN' }} {{ unit.base_currency || '' }}
+                      {{ unit.per_unit_total_cost | sellerMoney:unit.base_currency }}
                     </dd>
                   </div>
                   <div>
                     <dt>Modeled contribution / unit</dt>
                     <dd>
-                      {{ unit.per_unit_contribution ?? 'UNKNOWN' }} {{ unit.base_currency || '' }}
+                      {{ unit.per_unit_contribution | sellerMoney:unit.base_currency }}
                     </dd>
                   </div>
                   <div>
                     <dt>Contribution margin</dt>
-                    <dd>{{ unit.contribution_margin ?? 'UNKNOWN' }}</dd>
+                    <dd>{{ unit.contribution_margin | sellerPercent }}</dd>
                   </div>
                   <div>
                     <dt>Order quantity</dt>
@@ -2084,25 +2169,38 @@ interface EconomicSensitivityView {
                   <div>
                     <dt>Capital available</dt>
                     <dd>
-                      {{ unit.capital_available ?? 'UNKNOWN' }} {{ unit.capital_currency || '' }}
+                      {{ unit.capital_available | sellerMoney:unit.capital_currency }}
                     </dd>
                   </div>
                   <div>
                     <dt>Capital required</dt>
                     <dd>
-                      {{ unit.capital_required ?? 'UNKNOWN' }} {{ unit.capital_currency || '' }}
+                      {{ unit.capital_required | sellerMoney:unit.capital_currency }}
                     </dd>
                   </div>
                   <div>
-                    <dt>Capital headroom</dt>
+                    <dt>{{ unit.capital_headroom !== null && unit.capital_headroom !== undefined ? 'Capital headroom' : unit.capital_shortfall !== null && unit.capital_shortfall !== undefined ? 'Capital shortfall' : 'Capital headroom / shortfall' }}</dt>
                     <dd>
-                      {{ unit.capital_headroom ?? unit.capital_shortfall ?? 'UNKNOWN' }}
-                      {{ unit.capital_currency || '' }} ({{
+                      {{ (unit.capital_headroom ?? unit.capital_shortfall) | sellerMoney:unit.capital_currency }} ({{
                         unit.capital_fit_status || 'NEEDS_INPUT'
                       }})
                     </dd>
                   </div>
                 </dl>
+                <details><summary>Exact canonical decimal values (unrounded)</summary>
+                  <p>Selling price: {{ unit.selling_price ?? 'UNKNOWN' }} {{ unit.selling_price_currency || 'Currency UNKNOWN' }};
+                    landed / unit: {{ unit.per_unit_landed_cost ?? 'UNKNOWN' }};
+                    selling / unit: {{ unit.per_unit_selling_cost ?? 'UNKNOWN' }};
+                    total / unit: {{ unit.per_unit_total_cost ?? 'UNKNOWN' }};
+                    contribution / unit: {{ unit.per_unit_contribution ?? 'UNKNOWN' }} {{ unit.base_currency || 'Currency UNKNOWN' }};
+                    margin ratio: {{ unit.contribution_margin ?? 'UNKNOWN' }};
+                    capital available: {{ unit.capital_available ?? 'UNKNOWN' }};
+                    required: {{ unit.capital_required ?? 'UNKNOWN' }};
+                    headroom: {{ unit.capital_headroom ?? 'UNKNOWN' }};
+                    shortfall: {{ unit.capital_shortfall ?? 'UNKNOWN' }} {{ unit.capital_currency || 'Currency UNKNOWN' }}.</p>
+                  <p>Summary amounts are rounded for display only. Canonical calculations and decisions retain their original precision.</p>
+                  <pre>{{ unit.order_economics | json }}</pre>
+                </details>
                 <h4>Included selling-cost components</h4>
                 <div
                   class="breakdown-scroll"
@@ -2129,8 +2227,8 @@ interface EconomicSensitivityView {
                           <th scope="row">{{ line.key }}</th>
                           <td>{{ line.basis }}</td>
                           <td>
-                            {{ line.per_unit_amount ?? line.amount ?? 'UNKNOWN' }}
-                            {{ line.currency || unit.base_currency || '' }}
+                            {{ line | sellerComponentMoney:unit.base_currency }}
+                            <details><summary>Exact selling-cost values</summary><p>Original amount: {{ line.amount ?? 'UNKNOWN' }} {{ line.currency || 'Currency UNKNOWN' }}; converted per unit: {{ line.per_unit_amount ?? 'UNKNOWN' }} {{ unit.base_currency || 'Currency UNKNOWN' }}.</p></details>
                           </td>
                           <td>
                             {{ line.inclusion_status
@@ -2144,9 +2242,9 @@ interface EconomicSensitivityView {
                 </div>
                 <p class="hint">
                   Order economics:
-                  {{ unit.order_economics.landed_acquisition_total ?? 'UNKNOWN' }} landed
+                  {{ unit.order_economics.landed_acquisition_total | sellerMoney:unit.order_economics.currency }} landed
                   acquisition +
-                  {{ unit.order_economics.modeled_selling_cost_total ?? 'UNKNOWN' }} modeled selling
+                  {{ unit.order_economics.modeled_selling_cost_total | sellerMoney:unit.order_economics.currency }} modeled selling
                   costs. {{ unit.order_economics.sales_claim }}.
                 </p>
               } @else {
@@ -2204,8 +2302,8 @@ interface EconomicSensitivityView {
                     <tr>
                       <th scope="row">{{ row.scenario_name }}</th>
                       <td>{{ row.comparability }}</td>
-                      <td>{{ row.scenario.total || 'UNKNOWN' }}</td>
-                      <td>{{ row.scenario.per_unit || 'UNKNOWN' }}</td>
+                      <td>{{ row.scenario.total | sellerMoney:row.scenario.currency }}</td>
+                      <td>{{ row.scenario.per_unit | sellerMoney:row.scenario.currency }}</td>
                     </tr>
                   }
                 </tbody>
@@ -2250,7 +2348,7 @@ interface EconomicSensitivityView {
         }
       </section>
       <section class="panel" aria-labelledby="context-title">
-        <h2 id="context-title">Sourcing context</h2>
+        <h2 id="context-title" tabindex="-1">Sourcing context</h2>
         <p>
           Currency, quantity, geography, and ownership remain explicit. No currency conversion is
           performed.
@@ -2277,12 +2375,17 @@ interface EconomicSensitivityView {
           <label
             >Destination country <input name="destination" [(ngModel)]="draft.destination_country"
           /></label>
-          <button type="submit" [disabled]="busy()">Create context</button>
+          <button
+            type="submit"
+            [disabled]="busy() || scopeLoading() || !!scopeError() || !opportunityId || !!context()"
+          >
+            Create context
+          </button>
         </form>
       </section>
       @if (context()) {
         <section class="panel" aria-labelledby="inputs-title">
-          <h2 id="inputs-title">Inputs and provenance</h2>
+          <h2 id="inputs-title" tabindex="-1">Inputs and provenance</h2>
           <p>UNKNOWN is unavailable; it is never displayed as zero.</p>
           <dl class="input-list">
             <div>
@@ -2365,7 +2468,7 @@ interface EconomicSensitivityView {
             </div>
             <div>
               <dt>Known-cost subtotal</dt>
-              <dd>{{ calculation()?.total_included_cost }} {{ calculation()?.currency || '' }}</dd>
+              <dd>{{ calculation()?.total_included_cost | sellerMoney:calculation()?.currency }}</dd>
             </div>
             <div>
               <dt>Target quantity</dt>
@@ -2373,7 +2476,7 @@ interface EconomicSensitivityView {
             </div>
             <div>
               <dt>Per-unit cost</dt>
-              <dd>{{ calculation()?.per_unit_cost ?? 'UNKNOWN' }}</dd>
+              <dd>{{ calculation()?.per_unit_cost | sellerMoney:calculation()?.currency }}</dd>
             </div>
           </dl>
           @if ((calculation()?.breakdown?.length ?? 0) > 0) {
@@ -2995,6 +3098,15 @@ export class SourcingEconomicsWorkspaceComponent implements OnInit {
   readonly liveCertificationError = signal('');
   readonly supplierResponsesLoading = signal(false);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  readonly scopeLoading = signal(false);
+  readonly scopeError = signal('');
+  readonly scopeLabel = signal('Choose a product opportunity before creating an evaluation.');
+  readonly supplierName = signal('');
+  readonly evidenceOrigin = signal(supplierEvidenceOrigin(null));
+  supplierId = '';
+  selectedProductId: string | null = null;
+  private scopeEpoch = 0;
   opportunityId = '';
   assessmentId = '';
   journeyId = '';
@@ -3006,9 +3118,94 @@ export class SourcingEconomicsWorkspaceComponent implements OnInit {
   liveSourceCategory = 'supplier_website';
 
   ngOnInit(): void {
-    this.opportunityId = this.route.snapshot.queryParamMap.get('opportunity_id') || '';
-    this.journeyId = this.route.snapshot.queryParamMap.get('journey_id') || '';
-    void this.loadJourneyContext();
+    this.route.queryParamMap.subscribe((params) => {
+      const epoch = ++this.scopeEpoch;
+      this.scopeLoading.set(true);
+      if (
+        this.opportunityId !== (params.get('opportunity_id') || '') ||
+        this.supplierId !== (params.get('supplier_id') || '')
+      ) {
+        this.draft = {
+          idempotency_key: `economic-context-${Date.now()}-${epoch}`,
+          base_currency: '',
+          target_quantity: null,
+          quantity_unit: '',
+          origin_country: '',
+          destination_country: '',
+        };
+      }
+      this.opportunityId = params.get('opportunity_id') || '';
+      this.supplierId = params.get('supplier_id') || '';
+      this.journeyId = params.get('journey_id') || '';
+      this.context.set(null);
+      this.snapshot.set(null);
+      this.calculation.set(null);
+      this.decisionBrief.set(null);
+      this.supplierName.set('');
+      this.evidenceOrigin.set(supplierEvidenceOrigin(null));
+      this.selectedProductId = null;
+      this.scopeError.set('');
+      void this.loadJourneyContext().then(() =>
+        this.loadEvaluationScope(params.get('economic_context_id'), epoch),
+      );
+    });
+  }
+
+  private async loadEvaluationScope(contextId: string | null, epoch: number): Promise<void> {
+    this.scopeLoading.set(true);
+    try {
+      if (!this.opportunityId) {
+        if (this.supplierId || contextId) throw new Error('MISSING_PRODUCT');
+        this.scopeLabel.set('Choose a product opportunity before creating an evaluation.');
+        return;
+      }
+      const opportunityId = this.opportunityId;
+      const result = await firstValueFrom(
+        this.http.get<Record<string, unknown>>(
+          `${environment.apiUrl}/intelligence/suppliers/research-results?opportunity_id=${encodeURIComponent(opportunityId)}`,
+        ),
+      );
+      if (epoch !== this.scopeEpoch) return;
+      const product = result['product_context'] as Record<string, unknown>;
+      if (!product || product['lifecycle_status'] === 'archived') throw new Error('STALE_PRODUCT');
+      this.scopeLabel.set(
+        typeof product['product'] === 'string' ? product['product'] : 'Selected product',
+      );
+      this.selectedProductId =
+        typeof product['product_id'] === 'string' ? product['product_id'] : null;
+      if (this.supplierId) {
+        const rows = result['suppliers'] as Array<{
+          id: string;
+          display_name: string;
+          [key: string]: unknown;
+        }>;
+        const supplier = rows?.find((row) => row.id === this.supplierId);
+        if (!supplier) throw new Error('SUPPLIER_CONTEXT');
+        this.supplierName.set(supplier.display_name);
+        this.evidenceOrigin.set(supplierEvidenceOrigin(supplier));
+      }
+      if (contextId) {
+        const saved = await firstValueFrom(
+          this.http.get<{ context: EconomicContextView }>(
+            `${environment.apiUrl}/intelligence/sourcing-economics/contexts/${encodeURIComponent(contextId)}`,
+          ),
+        );
+        if (epoch !== this.scopeEpoch) return;
+        if (
+          saved.context.product_opportunity_id !== opportunityId ||
+          (saved.context.canonical_supplier_id || '') !== this.supplierId
+        )
+          throw new Error('CONTEXT_MISMATCH');
+        this.context.set(saved.context);
+      }
+    } catch {
+      if (epoch === this.scopeEpoch)
+        this.scopeError.set(
+          'This product or supplier context is missing, stale or unavailable. Return to the selected product and choose its supplier again; no alternative was substituted.',
+        );
+    } finally {
+      if (epoch === this.scopeEpoch) this.scopeLoading.set(false);
+    }
   }
 
   private async loadJourneyContext(): Promise<void> {
@@ -3016,18 +3213,23 @@ export class SourcingEconomicsWorkspaceComponent implements OnInit {
       try {
         const active = await this.journey.active();
         const values = active?.context.values || {};
-        if (!this.opportunityId && typeof values['selected_product_opportunity_id'] === 'string') {
+        if (
+          !this.opportunityId &&
+          !this.supplierId &&
+          typeof values['selected_product_opportunity_id'] === 'string'
+        ) {
           this.opportunityId = values['selected_product_opportunity_id'];
         }
-        if (!this.journeyId && active?.id) this.journeyId = active.id;
-        if (typeof values['product_name'] === 'string')
+        const sameProduct = values['selected_product_opportunity_id'] === this.opportunityId;
+        if (!this.journeyId && active?.id && sameProduct) this.journeyId = active.id;
+        if (sameProduct && typeof values['product_name'] === 'string')
           this.journeyProductName = values['product_name'];
       } catch {
         // Advanced/manual identifiers remain available when the journey is unavailable.
       }
     }
     void this.loadLiveSupplierCertification();
-    if (this.opportunityId) void this.loadDecisionBrief();
+    if (this.opportunityId && !this.supplierId) void this.loadDecisionBrief();
   }
 
   retryLoad(): void {
@@ -3258,12 +3460,15 @@ export class SourcingEconomicsWorkspaceComponent implements OnInit {
 
   async loadDecisionBrief(): Promise<void> {
     if (!this.opportunityId.trim()) return;
+    if (this.supplierId && !this.context()) return;
     this.busy.set(true);
     this.error.set('');
     try {
-      const briefUrl = this.journeyId.trim()
-        ? `${environment.apiUrl}/commerce-journeys/${this.journeyId.trim()}/decision-brief?opportunity_id=${encodeURIComponent(this.opportunityId.trim())}`
-        : `${environment.apiUrl}/intelligence/product-opportunities/${this.opportunityId.trim()}/decision-brief`;
+      const briefUrl = this.supplierId
+        ? `${environment.apiUrl}/intelligence/product-opportunities/${this.opportunityId}/decision-brief?economic_context_id=${this.context()!.id}`
+        : this.journeyId.trim()
+          ? `${environment.apiUrl}/commerce-journeys/${this.journeyId.trim()}/decision-brief?opportunity_id=${encodeURIComponent(this.opportunityId.trim())}`
+          : `${environment.apiUrl}/intelligence/product-opportunities/${this.opportunityId.trim()}/decision-brief`;
       this.decisionBrief.set(await firstValueFrom(this.http.get<DecisionBriefView>(briefUrl)));
       await this.loadSupplierResponses();
       await this.loadReassessmentContext();
@@ -3913,6 +4118,14 @@ export class SourcingEconomicsWorkspaceComponent implements OnInit {
   };
 
   async createContext(): Promise<void> {
+    if (
+      this.busy() ||
+      this.scopeLoading() ||
+      this.scopeError() ||
+      !this.opportunityId ||
+      this.context()
+    )
+      return;
     this.busy.set(true);
     this.error.set('');
     this.snapshot.set(null);
@@ -3921,13 +4134,31 @@ export class SourcingEconomicsWorkspaceComponent implements OnInit {
       const response = await firstValueFrom(
         this.http.post<ContextCreateResponse>(
           `${environment.apiUrl}/intelligence/sourcing-economics/contexts`,
-          this.draft,
+          {
+            ...this.draft,
+            base_currency: this.draft.base_currency || null,
+            product_opportunity_id: this.opportunityId,
+            product_id: this.selectedProductId,
+            canonical_supplier_id: this.supplierId || null,
+          },
         ),
       );
       this.context.set(response.context);
-    } catch {
+      await this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          opportunity_id: this.opportunityId,
+          supplier_id: this.supplierId || null,
+          economic_context_id: response.context.id,
+        },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
+    } catch (error) {
       this.error.set(
-        'The economic context could not be saved. Check the authenticated API connection.',
+        error instanceof HttpErrorResponse && [404, 409, 422].includes(error.status)
+          ? 'The economic context could not be saved because its product or supplier context is unavailable or changed. Review the selected product and supplier before retrying.'
+          : 'The economic context could not be saved. Check the authenticated API connection.',
       );
     } finally {
       this.busy.set(false);

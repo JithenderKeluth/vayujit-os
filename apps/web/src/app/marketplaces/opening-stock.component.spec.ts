@@ -1,6 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { ActivatedRoute, convertToParamMap, provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 import { AuthService } from '../auth/auth.service';
 import { CatalogService } from '../catalog/catalog.service';
@@ -24,7 +24,7 @@ describe('Opening stock review and fail-closed retry', () => {
     sku: 'BLUE',
     status: 'draft',
   };
-  async function create() {
+  async function create(query: Record<string, string> = {}, choose = true) {
     sessionStorage.clear();
     const createInventoryItem = vi.fn();
     const canonicalInventory = vi.fn().mockResolvedValue([]);
@@ -33,6 +33,10 @@ describe('Opening stock review and fail-closed retry', () => {
       imports: [OpeningStockComponent],
       providers: [
         provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: { snapshot: { queryParamMap: convertToParamMap(query) } },
+        },
         { provide: AuthService, useValue: { user: () => ({ id: 'synthetic-owner' }) } },
         {
           provide: ProductService,
@@ -49,11 +53,35 @@ describe('Opening stock review and fail-closed retry', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const component = fixture.componentInstance;
-    await component.choose(product.id);
+    await vi.waitFor(() => {
+      expect(component.loading()).toBe(false);
+    });
+    if (choose) await component.choose(product.id);
     component.quantity = 12;
     fixture.detectChanges();
     return { component, fixture, createInventoryItem, canonicalInventory, getProduct };
   }
+  it('preserves Catalog product and variant query context without recording stock', async () => {
+    const { component: c, createInventoryItem } = await create(
+      { product_id: product.id, variant_id: variant.id },
+      false,
+    );
+    expect(c.productId).toBe(product.id);
+    expect(c.variantId).toBe(variant.id);
+    expect(c.sku).toBe('BLUE');
+    expect(createInventoryItem).not.toHaveBeenCalled();
+  });
+  it('does not fall back to product-level stock for an invalid variant deep link', async () => {
+    const { component: c, createInventoryItem } = await create(
+      { product_id: product.id, variant_id: 'not-a-variant' },
+      false,
+    );
+    expect(c.product()).toBeNull();
+    expect(c.error()).not.toBe('');
+    await c.prepare();
+    expect(c.review()).toBeNull();
+    expect(createInventoryItem).not.toHaveBeenCalled();
+  });
   it('accepts only explicit bounded integer quantities, not unknown or coerced values', () => {
     for (const v of [0, 12, 2_000_000_000]) expect(wholeStock(v)).toBe(true);
     for (const v of [null, undefined, '', '1', false, -1, 0.5, NaN, Infinity, 2_000_000_001])

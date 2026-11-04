@@ -26,6 +26,8 @@ def _currency(value: str | None) -> str | None:
 
 class EconomicContextCreate(EconomicSchema):
     idempotency_key: str = Field(min_length=3, max_length=180)
+    product_opportunity_id: uuid.UUID | None = None
+    canonical_supplier_id: uuid.UUID | None = None
     product_id: uuid.UUID | None = None
     opportunity_id: uuid.UUID | None = None
     supplier_id: uuid.UUID | None = None
@@ -159,6 +161,8 @@ class EconomicSnapshotCreate(EconomicSchema):
 class EconomicContextResponse(EconomicSchema):
     id: uuid.UUID
     owner_id: uuid.UUID
+    product_opportunity_id: uuid.UUID | None = None
+    canonical_supplier_id: uuid.UUID | None = None
     product_id: uuid.UUID | None
     opportunity_id: uuid.UUID | None
     supplier_id: uuid.UUID | None

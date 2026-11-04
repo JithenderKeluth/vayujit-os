@@ -384,6 +384,18 @@ export class AIService {
       this.http.get<AIStudioGeneration>(`${this.studioUrl}/generations/${id}`, this.options),
     );
   }
+  studioRetry(generationId: string, jobId?: string): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        `${this.studioUrl}/recovery/actions`,
+        {
+          action: 'retry_generation',
+          ...(jobId ? { job_id: jobId } : { generation_id: generationId }),
+        },
+        this.options,
+      ),
+    );
+  }
   studioArtifacts(params: Record<string, string> = {}): Promise<AIStudioArtifact[]> {
     let query = new HttpParams();
     Object.entries(params).forEach(([key, value]) => (query = query.set(key, value)));
@@ -407,11 +419,20 @@ export class AIService {
       }),
     );
   }
-  studioEdit(id: string, content: Record<string, unknown>): Promise<AIStudioArtifact> {
+  studioEdit(
+    id: string,
+    content: Record<string, unknown>,
+    expectedSourceVersion?: number,
+  ): Promise<AIStudioArtifact> {
     return firstValueFrom(
       this.http.patch<AIStudioArtifact>(
         `${this.studioUrl}/artifacts/${id}`,
-        { content },
+        {
+          content,
+          ...(expectedSourceVersion === undefined
+            ? {}
+            : { expected_source_version: expectedSourceVersion }),
+        },
         this.options,
       ),
     );
@@ -537,6 +558,27 @@ export class AIService {
     return firstValueFrom(
       this.http.post<Record<string, unknown>>(
         `${environment.apiUrl}/ai/seo/keywords`,
+        data,
+        this.options,
+      ),
+    );
+  }
+  seoSets(kind: 'keywords' | 'tags'): Promise<Record<string, unknown>[]> {
+    return firstValueFrom(
+      this.http.get<Record<string, unknown>[]>(
+        `${environment.apiUrl}/ai/seo/${kind}`,
+        this.options,
+      ),
+    );
+  }
+  seoUpdateSet(
+    kind: 'keywords' | 'tags',
+    id: string,
+    data: Record<string, unknown>,
+  ): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.put<Record<string, unknown>>(
+        `${environment.apiUrl}/ai/seo/${kind}/${id}`,
         data,
         this.options,
       ),

@@ -54,13 +54,13 @@ Assert-Regression ($successfulProbeExit -eq 0 -and ($successfulProbe -join "") -
 Assert-Regression ($failedProbeExit -eq 37 -and -not ($failedProbe -join "")) "native stderr failure is hidden while the genuine nonzero exit code remains available"
 
 $workerStoppedAt = $backupSource.IndexOf('$workerStopped = $true', [System.StringComparison]::Ordinal)
-$workerStopAt = $backupSource.IndexOf('stop --timeout 45 worker', [System.StringComparison]::Ordinal)
+$workerStopAt = $backupSource.IndexOf('@("stop", "--timeout", "45", "worker")', [System.StringComparison]::Ordinal)
 $apiStoppedAt = $backupSource.IndexOf('$apiStopped = $true', [System.StringComparison]::Ordinal)
-$apiStopAt = $backupSource.IndexOf('stop --timeout 30 api', [System.StringComparison]::Ordinal)
+$apiStopAt = $backupSource.IndexOf('@("stop", "--timeout", "30", "api")', [System.StringComparison]::Ordinal)
 $finallyAt = $backupSource.LastIndexOf('} finally {', [System.StringComparison]::Ordinal)
 $recoverySource = if ($finallyAt -ge 0) { $backupSource.Substring($finallyAt) } else { "" }
 Assert-Regression ($workerStoppedAt -ge 0 -and $workerStopAt -gt $workerStoppedAt -and $apiStoppedAt -ge 0 -and $apiStopAt -gt $apiStoppedAt) "service recovery flags are armed before disposable API and worker stops"
-Assert-Regression ($recoverySource.Contains('start api') -and $recoverySource.Contains('start worker') -and $recoverySource.Contains('maintenance-off --confirm')) "failure cleanup restarts API and worker and clears only owned maintenance after API health"
+Assert-Regression ($recoverySource.Contains('@("start", "api")') -and $recoverySource.Contains('@("start", "worker")') -and $recoverySource.Contains('"maintenance-off", "--confirm"')) "failure cleanup restarts API and worker and clears only owned maintenance after API health"
 $caughtFailureAt = $backupSource.IndexOf('$caughtFailure = $_', [System.StringComparison]::Ordinal)
 $catchStart = if ($caughtFailureAt -ge 0) { $backupSource.LastIndexOf('} catch {', $caughtFailureAt, [System.StringComparison]::Ordinal) } else { -1 }
 $catchSource = if ($catchStart -ge 0 -and $finallyAt -gt $catchStart) { $backupSource.Substring($catchStart, $finallyAt - $catchStart) } else { "" }

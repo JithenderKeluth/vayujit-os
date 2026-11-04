@@ -45,43 +45,50 @@ import { AIService } from './ai.service';
       <p class="ai-error" role="alert">{{ error() }}</p>
     }
     <article class="ai-card">
-      <table class="ai-table">
-        <thead>
-          <tr>
-            <th>Created</th>
-            <th>Brand / product</th>
-            <th>Generation</th>
-            <th>Artifact</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (item of result()?.items ?? []; track item.generation_id) {
+      <div
+        class="ai-table-scroll"
+        role="region"
+        aria-label="AI generation history table"
+        tabindex="0"
+      >
+        <table class="ai-table">
+          <thead>
             <tr>
-              <td>{{ item.created_at.slice(0, 10) }}</td>
-              <td>
-                {{ item.brand_name }}<br /><strong>{{ item.product_name }}</strong>
-              </td>
-              <td>{{ item.request_status }}</td>
-              <td>
-                {{ item.artifact_status ?? '-' }}
-                @if (item.version_number) {
-                  - v{{ item.version_number }}
-                }
-              </td>
-              <td>
-                @if (item.artifact_id) {
-                  <a [routerLink]="['/ai/artifacts', item.artifact_id]">Open</a>
-                }
-              </td>
+              <th scope="col">Created</th>
+              <th scope="col">Brand / product</th>
+              <th scope="col">Generation</th>
+              <th scope="col">Artifact</th>
+              <th scope="col">Actions</th>
             </tr>
-          } @empty {
-            <tr>
-              <td colspan="5">No matching generations.</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (item of result()?.items ?? []; track item.generation_id) {
+              <tr>
+                <td>{{ item.created_at.slice(0, 10) }}</td>
+                <td>
+                  {{ item.brand_name }}<br /><strong>{{ item.product_name }}</strong>
+                </td>
+                <td>{{ item.request_status }}</td>
+                <td>
+                  {{ item.artifact_status ?? '-' }}
+                  @if (item.version_number) {
+                    - v{{ item.version_number }}
+                  }
+                </td>
+                <td>
+                  @if (item.artifact_id) {
+                    <a [routerLink]="['/ai/artifacts', item.artifact_id]">Open</a>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5">No matching generations.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
       <div class="ai-actions">
         <button class="ai-secondary" [disabled]="page() <= 1" (click)="load(page() - 1)">
           Previous

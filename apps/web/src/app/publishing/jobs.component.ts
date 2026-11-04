@@ -37,60 +37,77 @@ import { PublishingService } from './publishing.service';
       <p role="alert" class="op-error">{{ error() }}</p>
     }
     <div class="op-card">
-      <table>
-        <thead>
-          <tr>
-            <th>Scheduled</th>
-            <th>Connector</th>
-            <th>Action</th>
-            <th>State</th>
-            <th>Artifact</th>
-            <th>Attempts</th>
-            <th>Lease / delay</th>
-            <th scope="col">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (item of jobs(); track item.id) {
+      <div class="table-scroll" role="region" aria-label="Publishing jobs table" tabindex="0">
+        <table>
+          <thead>
             <tr>
-              <td>{{ item.scheduled_at_utc | date: 'medium' }}</td>
-              <td>{{ item.connector_key }}</td>
-              <td>{{ item.requested_action }}</td>
-              <td>{{ item.maintenance_blocked_at ? 'maintenance blocked' : item.state }}</td>
-              <td>v{{ item.artifact_version }}</td>
-              <td>{{ item.execution_attempt_count }} / {{ item.max_execution_attempts }}</td>
-              <td>
-                @if (item.lease_owner) {
-                  {{ item.lease_owner }} until {{ item.lease_expires_at | date: 'medium' }}
-                } @else if (item.next_retry_at) {
-                  Retry {{ item.next_retry_at | date: 'medium' }}
-                } @else {
-                  —
-                }
-              </td>
-              <td>
-                <a [routerLink]="['/publishing/jobs', item.id]">Timeline</a>
-                @if (['failed', 'dead_letter', 'cancelled', 'expired'].includes(item.state)) {
-                  <button class="op-button secondary" (click)="act(item, 'retry')">Retry</button>
-                }
-                @if (
-                  !['succeeded', 'failed', 'dead_letter', 'cancelled', 'expired'].includes(
-                    item.state
-                  )
-                ) {
-                  <button class="op-button danger" (click)="act(item, 'cancel')">Cancel</button>
-                }
-              </td>
+              <th scope="col">Scheduled</th>
+              <th scope="col">Connector</th>
+              <th scope="col">Action</th>
+              <th scope="col">State</th>
+              <th scope="col">Artifact</th>
+              <th scope="col">Attempts</th>
+              <th scope="col">Lease / delay</th>
+              <th scope="col">Actions</th>
             </tr>
-          } @empty {
-            <tr>
-              <td colspan="8">No jobs yet.</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (item of jobs(); track item.id) {
+              <tr>
+                <td>{{ item.scheduled_at_utc | date: 'medium' }}</td>
+                <td>{{ item.connector_key }}</td>
+                <td>{{ item.requested_action }}</td>
+                <td>{{ item.maintenance_blocked_at ? 'maintenance blocked' : item.state }}</td>
+                <td>v{{ item.artifact_version }}</td>
+                <td>{{ item.execution_attempt_count }} / {{ item.max_execution_attempts }}</td>
+                <td>
+                  @if (item.lease_owner) {
+                    {{ item.lease_owner }} until {{ item.lease_expires_at | date: 'medium' }}
+                  } @else if (item.next_retry_at) {
+                    Retry {{ item.next_retry_at | date: 'medium' }}
+                  } @else {
+                    —
+                  }
+                </td>
+                <td>
+                  <a [routerLink]="['/publishing/jobs', item.id]">Timeline</a>
+                  @if (['failed', 'dead_letter', 'cancelled', 'expired'].includes(item.state)) {
+                    <button class="op-button secondary" (click)="act(item, 'retry')">Retry</button>
+                  }
+                  @if (
+                    !['succeeded', 'failed', 'dead_letter', 'cancelled', 'expired'].includes(
+                      item.state
+                    )
+                  ) {
+                    <button class="op-button danger" (click)="act(item, 'cancel')">Cancel</button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="8">No jobs yet.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
     </div>
   </section>`,
+  styles: `
+    :host,
+    .op-page,
+    .op-card {
+      min-width: 0;
+    }
+    .op-page {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .table-scroll {
+      max-width: 100%;
+      overflow-x: auto;
+    }
+  `,
 })
 export class JobsComponent implements OnInit {
   private readonly publishing = inject(PublishingService);

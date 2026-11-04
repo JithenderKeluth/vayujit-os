@@ -186,6 +186,8 @@ def project_economics_for_opportunity(
         )
         if context is None:
             raise HTTPException(404, "Economic context is not available in the owner scope.")
+        if context.product_opportunity_id and context.product_opportunity_id != opportunity.id:
+            raise HTTPException(409, "Economic context does not match the product opportunity.")
         if (
             opportunity.product_id is not None
             and context.product_id is not None
@@ -216,6 +218,9 @@ def project_economics_for_opportunity(
                 "status": "NOT_EVALUATED",
                 "readiness": "NOT_EVALUATED",
                 "economic_context_id": None,
+                "calculation": None,
+                "unit_economics": None,
+                "scenario_comparisons": [],
                 "research_gaps": [
                     _gap(
                         "No owner-scoped sourcing economics context is linked to this opportunity."
@@ -243,7 +248,10 @@ def project_economics_for_opportunity(
         "product_opportunity_id": (
             str(calculation.product_opportunity_id)
             if calculation and calculation.product_opportunity_id
-            else None
+            else str(context.product_opportunity_id) if context.product_opportunity_id else None
+        ),
+        "canonical_supplier_id": (
+            str(context.canonical_supplier_id) if context.canonical_supplier_id else None
         ),
         "assessment_id": (
             str(calculation.assessment_id) if calculation and calculation.assessment_id else None
@@ -273,6 +281,9 @@ def project_economics_for_opportunity(
             "status": "NOT_EVALUATED",
             "readiness": "NOT_EVALUATED",
             **lineage,
+            "calculation": None,
+            "unit_economics": None,
+            "scenario_comparisons": [],
             "research_gaps": [_gap("No landed-cost calculation is available for this context.")],
             "external_writes": [],
         }

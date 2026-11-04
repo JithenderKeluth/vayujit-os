@@ -631,7 +631,7 @@ def _safe_authorization(
         "operation": row.operation,
         "idempotency_key": row.idempotency_key,
         "payload_fingerprint": row.payload_fingerprint,
-        "status": row.status,
+        "status": "expired" if row.status == "issued" and row.expires_at <= now() else row.status,
         "expires_at": row.expires_at,
         "idempotent_reuse": idempotent_reuse,
     }
@@ -906,6 +906,11 @@ def issue_listing_execution_authorization(
     listing = _listing(db, user, listing_id)
     account = _account(db, user, listing.account_id)
     artifact = _approved_artifact(db, user, listing)
+    readiness = _readiness(db, user, listing)
+    if not readiness["ready"]:
+        raise HTTPException(
+            409, {"code": "flipkart_listing_not_ready", "blocking": readiness["blocking"]}
+        )
     review = db.scalar(
         select(MarketplaceListingReview).where(
             MarketplaceListingReview.id == data.review_id,
@@ -932,6 +937,8 @@ def issue_listing_execution_authorization(
         )
     )
     if existing is not None:
+        if existing.review_id != review.id or existing.payload_fingerprint != fingerprint:
+            raise HTTPException(409, "The idempotency key belongs to a different reviewed payload.")
         return {**_safe_authorization(existing), "idempotent_reuse": True}
     stamp = now()
     row = MarketplaceListingExecutionAuthorization(

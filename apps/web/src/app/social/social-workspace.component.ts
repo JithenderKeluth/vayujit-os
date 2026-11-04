@@ -33,8 +33,8 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
       <app-growth-journey-nav current="social" />
       <app-page-header
         eyebrow="Grow / social"
-        title="Social video workspace"
-        description="Exact-version video publishing with safe review, scheduling, recovery, and local analytics."
+        title="Social workspace"
+        description="Prepare image drafts or exact-version Video posts. Preparation is not publication."
         headingId="social-title"
       >
         <button page-header-actions type="button" (click)="load()" [disabled]="loading()">
@@ -67,7 +67,7 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
               <dd>
                 <code>{{ post.product_id || 'Not available' }}</code>
               </dd>
-              <dt>Video</dt>
+              <dt>{{ post.video_output_id ? 'Video' : 'Content Artifact' }}</dt>
               <dd>
                 <code>{{ post.video_output_id || post.content_artifact_id }}</code> v{{
                   post.video_version || post.content_artifact_version
@@ -114,10 +114,117 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
               }
             </div>
           </div>
+          @if (!post.video_output_id) {
+            <h3>Image draft review</h3>
+            <p>Preparation only. This does not schedule or publish a post.</p>
+            <p>Media: {{ post.media_ids.join(', ') || 'Missing image' }}</p>
+            <label
+              >Draft caption<textarea
+                [(ngModel)]="imageCaption"
+                [disabled]="post.lifecycle_status !== 'draft'"
+              ></textarea>
+            </label>
+            <button
+              type="button"
+              (click)="saveImageCaption()"
+              [disabled]="busy() || post.lifecycle_status !== 'draft'"
+            >
+              Save draft caption
+            </button>
+            <button type="button" (click)="previewImageDraft()" [disabled]="busy()">
+              Preview image draft
+            </button>
+            @if (preview(); as review) {
+              <div class="preview" role="status">
+                {{ review.caption }} —
+                {{
+                  review.readiness['ready']
+                    ? 'Ready for review'
+                    : 'Blocked: review missing prerequisites'
+                }}. Not published.
+              </div>
+            }
+            @if (preview(); as review) {
+              @if (post.lifecycle_status === 'draft') {
+                <label
+                  ><input type="checkbox" [(ngModel)]="imageHumanConfirmed" />
+                  I reviewed this exact image, caption, content version and destination account.
+                </label>
+                <button
+                  type="button"
+                  (click)="approveImageDraft()"
+                  [disabled]="
+                    busy() ||
+                    !imageHumanConfirmed ||
+                    !review.readiness['ready'] ||
+                    imageCaption !== (post.caption || '')
+                  "
+                >
+                  Approve image draft — do not publish
+                </button>
+              }
+            }
+            @if (message()) {
+              <p role="status">{{ message() }}</p>
+            }
+            @if (composeError()) {
+              <p role="alert">{{ composeError() }}</p>
+            }
+          }
         </article>
       }
       @if (!detail()) {
         @if (isCompose()) {
+          <article class="card wide" aria-labelledby="image-draft-title">
+            <h2 id="image-draft-title">Image-only draft</h2>
+            <p>
+              No Video is required. Use an owned image and an approved Content Artifact version.
+              Saving never schedules or publishes.
+            </p>
+            <app-business-entity-selectors
+              [showBrand]="true"
+              [showArtifact]="true"
+              [approvedOnly]="true"
+              [productId]="imageDraft.productId"
+              [brandId]="imageDraft.brandId"
+              [artifactId]="imageDraft.artifactId"
+              (productIdChange)="imageDraft.productId = $event"
+              (brandIdChange)="imageDraft.brandId = $event"
+              (artifactIdChange)="imageDraft.artifactId = $event"
+            />
+            <label
+              >Image post account<select
+                aria-label="Image post account"
+                [(ngModel)]="imageDraft.accountId"
+              >
+                <option value="">Select account</option>
+                @for (account of imageAccounts(); track account.id) {
+                  <option [value]="account.id">
+                    {{ account.display_name }} — {{ account.platform }} / {{ account.environment }}
+                  </option>
+                }
+              </select></label
+            >
+            <label
+              >Exact content version<input type="number" min="1" [(ngModel)]="imageDraft.version"
+            /></label>
+            <label
+              >Owned image Media Asset ID<input
+                [(ngModel)]="imageDraft.mediaId"
+                placeholder="Exact ready image UUID"
+            /></label>
+            <label>Image draft caption<textarea [(ngModel)]="imageDraft.caption"></textarea></label>
+            <button
+              type="button"
+              (click)="createImageDraft()"
+              [disabled]="busy() || !imageDraftReady()"
+            >
+              Save image-only draft
+            </button>
+            @if (composeError()) {
+              <p role="alert">{{ composeError() }}</p>
+            }
+          </article>
           <article class="card wide" aria-labelledby="compose-title">
             <h2 id="compose-title">Compose Video post</h2>
             <p>Step {{ step() }} of 10 - exact immutable identities are required.</p>
@@ -174,7 +281,7 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
                     @for (video of eligibleVideos(); track video['id']) {
                       <option [value]="video['id']">
                         {{ video['video_type'] || video['target_channel'] || 'Video' }} - v{{
-                          video['version'] || video['video_version'] || 1
+                          video['version'] || video['video_version'] || 'UNKNOWN'
                         }}
                         - {{ video['duration_seconds'] || '-' }}s
                       </option>
@@ -183,12 +290,14 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
                 >
                 <div class="form-grid">
                   <label
-                    >Video Output ID<input
+                    >Video generation ID<input
                       [(ngModel)]="draft.videoId"
-                      placeholder="Exact approved Video UUID" /></label
-                  ><label
-                    >Video version<input type="number" min="1" [(ngModel)]="draft.videoVersion"
+                      placeholder="Exact approved Video UUID"
                   /></label>
+                  <p>
+                    The canonical preview establishes the bound output and version from this exact
+                    generation.
+                  </p>
                 </div>
               </fieldset>
             }
@@ -233,11 +342,12 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
                       [(ngModel)]="draft.captionTrackId"
                       placeholder="Optional Caption Track UUID" /></label
                   ><label
-                    >Caption version<input
-                      type="number"
-                      min="1"
-                      [(ngModel)]="draft.captionVersion" /></label
-                  ><label>Caption<textarea rows="3" [(ngModel)]="draft.caption"></textarea></label>
+                    >Caption version<input type="number" min="1" [(ngModel)]="draft.captionVersion"
+                  /></label>
+                  <p>
+                    Published captions come from the selected approved metadata or caption track.
+                    This preparation does not edit approved content.
+                  </p>
                 </div>
               </fieldset>
             }
@@ -294,7 +404,9 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
                   </dd>
                   <dt>Video</dt>
                   <dd>
-                    <code>{{ draft.videoId || 'missing' }}</code> v{{ draft.videoVersion }}
+                    <code>{{ draft.videoId || 'missing' }}</code> v{{
+                      draft.videoVersion ?? 'UNKNOWN'
+                    }}
                   </dd>
                   <dt>Metadata</dt>
                   <dd>
@@ -306,6 +418,25 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
                 <button type="button" (click)="previewPost()" [disabled]="busy() || !ready()">
                   Preview exact post
                 </button>
+                @if (videoPreparation(); as prepared) {
+                  <div class="preview" aria-live="polite">
+                    <p>Exact Video output: {{ prepared.preview['video_output_id'] }}</p>
+                    <p>Canonical bound version: {{ prepared.preview['video_version'] }}</p>
+                    <p>Readiness: {{ prepared.preview['compatibility'] }}</p>
+                    <p>{{ prepared.preview['blockers'] }}</p>
+                    <p>
+                      Only a local draft will be saved. Scheduling and publication are separate
+                      consequential actions.
+                    </p>
+                    <button
+                      type="button"
+                      (click)="confirmVideoDraft()"
+                      [disabled]="busy() || !prepared.id"
+                    >
+                      Save reviewed Video draft
+                    </button>
+                  </div>
+                }
                 @if (preview(); as value) {
                   <div class="preview" aria-live="polite">
                     <p>
@@ -486,7 +617,12 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
               @if (!posts().length) {
                 <p class="empty">No Video posts yet. Start with Compose.</p>
               }
-              <div class="table-wrap" tabindex="0" role="region" aria-label="Recent Video posts table">
+              <div
+                class="table-wrap"
+                tabindex="0"
+                role="region"
+                aria-label="Recent Video posts table"
+              >
                 <table>
                   <thead>
                     <tr>
@@ -578,7 +714,7 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
     }
     .social-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
       gap: 1rem;
     }
     .metrics,
@@ -659,6 +795,7 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
       color: #507279;
     }
     fieldset {
+      min-width: 0;
       border: 1px solid #c6d9dc;
       border-radius: 0.6rem;
       padding: 1rem;
@@ -670,10 +807,11 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
     .form-grid,
     .detail-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr));
       gap: 1rem;
     }
     label {
+      min-width: 0;
       display: flex;
       flex-direction: column;
       gap: 0.35rem;
@@ -682,6 +820,10 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
     input,
     select,
     textarea {
+      box-sizing: border-box;
+      min-width: 0;
+      max-width: 100%;
+      width: 100%;
       font: inherit;
       padding: 0.65rem;
       border: 1px solid #9db8bd;
@@ -709,6 +851,12 @@ type Platform = 'youtube' | 'instagram' | 'facebook';
       display: flex;
       justify-content: flex-end;
       gap: 0.6rem;
+    }
+    dd,
+    code,
+    .preview {
+      overflow-wrap: anywhere;
+      min-width: 0;
     }
     .state,
     .synthetic,
@@ -770,10 +918,30 @@ export class SocialWorkspaceComponent {
   readonly detail = signal<SocialPost | null>(null);
   readonly history = signal<SocialHistoryItem[]>([]);
   readonly preview = signal<SocialPreview | null>(null);
+  readonly videoPreparation = signal<{
+    id: string | null;
+    fingerprint: string;
+    input: string;
+    preview: Record<string, unknown>;
+  } | null>(null);
+  private preparationKey = '';
+  private preparationInput = '';
   readonly step = signal(1);
   readonly busy = signal(false);
   readonly message = signal('');
   readonly composeError = signal('');
+  imageCaption = '';
+  imageDraft = {
+    brandId: '',
+    productId: '',
+    artifactId: '',
+    version: 1,
+    mediaId: '',
+    accountId: '',
+    caption: '',
+  };
+  private imageDraftInput = '';
+  private imageDraftKey = '';
   readonly steps = [
     'Platform',
     'Format',
@@ -792,7 +960,7 @@ export class SocialWorkspaceComponent {
     brandId: '',
     productId: '',
     videoId: '',
-    videoVersion: 1,
+    videoVersion: null as number | null,
     metadataId: '',
     metadataVersion: 1,
     thumbnailId: '',
@@ -864,6 +1032,7 @@ export class SocialWorkspaceComponent {
       const id = this.router.url.split('/posts/')[1]?.split('?')[0];
       if (id) {
         this.detail.set(await this.social.post(id));
+        this.imageCaption = this.detail()?.caption || '';
         this.history.set(await this.social.history(id));
       }
       this.syncFormat();
@@ -900,6 +1069,134 @@ export class SocialWorkspaceComponent {
       { label: 'Upcoming schedules', value: p.filter((x) => Boolean(x.scheduled_at_utc)).length },
     ];
   }
+  imageAccounts() {
+    return this.accounts().filter(
+      (a) =>
+        a.enabled &&
+        a.validation_status === 'valid' &&
+        ['facebook', 'instagram'].includes(a.platform) &&
+        Array.isArray(a.capabilities['supported_content_types']) &&
+        (a.capabilities['supported_content_types'] as string[]).includes(a.platform + '_post'),
+    );
+  }
+  imageDraftReady() {
+    const d = this.imageDraft;
+    return Boolean(
+      d.brandId &&
+        d.productId &&
+        d.artifactId &&
+        d.mediaId &&
+        d.version > 0 &&
+        this.imageAccounts().some((a) => a.id === d.accountId),
+    );
+  }
+  async createImageDraft() {
+    if (this.busy() || !this.imageDraftReady()) return;
+    this.busy.set(true);
+    this.composeError.set('');
+    try {
+      const d = this.imageDraft;
+      const account = this.imageAccounts().find((a) => a.id === d.accountId)!;
+      const payload = {
+        brand_id: d.brandId,
+        product_id: d.productId,
+        account_id: d.accountId,
+        platform: account.platform,
+        content_type: account.platform + '_post',
+        content_artifact_id: d.artifactId,
+        content_artifact_version: d.version,
+        media_ids: [d.mediaId],
+        caption: d.caption,
+      };
+      const input = JSON.stringify(payload);
+      if (input !== this.imageDraftInput) {
+        this.imageDraftInput = input;
+        this.imageDraftKey = 'social-image-draft-' + crypto.randomUUID();
+      }
+      const saved = await this.social.createPost({
+        ...payload,
+        idempotency_key: this.imageDraftKey,
+      });
+      await this.router.navigate(['/social/posts', saved.id]);
+    } catch {
+      this.composeError.set(
+        'Draft was not saved. Check the exact owned image, content version and matching product/account, then retry.',
+      );
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  async saveImageCaption() {
+    const post = this.detail();
+    if (!post || this.busy() || post.lifecycle_status !== 'draft') return;
+    this.busy.set(true);
+    this.preview.set(null);
+    this.composeError.set('');
+    this.imageHumanConfirmed = false;
+    try {
+      this.detail.set(await this.social.updatePost(post.id, { caption: this.imageCaption }));
+      this.message.set('Draft saved. Previous preview is stale; preview the current draft again.');
+    } catch {
+      this.composeError.set(
+        'Draft update rejected. Refresh to review the current persisted state.',
+      );
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  async previewImageDraft() {
+    const post = this.detail();
+    if (!post || this.busy()) return;
+    if (this.imageCaption !== (post.caption || '')) {
+      this.composeError.set('Save the changed caption before previewing.');
+      return;
+    }
+    this.busy.set(true);
+    this.composeError.set('');
+    this.imageHumanConfirmed = false;
+    try {
+      this.preview.set(await this.social.preview(post.id));
+    } catch {
+      this.preview.set(null);
+      this.composeError.set(
+        'Preview unavailable. Check the draft and retry; no publication occurred.',
+      );
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  imageHumanConfirmed = false;
+  async approveImageDraft() {
+    const post = this.detail(),
+      review = this.preview();
+    if (
+      !post ||
+      post.video_output_id ||
+      !review ||
+      this.busy() ||
+      !this.imageHumanConfirmed ||
+      !review.readiness['ready'] ||
+      this.imageCaption !== (post.caption || '') ||
+      post.lifecycle_status !== 'draft'
+    )
+      return;
+    this.busy.set(true);
+    this.composeError.set('');
+    try {
+      this.detail.set(await this.social.approveImagePost(post.id, review.fingerprint));
+      this.imageHumanConfirmed = false;
+      this.history.set(await this.social.history(post.id));
+      this.message.set('Image draft approved by HUMAN. Not scheduled or published.');
+    } catch {
+      this.preview.set(null);
+      this.imageHumanConfirmed = false;
+      this.composeError.set(
+        'Approval rejected safely. Refresh and preview the current draft before confirming again.',
+      );
+    } finally {
+      this.busy.set(false);
+    }
+  }
   eligibleVideos() {
     return this.videos().filter(
       (video) =>
@@ -912,7 +1209,8 @@ export class SocialWorkspaceComponent {
   selectVideo(id: string) {
     const video = this.videos().find((item) => item['id'] === id);
     this.draft.videoId = id;
-    this.draft.videoVersion = Number(video?.['version'] || video?.['video_version'] || 1);
+    const version = video?.['version'] ?? video?.['video_version'];
+    this.draft.videoVersion = typeof version === 'number' && version > 0 ? version : null;
   }
   compatibleFormats() {
     const p = this.platforms().find((x) => x['key'] === this.draft.platform);
@@ -953,33 +1251,83 @@ export class SocialWorkspaceComponent {
     return String(v['safe_summary'] || v['status'] || 'Safe lifecycle event');
   }
   async previewPost() {
-    if (!this.ready()) {
+    if (!this.ready() || this.busy()) {
       this.composeError.set(
         'Select a valid enabled account and every required exact identity before preview.',
       );
       return;
     }
     this.busy.set(true);
+    this.composeError.set('');
+    this.videoPreparation.set(null);
     try {
-      const p = await this.social.createPost({
-        brand_id: this.draft.brandId,
-        product_id: this.draft.productId,
-        account_id: this.draft.accountId,
-        platform: this.draft.platform,
-        content_type: this.draft.format,
-        content_artifact_id: this.draft.metadataId,
-        content_artifact_version: this.draft.metadataVersion,
-        source_artifact_id: this.draft.videoId,
-        source_artifact_version: this.draft.videoVersion,
-        caption: this.draft.caption || null,
-        media_ids: this.draft.thumbnailId ? [this.draft.thumbnailId] : [],
-        idempotency_key: 'social-compose-' + crypto.randomUUID(),
+      const exact = this.videos().find((v) => v['id'] === this.draft.videoId);
+      if (
+        !exact ||
+        exact['product_id'] !== this.draft.productId ||
+        exact['video_type'] !== this.draft.format
+      ) {
+        this.composeError.set(
+          'Select the exact approved Video matching this Product, format and version.',
+        );
+        return;
+      }
+      const payload = this.videoPayload();
+      const input = JSON.stringify(payload);
+      if (input !== this.preparationInput) {
+        this.preparationInput = input;
+        this.preparationKey = 'social-video-prepare-' + crypto.randomUUID();
+      }
+      const request = { ...payload, idempotency_key: this.preparationKey };
+      const preview = await this.social.previewVideo(request);
+      const prepared =
+        preview['compatibility'] === 'ready' ? await this.social.prepareVideo(request) : null;
+      this.videoPreparation.set({
+        id: prepared?.id || null,
+        fingerprint: prepared?.fingerprint || String(preview['fingerprint']),
+        input,
+        preview,
       });
-      this.preview.set(await this.social.preview(p.id));
-      this.message.set('Preview loaded. No schedule or publication was created.');
+      this.message.set(
+        'Video preview loaded. No SocialPost, schedule or publication has been confirmed.',
+      );
     } catch {
       this.composeError.set(
         'Preview rejected safely. Verify approved IDs, versions, and account readiness.',
+      );
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  private videoPayload(): Record<string, unknown> {
+    return {
+      video_generation_id: this.draft.videoId,
+      channel: this.draft.platform,
+      target_id: this.draft.accountId,
+      metadata_artifact_id: this.draft.metadataId,
+      metadata_artifact_version: this.draft.metadataVersion,
+      thumbnail_output_id: this.draft.thumbnailId || null,
+      thumbnail_version: this.draft.thumbnailId ? this.draft.thumbnailVersion : null,
+      caption_track_id: this.draft.captionTrackId || null,
+      caption_version: this.draft.captionTrackId ? this.draft.captionVersion : null,
+    };
+  }
+  async confirmVideoDraft(): Promise<void> {
+    const prepared = this.videoPreparation();
+    if (!prepared?.id || this.busy()) return;
+    if (prepared.input !== JSON.stringify(this.videoPayload())) {
+      this.videoPreparation.set(null);
+      this.composeError.set('The Video preparation is stale. Preview the changed inputs again.');
+      return;
+    }
+    this.busy.set(true);
+    try {
+      const saved = await this.social.confirmVideoDraft(prepared.id, prepared.fingerprint);
+      if (!saved.social_post_id) throw new Error('Exact draft identity is unavailable');
+      await this.router.navigate(['/social/posts', saved.social_post_id]);
+    } catch {
+      this.composeError.set(
+        'Video draft confirmation was rejected safely. Preview current inputs again.',
       );
     } finally {
       this.busy.set(false);

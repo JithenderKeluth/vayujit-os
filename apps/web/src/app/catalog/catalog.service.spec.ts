@@ -2,6 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { CatalogService } from './catalog.service';
+import type { CatalogVariant } from '@vayujit/shared';
 
 describe('CatalogService', () => {
   let service: CatalogService;
@@ -17,11 +18,36 @@ describe('CatalogService', () => {
 
   afterEach(() => http.verify());
 
+  it('preserves the required stable variant key on title, price and archive updates', async () => {
+    const variant = { id: 'variant-a', variant_key: 'blue', version: 2 } as CatalogVariant;
+    const pending = service.updateVariant(variant, {
+      title: 'Blue edited',
+      price_amount: '250.50',
+      currency: 'INR',
+    });
+    const request = http.expectOne('http://127.0.0.1:8000/api/v1/catalog/variants/variant-a');
+    expect(request.request.body).toEqual({
+      variant_key: 'blue',
+      version: 2,
+      title: 'Blue edited',
+      price_amount: '250.50',
+      currency: 'INR',
+    });
+    request.flush({ ...variant, version: 3 });
+    await pending;
+  });
+
   it('loads owner-scoped catalog context and readiness', async () => {
     const detailPromise = service.getProduct('product-1');
     const detailRequest = http.expectOne('http://127.0.0.1:8000/api/v1/catalog/products/product-1');
     expect(detailRequest.request.withCredentials).toBe(true);
-    detailRequest.flush({ product: { id: 'product-1' }, lineage: null, variants: [], supplier_associations: [], listing_drafts: [] });
+    detailRequest.flush({
+      product: { id: 'product-1' },
+      lineage: null,
+      variants: [],
+      supplier_associations: [],
+      listing_drafts: [],
+    });
     expect((await detailPromise).product.id).toBe('product-1');
 
     const readinessPromise = service.readiness('product-1');
@@ -61,7 +87,9 @@ describe('CatalogService', () => {
       archived_at: null,
     };
     const updatePromise = service.updateListingDraft(draft, { description: 'Ready for review' });
-    const updateRequest = http.expectOne('http://127.0.0.1:8000/api/v1/catalog/listing-drafts/draft-1');
+    const updateRequest = http.expectOne(
+      'http://127.0.0.1:8000/api/v1/catalog/listing-drafts/draft-1',
+    );
     expect(updateRequest.request.method).toBe('PATCH');
     expect(updateRequest.request.body.version).toBe(2);
     updateRequest.flush({ ...draft, description: 'Ready for review', version: 3 });

@@ -1,5 +1,29 @@
 # PC-first encrypted backup and recovery
 
+## Child startup diagnostics — 27 October 2026
+
+For the subsequently localized worker-stop failure, see the
+[worker-pause correction and validation](pc-first-worker-pause-validation.md).
+Run `scripts/test-pc-first-worker-pause.ps1` before the next full rehearsal.
+Native stderr no longer substitutes for lifecycle exit status, and failed worker
+quiescence blocks backup. A timed-out stop or unconfirmed recovery keeps
+maintenance enabled and requires review; do not manually declare recovery PASS.
+
+For a child that starts but still exits without its report, see the
+[stage-ledger validation](pc-first-stage-ledger-validation.md). Run
+`scripts/test-pc-first-backup-stage-ledger.ps1` first. The existing retained
+diagnostic now includes last entered/completed stage, first failure, safe source
+location, exit code and expected-report presence. No raw process output is saved.
+
+The [missing-child-report investigation](pc-first-child-report-investigation.md)
+documents the diagnostic correction and actual non-Docker Windows PowerShell
+tests. Run `scripts/test-pc-first-backup-child.ps1` before another full rehearsal.
+The parent now retains only allowlisted diagnostics in its certification JSON and
+`tmp/pc-first-certification/backup-child-<id>.json`, outside disposable cleanup.
+Never attach raw stderr, credentials or age identities. A clean diagnostic test
+does **not** establish encrypted backup/restore success; certification and physical
+destination independence remain pending.
+
 ## Encryption tool
 
 Use the maintained `age` project and its Windows package listing. Its official

@@ -9,7 +9,7 @@ from datetime import timedelta
 from decimal import Decimal
 from typing import Annotated, Any, cast
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -197,6 +197,7 @@ def _approved_artifact(db: Session, user: User, listing: MarketplaceListing) -> 
 
 
 def _payload_fingerprint(
+    db: Session,
     listing: MarketplaceListing,
     artifact: GeneratedArtifact,
     product_type: str,
@@ -212,6 +213,31 @@ def _payload_fingerprint(
         "attributes": attributes,
         "artifact_id": str(artifact.id),
         "artifact_version": artifact.version_number,
+        "prepared_inputs": {
+            model.__tablename__: [
+                {field: str(getattr(row, field)) for field in fields}
+                for row in db.scalars(
+                    select(model)
+                    .where(model.owner_id == listing.owner_id, model.listing_id == listing.id)
+                    .order_by(model.id)
+                )
+            ]
+            for model, fields in (
+                (
+                    MarketplaceVariant,
+                    (
+                        "stable_variant_key",
+                        "sku",
+                        "options_json",
+                        "price_amount",
+                        "currency",
+                        "barcode",
+                    ),
+                ),
+                (MarketplaceMediaMapping, ("media_id", "position", "alt_text")),
+                (MarketplacePrice, ("amount", "mrp_amount", "sale_amount", "currency")),
+            )
+        },
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), default=str).encode()
     return hashlib.sha256(encoded).hexdigest()
@@ -242,7 +268,7 @@ def _safe_authorization(
         "operation": row.operation,
         "idempotency_key": row.idempotency_key,
         "payload_fingerprint": row.payload_fingerprint,
-        "status": row.status,
+        "status": "expired" if row.status == "issued" and row.expires_at <= now() else row.status,
         "expires_at": row.expires_at,
         "idempotent_reuse": idempotent_reuse,
     }
@@ -661,7 +687,13 @@ def review_listing(
     artifact = _approved_artifact(db, user, listing)
     if account.marketplace != "amazon":
         raise HTTPException(409, "The selected listing is not an Amazon listing.")
-    fingerprint = _payload_fingerprint(listing, artifact, data.product_type, data.attributes)
+    readiness = listing_readiness(listing_id, db, user)
+    if not readiness["ready"]:
+        raise HTTPException(
+            409, {"code": "amazon_listing_not_ready", "blocking": readiness["blocking"]}
+        )
+    db.refresh(listing, with_for_update=True)
+    fingerprint = _payload_fingerprint(db, listing, artifact, data.product_type, data.attributes)
     existing = db.scalar(
         select(AmazonListingReview).where(
             AmazonListingReview.owner_id == user.id,
@@ -739,6 +771,12 @@ def issue_listing_execution_authorization(
     listing = _listing(db, user, listing_id)
     account = _account(db, user, listing.account_id)
     artifact = _approved_artifact(db, user, listing)
+    readiness = listing_readiness(listing_id, db, user)
+    if not readiness["ready"]:
+        raise HTTPException(
+            409, {"code": "amazon_listing_not_ready", "blocking": readiness["blocking"]}
+        )
+    db.refresh(listing, with_for_update=True)
     review = db.scalar(
         select(AmazonListingReview).where(
             AmazonListingReview.id == data.review_id,
@@ -751,7 +789,7 @@ def issue_listing_execution_authorization(
     if review is None:
         raise HTTPException(409, "Approve the exact listing payload before authorizing execution.")
     fingerprint = _payload_fingerprint(
-        listing, artifact, review.product_type, review.attributes_json
+        db, listing, artifact, review.product_type, review.attributes_json
     )
     if review.payload_fingerprint != fingerprint:
         raise HTTPException(409, "The listing or approved content changed; review it again.")
@@ -764,6 +802,8 @@ def issue_listing_execution_authorization(
         )
     )
     if existing is not None:
+        if existing.review_id != review.id or existing.payload_fingerprint != fingerprint:
+            raise HTTPException(409, "The idempotency key belongs to a different reviewed payload.")
         return {**_safe_authorization(existing), "idempotent_reuse": True}
     stamp = now()
     row = AmazonListingExecutionAuthorization(
@@ -862,7 +902,7 @@ def submit_listing(
     _require_enabled(account)
     artifact = _approved_artifact(db, user, listing)
     current_fingerprint = _payload_fingerprint(
-        listing, artifact, data.product_type, data.attributes
+        db, listing, artifact, data.product_type, data.attributes
     )
     authorization = db.scalar(
         select(AmazonListingExecutionAuthorization)
@@ -1252,6 +1292,7 @@ def list_variants(
             "sku": row.sku,
             "barcode": row.barcode,
             "options": row.options_json,
+            "variation_theme": row.options_json.get("variation_theme"),
             "price": str(row.price_amount) if row.price_amount is not None else None,
             "compare_at_price": (
                 str(row.compare_at_amount) if row.compare_at_amount is not None else None
@@ -1791,11 +1832,13 @@ def submit_media(
 
 
 @router.post("/listings/{listing_id}/variants")
+@router.put("/listings/{listing_id}/variants")
 def submit_variants(
     listing_id: uuid.UUID,
     data: AmazonVariantsRequest,
     db: DatabaseSession,
     user: Owner,
+    request: Request,
 ) -> dict[str, object]:
     listing = db.scalar(
         select(MarketplaceListing).where(
@@ -1804,7 +1847,13 @@ def submit_variants(
             MarketplaceListing.marketplace == "amazon",
         )
     )
-    if listing is None or not listing.remote_listing_id:
+    local = request.method == "PUT"
+    if listing is None:
+        raise HTTPException(404, "Amazon listing was not found.")
+    db.refresh(listing, with_for_update=True)
+    if local and listing.remote_listing_id:
+        raise HTTPException(409, "Use the controlled remote operation for an existing publication.")
+    if not local and not listing.remote_listing_id:
         raise HTTPException(409, "Submit the Amazon listing before adding variants.")
     issues = AmazonVariantPolicy.validate(data.variants)
     if issues:
@@ -1814,10 +1863,14 @@ def submit_variants(
         )
     account = _account(db, user, listing.account_id)
     _require_enabled(account)
-    result = _connector(account).submit_variants(
-        listing.remote_listing_id, data.variants, data.idempotency_key
+    result = (
+        None
+        if local
+        else _connector(account).submit_variants(
+            cast(str, listing.remote_listing_id), data.variants, data.idempotency_key
+        )
     )
-    if result.status != "succeeded":
+    if result is not None and result.status != "succeeded":
         raise HTTPException(
             409,
             {
@@ -1845,35 +1898,58 @@ def submit_variants(
                 compare_at_amount=item.get("compare_at_price"),
                 currency=str(item.get("currency") or "INR"),
                 barcode=item.get("barcode"),
-                options_json=dict(item.get("options") or {}),
-                remote_variant_id=f"{listing.remote_listing_id}:{key}",
-                remote_sku=str(item.get("sku") or ""),
-                listing_state="active",
+                options_json={
+                    **dict(item.get("options") or {}),
+                    "variation_theme": item.get("variation_theme"),
+                },
+                remote_variant_id=None if local else f"{listing.remote_listing_id}:{key}",
+                remote_sku=None if local else str(item.get("sku") or ""),
+                listing_state="draft" if local else "active",
                 created_at=now(),
                 updated_at=now(),
             )
             db.add(variant)
         else:
-            variant.options_json = dict(item.get("options") or {})
+            variant.options_json = {
+                **dict(item.get("options") or {}),
+                "variation_theme": item.get("variation_theme"),
+            }
+            if local:
+                variant.sku = str(item.get("sku") or "")
+                variant.price_amount = item.get("price")
+                variant.compare_at_amount = item.get("compare_at_price")
+                variant.currency = str(item.get("currency") or "INR")
+                variant.barcode = item.get("barcode")
             variant.updated_at = now()
+    if local:
+        keys = {str(item["stable_variant_key"]) for item in data.variants}
+        for obsolete in db.scalars(
+            select(MarketplaceVariant).where(
+                MarketplaceVariant.owner_id == user.id, MarketplaceVariant.listing_id == listing.id
+            )
+        ):
+            if obsolete.stable_variant_key not in keys:
+                db.delete(obsolete)
     record_event(
         db,
         actor_id=user.id,
-        action="amazon.variants_submitted",
+        action="amazon.variants_prepared" if local else "amazon.variants_submitted",
         entity_type="marketplace_listing",
         entity_id=listing.id,
         metadata={"count": len(data.variants)},
     )
     db.commit()
-    return {"status": "succeeded", "count": len(data.variants)}
+    return {"status": "prepared" if local else "succeeded", "count": len(data.variants)}
 
 
 @router.post("/listings/{listing_id}/pricing")
+@router.put("/listings/{listing_id}/pricing")
 def update_pricing(
     listing_id: uuid.UUID,
     data: AmazonPriceRequest,
     db: DatabaseSession,
     user: Owner,
+    request: Request,
 ) -> dict[str, object]:
     if not data.confirm:
         raise HTTPException(400, "Explicit confirmation is required for Amazon price updates.")
@@ -1884,8 +1960,14 @@ def update_pricing(
             MarketplaceListing.marketplace == "amazon",
         )
     )
-    if listing is None or not listing.remote_listing_id:
+    local = request.method == "PUT"
+    if listing is None:
         raise HTTPException(404, "Amazon listing was not found.")
+    db.refresh(listing, with_for_update=True)
+    if local == bool(listing.remote_listing_id):
+        raise HTTPException(
+            409, "Local preparation and remote publication operations cannot be interchanged."
+        )
     account = _account(db, user, listing.account_id)
     _require_enabled(account)
     price_payload = {
@@ -1894,15 +1976,20 @@ def update_pricing(
         "sale_price": str(data.sale_price) if data.sale_price is not None else None,
         "currency": data.currency.upper(),
     }
-    issues = AmazonPricingPolicy.validate(price_payload, _connector(account).marketplace.currency)
+    country = str((account.configuration_json or {}).get("country_code", "IN"))
+    issues = AmazonPricingPolicy.validate(price_payload, amazon_marketplace(country).currency)
     if issues:
         raise HTTPException(
             422, {"code": "amazon_price_not_ready", "issues": [issue.message for issue in issues]}
         )
-    result = _connector(account).update_price(
-        listing.remote_listing_id, price_payload, data.idempotency_key
+    result = (
+        None
+        if local
+        else _connector(account).update_price(
+            cast(str, listing.remote_listing_id), price_payload, data.idempotency_key
+        )
     )
-    if result.status != "succeeded":
+    if result is not None and result.status != "succeeded":
         raise HTTPException(
             409,
             {
@@ -1910,32 +1997,52 @@ def update_pricing(
                 "message": "Amazon price update did not complete safely.",
             },
         )
-    db.add(
-        MarketplacePrice(
-            owner_id=user.id,
-            listing_id=listing.id,
-            variant_id=None,
-            currency=data.currency.upper(),
-            amount=data.selling_price,
-            mrp_amount=data.list_price,
-            sale_amount=data.sale_price,
-            cost_amount=None,
-            minimum_amount=None,
-            maximum_amount=None,
-            effective_from=now(),
-            effective_to=None,
+    current = (
+        db.scalar(
+            select(MarketplacePrice).where(
+                MarketplacePrice.owner_id == user.id,
+                MarketplacePrice.listing_id == listing.id,
+                MarketplacePrice.variant_id.is_(None),
+            )
         )
+        if local
+        else None
     )
+    if current is not None:
+        current.amount = data.selling_price
+        current.mrp_amount = data.list_price
+        current.sale_amount = data.sale_price
+        current.currency = data.currency.upper()
+        current.updated_at = now()
+    else:
+        db.add(
+            MarketplacePrice(
+                owner_id=user.id,
+                listing_id=listing.id,
+                variant_id=None,
+                currency=data.currency.upper(),
+                amount=data.selling_price,
+                mrp_amount=data.list_price,
+                sale_amount=data.sale_price,
+                cost_amount=None,
+                minimum_amount=None,
+                maximum_amount=None,
+                effective_from=now(),
+                effective_to=None,
+                created_at=now(),
+                updated_at=now(),
+            )
+        )
     record_event(
         db,
         actor_id=user.id,
-        action="amazon.price_updated",
+        action="amazon.price_prepared" if local else "amazon.price_updated",
         entity_type="marketplace_listing",
         entity_id=listing.id,
         metadata={"currency": data.currency.upper()},
     )
     db.commit()
-    return {"status": "succeeded", "price": price_payload}
+    return {"status": "prepared" if local else "succeeded", "price": price_payload}
 
 
 @router.get("/accounts/{account_id}/returns")
@@ -2178,6 +2285,7 @@ def drift(listing_id: uuid.UUID, db: DatabaseSession, user: Owner) -> dict[str, 
                 "key": row.stable_variant_key,
                 "sku": row.sku,
                 "options": row.options_json,
+                "variation_theme": row.options_json.get("variation_theme"),
                 "price": str(row.price_amount) if row.price_amount is not None else None,
             }
             for row in variants

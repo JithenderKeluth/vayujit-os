@@ -141,7 +141,7 @@ import { ProductService } from './product.service';
                 <dd>{{ product()!.inventory_tracking_enabled ? 'Enabled' : 'Disabled' }}</dd>
               </div>
               <div>
-                <dt>Quantity</dt>
+                <dt>Product master quantity (not stock ledger)</dt>
                 <dd>{{ product()!.inventory_quantity }}</dd>
               </div>
               <div>

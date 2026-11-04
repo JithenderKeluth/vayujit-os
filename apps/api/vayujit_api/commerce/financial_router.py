@@ -29,6 +29,7 @@ from vayujit_api.commerce.models import (
     MarketplaceRefund,
     MarketplaceSettlement,
 )
+from vayujit_api.commerce.money import allocate_money, round_money
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
@@ -39,6 +40,7 @@ router = APIRouter(prefix="/api/v1/financial", tags=["financial intelligence"])
 DatabaseSession = Annotated[Session, Depends(get_session)]
 Owner = Annotated[User, Depends(current_user)]
 MONEY = Decimal("0.01")
+PROJECTION_VERSION = "pr-sos-05-v2"
 EVIDENCE_STATES = {"modeled", "observed", "reported", "verified", "unknown"}
 LOCAL_SOURCE_TYPES = {
     "synthetic_fixture",
@@ -54,12 +56,12 @@ LOCAL_SOURCE_TYPES = {
 
 def _money(value: Decimal | int | float | str | None) -> Decimal:
     if value is None:
-        return Decimal("0")
+        raise HTTPException(422, "Amount is UNKNOWN; an explicit monetary value is required.")
     try:
         result = Decimal(str(value))
         if not result.is_finite():
             raise InvalidOperation
-        return result.quantize(MONEY, rounding=ROUND_HALF_UP)
+        return round_money(result)
     except (InvalidOperation, ValueError) as error:
         raise HTTPException(422, "Amount must be a valid decimal monetary value.") from error
 
@@ -483,7 +485,9 @@ def _provenance(db: Session, user: User, rows: list[Any]) -> dict[str, Any]:
             metadata.append(parent.totals_json or {})
         source_type = getattr(row, "source_type", None)
         if not source_type:
-            source_type = metadata[0].get("source_type")
+            source_type = next(
+                (data.get("source_type") for data in metadata if data.get("source_type")), None
+            )
         synthetic = (
             source_type == "synthetic_fixture"
             or any(data.get("fake_provider") is True for data in metadata)
@@ -610,7 +614,7 @@ def _summary(
     return {
         "currency": "INR",
         "evidence_status": status,
-        "calculation_version": "pr-sos-05-v1",
+        "calculation_version": PROJECTION_VERSION,
         "basis": (
             "financial event effective_at"
             if not using_canonical_orders
@@ -632,12 +636,8 @@ def _summary(
         "contribution": str(contribution) if complete else "UNKNOWN",
         "estimated_profit": str(contribution) if complete else None,
         "margin_percent": (
-            str(
-                (contribution / net_sales * 100).quantize(Decimal("0.01"))
-                if complete and net_sales
-                else Decimal("0")
-            )
-            if complete
+            str((contribution / net_sales * 100).quantize(MONEY, rounding=ROUND_HALF_UP))
+            if complete and net_sales
             else None
         ),
         "order_count": (
@@ -962,7 +962,7 @@ def recalculate(
         select(FinancialCalculationSnapshot).where(
             FinancialCalculationSnapshot.owner_id == user.id,
             FinancialCalculationSnapshot.scope_key == scope_key,
-            FinancialCalculationSnapshot.calculation_version == "pr-sos-05-v1",
+            FinancialCalculationSnapshot.calculation_version == PROJECTION_VERSION,
         )
     )
     stamp = now()
@@ -972,7 +972,7 @@ def recalculate(
             scope_key=scope_key,
             scope_type="financial_summary",
             marketplace=marketplace.lower() if marketplace else None,
-            calculation_version="pr-sos-05-v1",
+            calculation_version=PROJECTION_VERSION,
             evidence_status=value["evidence_status"],
             metrics_json=value,
             missing_inputs_json=value["missing_inputs"],
@@ -1133,7 +1133,23 @@ def _canonical_profitability_rows(
                 entry["sales"] = order_total
             entry["deductions"] += order_deductions
             continue
-        for item in items:
+        if item_total == 0 and order_deductions:
+            # A known deduction cannot be attributed using zero-value weights.
+            # Retain it once at order scope, not once per item or as a fake zero.
+            products[f"allocation-unknown:{order.id}"] = {
+                "product_id": None,
+                "sales": Decimal("0"),
+                "deductions": order_deductions,
+                "group_key": f"allocation-unknown:{order.id}",
+                "allocation_unknown": True,
+            }
+            continue
+        allocations = (
+            allocate_money(order_deductions, [item.total_price for item in items])
+            if item_total
+            else [order_deductions] * len(items)
+        )
+        for item, deduction in zip(items, allocations, strict=True):
             key = (
                 str(item.marketplace_sku or item.product_id or "unknown")
                 if group_mode == "sku"
@@ -1148,12 +1164,7 @@ def _canonical_profitability_rows(
                     "group_key": key,
                 },
             )
-            if item_total:
-                entry["deductions"] += (order_deductions * item.total_price / item_total).quantize(
-                    MONEY
-                )
-            else:
-                entry["deductions"] += order_deductions
+            entry["deductions"] += deduction
             entry["sales"] += item.total_price
 
     rows: list[dict[str, Any]] = []
@@ -1179,6 +1190,8 @@ def _canonical_profitability_rows(
                     has_known_cost = True
         sales_value = entry["sales"]
         missing: list[str] = []
+        if entry.get("allocation_unknown"):
+            missing.append("deduction_allocation_basis")
         if sales_value is None:
             missing.append("sales_evidence")
             contribution = None
@@ -1204,9 +1217,13 @@ def _canonical_profitability_rows(
                 ),
                 "evidence_status": "observed" if not missing else "partial",
                 "missing_inputs": missing,
-                "calculation_version": "pr-sos-05-v1",
+                "calculation_version": PROJECTION_VERSION,
                 "cost_source": "canonical_product_cost" if has_known_cost else None,
-                "basis": "canonical marketplace order ordered_at and order-line totals",
+                "basis": (
+                    "Known order deduction; per-product allocation UNKNOWN (zero line total)."
+                    if entry.get("allocation_unknown")
+                    else "canonical marketplace order ordered_at and order-line totals"
+                ),
             }
         )
     return rows
@@ -1255,7 +1272,7 @@ def profitability(
                 "estimated_profit": str(contribution) if not missing else None,
                 "evidence_status": "observed" if not missing else "partial",
                 "missing_inputs": missing,
-                "calculation_version": "pr-sos-05-v1",
+                "calculation_version": PROJECTION_VERSION,
             }
         )
     if "sale" not in {event.event_type for event in events}:

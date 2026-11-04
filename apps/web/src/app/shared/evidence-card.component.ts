@@ -11,7 +11,20 @@ import type { EvidenceDetail } from './ux-foundation.types';
       <div class="heading">
         <div>
           <p class="eyebrow">Evidence</p>
-          <h3>{{ title() }}</h3>
+          @switch (headingLevel()) {
+            @case (4) {
+              <h4>{{ title() }}</h4>
+            }
+            @case (5) {
+              <h5>{{ title() }}</h5>
+            }
+            @case (6) {
+              <h6>{{ title() }}</h6>
+            }
+            @default {
+              <h3>{{ title() }}</h3>
+            }
+          }
         </div>
         <span>{{ classification() }}</span>
       </div>
@@ -61,7 +74,10 @@ import type { EvidenceDetail } from './ux-foundation.types';
       gap: var(--vj-space-3);
       align-items: flex-start;
     }
-    h3 {
+    h3,
+    h4,
+    h5,
+    h6 {
       margin: 0;
     }
     .heading > span {
@@ -97,6 +113,7 @@ import type { EvidenceDetail } from './ux-foundation.types';
   `,
 })
 export class EvidenceCardComponent {
+  readonly headingLevel = input<3 | 4 | 5 | 6>(3);
   readonly title = input.required<string>();
   readonly classification = input.required<string>();
   readonly summary = input.required<string>();

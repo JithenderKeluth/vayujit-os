@@ -103,6 +103,19 @@ class EconomicContext(Base):
     status: Mapped[str] = mapped_column(String(16), default="DRAFT", index=True)
     version: Mapped[int] = mapped_column(Integer, default=1)
     idempotency_key: Mapped[str] = mapped_column(String(180))
+    # Canonical Seller OS identities are not legacy IntelligenceOpportunity/Supplier IDs.
+    product_opportunity_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_product_opportunities.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
+    canonical_supplier_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("intelligence_cross_marketplace_suppliers.id", ondelete="RESTRICT"),
+        nullable=True,
+        index=True,
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(UTC)
     )

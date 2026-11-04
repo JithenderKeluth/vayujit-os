@@ -7,13 +7,14 @@ import uuid
 from collections.abc import Generator
 
 import pytest
+from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
-
 from vayujit_api.ai.models import AIGenerationRequest, GeneratedArtifact, PromptTemplate
 from vayujit_api.brands.models import Brand
+from vayujit_api.core.config import get_settings
 from vayujit_api.identity.models import User
 from vayujit_api.identity.service import now
 from vayujit_api.media.models import MediaAsset
@@ -232,7 +233,15 @@ def _seed(client: TestClient) -> tuple[str, str, str]:
 
 
 @pytest.fixture
-def client(pr56_client: TestClient) -> Generator[TestClient, None, None]:
+def client(
+    pr56_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> Generator[TestClient, None, None]:
+    # Ephemeral test-only encryption and fake transport; never host .env credentials.
+    monkeypatch.setattr(
+        get_settings(), "credential_encryption_key", Fernet.generate_key().decode("ascii")
+    )
+    monkeypatch.setattr(get_settings(), "external_mutations_emergency_stop", False)
+    monkeypatch.setattr(get_settings(), "live_marketplace_mutations_enabled", False)
     yield pr56_client
 
 

@@ -379,6 +379,7 @@ export class OpeningStockComponent {
   readonly page = signal(1);
   readonly pages = signal(1);
   readonly returnFilters = {
+    product_id: this.route.snapshot.queryParamMap.get('product_id') || null,
     sku: this.route.snapshot.queryParamMap.get('sku') || null,
     low_stock: this.route.snapshot.queryParamMap.get('low_stock') === 'true' ? 'true' : null,
   };
@@ -438,6 +439,9 @@ export class OpeningStockComponent {
         return;
       }
       await this.findProducts();
+      const requestedProduct = this.route.snapshot.queryParamMap.get('product_id');
+      const requestedVariant = this.route.snapshot.queryParamMap.get('variant_id');
+      if (requestedVariant && !requestedProduct) throw new Error('PRODUCT_CONTEXT_REQUIRED');
       const raw = sessionStorage.getItem(this.storageKey);
       if (raw) {
         const value: unknown = JSON.parse(raw);
@@ -447,6 +451,12 @@ export class OpeningStockComponent {
           'payload' in value &&
           storedRequest(value.payload)
         ) {
+          if (
+            (requestedProduct && value.payload.product_id !== requestedProduct) ||
+            (requestedVariant && value.payload.variant_id !== requestedVariant)
+          ) {
+            throw new Error('ANOTHER_PRODUCT_REVIEW_PENDING');
+          }
           this.review.set(value.payload);
           this.uncertain.set('pending' in value && value.pending === true);
           await this.choose(value.payload.product_id);
@@ -455,6 +465,22 @@ export class OpeningStockComponent {
           );
         } else {
           sessionStorage.removeItem(this.storageKey);
+        }
+      }
+      if (requestedProduct && !this.review()) {
+        await this.choose(requestedProduct);
+        if (!this.product() || this.error()) return;
+        if (!this.products().some((p) => p.id === requestedProduct))
+          this.products.update((items) => [this.product()!, ...items]);
+        if (requestedVariant) {
+          if (!this.variants().some((v) => v.id === requestedVariant)) {
+            this.product.set(null);
+            this.productId = '';
+            this.variants.set([]);
+            throw new Error('VARIANT_CONTEXT_MISMATCH');
+          }
+          this.variantId = requestedVariant;
+          this.chooseVariant();
         }
       }
     } catch {

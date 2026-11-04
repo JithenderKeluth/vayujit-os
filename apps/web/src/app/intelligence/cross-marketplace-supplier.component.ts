@@ -56,7 +56,14 @@ import {
         <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
       </app-page-header>
       <app-supplier-journey-nav current="discover" />
-      <app-commerce-journey-context />
+      <p>Find candidates, review their evidence, then explicitly shortlist and assess them. A candidate is not a verified supplier or a quotation.</p>
+      <details><summary>Already know a supplier?</summary>
+        <p>Use the existing manual supplier register to record its name and provenance. Manual entry is not verification and does not automatically associate it with this selected product.</p>
+        <a routerLink="/intelligence" fragment="offline-supplier-title">Record a supplier manually</a>
+      </details>
+      @if (!productContext()) {
+        <app-commerce-journey-context />
+      }
 
       @if (productContext(); as context) {
         <section class="context-panel" aria-labelledby="research-context-title">
@@ -95,9 +102,24 @@ import {
             <p class="research-mode">
               Mode: <strong>{{ researchMode }}</strong> · no supplier contact or external write
             </p>
-            <button type="button" (click)="startResearch()" [disabled]="researchBusy()">
+            <button
+              type="button"
+              (click)="startResearch()"
+              [disabled]="researchBusy() || loading() || !researchMode"
+            >
               {{ researchBusy() ? 'Finding suppliers...' : 'Find suppliers for this product' }}
             </button>
+            @if (!researchMode) {
+              <p role="status">
+                Discovery is unavailable in the configured mode. Check research settings; live
+                access is never enabled automatically.
+              </p>
+            } @else if (researchMode === 'LIVE_READ_ONLY') {
+              <p>
+                Live read-only research remains subject to backend source, execution-authorization
+                and provider policy checks.
+              </p>
+            }
           </div>
           @if (research(); as state) {
             <div class="research-status" role="status" aria-live="polite">
@@ -221,7 +243,11 @@ import {
             title="No suppliers were found from the currently available sources"
             message="Research completed with gaps, or supplier research has not started for this product. Adjust the research terms or review the product before trying again."
           >
-            <button type="button" (click)="startResearch()" [disabled]="researchBusy()">
+            <button
+              type="button"
+              (click)="startResearch()"
+              [disabled]="researchBusy() || loading() || !researchMode"
+            >
               Research again
             </button>
           </app-empty-state>
@@ -438,6 +464,8 @@ import {
                 [queryParams]="economicsParams()"
                 >Continue to sourcing economics</a
               >
+              <a routerLink="/intelligence/sourcing" [queryParams]="economicsParams()">Prepare local requirements and record quotes</a>
+              <p>A Catalog draft is required for the existing quotation workflow. Preparing a local request never sends it; unknown commercial terms remain unknown.</p>
             }
             <details class="advanced-actions">
               <summary>Advanced research controls</summary>
@@ -882,7 +910,7 @@ export class CrossMarketplaceSupplierComponent {
   readonly research = signal<Record<string, unknown> | null>(null);
   readonly researchBusy = signal(false);
   researchQuery = '';
-  researchMode: 'LOCAL_FIXTURE' | 'LIVE_READ_ONLY' = 'LIVE_READ_ONLY';
+  researchMode: 'LOCAL_FIXTURE' | 'LIVE_READ_ONLY' | null = null;
   readonly error = signal('');
   comparisonIds = '';
   private requestedSupplierId = '';
@@ -896,6 +924,23 @@ export class CrossMarketplaceSupplierComponent {
     this.requestedSupplierId =
       params.get('supplier_id') || params.get('canonical_supplier_id') || '';
     this.route.queryParamMap.subscribe((queryParams) => {
+      const nextOpportunity = queryParams.get('opportunity_id');
+      if (
+        nextOpportunity &&
+        this.productContext() &&
+        nextOpportunity !== this.productContext()?.opportunityId
+      ) {
+        this.selected.set(null);
+        this.suppliers.set([]);
+        this.researchMode = null;
+        this.productContext.set({
+          ...this.productContext()!,
+          opportunityId: nextOpportunity,
+          product: '',
+          category: '',
+        });
+        void this.load();
+      }
       const nextSupplierId =
         queryParams.get('supplier_id') || queryParams.get('canonical_supplier_id') || '';
       if (nextSupplierId === this.requestedSupplierId) return;
@@ -990,6 +1035,7 @@ export class CrossMarketplaceSupplierComponent {
       product: context.product,
       category: context.category,
       marketplace: context.marketplace,
+      ...(this.selected() ? { supplier_id: this.selected()!.id } : {}),
       ...(selected.length ? { supplier_ids: selected.join(',') } : {}),
     };
   }
@@ -1018,7 +1064,8 @@ export class CrossMarketplaceSupplierComponent {
             }
           : null,
       );
-      const projectedMode = projectedResearch?.['mode'];
+      const projectedMode = result['execution_mode'];
+      this.researchMode = null;
       if (projectedMode === 'LOCAL_FIXTURE' || projectedMode === 'LIVE_READ_ONLY') {
         this.researchMode = projectedMode;
       }
@@ -1047,14 +1094,16 @@ export class CrossMarketplaceSupplierComponent {
       }
       this.unscopedSuppliers.set([]);
       this.comparisonSelection.set(new Set());
-    } catch {
-      // The main discovery list remains usable when the optional journey projection is unavailable.
+    } catch (error) {
+      this.researchMode = null;
+      this.suppliers.set([]);
+      throw error;
     }
   }
 
   async startResearch(): Promise<void> {
     const context = this.productContext();
-    if (!context || !this.researchQuery.trim()) return;
+    if (!context || !this.researchQuery.trim() || !this.researchMode || this.researchBusy()) return;
     this.researchBusy.set(true);
     this.error.set('');
     try {
@@ -1062,9 +1111,9 @@ export class CrossMarketplaceSupplierComponent {
         product_query: this.researchQuery.trim(),
         product_opportunity_id: context.opportunityId,
         category: context.category,
-        mode: 'LIVE_READ_ONLY',
+        mode: this.researchMode,
         max_candidates: 10,
-        idempotency_key: `gp4-${context.opportunityId}-${this.researchQuery.trim().toLowerCase()}`,
+        idempotency_key: `gp4-${this.researchMode}-${context.opportunityId}-${this.researchQuery.trim().toLowerCase()}`,
       });
       const summary = (result['result'] as Record<string, unknown>) || result;
       this.research.set(summary);

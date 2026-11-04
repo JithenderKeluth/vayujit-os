@@ -28,6 +28,9 @@ export interface TrendObservation {
   freshness_state: string;
   quality_state: string;
   source_reference: string;
+  verification_state?: string | null;
+  provenance_note?: string | null;
+  raw_metadata?: Record<string, unknown>;
 }
 export interface TrendSnapshot {
   id: string;

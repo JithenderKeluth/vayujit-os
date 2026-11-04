@@ -348,13 +348,13 @@ def _upsert_signal(
                 stamp,
             )
         else:
-            _transition(
+            _stock_transition(
                 db,
                 owner,
                 row,
                 "REOPENED",
-                f"reopen:{spec['fingerprint']}:{spec['source_version']}",
-                "Source issue recurred.",
+                "Source issue recurred based on canonical evidence; no HUMAN decision or execution.",
+                stamp,
             )
     row.updated_at = stamp
     return row
@@ -437,7 +437,7 @@ def _scan(db: Session, owner: User) -> tuple[int, datetime]:
                     source_authority="InventoryItem",
                     source_resource_type="inventory_item",
                     source_resource_id=item.id,
-                    source_route="/marketplaces/inventory",
+                    source_route=f"/marketplaces/inventory?product_id={item.product_id}",
                     evidence={
                         "available": available,
                         "threshold": item.low_stock_threshold,
@@ -468,7 +468,7 @@ def _scan(db: Session, owner: User) -> tuple[int, datetime]:
                 source_resource_type="marketplace_order",
                 source_resource_id=order.id,
                 marketplace=order.marketplace,
-                source_route="/marketplaces/orders",
+                source_route=f"/marketplaces/orders?order_id={order.id}",
                 evidence={"status": order.status, "remote_order_id": order.remote_order_id},
             ),
             stamp,
@@ -493,7 +493,7 @@ def _scan(db: Session, owner: User) -> tuple[int, datetime]:
                 source_authority="MarketplaceOrderItem",
                 source_resource_type="marketplace_order_item",
                 source_resource_id=order_item.id,
-                source_route="/marketplaces/orders",
+                source_route=f"/marketplaces/orders?order_id={order_item.order_id}",
                 evidence={"marketplace_sku": order_item.marketplace_sku},
             ),
             stamp,
@@ -687,6 +687,43 @@ def _scan(db: Session, owner: User) -> tuple[int, datetime]:
                 stamp,
             )
             count += 1
+    # A completed authoritative scan is also negative evidence for conditions
+    # it no longer produces. Preserve old evidence as STALE, not HUMAN-resolved.
+    # Only this scanner's known derived rule family is eligible for retirement.
+    db.flush()
+    obsolete = db.scalars(
+        select(OperationalSignal)
+        .where(
+            OperationalSignal.owner_id == owner.id,
+            OperationalSignal.rule_version == "pr-sos-06-v1",
+            OperationalSignal.signal_kind == "DERIVED",
+            OperationalSignal.signal_type.in_(
+                [
+                    "out_of_stock",
+                    "low_stock",
+                    "order_exception",
+                    "unmapped_order_line",
+                    "listing_blocker",
+                    "negative_contribution",
+                    "settlement_mismatch",
+                    "marketplace_import_exception",
+                    "marketplace_import_stale",
+                ]
+            ),
+            OperationalSignal.status != "STALE",
+            OperationalSignal.observed_at < stamp,
+        )
+        .with_for_update()
+    ).all()
+    for row in obsolete:
+        _stock_transition(
+            db,
+            owner,
+            row,
+            "STALE",
+            "Completed canonical rescan no longer establishes this condition. Historical evidence retained; no business action executed.",
+            stamp,
+        )
     db.commit()
     return count, stamp
 

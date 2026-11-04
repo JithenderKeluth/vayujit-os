@@ -1,6 +1,7 @@
 import pytest
 import test_ai_integration
 from test_ai_integration import ORIGIN, setup_context
+from test_ai_integration import client as client
 
 pytest_plugins = ("test_ai_integration",)
 pytestmark = pytest.mark.integration

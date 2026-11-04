@@ -48,6 +48,7 @@ from vayujit_api.intelligence.competitor_agent_service import (
 )
 from vayujit_api.intelligence.product_opportunity_models import ProductOpportunity
 from vayujit_api.intelligence.product_opportunity_scoring_models import ProductOpportunityDecision
+from vayujit_api.intelligence.product_opportunity_scoring_service import current_product_selection
 from vayujit_api.intelligence.product_discovery import discover_local_product_candidates
 from vayujit_api.intelligence.product_research import run_live_product_discovery
 from vayujit_api.intelligence.review_business_agent_service import (
@@ -154,13 +155,7 @@ def _candidate_opportunity_ids(db: Session, owner: User, goal_id: uuid.UUID) -> 
 
 def _run_has_human_product_selection(db: Session, owner: User, run: BusinessAgentRun) -> bool:
     for opportunity_id in _candidate_opportunity_ids(db, owner, run.goal_id):
-        if db.scalar(
-            select(ProductOpportunityDecision.id).where(
-                ProductOpportunityDecision.owner_id == owner.id,
-                ProductOpportunityDecision.opportunity_id == opportunity_id,
-                ProductOpportunityDecision.action == "shortlist",
-            )
-        ):
+        if current_product_selection(db, owner, opportunity_id):
             return True
     return False
 
@@ -1142,13 +1137,7 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                 opportunity = None
     if opportunity is None:
         for selected_opportunity_id in _candidate_opportunity_ids(db, owner, run.goal_id):
-            if not db.scalar(
-                select(ProductOpportunityDecision.id).where(
-                    ProductOpportunityDecision.owner_id == owner.id,
-                    ProductOpportunityDecision.opportunity_id == selected_opportunity_id,
-                    ProductOpportunityDecision.action == "shortlist",
-                )
-            ):
+            if not current_product_selection(db, owner, selected_opportunity_id):
                 continue
             opportunity = db.scalar(
                 select(ProductOpportunity).where(
@@ -1208,8 +1197,12 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                         "Review the discovered domains and explicitly approve permitted sources, "
                         "then retry discovery."
                         if live_failure_code == "SOURCE_APPROVAL_REQUIRED"
-                        else "Live product research returned no canonical product opportunity. "
-                        "Review the evidence and retry discovery before comparing products."
+                        else str(
+                            live_discovery_output.get("review_guidance")
+                            or "No product passed the bounded discovery evidence checks. "
+                            "Review the final eligibility reasons in page outcomes before retrying. "
+                            "A successful page fetch alone does not establish an eligible product."
+                        )
                     )
                 )
                 live_failure: dict[str, object] = {
@@ -1288,7 +1281,40 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
                     db.flush()
                 discovered.append(candidate)
             if not discovered:
-                raise LookupError("No meaningful product candidates were discovered.")
+                # An explicit category can legitimately exclude every local fixture.
+                # Persist a truthful blocked result, just as bounded live discovery
+                # does; never relax the constraint or turn no results into HTTP 500.
+                local_failure: dict[str, object] = {
+                    "code": "NO_USEFUL_PRODUCT_CANDIDATES",
+                    "message": "No local fixture matches the requested product constraints. "
+                    "Revise the goal or use separately authorized live research; "
+                    "no product has been selected.",
+                    "mode": execution_mode,
+                }
+                if opportunity_step is not None:
+                    opportunity_step.status = "FAILED"
+                    opportunity_step.result = local_failure
+                    opportunity_step.updated_at = agent_now()
+                    db.add(
+                        BusinessAgentCheckpoint(
+                            owner_id=owner.id,
+                            run_id=run.id,
+                            step_key=opportunity_step.step_key,
+                            state={"status": "FAILED", "failure": local_failure},
+                            created_at=agent_now(),
+                        )
+                    )
+                run.status = "PARTIAL"
+                run.failure = local_failure
+                run.result = {
+                    "outcome": "RESEARCH_BLOCKED",
+                    "mode": execution_mode,
+                    "external_writes": [],
+                }
+                run.checkpoint = {"completed_steps": [], "last_step": None}
+                db.commit()
+                db.refresh(run)
+                return run
             opportunity = discovered[0]
     # A retry may have cleared discovery while later steps are still queued.
     # Publish current-run candidates even if the step budget stops this run.
@@ -1337,13 +1363,7 @@ def execute_run(db: Session, owner: User, run: BusinessAgentRun) -> BusinessAgen
             and execution_mode == "LIVE_READ_ONLY"
             and structured_goal.get("category")
         ):
-            human_selection = db.scalar(
-                select(ProductOpportunityDecision.id).where(
-                    ProductOpportunityDecision.owner_id == owner.id,
-                    ProductOpportunityDecision.opportunity_id == opportunity.id,
-                    ProductOpportunityDecision.action == "shortlist",
-                )
-            )
+            human_selection = current_product_selection(db, owner, opportunity.id)
             if human_selection is None:
                 blocked_dependencies.append("human_product_selection")
         if blocked_dependencies:
