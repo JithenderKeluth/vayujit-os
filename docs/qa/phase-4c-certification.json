@@ -1,0 +1,335 @@
+{
+  "generated_at": "2026-10-26T18:23:23.373Z",
+  "application_certification": "INCOMPLETE",
+  "overall_first_real_operation": "NO-GO",
+  "audit_completed": true,
+  "preserved_inputs": {
+    "checked": 794,
+    "changed": [],
+    "evidence": "docs/qa/phase-4c-baseline.json"
+  },
+  "prior_4b_source_reuse": {
+    "checked": 19,
+    "changed": [],
+    "evidence": "docs/qa/phase-4b-resolution.json"
+  },
+  "current_execution": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "full_application_coverage": false
+  },
+  "current_persisted_api": [
+    {
+      "passed": 18,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "exit_code": 0
+    },
+    {
+      "passed": 18,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "exit_code": 0
+    }
+  ],
+  "current_backend": {
+    "tests": 11,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "evidence": "tmp/qa-agent/5275b9c72e4a4473/backend-results.xml",
+    "cleanup": {
+      "status": "PASS",
+      "database": "vayujit_qa5275b9c72e4a4473_test",
+      "marker_verified": true,
+      "database_absent": true
+    },
+    "passed": 11
+  },
+  "current_unit_counts_from_logs": {
+    "qa_node_passed": 49,
+    "qa_python_passed": 28,
+    "angular_passed": 267,
+    "note": "Actual log counts; exit codes in quality record remain authoritative; no duplicate-requirement claim."
+  },
+  "quality": {
+    "generated_at": "2026-10-26T18:15:13.112Z",
+    "checks": [
+      {
+        "name": "qa-node",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "--test",
+          "qa/unit/phase2.test.mjs",
+          "qa/unit/phase3.test.mjs",
+          "qa/unit/phase3a-resolution.test.mjs",
+          "qa/unit/phase3b-resolution.test.mjs",
+          "qa/unit/phase4.test.mjs",
+          "qa/unit/phase4a-resolution.test.mjs",
+          "qa/unit/phase4a.test.mjs",
+          "qa/unit/phase4b.test.mjs",
+          "qa/unit/safety.test.mjs"
+        ],
+        "cwd": ".",
+        "exit_code": 0,
+        "elapsed_ms": 1296,
+        "log": "tmp/qa-agent/phase4c-quality/qa-node.log"
+      },
+      {
+        "name": "qa-python",
+        "command": [
+          "C:\\Users\\jithe\\Documents\\vayujit-os\\apps\\api\\.venv\\Scripts\\python.exe",
+          "-m",
+          "pytest",
+          "qa/unit",
+          "-q",
+          "-o",
+          "addopts="
+        ],
+        "cwd": ".",
+        "exit_code": 0,
+        "elapsed_ms": 7390,
+        "log": "tmp/qa-agent/phase4c-quality/qa-python.log"
+      },
+      {
+        "name": "angular",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:\\Users\\jithe\\Documents\\vayujit-os\\node_modules\\@angular\\cli\\bin\\ng.js",
+          "test",
+          "--watch=false"
+        ],
+        "cwd": "apps/web",
+        "exit_code": 0,
+        "elapsed_ms": 46480,
+        "log": "tmp/qa-agent/phase4c-quality/angular.log"
+      },
+      {
+        "name": "qa-eslint",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/eslint/bin/eslint.js",
+          "--config",
+          "qa/eslint.config.mjs",
+          "qa"
+        ],
+        "cwd": ".",
+        "exit_code": 0,
+        "elapsed_ms": 2049,
+        "log": "tmp/qa-agent/phase4c-quality/qa-eslint.log"
+      },
+      {
+        "name": "qa-prettier",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/prettier/bin/prettier.cjs",
+          "--check",
+          "qa"
+        ],
+        "cwd": ".",
+        "exit_code": 0,
+        "elapsed_ms": 1897,
+        "log": "tmp/qa-agent/phase4c-quality/qa-prettier.log"
+      },
+      {
+        "name": "web-lint",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "C:\\Users\\jithe\\Documents\\vayujit-os\\node_modules\\eslint\\bin\\eslint.js",
+          "src/**/*.ts"
+        ],
+        "cwd": "apps/web",
+        "exit_code": 0,
+        "elapsed_ms": 43623,
+        "log": "tmp/qa-agent/phase4c-quality/web-lint.log"
+      },
+      {
+        "name": "typescript-app",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "apps/web/tsconfig.app.json"
+        ],
+        "cwd": ".",
+        "exit_code": 0,
+        "elapsed_ms": 6656,
+        "log": "tmp/qa-agent/phase4c-quality/typescript-app.log"
+      },
+      {
+        "name": "typescript-spec",
+        "command": [
+          "C:\\Program Files\\nodejs\\node.exe",
+          "node_modules/typescript/bin/tsc",
+          "--noEmit",
+          "-p",
+          "apps/web/tsconfig.spec.json"
+        ],
+        "cwd": ".",
+        "exit_code": 0,
+        "elapsed_ms": 8578,
+        "log": "tmp/qa-agent/phase4c-quality/typescript-spec.log"
+      },
+      {
+        "name": "ruff",
+        "command": [
+          "C:\\Users\\jithe\\Documents\\vayujit-os\\apps\\api\\.venv\\Scripts\\python.exe",
+          "-m",
+          "ruff",
+          "check",
+          "--config",
+          "apps/api/pyproject.toml",
+          "qa"
+        ],
+        "cwd": ".",
+        "exit_code": 0,
+        "elapsed_ms": 259,
+        "log": "tmp/qa-agent/phase4c-quality/ruff.log"
+      },
+      {
+        "name": "black",
+        "command": [
+          "C:\\Users\\jithe\\Documents\\vayujit-os\\apps\\api\\.venv\\Scripts\\python.exe",
+          "-m",
+          "black",
+          "--check",
+          "--config",
+          "apps/api/pyproject.toml",
+          "qa"
+        ],
+        "cwd": ".",
+        "exit_code": 0,
+        "elapsed_ms": 968,
+        "log": "tmp/qa-agent/phase4c-quality/black.log"
+      },
+      {
+        "name": "compileall",
+        "command": [
+          "C:\\Users\\jithe\\Documents\\vayujit-os\\apps\\api\\.venv\\Scripts\\python.exe",
+          "-m",
+          "compileall",
+          "-q",
+          "qa"
+        ],
+        "cwd": ".",
+        "exit_code": 0,
+        "elapsed_ms": 335,
+        "log": "tmp/qa-agent/phase4c-quality/compileall.log"
+      }
+    ]
+  },
+  "findings": {
+    "baseline": 129,
+    "resolved": 117,
+    "still_open": 12,
+    "closed_by_this_audit": 0,
+    "accepted_by_owner": 0
+  },
+  "routes": {
+    "current": 155,
+    "investigated_artifact_declarations": 26,
+    "classifications": {
+      "PRIOR_EXERCISED_SURFACE_NOT_FULL_FEATURE": 109,
+      "CONTEXT_DEPENDENT_UNTESTED": 20,
+      "CONTEXT_DEPENDENT_PRIOR_VISIT_NOT_WORKFLOW_CERTIFICATION": 7,
+      "INTENTIONALLY_UNAVAILABLE_AS_PAGE": 6,
+      "EXERCISED_VERIFIED_BOUNDED_PRIOR_SMOKE": 2,
+      "EXERCISED_VERIFIED_BOUNDED": 3,
+      "CONTEXT_DEPENDENT_VERIFIED_BOUNDED": 7,
+      "EXERCISED_VERIFIED_BOUNDED_PRIOR_4B": 1
+    },
+    "artifact_classifications": {
+      "CONTEXT_DEPENDENT_UNTESTED": 20,
+      "CONTEXT_DEPENDENT_VERIFIED_BOUNDED": 6
+    }
+  },
+  "accessibility": {
+    "scans": 34,
+    "violations": 0,
+    "incompletes": 8,
+    "targeted_reviews": 2,
+    "full_wcag": false
+  },
+  "cleanup": [
+    {
+      "project": "desktop",
+      "database": "vayujit_qa8644b989a75faaef_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa8644b989a75faaef_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qac84e3310c5656b03_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qac84e3310c5656b03_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    }
+  ],
+  "verdicts": [
+    {
+      "area": "Application QA",
+      "status": "INCOMPLETE",
+      "evidence": "phase-4c-findings.json; phase-4c-route-control-coverage.json; phase-4b-resolution.json",
+      "reason": "Bounded regressions are not whole-application coverage; twelve original findings and untested contexts remain."
+    },
+    {
+      "area": "Accessibility",
+      "status": "INCOMPLETE",
+      "evidence": "phase-4c-accessibility.json; phase-4a-accessibility.json; phase-4b-accessibility.json",
+      "reason": "Remaining manual/assistive/conditional checks; a clean axe subset is not complete WCAG conformance."
+    },
+    {
+      "area": "Financial safety",
+      "status": "INCOMPLETE",
+      "evidence": "tmp/qa-agent/5275b9c72e4a4473/backend-results.xml; phase-2-remediation-validation.md; phase-3b-resolution.json",
+      "reason": "Deterministic synthetic arithmetic/freshness/provenance demonstrated; sole-ledger immutable history, real costs/tax/settlements not certified."
+    },
+    {
+      "area": "Inventory/order readiness",
+      "status": "INCOMPLETE",
+      "evidence": "phase-4b-resolution.json; phase-4c-execution.json",
+      "reason": "Opening ledger/replay/concurrency and synthetic order lifecycle pass; genuine marketplace acquisition, fulfillment/reboot/interruption matrix is not certified."
+    },
+    {
+      "area": "PC-first operational readiness",
+      "status": "INCOMPLETE",
+      "evidence": "../seller-os/pc-first-disposable-certification.json; ../seller-os/pc-first-backup-recovery.md",
+      "reason": "Runtime-only historical PASS; encrypted backup/independent restore NOT_RUN or failing, physical independence UNVERIFIED."
+    },
+    {
+      "area": "Marketplace readiness",
+      "status": "NOT CONFIGURED",
+      "evidence": "../seller-os/production-activation-plan.md; ../seller-os/amazon-india-registration-checklist.md; ../seller-os/flipkart-registration-checklist.md",
+      "reason": "No owner account/API onboarding completion evidence; synthetic sandbox accounts are not real seller authorization."
+    },
+    {
+      "area": "Overall first real operation",
+      "status": "NO-GO",
+      "evidence": "phase-4c-validation.md",
+      "reason": "Mandatory recovery, physical backup and readiness decisions remain unmet; no waiver granted."
+    }
+  ],
+  "unexecuted": [
+    "Live providers and real marketplace registration/OAuth/connectivity",
+    "PC-first encrypted backup/restore, physical-disk verification and host reboot",
+    "Full migration-backed QA matrix and all historical backend suites",
+    "Screen-reader/physical-device/cross-browser/full WCAG review",
+    "All remaining artifact-bound routes and every discovered control",
+    "Current vulnerability advisory/host security audit"
+  ]
+}

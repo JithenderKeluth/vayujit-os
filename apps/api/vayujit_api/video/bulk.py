@@ -668,6 +668,7 @@ def enqueue(data: VideoBulkRequest, db: DB, owner: Owner) -> dict[str, object]:
 @router.get("/{bulk_id}")
 def status(bulk_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
     operation = _operation(db, owner, bulk_id)
+    db.refresh(operation, with_for_update=True)
     counts = _sync(db, operation)
     db.commit()
     return _response(db, operation, counts)
@@ -679,6 +680,7 @@ def retry(
     bulk_id: uuid.UUID, data: VideoBulkRetryRequest, db: DB, owner: Owner
 ) -> dict[str, object]:
     operation = _operation(db, owner, bulk_id)
+    db.refresh(operation, with_for_update=True)
     _sync(db, operation)
     selected = set(data.child_ids)
     rows = list(
@@ -740,6 +742,7 @@ def cancel(
     bulk_id: uuid.UUID, data: VideoBulkCancelRequest, db: DB, owner: Owner
 ) -> dict[str, object]:
     operation = _operation(db, owner, bulk_id)
+    db.refresh(operation, with_for_update=True)
     selected = set(data.child_ids)
     rows = list(
         db.scalars(
@@ -854,6 +857,7 @@ def usage(bulk_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
 @router.get("/{bulk_id}/diagnostics")
 def diagnostics(bulk_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
     operation = _operation(db, owner, bulk_id)
+    db.refresh(operation, with_for_update=True)
     counts = _sync(db, operation)
     db.commit()
     return {
@@ -874,6 +878,7 @@ def diagnostics(bulk_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
 @router.get("/{bulk_id}/outputs")
 def outputs(bulk_id: uuid.UUID, db: DB, owner: Owner) -> list[dict[str, object]]:
     operation = _operation(db, owner, bulk_id)
+    db.refresh(operation, with_for_update=True)
     _sync(db, operation)
     children = list(
         db.scalars(

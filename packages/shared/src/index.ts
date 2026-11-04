@@ -486,7 +486,7 @@ export interface AIArtifactDetails {
   content_type?: string;
   locale?: string;
   status: AIArtifactStatus;
-  content: AIProductContent;
+  content: Partial<AIProductContent> & Record<string, unknown>;
   validation_result: Record<string, unknown>;
   provider_metadata: Record<string, unknown>;
   approved_at: string | null;
@@ -2056,6 +2056,7 @@ export interface AIStudioOutput {
   status: string;
   error_code: string | null;
   safe_error_message: string | null;
+  job_id?: string | null;
 }
 export interface AIStudioGeneration {
   id: string;
@@ -2070,6 +2071,9 @@ export interface AIStudioGeneration {
   outputs: AIStudioOutput[];
   created_at: string;
   completed_at: string | null;
+  failure_category?: string | null;
+  retryable?: boolean;
+  recovery_actions?: string[];
 }
 export interface AIStudioArtifact {
   id: string;

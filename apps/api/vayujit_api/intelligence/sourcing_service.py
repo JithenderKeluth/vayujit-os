@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from fastapi import HTTPException
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -35,6 +35,7 @@ from vayujit_api.intelligence.sourcing_models import (
     SupplierQuoteLine,
     SupplierQuoteVersion,
 )
+from vayujit_api.intelligence.sourcing_schemas import QuoteCreate, RequirementCreate, RFQCreate
 from vayujit_api.intelligence.supplier_models import Supplier
 from vayujit_api.products.models import Product
 
@@ -52,6 +53,39 @@ def get_owned(db: Session, model: Any, owner_id: uuid.UUID, row_id: uuid.UUID):
     if row is None:
         raise HTTPException(404, "Sourcing record not found.")
     return row
+
+
+def _require_same_requirement(existing: SourcingRequirement, data: RequirementCreate) -> None:
+    if any(getattr(existing, key) != value for key, value in data.model_dump().items()):
+        raise HTTPException(409, "Requirement replay changed; prepare a new explicit request.")
+
+
+def _require_same_rfq(
+    db: Session, existing: RequestForQuote, data: RFQCreate, payload: dict[str, object]
+) -> None:
+    supplier_ids = set(
+        db.scalars(select(RFQSupplier.supplier_id).where(RFQSupplier.rfq_id == existing.id))
+    )
+    if (
+        existing.requirement_id != data.requirement_id
+        or existing.requirement_version != data.requirement_version
+        or existing.title != data.title
+        or existing.payload != payload
+        or supplier_ids != set(data.supplier_ids)
+    ):
+        raise HTTPException(409, "Pricing-draft replay changed; prepare a new explicit request.")
+
+
+def _require_same_quote(db: Session, existing: SupplierQuote, data: QuoteCreate) -> None:
+    snapshot = db.scalar(
+        select(SupplierQuoteVersion.snapshot).where(
+            SupplierQuoteVersion.owner_id == existing.owner_id,
+            SupplierQuoteVersion.quote_id == existing.id,
+            SupplierQuoteVersion.version == existing.version,
+        )
+    )
+    if snapshot != data.model_dump(mode="json"):
+        raise HTTPException(409, "Quote replay changed; record a new explicit quote version.")
 
 
 def create_requirement(db, owner, data):
@@ -81,6 +115,7 @@ def create_requirement(db, owner, data):
         )
     )
     if existing:
+        _require_same_requirement(existing, data)
         return existing, True
     row = SourcingRequirement(
         owner_id=owner.id,
@@ -114,6 +149,7 @@ def create_requirement(db, owner, data):
         )
         if existing is None:
             raise
+        _require_same_requirement(existing, data)
         return existing, True
     db.commit()
     db.refresh(row)
@@ -161,6 +197,7 @@ def create_rfq(db, owner, data):
         )
     )
     if existing:
+        _require_same_rfq(db, existing, data, payload)
         return existing, True
     row = RequestForQuote(
         owner_id=owner.id,
@@ -215,6 +252,7 @@ def create_rfq(db, owner, data):
         )
         if existing is None:
             raise
+        _require_same_rfq(db, existing, data, payload)
         return existing, True
     db.commit()
     db.refresh(row)
@@ -254,6 +292,14 @@ def dispatch_rfq(db, owner, rfq, status):
 
 
 def create_quote(db, owner, data):
+    if db.get_bind().dialect.name == "postgresql":
+        # Serialize version allocation and exact-key replay independently. An
+        # IntegrityError must never return a different request's quote version.
+        for lock in (
+            f"sourcing-quote-key:{owner.id}:{data.idempotency_key}",
+            f"sourcing-quote-version:{owner.id}:{data.rfq_id}:{data.supplier_id}",
+        ):
+            db.execute(text("SELECT pg_advisory_xact_lock(hashtext(:key))"), {"key": lock})
     rfq = get_owned(db, RequestForQuote, owner.id, data.rfq_id)
     get_owned(db, Supplier, owner.id, data.supplier_id)
     if not db.scalar(
@@ -274,6 +320,7 @@ def create_quote(db, owner, data):
             )
         )
         if existing:
+            _require_same_quote(db, existing, data)
             return existing
 
     prior = db.scalar(
@@ -315,6 +362,7 @@ def create_quote(db, owner, data):
             )
         )
         if existing is not None:
+            _require_same_quote(db, existing, data)
             return existing
         raise
     db.add(

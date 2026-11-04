@@ -178,7 +178,10 @@ class DeterministicMockAIProvider:
             "social_caption": (
                 f"Meet {value.product_name} from {value.brand_name}. {base} #{digest[:6]}"
             ),
-            "keywords": [value.product_name.lower(), value.brand_name.lower(), category.lower()],
+            "keywords": [
+                re.sub(r"[^\w -]", " ", text.lower()).strip()[:50] or "product"
+                for text in (value.product_name, value.brand_name, category)
+            ],
             "generation_summary": (
                 "Deterministic product content generated from template "
                 f"{value.template_key} v{value.template_version}."
@@ -227,7 +230,10 @@ class OpenAICompatibleProvider:
             timeout=httpx.Timeout(self.timeout_seconds),
             follow_redirects=False,
             transport=self.transport,
-            headers={"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"},
+            headers={
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json",
+            },
         )
 
     def _request(
@@ -259,7 +265,8 @@ class OpenAICompatibleProvider:
                     )
                 if response.is_error:
                     raise ProviderError(
-                        "provider_request_rejected", "The provider rejected the request."
+                        "provider_request_rejected",
+                        "The provider rejected the request.",
                     )
                 return response
             except (httpx.TimeoutException, httpx.NetworkError) as error:
@@ -311,7 +318,11 @@ class OpenAICompatibleProvider:
                 "temperature": 0.2,
                 "response_format": {
                     "type": "json_schema",
-                    "json_schema": {"name": "product_content", "strict": True, "schema": schema},
+                    "json_schema": {
+                        "name": "product_content",
+                        "strict": True,
+                        "schema": schema,
+                    },
                 },
             },
         )
@@ -334,9 +345,15 @@ class OpenAICompatibleProvider:
                 input_tokens=_integer(usage.get("prompt_tokens")),
                 output_tokens=_integer(usage.get("completion_tokens")),
                 total_tokens=_integer(usage.get("total_tokens")),
-                provider_request_id=str(body.get("id"))[:160] if body.get("id") else None,
+                provider_request_id=(str(body.get("id"))[:160] if body.get("id") else None),
             )
-        except (KeyError, IndexError, TypeError, ValueError, json.JSONDecodeError) as error:
+        except (
+            KeyError,
+            IndexError,
+            TypeError,
+            ValueError,
+            json.JSONDecodeError,
+        ) as error:
             raise ProviderError(
                 "invalid_structured_output",
                 "The provider returned invalid structured content.",

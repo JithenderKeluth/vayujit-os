@@ -1,0 +1,3809 @@
+{
+  "package": "WP7A-6",
+  "original_denominator": 48,
+  "inherited_closed": 41,
+  "targeted": 7,
+  "status": "INCOMPLETE",
+  "source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+  "entries": [
+    {
+      "id": "R-184826c3",
+      "route": "/intelligence/trends/:contextId",
+      "group": "research",
+      "capability": "Review scoped research and its claims, provenance, unknowns and provider restrictions",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SUPPORTED_ACCEPTANCE",
+      "acceptance": "Populate synthetic observations using the canonical ingestion contract; snapshot/analyze the exact context; reject invalid context; reload provenance and UNKNOWN claims.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-8a5edab2",
+      "route": "/",
+      "group": "authentication-navigation",
+      "capability": "Owner setup, authentication or route redirection",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-7e93fba0",
+      "route": "/login",
+      "group": "authentication-navigation",
+      "capability": "Owner setup, authentication or route redirection",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-17b7d214",
+      "route": "/ads/accounts/:id",
+      "group": "campaigns-social-ads",
+      "capability": "Review advertising preparation and intelligence without enabling remote spend",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-66842e70",
+      "route": "/ads/campaigns/:id",
+      "group": "campaigns-social-ads",
+      "capability": "Review advertising preparation and intelligence without enabling remote spend",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-794214d7",
+      "route": "/campaigns/:id/video/:activityId",
+      "group": "video-campaign",
+      "capability": "Prepare or inspect campaign timing and review prerequisites",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SUPPORTED_ACCEPTANCE",
+      "acceptance": "Resolve exact campaign/activity binding, navigate its exact generation/output, reject foreign/missing activity, persist reload and show failed/retried history without dispatch.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-ec41ffe0",
+      "route": "/campaigns/:id/video",
+      "group": "campaigns-social-ads",
+      "capability": "Prepare or inspect campaign timing and review prerequisites",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-8522d9c2",
+      "route": "/campaigns/:id/activities/new",
+      "group": "campaigns-social-ads",
+      "capability": "Prepare or inspect campaign timing and review prerequisites",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-f4ba2c21",
+      "route": "/campaigns/:id/dependencies",
+      "group": "campaigns-social-ads",
+      "capability": "Prepare or inspect campaign timing and review prerequisites",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-e4940841",
+      "route": "/campaigns/:id",
+      "group": "campaigns-social-ads",
+      "capability": "Prepare or inspect campaign timing and review prerequisites",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-3feda36d",
+      "route": "/social/posts/:id",
+      "group": "social",
+      "capability": "Review social preparation and unavailable provider states without publication",
+      "prior_status": "PARTIAL",
+      "status": "PARTIAL",
+      "inherited_closed": false,
+      "wp7a6_target": true,
+      "full_closure": false,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "Video draft with exact thumbnail/metadata is targeted; separate image-only draft and stale review permutations remain incomplete.",
+      "acceptance": "Prepare image and approved-Video drafts, preview/review exact references, reject stale versions, retain unavailable external state and no remote publication.",
+      "required_assertions": [
+        "image_only_created",
+        "context_provenance",
+        "preview_validation",
+        "save_reload",
+        "edit_stale_review",
+        "duplicate_concurrent",
+        "failure_recovery",
+        "approval_no_publish",
+        "owner_isolation"
+      ],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [
+        {
+          "token": "9a74ecea883faa8d",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-3feda36d",
+          "status": "FAIL",
+          "reason": "expect(locator).toBeVisible() failed",
+          "at": "2026-11-03T17:00:32.283Z",
+          "route": "/social/compose",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\9a74ecea883faa8d\\wp7a6-chrome-1440\\001-R-3feda36d-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\9a74ecea883faa8d\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-3feda36d",
+          "status": "FAIL",
+          "reason": "locator.selectOption: Timeout 10000ms exceeded.",
+          "at": "2026-11-03T17:06:06.799Z",
+          "route": "/social/compose",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\001-R-3feda36d-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "R-3feda36d",
+          "status": "FAIL",
+          "reason": "locator.selectOption: Timeout 10000ms exceeded.",
+          "at": "2026-11-03T17:06:45.822Z",
+          "route": "/social/compose",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\001-R-3feda36d-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-3feda36d",
+          "status": "FAIL",
+          "reason": "locator.selectOption: Timeout 10000ms exceeded.",
+          "at": "2026-11-03T17:07:21.220Z",
+          "route": "/social/compose",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\001-R-3feda36d-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "R-3feda36d",
+          "status": "FAIL",
+          "reason": "locator.selectOption: Timeout 10000ms exceeded.",
+          "at": "2026-11-03T17:07:57.097Z",
+          "route": "/social/compose",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\001-R-3feda36d-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:13:05.329Z",
+          "route": "/social/posts/d266450b-9b54-4f4b-a04b-078fc76a99b3",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:13:32.113Z",
+          "route": "/social/posts/3d5ad445-49ca-4c14-9c51-f39787e316fb",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:13:55.688Z",
+          "route": "/social/posts/e41fc863-c3a3-4868-b9dd-102e4f6aad98",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:14:21.186Z",
+          "route": "/social/posts/09d16be5-0148-42c4-833f-e998a40b4072",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:19:07.269Z",
+          "route": "/social/posts/77f36bfb-1a51-4bf1-b4f4-194a04c8d7de",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:19:31.010Z",
+          "route": "/social/posts/6f4647a1-29fd-440a-9e2f-387e6c293dc2",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:19:51.457Z",
+          "route": "/social/posts/e1f95ab8-b93c-43c2-b2eb-417d90881b04",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:20:13.938Z",
+          "route": "/social/posts/ec3a9c9e-fa21-46bb-8bed-43d10074c397",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "evidence": [
+        {
+          "token": "9a74ecea883faa8d",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-3feda36d",
+          "status": "FAIL",
+          "reason": "expect(locator).toBeVisible() failed",
+          "at": "2026-11-03T17:00:32.283Z",
+          "route": "/social/compose",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\9a74ecea883faa8d\\wp7a6-chrome-1440\\001-R-3feda36d-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\9a74ecea883faa8d\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-3feda36d",
+          "status": "FAIL",
+          "reason": "locator.selectOption: Timeout 10000ms exceeded.",
+          "at": "2026-11-03T17:06:06.799Z",
+          "route": "/social/compose",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\001-R-3feda36d-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "R-3feda36d",
+          "status": "FAIL",
+          "reason": "locator.selectOption: Timeout 10000ms exceeded.",
+          "at": "2026-11-03T17:06:45.822Z",
+          "route": "/social/compose",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\001-R-3feda36d-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-3feda36d",
+          "status": "FAIL",
+          "reason": "locator.selectOption: Timeout 10000ms exceeded.",
+          "at": "2026-11-03T17:07:21.220Z",
+          "route": "/social/compose",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\001-R-3feda36d-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "R-3feda36d",
+          "status": "FAIL",
+          "reason": "locator.selectOption: Timeout 10000ms exceeded.",
+          "at": "2026-11-03T17:07:57.097Z",
+          "route": "/social/compose",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\001-R-3feda36d-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:13:05.329Z",
+          "route": "/social/posts/d266450b-9b54-4f4b-a04b-078fc76a99b3",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:13:32.113Z",
+          "route": "/social/posts/3d5ad445-49ca-4c14-9c51-f39787e316fb",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:13:55.688Z",
+          "route": "/social/posts/e41fc863-c3a3-4868-b9dd-102e4f6aad98",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:14:21.186Z",
+          "route": "/social/posts/09d16be5-0148-42c4-833f-e998a40b4072",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:19:07.269Z",
+          "route": "/social/posts/77f36bfb-1a51-4bf1-b4f4-194a04c8d7de",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:19:31.010Z",
+          "route": "/social/posts/6f4647a1-29fd-440a-9e2f-387e6c293dc2",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:19:51.457Z",
+          "route": "/social/posts/e1f95ab8-b93c-43c2-b2eb-417d90881b04",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "R-3feda36d",
+          "status": "PARTIAL",
+          "reason": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+          "at": "2026-11-03T17:20:13.938Z",
+          "route": "/social/posts/ec3a9c9e-fa21-46bb-8bed-43d10074c397",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\001-R-3feda36d-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "image_only_created",
+            "context_provenance",
+            "preview_validation",
+            "save_reload",
+            "edit_stale_review"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "acceptance_review": {
+        "complete": false,
+        "missing_assertions": [
+          "duplicate_concurrent",
+          "failure_recovery",
+          "approval_no_publish",
+          "owner_isolation"
+        ],
+        "live_provider_certified": false
+      },
+      "final_disposition": "Image-only creation, exact media/content/product, preview/edit stale fingerprint and reload verified; HUMAN review and concurrent-action matrix remain incomplete. No publication.",
+      "evidence_integrity": true
+    },
+    {
+      "id": "R-55e822d5",
+      "route": "/marketplaces/overview",
+      "group": "marketplace",
+      "capability": "Review channel configuration and local preparation without implying connection or publication",
+      "prior_status": "PARTIAL",
+      "status": "PARTIAL",
+      "inherited_closed": false,
+      "wp7a6_target": true,
+      "full_closure": false,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "Configured-only overview checked; connected/revoked/expired account projections not fully exercised.",
+      "acceptance": "Distinguish configured fake sandbox accounts from connected/live certification; missing/revoked authorization; reload snapshots and default deny.",
+      "required_assertions": [
+        "configured_not_connected",
+        "missing_credentials",
+        "fake_validated_label",
+        "invalid_expired_revoked",
+        "account_mismatch",
+        "reload_recovery",
+        "default_deny"
+      ],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-55e822d5",
+          "status": "BLOCKED",
+          "reason": "CANONICAL_FIXTURE_GET_marketplaces/accounts/:id/connectivity_422",
+          "at": "2026-11-03T17:06:24.337Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\002-R-55e822d5-BLOCKED.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "R-55e822d5",
+          "status": "BLOCKED",
+          "reason": "CANONICAL_FIXTURE_GET_marketplaces/accounts/:id/connectivity_422",
+          "at": "2026-11-03T17:06:59.754Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\002-R-55e822d5-BLOCKED.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-55e822d5",
+          "status": "BLOCKED",
+          "reason": "CANONICAL_FIXTURE_GET_marketplaces/accounts/:id/connectivity_422",
+          "at": "2026-11-03T17:07:36.204Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\002-R-55e822d5-BLOCKED.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "R-55e822d5",
+          "status": "BLOCKED",
+          "reason": "CANONICAL_FIXTURE_GET_marketplaces/accounts/:id/connectivity_422",
+          "at": "2026-11-03T17:08:10.792Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\002-R-55e822d5-BLOCKED.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:13:12.841Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:13:37.811Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:14:00.808Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:14:27.031Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:19:14.005Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:19:35.880Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:19:56.191Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:20:18.511Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "evidence": [
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-55e822d5",
+          "status": "BLOCKED",
+          "reason": "CANONICAL_FIXTURE_GET_marketplaces/accounts/:id/connectivity_422",
+          "at": "2026-11-03T17:06:24.337Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\002-R-55e822d5-BLOCKED.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "R-55e822d5",
+          "status": "BLOCKED",
+          "reason": "CANONICAL_FIXTURE_GET_marketplaces/accounts/:id/connectivity_422",
+          "at": "2026-11-03T17:06:59.754Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\002-R-55e822d5-BLOCKED.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-55e822d5",
+          "status": "BLOCKED",
+          "reason": "CANONICAL_FIXTURE_GET_marketplaces/accounts/:id/connectivity_422",
+          "at": "2026-11-03T17:07:36.204Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\002-R-55e822d5-BLOCKED.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "R-55e822d5",
+          "status": "BLOCKED",
+          "reason": "CANONICAL_FIXTURE_GET_marketplaces/accounts/:id/connectivity_422",
+          "at": "2026-11-03T17:08:10.792Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\002-R-55e822d5-BLOCKED.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:13:12.841Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:13:37.811Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:14:00.808Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:14:27.031Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:19:14.005Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:19:35.880Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:19:56.191Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "R-55e822d5",
+          "status": "PARTIAL",
+          "reason": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+          "at": "2026-11-03T17:20:18.511Z",
+          "route": "/marketplaces",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\002-R-55e822d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "configured_not_connected"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "acceptance_review": {
+        "complete": false,
+        "missing_assertions": [
+          "missing_credentials",
+          "fake_validated_label",
+          "invalid_expired_revoked",
+          "account_mismatch",
+          "reload_recovery",
+          "default_deny"
+        ],
+        "live_provider_certified": false
+      },
+      "final_disposition": "Sandbox configuration persisted; real connection is NOT certified. Expired/revoked and exact account projections remain unverified.",
+      "evidence_integrity": true
+    },
+    {
+      "id": "R-551d2f8c",
+      "route": "/marketplaces/listings/:id/flipkart",
+      "group": "marketplace",
+      "capability": "Review channel configuration and local preparation without implying connection or publication",
+      "prior_status": "PARTIAL",
+      "status": "PARTIAL",
+      "inherited_closed": false,
+      "wp7a6_target": true,
+      "full_closure": false,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "Exact draft/reload checked; full prerequisite correction and missing/expired/revoked/stale HUMAN authorization permutations unexecuted.",
+      "acceptance": "Exact Flipkart draft, canonical readiness prerequisite correction, HUMAN review/authorization expiry/revocation/staleness and reload; no transport execution.",
+      "required_assertions": [
+        "missing_prerequisite",
+        "legitimate_resolution",
+        "human_review",
+        "authorization_states",
+        "exact_fingerprint",
+        "stale_mismatch",
+        "repeat_concurrent",
+        "reload_failure_recovery",
+        "no_submission",
+        "owner_isolation"
+      ],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:06:27.446Z",
+          "route": "/marketplaces/listings/803b54f3-1a7d-4b21-8b85-ca174ca696a0/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:07:03.481Z",
+          "route": "/marketplaces/listings/111aa2db-d4e7-41b9-921f-571ade7abb7a/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:07:40.046Z",
+          "route": "/marketplaces/listings/a8910e43-dadd-48d8-8156-7389b0d0b540/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:08:13.862Z",
+          "route": "/marketplaces/listings/d2082847-7ad7-4b48-9a8b-f3602f24aae6/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:13:16.250Z",
+          "route": "/marketplaces/listings/1d96c273-4a97-4452-9d57-ec78c80282e1/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:13:40.634Z",
+          "route": "/marketplaces/listings/359960ad-e7b8-4cf0-825e-cc5cea7c5aad/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:14:04.317Z",
+          "route": "/marketplaces/listings/44890bbe-b9f4-429e-bd92-26e9efb1392c/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:14:30.054Z",
+          "route": "/marketplaces/listings/1a9b84a1-0437-4501-8568-76f6408721d0/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:16.882Z",
+          "route": "/marketplaces/listings/e2717037-6c2a-4f33-9f9e-1c3703344d69/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:38.114Z",
+          "route": "/marketplaces/listings/a6600507-64fa-41d2-8327-834e7a6b4edf/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:58.652Z",
+          "route": "/marketplaces/listings/b708ee90-1f7c-49eb-8c83-24a436174ba0/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:20:21.229Z",
+          "route": "/marketplaces/listings/02f1ca6b-7cbf-4907-bf1a-7586f68bbb75/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "evidence": [
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:06:27.446Z",
+          "route": "/marketplaces/listings/803b54f3-1a7d-4b21-8b85-ca174ca696a0/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:07:03.481Z",
+          "route": "/marketplaces/listings/111aa2db-d4e7-41b9-921f-571ade7abb7a/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:07:40.046Z",
+          "route": "/marketplaces/listings/a8910e43-dadd-48d8-8156-7389b0d0b540/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:08:13.862Z",
+          "route": "/marketplaces/listings/d2082847-7ad7-4b48-9a8b-f3602f24aae6/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:13:16.250Z",
+          "route": "/marketplaces/listings/1d96c273-4a97-4452-9d57-ec78c80282e1/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:13:40.634Z",
+          "route": "/marketplaces/listings/359960ad-e7b8-4cf0-825e-cc5cea7c5aad/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:14:04.317Z",
+          "route": "/marketplaces/listings/44890bbe-b9f4-429e-bd92-26e9efb1392c/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:14:30.054Z",
+          "route": "/marketplaces/listings/1a9b84a1-0437-4501-8568-76f6408721d0/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:16.882Z",
+          "route": "/marketplaces/listings/e2717037-6c2a-4f33-9f9e-1c3703344d69/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:38.114Z",
+          "route": "/marketplaces/listings/a6600507-64fa-41d2-8327-834e7a6b4edf/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:58.652Z",
+          "route": "/marketplaces/listings/b708ee90-1f7c-49eb-8c83-24a436174ba0/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "R-551d2f8c",
+          "status": "PARTIAL",
+          "reason": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:20:21.229Z",
+          "route": "/marketplaces/listings/02f1ca6b-7cbf-4907-bf1a-7586f68bbb75/flipkart",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\003-R-551d2f8c-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "acceptance_review": {
+        "complete": false,
+        "missing_assertions": [
+          "legitimate_resolution",
+          "human_review",
+          "authorization_states",
+          "exact_fingerprint",
+          "stale_mismatch",
+          "repeat_concurrent",
+          "reload_failure_recovery",
+          "no_submission",
+          "owner_isolation"
+        ],
+        "live_provider_certified": false
+      },
+      "final_disposition": "flipkart: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+      "evidence_integrity": true
+    },
+    {
+      "id": "R-db243c36",
+      "route": "/marketplaces/listings/:id/meesho",
+      "group": "marketplace",
+      "capability": "Review channel configuration and local preparation without implying connection or publication",
+      "prior_status": "PARTIAL",
+      "status": "PARTIAL",
+      "inherited_closed": false,
+      "wp7a6_target": true,
+      "full_closure": false,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "Exact draft/reload checked; supported manual preparation/readiness/review permutations incomplete. No invented Meesho OAuth or dispatch.",
+      "acceptance": "Exact Meesho draft, supported readiness/manual preparation/HUMAN review boundaries, unavailable integration and reload; do not invent OAuth or dispatch.",
+      "required_assertions": [
+        "missing_readiness",
+        "manual_resolution",
+        "review_boundaries",
+        "unsupported_live_truthful",
+        "stale_duplicate",
+        "reload_failure_recovery",
+        "no_dispatch",
+        "owner_isolation"
+      ],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:06:30.711Z",
+          "route": "/marketplaces/listings/2c0695e3-c010-4fee-9286-1c385e8f2995/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:07:07.075Z",
+          "route": "/marketplaces/listings/03b7ea65-dc1b-4a90-a2c9-160f3cacd5e0/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:07:43.320Z",
+          "route": "/marketplaces/listings/7f7d0604-8756-4a95-bad2-51ceca98b96a/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:08:17.011Z",
+          "route": "/marketplaces/listings/e1c26558-a681-480c-8f6a-fceddf5695a1/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:13:19.106Z",
+          "route": "/marketplaces/listings/66fd4fdb-cad6-4b75-81e7-e8ceae22968d/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:13:43.354Z",
+          "route": "/marketplaces/listings/47913b5d-3997-49f9-bb74-88d945275650/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:14:07.610Z",
+          "route": "/marketplaces/listings/b6baf6e7-2e69-45ee-8bae-441f26a361d5/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:14:32.983Z",
+          "route": "/marketplaces/listings/d26eefd4-1c38-4a5f-879b-42f656b71976/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:19.291Z",
+          "route": "/marketplaces/listings/d6adcac3-7bf6-4ddf-9c53-f6fe016a2f31/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:40.525Z",
+          "route": "/marketplaces/listings/b52a93f7-5943-4620-9806-9cb3f1a15a8e/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:20:01.369Z",
+          "route": "/marketplaces/listings/9df753ee-4faa-4176-8c49-7a16c2ac92c9/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:20:23.975Z",
+          "route": "/marketplaces/listings/64a26ce7-9fb5-426f-b803-a18a4ae73214/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "evidence": [
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:06:30.711Z",
+          "route": "/marketplaces/listings/2c0695e3-c010-4fee-9286-1c385e8f2995/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:07:07.075Z",
+          "route": "/marketplaces/listings/03b7ea65-dc1b-4a90-a2c9-160f3cacd5e0/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:07:43.320Z",
+          "route": "/marketplaces/listings/7f7d0604-8756-4a95-bad2-51ceca98b96a/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:08:17.011Z",
+          "route": "/marketplaces/listings/e1c26558-a681-480c-8f6a-fceddf5695a1/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:13:19.106Z",
+          "route": "/marketplaces/listings/66fd4fdb-cad6-4b75-81e7-e8ceae22968d/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:13:43.354Z",
+          "route": "/marketplaces/listings/47913b5d-3997-49f9-bb74-88d945275650/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:14:07.610Z",
+          "route": "/marketplaces/listings/b6baf6e7-2e69-45ee-8bae-441f26a361d5/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:14:32.983Z",
+          "route": "/marketplaces/listings/d26eefd4-1c38-4a5f-879b-42f656b71976/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:19.291Z",
+          "route": "/marketplaces/listings/d6adcac3-7bf6-4ddf-9c53-f6fe016a2f31/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:40.525Z",
+          "route": "/marketplaces/listings/b52a93f7-5943-4620-9806-9cb3f1a15a8e/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:20:01.369Z",
+          "route": "/marketplaces/listings/9df753ee-4faa-4176-8c49-7a16c2ac92c9/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "R-db243c36",
+          "status": "PARTIAL",
+          "reason": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:20:23.975Z",
+          "route": "/marketplaces/listings/64a26ce7-9fb5-426f-b803-a18a4ae73214/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\004-R-db243c36-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_readiness"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "acceptance_review": {
+        "complete": false,
+        "missing_assertions": [
+          "manual_resolution",
+          "review_boundaries",
+          "unsupported_live_truthful",
+          "stale_duplicate",
+          "reload_failure_recovery",
+          "no_dispatch",
+          "owner_isolation"
+        ],
+        "live_provider_certified": false
+      },
+      "final_disposition": "meesho: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+      "evidence_integrity": true
+    },
+    {
+      "id": "R-d6a495d5",
+      "route": "/marketplaces/listings/:id/amazon",
+      "group": "marketplace",
+      "capability": "Review channel configuration and local preparation without implying connection or publication",
+      "prior_status": "PARTIAL",
+      "status": "PARTIAL",
+      "inherited_closed": false,
+      "wp7a6_target": true,
+      "full_closure": false,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "Exact draft/reload checked; full readiness and HUMAN authorization permutations incomplete. Authorization/readiness guard requires separate focused reproduction.",
+      "acceptance": "Exact Amazon draft, canonical readiness prerequisite correction, HUMAN review/authorization expiry/revocation/staleness and reload; no SP-API calls.",
+      "required_assertions": [
+        "missing_prerequisite",
+        "legitimate_resolution",
+        "human_review",
+        "authorization_states",
+        "exact_fingerprint",
+        "stale_mismatch",
+        "repeat_concurrent",
+        "reload_failure_recovery",
+        "no_submission",
+        "owner_isolation"
+      ],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [
+        {
+          "token": "9a74ecea883faa8d",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "expect(locator).toContainText(expected) failed",
+          "at": "2026-11-03T17:00:43.980Z",
+          "route": "/ai/artifacts/6ce9b012-13ce-45b1-9d48-3db4321af9fe",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\9a74ecea883faa8d\\wp7a6-chrome-1440\\002-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\9a74ecea883faa8d\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "expect(received).toBe(expected) // Object.is equality",
+          "at": "2026-11-03T17:06:33.850Z",
+          "route": "/marketplaces/listings/2a2f8322-7923-4073-847b-594f0ac3fb0b/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "expect(received).toBe(expected) // Object.is equality",
+          "at": "2026-11-03T17:07:10.202Z",
+          "route": "/marketplaces/listings/975e2ff8-2deb-46e3-bfe9-865e6f942948/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "expect(received).toBe(expected) // Object.is equality",
+          "at": "2026-11-03T17:07:46.330Z",
+          "route": "/marketplaces/listings/2540d10e-fa53-4e76-a2c8-071c8eb4f16f/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "expect(received).toBe(expected) // Object.is equality",
+          "at": "2026-11-03T17:08:19.626Z",
+          "route": "/marketplaces/listings/0e61a476-c8ee-45c4-b9da-2deb0bca0f59/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "AMAZON_INCOMPLETE_REVIEW_HTTP_500",
+          "at": "2026-11-03T17:13:21.853Z",
+          "route": "/marketplaces/listings/33166201-985f-43f8-aa41-bf352224734d/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "AMAZON_INCOMPLETE_REVIEW_HTTP_500",
+          "at": "2026-11-03T17:13:46.039Z",
+          "route": "/marketplaces/listings/f742472c-94c2-4d5e-9c07-23bce5d25eba/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "AMAZON_INCOMPLETE_REVIEW_HTTP_500",
+          "at": "2026-11-03T17:14:10.571Z",
+          "route": "/marketplaces/listings/7c5536e9-bdb1-4270-bfe7-a33139be5780/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "AMAZON_INCOMPLETE_REVIEW_HTTP_500",
+          "at": "2026-11-03T17:14:35.522Z",
+          "route": "/marketplaces/listings/37ef3173-688c-4a46-936d-f6c25e5bdcb4/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-d6a495d5",
+          "status": "PARTIAL",
+          "reason": "amazon: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:21.884Z",
+          "route": "/marketplaces/listings/64521284-9966-4366-b74a-483b26e17cf0/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\005-R-d6a495d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite",
+            "human_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "R-d6a495d5",
+          "status": "PARTIAL",
+          "reason": "amazon: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:42.708Z",
+          "route": "/marketplaces/listings/1cb58c00-f486-4f05-8064-99110b51099d/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\005-R-d6a495d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite",
+            "human_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-d6a495d5",
+          "status": "PARTIAL",
+          "reason": "amazon: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:20:04.182Z",
+          "route": "/marketplaces/listings/5a21d0a6-d657-47e6-ab02-38b244c1ef1a/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\005-R-d6a495d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite",
+            "human_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "R-d6a495d5",
+          "status": "PARTIAL",
+          "reason": "amazon: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:20:26.446Z",
+          "route": "/marketplaces/listings/b623ce95-31a4-418f-8a26-1b1cf756f7a9/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\005-R-d6a495d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite",
+            "human_review"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "evidence": [
+        {
+          "token": "9a74ecea883faa8d",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "expect(locator).toContainText(expected) failed",
+          "at": "2026-11-03T17:00:43.980Z",
+          "route": "/ai/artifacts/6ce9b012-13ce-45b1-9d48-3db4321af9fe",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\9a74ecea883faa8d\\wp7a6-chrome-1440\\002-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\9a74ecea883faa8d\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "expect(received).toBe(expected) // Object.is equality",
+          "at": "2026-11-03T17:06:33.850Z",
+          "route": "/marketplaces/listings/2a2f8322-7923-4073-847b-594f0ac3fb0b/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "expect(received).toBe(expected) // Object.is equality",
+          "at": "2026-11-03T17:07:10.202Z",
+          "route": "/marketplaces/listings/975e2ff8-2deb-46e3-bfe9-865e6f942948/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "expect(received).toBe(expected) // Object.is equality",
+          "at": "2026-11-03T17:07:46.330Z",
+          "route": "/marketplaces/listings/2540d10e-fa53-4e76-a2c8-071c8eb4f16f/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "expect(received).toBe(expected) // Object.is equality",
+          "at": "2026-11-03T17:08:19.626Z",
+          "route": "/marketplaces/listings/0e61a476-c8ee-45c4-b9da-2deb0bca0f59/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "AMAZON_INCOMPLETE_REVIEW_HTTP_500",
+          "at": "2026-11-03T17:13:21.853Z",
+          "route": "/marketplaces/listings/33166201-985f-43f8-aa41-bf352224734d/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "AMAZON_INCOMPLETE_REVIEW_HTTP_500",
+          "at": "2026-11-03T17:13:46.039Z",
+          "route": "/marketplaces/listings/f742472c-94c2-4d5e-9c07-23bce5d25eba/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "AMAZON_INCOMPLETE_REVIEW_HTTP_500",
+          "at": "2026-11-03T17:14:10.571Z",
+          "route": "/marketplaces/listings/7c5536e9-bdb1-4270-bfe7-a33139be5780/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "R-d6a495d5",
+          "status": "FAIL",
+          "reason": "AMAZON_INCOMPLETE_REVIEW_HTTP_500",
+          "at": "2026-11-03T17:14:35.522Z",
+          "route": "/marketplaces/listings/37ef3173-688c-4a46-936d-f6c25e5bdcb4/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\005-R-d6a495d5-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "R-d6a495d5",
+          "status": "PARTIAL",
+          "reason": "amazon: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:21.884Z",
+          "route": "/marketplaces/listings/64521284-9966-4366-b74a-483b26e17cf0/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\005-R-d6a495d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite",
+            "human_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "R-d6a495d5",
+          "status": "PARTIAL",
+          "reason": "amazon: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:19:42.708Z",
+          "route": "/marketplaces/listings/1cb58c00-f486-4f05-8064-99110b51099d/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\005-R-d6a495d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite",
+            "human_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "R-d6a495d5",
+          "status": "PARTIAL",
+          "reason": "amazon: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:20:04.182Z",
+          "route": "/marketplaces/listings/5a21d0a6-d657-47e6-ab02-38b244c1ef1a/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\005-R-d6a495d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite",
+            "human_review"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "R-d6a495d5",
+          "status": "PARTIAL",
+          "reason": "amazon: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+          "at": "2026-11-03T17:20:26.446Z",
+          "route": "/marketplaces/listings/b623ce95-31a4-418f-8a26-1b1cf756f7a9/amazon",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\005-R-d6a495d5-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "missing_prerequisite",
+            "human_review"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "acceptance_review": {
+        "complete": false,
+        "missing_assertions": [
+          "legitimate_resolution",
+          "authorization_states",
+          "exact_fingerprint",
+          "stale_mismatch",
+          "repeat_concurrent",
+          "reload_failure_recovery",
+          "no_submission",
+          "owner_isolation"
+        ],
+        "live_provider_certified": false
+      },
+      "final_disposition": "amazon: persisted draft and missing-readiness/default-deny checked; readiness correction and complete authorization matrix not yet verified.",
+      "evidence_integrity": true
+    },
+    {
+      "id": "R-8f16bd41",
+      "route": "/ai/images/assets/:outputId",
+      "group": "images-media",
+      "capability": "Review supported creative preparation, history, configuration and HUMAN review prerequisites",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-5e241b88",
+      "route": "/ai/studio/artifacts/:id/compare",
+      "group": "content-ai",
+      "capability": "Review supported creative preparation, history, configuration and HUMAN review prerequisites",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-75d260b7",
+      "route": "/ai/artifacts/:id",
+      "group": "content-ai",
+      "capability": "Review supported creative preparation, history, configuration and HUMAN review prerequisites",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-2e8db403",
+      "route": "/settings/publishing/connectors",
+      "group": "publishing-runtime",
+      "capability": "Review installation configuration without real credential or provider changes",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-756ae8b2",
+      "route": "/publishing/destinations/shopify",
+      "group": "publishing-runtime",
+      "capability": "Inspect publishing destinations, schedules and runtime records without external execution",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-af04ee8c",
+      "route": "/publishing/destinations/wordpress",
+      "group": "publishing-runtime",
+      "capability": "Inspect publishing destinations, schedules and runtime records without external execution",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-730f1388",
+      "route": "/media/:id",
+      "group": "images-media",
+      "capability": "Upload or review private owned media",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-a8d8b217",
+      "route": "/publishing/destinations/:id/edit",
+      "group": "publishing-runtime",
+      "capability": "Inspect publishing destinations, schedules and runtime records without external execution",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-9b0fb4bc",
+      "route": "/publishing/destinations/:id",
+      "group": "publishing-runtime",
+      "capability": "Inspect publishing destinations, schedules and runtime records without external execution",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-68adcdc8",
+      "route": "/publishing/executions/:id",
+      "group": "publishing-runtime",
+      "capability": "Inspect publishing destinations, schedules and runtime records without external execution",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-2b4d90d2",
+      "route": "/publishing/schedules/:id",
+      "group": "publishing-runtime",
+      "capability": "Inspect publishing destinations, schedules and runtime records without external execution",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-30072869",
+      "route": "/publishing/jobs/:id",
+      "group": "publishing-runtime",
+      "capability": "Inspect publishing destinations, schedules and runtime records without external execution",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-e309647e",
+      "route": "/operations/workers/:id",
+      "group": "publishing-runtime",
+      "capability": "Inspect installation health, operational records and audit boundaries without dispatch",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-9dc8a702",
+      "route": "/workflows/:id",
+      "group": "publishing-runtime",
+      "capability": "Inspect supported workflow preparation and state without unauthorized execution",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-541d7261",
+      "route": "/approvals/:id",
+      "group": "publishing-runtime",
+      "capability": "Review explicit HUMAN approval context without automatic consequential approval",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-eb4987ba",
+      "route": "/intelligence/supplier-portfolios/:portfolioId",
+      "group": "research",
+      "capability": "Review exact supplier/product evidence, quotations, due diligence and modeled economics",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "R-8d64a30d",
+      "route": "/**",
+      "group": "authentication-navigation",
+      "capability": "Owner setup, authentication or route redirection",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "PASS only after actual supported UI/persistence/negative verification, or a separately reasoned NOT_SUPPORTED exclusion; never from navigation alone.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-09",
+      "route": "/ai/generate",
+      "group": "content-ai",
+      "capability": "Legacy deterministic content creation, validation, review, regeneration, history and approved-source revision rejection",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "All applicable supported states tested; unavailable live behavior truthfully blocked, never fabricated.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-10",
+      "route": "/ai/studio",
+      "group": "ai-text",
+      "capability": "Queued multi-channel studio worker, failure/retry, versioned context and synthetic provenance",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SUPPORTED_ACCEPTANCE",
+      "acceptance": "Inject bounded local provider failure, canonical retry/supersession, stale inputs and exact pending-review child lineage; no inherited approval, reload.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-12",
+      "route": "/ai/images",
+      "group": "ai-image",
+      "capability": "Private upload, deterministic image job, output review/approval, regenerate/version lineage and failure boundaries",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SUPPORTED_ACCEPTANCE",
+      "acceptance": "Inject failure in the exact image child, retry deterministically, show latest error/history, regeneration lineage and private output persistence; no approval inheritance.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-13",
+      "route": "/ai/studio/bulk",
+      "group": "ai-text",
+      "capability": "Bulk text preview, enqueue, cancellation/retry and partial/reload consistency",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SUPPORTED_ACCEPTANCE",
+      "acceptance": "Bulk text partial success/failure, retry-failed, repeated/concurrent recovery and cancellation; persisted outputs/progress/reload and no duplicate work.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-14",
+      "route": "/ai/images/bulk",
+      "group": "images-media",
+      "capability": "Bulk image prerequisites, fingerprint/queue/retry and exact media/output identities",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "All applicable supported states tested; unavailable live behavior truthfully blocked, never fabricated.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-15",
+      "route": "/ai/studio/seo",
+      "group": "seo",
+      "capability": "Persisted scoped SEO and keyword/tag actions with UNKNOWN commercial claims",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SUPPORTED_ACCEPTANCE",
+      "acceptance": "Scoped keyword/tag management, analysis/reanalysis immutable history, validation/conflicts where supported, save/reload and related artifact navigation; unknown commercial metrics.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-16",
+      "route": "/campaigns/new",
+      "group": "video-campaign",
+      "capability": "Campaign creation, product/approved-artifact activity bindings, prerequisites, readiness, dependency and reload",
+      "prior_status": "PARTIAL",
+      "status": "PARTIAL",
+      "inherited_closed": false,
+      "wp7a6_target": true,
+      "full_closure": false,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "Exact binding and disabled-destination recovery tested; artifact-version replacement and dependency ordering still require browser evidence.",
+      "acceptance": "Create campaign with exact approved artifact/product bindings; change input, expose stale prerequisite, recover via legitimate new review, verify dependency and reload.",
+      "required_assertions": [
+        "draft_identity",
+        "artifact_versions",
+        "dependency_graph",
+        "changed_preview_stale",
+        "fingerprint_confirmation",
+        "concurrent_replay",
+        "interrupted_recovery",
+        "reload_owned",
+        "no_release"
+      ],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:06:37.980Z",
+          "route": "/campaigns/9a3178ae-b3b3-49f0-a852-8857afeea958",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:07:13.567Z",
+          "route": "/campaigns/30901a75-bd00-46b5-bade-9c38064863cf",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:07:49.732Z",
+          "route": "/campaigns/2447158d-7d99-416c-a3ca-9ab37766ff68",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:08:22.849Z",
+          "route": "/campaigns/1786c71a-5364-4875-b498-6d4ba773d84d",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:13:25.053Z",
+          "route": "/campaigns/22bca9f6-8491-437f-886e-6d0d0b559d42",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:13:48.717Z",
+          "route": "/campaigns/aa4e128b-4fd5-4601-848e-4ae23596e4cd",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:14:14.159Z",
+          "route": "/campaigns/4346efc1-266a-471e-9647-cce3fa01bb9f",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:14:38.360Z",
+          "route": "/campaigns/c2de365a-f84f-4027-8bd4-cd7061d14c3a",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:19:24.848Z",
+          "route": "/campaigns/f36b7142-d359-4524-bfad-ef8a425bef70",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:19:45.144Z",
+          "route": "/campaigns/e04eff17-4a17-4378-92b9-3ac06ce1ce42",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:20:07.245Z",
+          "route": "/campaigns/9a225a42-b89e-49cc-9c3c-b1502c167c29",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:20:29.113Z",
+          "route": "/campaigns/62c2df9c-709c-410f-b8e5-447606e4ae27",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "evidence": [
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:06:37.980Z",
+          "route": "/campaigns/9a3178ae-b3b3-49f0-a852-8857afeea958",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:07:13.567Z",
+          "route": "/campaigns/30901a75-bd00-46b5-bade-9c38064863cf",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:07:49.732Z",
+          "route": "/campaigns/2447158d-7d99-416c-a3ca-9ab37766ff68",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:08:22.849Z",
+          "route": "/campaigns/1786c71a-5364-4875-b498-6d4ba773d84d",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:13:25.053Z",
+          "route": "/campaigns/22bca9f6-8491-437f-886e-6d0d0b559d42",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:13:48.717Z",
+          "route": "/campaigns/aa4e128b-4fd5-4601-848e-4ae23596e4cd",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:14:14.159Z",
+          "route": "/campaigns/4346efc1-266a-471e-9647-cce3fa01bb9f",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:14:38.360Z",
+          "route": "/campaigns/c2de365a-f84f-4027-8bd4-cd7061d14c3a",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:19:24.848Z",
+          "route": "/campaigns/f36b7142-d359-4524-bfad-ef8a425bef70",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:19:45.144Z",
+          "route": "/campaigns/e04eff17-4a17-4378-92b9-3ac06ce1ce42",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:20:07.245Z",
+          "route": "/campaigns/9a225a42-b89e-49cc-9c3c-b1502c167c29",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "L-16",
+          "status": "PARTIAL",
+          "reason": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+          "at": "2026-11-03T17:20:29.113Z",
+          "route": "/campaigns/62c2df9c-709c-410f-b8e5-447606e4ae27",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\006-L-16-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [
+            "draft_identity",
+            "reload_owned"
+          ],
+          "persisted_state_verified": true
+        }
+      ],
+      "acceptance_review": {
+        "complete": false,
+        "missing_assertions": [
+          "artifact_versions",
+          "dependency_graph",
+          "changed_preview_stale",
+          "fingerprint_confirmation",
+          "concurrent_replay",
+          "interrupted_recovery",
+          "no_release"
+        ],
+        "live_provider_certified": false
+      },
+      "final_disposition": "Exact draft/activity persisted and reloaded; dependency/artifact-version stale fingerprint matrix remains unverified.",
+      "evidence_integrity": true
+    },
+    {
+      "id": "L-17",
+      "route": "/ads/campaigns/:id",
+      "group": "ads",
+      "capability": "Content/image creative preparation, missing/disabled authorization, stale references and no remote execution",
+      "prior_status": "PARTIAL",
+      "status": "PARTIAL",
+      "inherited_closed": false,
+      "wp7a6_target": true,
+      "full_closure": false,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "Local fake account/wizard checked; content/image creative and missing/expired/disabled authorization permutations remain unexecuted.",
+      "acceptance": "Local fake content/image creative preview, missing/expired/disabled authorization, stale references and HUMAN confirmation; never remote execution.",
+      "required_assertions": [
+        "creative_content_image",
+        "exact_versions",
+        "missing_invalid_prerequisites",
+        "authorization_states",
+        "preview_fingerprint",
+        "human_confirm",
+        "stale_concurrent",
+        "failure_recovery_latest",
+        "reload_owned",
+        "no_spend"
+      ],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:06:41.066Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:07:16.132Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:07:52.674Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:08:25.415Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:13:27.632Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:13:51.182Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:14:16.763Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:14:40.868Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:19:27.106Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:19:47.159Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:20:09.677Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:20:31.442Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        }
+      ],
+      "evidence": [
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:06:41.066Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-chrome-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:07:16.132Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:07:52.674Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "12005da551e0e91e",
+          "context": "wp7a6-msedge-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:08:25.415Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\12005da551e0e91e\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:13:27.632Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-chrome-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:13:51.182Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:14:16.763Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "0e63cd34fede26e1",
+          "context": "wp7a6-msedge-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:14:40.868Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\0e63cd34fede26e1\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:19:27.106Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-chrome-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:19:47.159Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-chrome-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-1440",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:20:09.677Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-1440\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        },
+        {
+          "token": "befaa935c05fac4a",
+          "context": "wp7a6-msedge-390",
+          "id": "L-17",
+          "status": "PARTIAL",
+          "reason": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+          "at": "2026-11-03T17:20:31.442Z",
+          "route": "/ads/create",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\007-L-17-PARTIAL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\wp7a6-msedge-390\\trace.zip",
+          "acceptance_assertions": [],
+          "persisted_state_verified": false
+        }
+      ],
+      "acceptance_review": {
+        "complete": false,
+        "missing_assertions": [
+          "creative_content_image",
+          "exact_versions",
+          "missing_invalid_prerequisites",
+          "authorization_states",
+          "preview_fingerprint",
+          "human_confirm",
+          "stale_concurrent",
+          "failure_recovery_latest",
+          "reload_owned",
+          "no_spend"
+        ],
+        "live_provider_certified": false
+      },
+      "final_disposition": "Local fake account/wizard exercised without submission; complete creative/authorization matrix remains unverified. Historical 502 not classified as resolved.",
+      "evidence_integrity": true
+    },
+    {
+      "id": "L-18",
+      "route": "/ai/brand-voices",
+      "group": "content-ai",
+      "capability": "Brand voice creation/version/default/archive and application to new content context",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "All applicable supported states tested; unavailable live behavior truthfully blocked, never fabricated.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-19",
+      "route": "/ai/presets",
+      "group": "content-ai",
+      "capability": "Preset creation/default/duplicate/archive and versioned generation configuration",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "All applicable supported states tested; unavailable live behavior truthfully blocked, never fabricated.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-20",
+      "route": "/ai/usage",
+      "group": "content-ai",
+      "capability": "Persisted usage provenance, UNKNOWN cost, product/provider filtering and reload",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "All applicable supported states tested; unavailable live behavior truthfully blocked, never fabricated.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-21",
+      "route": "/ai/video/bulk",
+      "group": "video-campaign",
+      "capability": "Bulk video planning, prerequisites, lineage, partial failure/cancel/retry (not single-video WP7A2)",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SUPPORTED_ACCEPTANCE",
+      "acceptance": "Persist/reopen bulk Video via URL, partial failure/retry history, repeated/concurrent recovery, cancellation and reload; exact child identity and no duplicate execution.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-22",
+      "route": "/social/compose",
+      "group": "social",
+      "capability": "Social draft preparation/review and exact product/content/image identities; no dispatch",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SUPPORTED_ACCEPTANCE",
+      "acceptance": "Compose exact approved Video and image drafts through UI, preserve brand/product/account/media identity, validation/stale approval and reload; no dispatch.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-23",
+      "route": "/ads/marketing",
+      "group": "ads",
+      "capability": "Supported marketing plan preparation, modeling assumptions, versions and HUMAN boundaries",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a5-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SUPPORTED_ACCEPTANCE",
+      "acceptance": "Manual modeling plus supported recommendation/version/update workflow; explicit UNKNOWN allocations, changed-input freshness, HUMAN confirmation and reload; no spend.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-24",
+      "route": "/settings/ai/providers",
+      "group": "content-ai",
+      "capability": "Unavailable-provider states and safe configuration validation; no real credentials or external validation",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "All applicable supported states tested; unavailable live behavior truthfully blocked, never fabricated.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    },
+    {
+      "id": "L-25",
+      "route": "/ai/artifacts/:id",
+      "group": "content-ai",
+      "capability": "Translation/localization, approved-source regeneration and exact-source lineage; no approval inheritance",
+      "prior_status": "PASS",
+      "status": "PASS",
+      "inherited_closed": true,
+      "wp7a6_target": false,
+      "full_closure": true,
+      "history_source": "docs/qa/seller-experience/wp7a4-coverage-ledger.json",
+      "already_verified": "VERIFIED_LOCAL_SCOPE",
+      "acceptance": "All applicable supported states tested; unavailable live behavior truthfully blocked, never fabricated.",
+      "required_assertions": [],
+      "required_browser": "Installed Chrome and Edge, 1440/390, actual actions, negative/recovery/reload, screenshot/trace/axe",
+      "attempts": [],
+      "evidence": [],
+      "acceptance_review": {
+        "complete": true
+      }
+    }
+  ],
+  "updated_at": "2026-11-04T01:52:27.786Z",
+  "counts": {
+    "PASS": 41,
+    "FAIL": 0,
+    "BLOCKED": 0,
+    "PARTIAL": 7,
+    "NOT_TESTED": 0
+  },
+  "checkpoint": {
+    "token": "befaa935c05fac4a",
+    "session": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\befaa935c05fac4a\\session.json",
+    "completed_ids": [
+      "R-3feda36d",
+      "R-55e822d5",
+      "R-551d2f8c",
+      "R-db243c36",
+      "R-d6a495d5",
+      "L-16",
+      "L-17"
+    ],
+    "remaining_ids": [
+      "R-184826c3",
+      "R-8a5edab2",
+      "R-7e93fba0",
+      "R-17b7d214",
+      "R-66842e70",
+      "R-794214d7",
+      "R-ec41ffe0",
+      "R-8522d9c2",
+      "R-f4ba2c21",
+      "R-e4940841",
+      "R-8f16bd41",
+      "R-5e241b88",
+      "R-75d260b7",
+      "R-2e8db403",
+      "R-756ae8b2",
+      "R-af04ee8c",
+      "R-730f1388",
+      "R-a8d8b217",
+      "R-9b0fb4bc",
+      "R-68adcdc8",
+      "R-2b4d90d2",
+      "R-30072869",
+      "R-e309647e",
+      "R-9dc8a702",
+      "R-541d7261",
+      "R-eb4987ba",
+      "R-8d64a30d",
+      "L-09",
+      "L-10",
+      "L-12",
+      "L-13",
+      "L-14",
+      "L-15",
+      "L-18",
+      "L-19",
+      "L-20",
+      "L-21",
+      "L-22",
+      "L-23",
+      "L-24",
+      "L-25"
+    ],
+    "safe_resume": "Never reuse a dropped database. Preserve attempts and use a new signed QA run; no deletion/recovery guard may be bypassed."
+  }
+}

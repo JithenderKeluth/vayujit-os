@@ -14,7 +14,7 @@ import pytest
 import test_ai_integration as ai_fixture
 import test_ai_video_slice3_channels as slice3
 from sqlalchemy import func, select
-
+from test_ai_integration import client as client
 from vayujit_api.ai.image_provider import deterministic_png
 from vayujit_api.ai.studio_worker import run_ai_jobs_once
 from vayujit_api.audit.models import AuditEvent

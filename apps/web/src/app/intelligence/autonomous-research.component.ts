@@ -13,7 +13,7 @@ import { intelligenceErrorMessage } from './intelligence-error';
   imports: [RouterLink, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="autonomous-page" aria-labelledby="autonomous-title">
+    <section class="autonomous-page" aria-labelledby="autonomous-title">
       <header class="page-header">
         <div>
           <p class="eyebrow">Slice 5 · controlled research runtime</p>
@@ -217,14 +217,17 @@ import { intelligenceErrorMessage } from './intelligence-error';
           </article>
         }
       </section>
-    </main>
+    </section>
   `,
   styles: `
     :host {
       display: block;
+      min-width: 0;
       color: #092b36;
     }
     .autonomous-page {
+      min-width: 0;
+      overflow-wrap: anywhere;
       max-width: 1180px;
       margin: auto;
       padding: 2rem;
@@ -305,13 +308,25 @@ import { intelligenceErrorMessage } from './intelligence-error';
     }
     .form-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
       gap: 1rem;
       align-items: end;
     }
     label {
       display: grid;
       gap: 0.35rem;
+      min-width: 0;
+    }
+    .panel,
+    .operation-grid > *,
+    .provider-grid > *,
+    .row > * {
+      min-width: 0;
+    }
+    input,
+    select {
+      min-width: 0;
+      width: 100%;
     }
     input,
     select,

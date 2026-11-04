@@ -71,12 +71,15 @@ DatabaseSession = Annotated[Session, Depends(get_session)]
 CurrentUser = Annotated[User, Depends(current_user)]
 
 
-def _artifact(db: Session, owner_id: uuid.UUID, artifact_id: uuid.UUID) -> GeneratedArtifact:
-    row = db.scalar(
-        select(GeneratedArtifact).where(
-            GeneratedArtifact.id == artifact_id, GeneratedArtifact.owner_id == owner_id
-        )
+def _artifact(
+    db: Session, owner_id: uuid.UUID, artifact_id: uuid.UUID, *, for_update: bool = False
+) -> GeneratedArtifact:
+    statement = select(GeneratedArtifact).where(
+        GeneratedArtifact.id == artifact_id, GeneratedArtifact.owner_id == owner_id
     )
+    if for_update:
+        statement = statement.with_for_update()
+    row = db.scalar(statement)
     if row is None:
         raise HTTPException(404, "AI artifact not found.")
     return row
@@ -541,7 +544,9 @@ def compare_artifacts(
 def edit_artifact(
     artifact_id: uuid.UUID, data: StudioArtifactEdit, db: DatabaseSession, owner: CurrentUser
 ) -> StudioArtifactResponse:
-    row = _artifact(db, owner.id, artifact_id)
+    # Serialize the duplicate-edit check and revision creation for this exact
+    # owned source. A second simultaneous edit must observe the first revision.
+    row = _artifact(db, owner.id, artifact_id, for_update=True)
     if (
         data.expected_source_version is not None
         and data.expected_source_version != row.version_number
@@ -1421,6 +1426,12 @@ def recover_studio_action(
         output.status = "queued"
         output.error_code = None
         output.safe_error_message = None
+    if row.job_type.startswith("ai_image_"):
+        from vayujit_api.ai.image_models import AIImageOutput
+
+        image_output = db.scalar(select(AIImageOutput).where(AIImageOutput.job_id == row.id))
+        if image_output is not None and image_output.media_id is None:
+            image_output.status = "queued"
     record_event(
         db,
         actor_id=owner.id,

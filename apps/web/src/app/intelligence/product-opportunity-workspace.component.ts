@@ -1,5 +1,13 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
@@ -15,6 +23,7 @@ import {
 import type { BreadcrumbItem, EvidenceDetail, StatusTone } from '../shared/ux-foundation.types';
 import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
 import { BusinessAgentService } from './business-agent.service';
+import { OpportunityNextActionsComponent } from './opportunity-next-actions.component';
 
 import {
   CommercialOutput,
@@ -53,11 +62,12 @@ import {
     RouterLink,
     StatusBadgeComponent,
     CommerceJourneyContextComponent,
+    OpportunityNextActionsComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-breadcrumbs [items]="detail() ? detailBreadcrumbs(detail()!) : listBreadcrumbs" />
-    <main class="workspace" aria-labelledby="opportunities-title">
+    <section class="workspace" aria-label="Product opportunity workspace">
       <app-page-header
         [title]="detail() ? detail()!.name : 'Product opportunities'"
         eyebrow="Intelligence / Winning Product"
@@ -83,10 +93,11 @@ import {
           <section class="panel research-results" aria-labelledby="research-results-title">
             <div class="section-heading">
               <div>
-                <p class="eyebrow">Research complete</p>
+                <p class="eyebrow">{{ researchStageLabel(results) }}</p>
                 <h2 id="research-results-title">Your product research results</h2>
                 <p>
-                  {{ results.summary.total }} meaningful products found for this goal.
+                  {{ results.summary.total }} product identities available for review. This is not
+                  verified demand.
                   @if (historicalOpportunities().length) {
                     <span class="muted">
                       {{ historicalOpportunities().length }} previous opportunities are kept in
@@ -106,7 +117,7 @@ import {
                     }
                   </div>
                 }
-                <div class="research-summary-facts" aria-label="Research summary">
+                <div class="research-summary-facts" role="group" aria-label="Research summary">
                   <div>
                     <strong>{{ results.summary.total }}</strong
                     ><span>Products found</span>
@@ -154,12 +165,12 @@ import {
             @if (results.candidates.length === 0) {
               <app-empty-state
                 title="No meaningful product opportunities are available yet."
-                message="Research has not produced a meaningful product identity for the current goal. Continue research or adjust the goal constraints."
+                [message]="emptyResearchMessage(results)"
                 actionLabel="Ask VAYUJIT"
                 (action)="openBusinessAgent()"
               />
             } @else {
-              <div class="candidate-grid" aria-label="Product candidates">
+              <div class="candidate-grid" role="group" aria-label="Product candidates">
                 @for (candidate of orderedCandidates(results.candidates); track candidate.id) {
                   <article class="candidate-card" [class.selected]="isSelected(candidate.id)">
                     <div class="candidate-heading">
@@ -237,9 +248,7 @@ import {
                       >
                         {{ primaryActionLabel(candidate) }}
                       </button>
-                      @if (
-                        candidate.assessment_id && candidate.candidate_state === 'READY_TO_COMPARE'
-                      ) {
+                      @if (candidate.assessment_id && candidate.score) {
                         <button
                           type="button"
                           class="secondary"
@@ -253,7 +262,8 @@ import {
                           }}
                         </button>
                         <span class="selection-hint"
-                          >Select a product after comparison to unlock supplier research.</span
+                          >Compare evidence and gaps. Insufficient evidence stays NOT_COMPARABLE; no
+                          winner is invented.</span
                         >
                       }
                       @if (canRetryResearch(candidate)) {
@@ -315,8 +325,9 @@ import {
                 <div class="one-candidate-callout" role="status">
                   <strong>One meaningful product found.</strong>
                   <p>
-                    No alternative survived the bounded research run, so comparison is unavailable.
-                    Review the evidence and select this product explicitly, or research it further.
+                    Only one identity is available in this goal context, so comparison is
+                    unavailable. Review the evidence and select this product explicitly, or research
+                    it further.
                   </p>
                   <button
                     type="button"
@@ -663,7 +674,7 @@ import {
                       'Product description not established.'
                   }}
                 </p>
-                <div class="summary-pills" aria-label="Product readiness and context">
+                <div class="summary-pills" role="group" aria-label="Product readiness and context">
                   <span>{{ item.category || 'Category not established' }}</span>
                   <span>{{ item.subcategory || 'Subcategory not established' }}</span>
                   <span>{{ detailReadinessLabel() }}</span>
@@ -769,6 +780,12 @@ import {
           @if (researchMessage()) {
             <p class="callout" role="status">{{ researchMessage() }}</p>
           }
+          <app-opportunity-next-actions
+            [opportunity]="item"
+            [goalId]="goalId"
+            [blocked]="detailOutsideActiveGoal(item)"
+            (changed)="load()"
+          />
 
           <section class="panel product-profile-panel" aria-labelledby="profile-title">
             <div class="section-heading">
@@ -1026,6 +1043,17 @@ import {
                 <h2 id="areas-title">Research areas</h2>
               </div>
               <span class="muted">Deep analysis remains in dedicated workspaces</span>
+            </div>
+            <p>
+              Load saved evidence first. Missing evidence is not a zero-risk result. Dedicated
+              research workspaces retain their own prerequisites and approvals.
+            </p>
+            <div role="status" aria-live="polite">
+              @for (entry of sectionFeedback(); track entry.label) {
+                <p>
+                  <strong>{{ entry.label }}:</strong> {{ entry.message }}
+                </p>
+              }
             </div>
             <div class="research-grid">
               <article class="research-card trend-area">
@@ -1621,11 +1649,13 @@ import {
           </section>
         }
       }
-    </main>
+    </section>
   `,
   styleUrl: './product-opportunity-workspace.css',
 })
 export class ProductOpportunityWorkspaceComponent implements OnInit {
+  private readonly destroyRef = inject(DestroyRef);
+  private detailRequest = 0;
   private readonly service = inject(ProductOpportunityService);
   private readonly businessAgentService = inject(BusinessAgentService, { optional: true });
   private readonly route = inject(ActivatedRoute);
@@ -1649,6 +1679,8 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   readonly decisionMessage = signal('');
   readonly handoffMessage = signal('');
   readonly researchMessage = signal('');
+  readonly sectionFeedback = signal<Array<{ label: string; message: string }>>([]);
+  goalId = '';
   readonly loading = signal(false);
   readonly error = signal('');
   readonly listBreadcrumbs: BreadcrumbItem[] = [
@@ -1688,19 +1720,38 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   constraint: OpportunityConstraintPayload = {};
 
   ngOnInit(): void {
+    this.goalId = this.route.snapshot.queryParamMap.get('goal_id') || '';
     void this.load();
-    const id = this.route.snapshot.paramMap.get('opportunityId');
-    if (id) void this.loadDetail(id);
+    this.route.queryParamMap?.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const goal = params.get('goal_id') || '';
+      if (goal !== this.goalId) {
+        this.goalId = goal;
+        this.researchResults.set(null);
+        void this.load();
+      }
+    });
+    let initialRoute = true;
+    this.route.paramMap?.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const id = params.get('opportunityId');
+      if (id && id !== this.detail()?.id) void this.loadDetail(id);
+      else if (!id && !initialRoute) {
+        this.detailRequest++;
+        this.detail.set(null);
+      }
+      initialRoute = false;
+    });
   }
 
   async load(): Promise<void> {
     this.loading.set(true);
     this.error.set('');
+    const goalId = this.goalId;
     try {
       const [opportunities, results] = await Promise.all([
         this.service.list(),
-        this.service.getResearchResults(),
+        this.service.getResearchResults(goalId),
       ]);
+      if (this.goalId !== goalId) return;
       this.opportunities.set(opportunities);
       this.researchResults.set(results);
       this.selectedCandidateIds.set(
@@ -1713,6 +1764,23 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  researchStageLabel(results: ResearchResults): string {
+    const execution = results.research_execution;
+    if (!execution?.run_count)
+      return results.candidates.length
+        ? 'Saved product identities — research not executed'
+        : 'Research not started';
+    const state = execution.latest_status;
+    if (state === 'COMPLETED') return 'Research completed — review evidence';
+    if (state === 'COMPLETED_WITH_GAPS') return 'Research completed with gaps';
+    return 'Research ' + (state || 'status unknown').replaceAll('_', ' ').toLowerCase();
+  }
+  emptyResearchMessage(results: ResearchResults): string {
+    return !results.research_execution?.run_count
+      ? 'No research run has executed for this goal. Create or review a goal and its plan in Business Agent. No product has been selected.'
+      : 'No useful product identity is available from the recorded research. Review its evidence and blockers in Business Agent before retrying. No substitute product is selected.';
   }
 
   isSelected(id: string): boolean {
@@ -1795,6 +1863,8 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   resultMode(results: ResearchResults): string {
+    if (this.isLiveResults(results) && this.isFixtureResults(results))
+      return 'MIXED — includes synthetic evidence';
     if (this.isLiveResults(results)) return 'LIVE_READ_ONLY';
     if (this.isFixtureResults(results)) return 'LOCAL_DETERMINISTIC';
     return 'UNKNOWN';
@@ -1871,6 +1941,9 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
     }
     const source = this.profileText(candidate, 'candidate_source');
     if (source.toUpperCase().includes('FIXTURE')) return 'Local demo - not live evidence';
+    if (candidate.origin === 'manual')
+      return 'Manually entered identity — not verified market evidence';
+    if (candidate.origin === 'import') return 'Imported identity — source claims require review';
     const live = candidate.intelligence_profile?.['live_research'];
     if (live && typeof live === 'object') {
       const status = this.valueText((live as Record<string, unknown>)['status']);
@@ -2414,15 +2487,20 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   async select(id: string): Promise<void> {
-    await this.router.navigate(['/intelligence/product-opportunities', id]);
-    await this.loadDetail(id);
+    await this.router.navigate(['/intelligence/product-opportunities', id], {
+      queryParams: this.goalId ? { goal_id: this.goalId } : {},
+    });
   }
 
   async loadDetail(id: string): Promise<void> {
+    const request = ++this.detailRequest;
+    this.detail.set(null);
     this.loading.set(true);
     this.error.set('');
     try {
-      this.detail.set(await this.service.get(id));
+      const detail = await this.service.get(id);
+      if (request !== this.detailRequest) return;
+      this.detail.set(detail);
       this.resetResearchState();
     } catch {
       this.error.set('The product opportunity could not be loaded.');
@@ -2432,6 +2510,7 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   private resetResearchState(): void {
+    this.sectionFeedback.set([]);
     this.intelligenceOutputs.set([]);
     this.competitionProjection.set(null);
     this.trendProjection.set(null);
@@ -2502,7 +2581,9 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
 
   backToList(): void {
     this.detail.set(null);
-    void this.router.navigate(['/intelligence/product-opportunities']);
+    void this.router.navigate(['/intelligence/product-opportunities'], {
+      queryParams: this.goalId ? { goal_id: this.goalId } : {},
+    });
     void this.load();
   }
 
@@ -2519,7 +2600,9 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   }
 
   openBusinessAgent(): void {
-    void this.router.navigate(['/intelligence/business-agent']);
+    void this.router.navigate(['/intelligence/business-agent'], {
+      queryParams: this.goalId ? { goal_id: this.goalId } : {},
+    });
   }
 
   detailBreadcrumbs(item: OpportunityDetail): BreadcrumbItem[] {
@@ -2702,10 +2785,28 @@ export class ProductOpportunityWorkspaceComponent implements OnInit {
   ): Promise<void> {
     this.loading.set(true);
     this.error.set('');
+    const opportunityId = this.detail()?.id;
+    const feedback = (message: string) => {
+      if (this.detail()?.id === opportunityId)
+        this.sectionFeedback.update((entries) => [
+          ...entries.filter((e) => e.label !== label),
+          { label, message },
+        ]);
+    };
+    feedback('Loading saved evidence…');
     try {
-      apply(await request());
+      const value = await request();
+      if (this.detail()?.id === opportunityId) {
+        apply(value);
+        feedback('Saved evidence loaded. Review freshness, contradictions and unknowns below.');
+      }
     } catch (error: unknown) {
       const status = (error as { status?: number })?.status;
+      feedback(
+        status === 404
+          ? 'No saved assessment exists for this evidence area. Continue research in the linked workspace; loading alone does not perform research.'
+          : 'Evidence could not be loaded. Check the connection and retry this load. Previous product context is preserved.',
+      );
       if (status !== 404) this.error.set(`${label} is unavailable.`);
     } finally {
       this.loading.set(false);

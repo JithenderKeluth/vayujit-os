@@ -253,6 +253,15 @@ dd {
   font: inherit;
 }
 
+.variant-row label {
+  display: grid;
+  gap: 0.35rem;
+  flex: 1 1 10rem;
+}
+.mutation-error {
+  border-left: 4px solid #9b2c2c;
+}
+
 .button.danger {
   color: #9b2c2c;
   border-color: #d99494;

@@ -75,6 +75,7 @@ import { CampaignService } from './campaign.service';
           </select></label
         >
         <label>Sequence<input type="number" min="1" max="500" formControlName="sequence" /></label>
+        <p>Choose a sequence number not already used in this Campaign.</p>
         <label>Date<input type="date" formControlName="scheduled_local_date" required /></label>
         <label>Time<input type="time" formControlName="scheduled_local_time" required /></label>
         <label
@@ -164,7 +165,7 @@ export class ActivityFormComponent {
       await this.router.navigate(['/campaigns', this.campaignId]);
     } catch {
       this.error.set(
-        'Activity could not be added. Verify approval, ownership, connector, and timing.',
+        'Activity could not be added. Choose an unused sequence and verify approval, ownership, connector, and timing.',
       );
     }
   }

@@ -1,0 +1,241 @@
+{
+  "generated_at": "2026-10-26T17:34:06.862Z",
+  "status": "PASS_WITH_KNOWN_WARNING",
+  "unchanged_during_checks": true,
+  "tested_source_sha256": {
+    "apps/api/vayujit_api/commerce/inventory_router.py": "a86319635e9c040cd568e7a044a3992acd1573a06930fac5f1ce28936da70757",
+    "apps/api/vayujit_api/commerce/schemas.py": "b7fe6bece5057fe1cd759ed26fe27ea408be792ae285b99e8efb96cdcbad7e02",
+    "apps/api/tests/test_qa_phase4b_opening_stock.py": "3a4afc02e447b584a48e67f52b075f5e2893822c08a310f018af80e3b5e7a22b",
+    "qa/fixture_server.py": "85eb7bc1aba2198cf739ad1f7c8c42c77b0306c49bd30c4addfaedc04d0fd999",
+    "apps/web/src/app/marketplaces/opening-stock.component.ts": "becd0bbf9cda07ca8ed6d655c6973eae0c1b33b815f0166d0a562ccec86b5bbc",
+    "apps/web/src/app/marketplaces/opening-stock.css": "335859d53cb078bd2a209d50726d485c177b60265549178b983bdda0565da8d8",
+    "apps/web/src/app/marketplaces/unified-inventory.component.ts": "3103f0422200f656c58058aed8c43729cdbfa67e266bcfb328a7ca9b38c60997",
+    "apps/web/src/app/marketplaces/marketplace.service.ts": "9efd319ce7140c29291f5682cf50b9bb6f0941080dc50d9ac1d83bee38f92505",
+    "apps/web/src/app/app.routes.ts": "034764877c26d95b0d40b37ad08f56c254679df586749cf1845e037548c9f87c",
+    "apps/web/src/app/marketplaces/opening-stock.component.spec.ts": "e29cb62c257ba8a82df7d443a0fbbc63d2791e1a9597bb74b91dee2ae00f56f6",
+    "apps/web/src/app/marketplaces/opening-stock.service.spec.ts": "210ddb0d86f7914ed5c22e1ff8f125c3af1af5978193db0b408371fd250d2c36"
+  },
+  "checks": [
+    {
+      "name": "qa-node",
+      "command": [
+        "node.exe",
+        "--test",
+        "qa/unit/phase2.test.mjs",
+        "qa/unit/phase3.test.mjs",
+        "qa/unit/phase3a-resolution.test.mjs",
+        "qa/unit/phase3b-resolution.test.mjs",
+        "qa/unit/phase4.test.mjs",
+        "qa/unit/phase4a-resolution.test.mjs",
+        "qa/unit/phase4a.test.mjs",
+        "qa/unit/phase4b.test.mjs",
+        "qa/unit/safety.test.mjs"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 768,
+      "log": "tmp/qa-agent/phase4b-quality/qa-node.log"
+    },
+    {
+      "name": "qa-python",
+      "command": [
+        "python.exe",
+        "-m",
+        "pytest",
+        "qa/unit",
+        "-q",
+        "-o",
+        "addopts="
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 4622,
+      "log": "tmp/qa-agent/phase4b-quality/qa-python.log"
+    },
+    {
+      "name": "angular",
+      "command": [
+        "node.exe",
+        "C:\\Users\\jithe\\Documents\\vayujit-os\\node_modules\\@angular\\cli\\bin\\ng.js",
+        "test",
+        "--watch=false"
+      ],
+      "cwd": "apps/web",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 28298,
+      "log": "tmp/qa-agent/phase4b-quality/angular.log"
+    },
+    {
+      "name": "frontend-lint",
+      "command": [
+        "node.exe",
+        "C:\\Users\\jithe\\Documents\\vayujit-os\\node_modules\\eslint\\bin\\eslint.js",
+        "src/**/*.ts"
+      ],
+      "cwd": "apps/web",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 15400,
+      "log": "tmp/qa-agent/phase4b-quality/frontend-lint.log"
+    },
+    {
+      "name": "qa-lint",
+      "command": [
+        "node.exe",
+        "node_modules/eslint/bin/eslint.js",
+        "--config",
+        "qa/eslint.config.mjs",
+        "qa"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 1017,
+      "log": "tmp/qa-agent/phase4b-quality/qa-lint.log"
+    },
+    {
+      "name": "typescript-app",
+      "command": [
+        "node.exe",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "apps/web/tsconfig.app.json"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 4434,
+      "log": "tmp/qa-agent/phase4b-quality/typescript-app.log"
+    },
+    {
+      "name": "typescript-tests",
+      "command": [
+        "node.exe",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "-p",
+        "apps/web/tsconfig.spec.json"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 6675,
+      "log": "tmp/qa-agent/phase4b-quality/typescript-tests.log"
+    },
+    {
+      "name": "ruff",
+      "command": [
+        "python.exe",
+        "-m",
+        "ruff",
+        "check",
+        "--config",
+        "apps/api/pyproject.toml",
+        "apps/api/vayujit_api/commerce/inventory_router.py",
+        "apps/api/vayujit_api/commerce/schemas.py",
+        "apps/api/tests/test_qa_phase4b_opening_stock.py",
+        "qa/fixture_server.py"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 258,
+      "log": "tmp/qa-agent/phase4b-quality/ruff.log"
+    },
+    {
+      "name": "black",
+      "command": [
+        "python.exe",
+        "-m",
+        "black",
+        "--check",
+        "--config",
+        "apps/api/pyproject.toml",
+        "apps/api/vayujit_api/commerce/inventory_router.py",
+        "apps/api/vayujit_api/commerce/schemas.py",
+        "apps/api/tests/test_qa_phase4b_opening_stock.py",
+        "qa/fixture_server.py"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 865,
+      "log": "tmp/qa-agent/phase4b-quality/black.log"
+    },
+    {
+      "name": "strict-mypy",
+      "command": [
+        "python.exe",
+        "-m",
+        "mypy",
+        "--config-file",
+        "apps/api/pyproject.toml",
+        "--strict",
+        "--follow-imports=silent",
+        "apps/api/vayujit_api/commerce/inventory_router.py",
+        "apps/api/tests/test_qa_phase4b_opening_stock.py",
+        "qa/fixture_server.py"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 2080,
+      "log": "tmp/qa-agent/phase4b-quality/strict-mypy.log"
+    },
+    {
+      "name": "schema-mypy-historical",
+      "command": [
+        "python.exe",
+        "-m",
+        "mypy",
+        "--config-file",
+        "apps/api/pyproject.toml",
+        "--strict",
+        "--follow-imports=silent",
+        "apps/api/vayujit_api/commerce/schemas.py"
+      ],
+      "cwd": ".",
+      "exit_code": 1,
+      "status": "HISTORICAL_WARNING",
+      "duration_ms": 775,
+      "log": "tmp/qa-agent/phase4b-quality/schema-mypy-historical.log"
+    },
+    {
+      "name": "compileall",
+      "command": [
+        "python.exe",
+        "-m",
+        "compileall",
+        "-q",
+        "apps/api/vayujit_api/commerce/inventory_router.py",
+        "apps/api/vayujit_api/commerce/schemas.py",
+        "apps/api/tests/test_qa_phase4b_opening_stock.py",
+        "qa/fixture_server.py"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 218,
+      "log": "tmp/qa-agent/phase4b-quality/compileall.log"
+    },
+    {
+      "name": "diff-check",
+      "command": [
+        "git",
+        "-c",
+        "safe.directory=C:/Users/jithe/Documents/vayujit-os",
+        "diff",
+        "--check"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "status": "PASS",
+      "duration_ms": 181,
+      "log": "tmp/qa-agent/phase4b-quality/diff-check.log"
+    }
+  ]
+}

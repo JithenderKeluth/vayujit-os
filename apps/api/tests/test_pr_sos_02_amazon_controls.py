@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import io
 import os
 import uuid
 from collections.abc import Generator
 from datetime import timedelta
+from decimal import Decimal
 
 import pytest
+from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
+from PIL import Image
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
 from sqlalchemy.pool import NullPool
@@ -19,6 +23,8 @@ from vayujit_api.commerce.models import (
     AmazonListingExecutionAuthorization,
     MarketplaceListing,
     MarketplaceMediaMapping,
+    MarketplacePrice,
+    MarketplaceVariant,
 )
 from vayujit_api.core.config import get_settings
 from vayujit_api.identity.models import User
@@ -36,7 +42,7 @@ def _session_factory() -> sessionmaker[Session]:
     return sessionmaker(bind=create_engine(url, poolclass=NullPool), expire_on_commit=False)
 
 
-def _seed_listing(client: TestClient) -> tuple[str, str]:
+def _seed_listing(client: TestClient, *, complete: bool = True) -> tuple[str, str]:
     setup = client.post(
         "/api/v1/auth/setup-owner",
         json={
@@ -138,7 +144,7 @@ def _seed_listing(client: TestClient) -> tuple[str, str]:
         json={
             "display_name": "Local Amazon",
             "seller_account_id": "seller-controls",
-            "credentials": {},
+            "credentials": {"token": "QA-SYNTHETIC-NOT-A-REAL-CREDENTIAL"} if complete else {},
         },
         headers=ORIGIN,
     )
@@ -159,11 +165,73 @@ def _seed_listing(client: TestClient) -> tuple[str, str]:
         headers=ORIGIN,
     )
     assert listing.status_code == 201, listing.text
+    if complete:
+        # Real persisted synthetic prerequisites, never a fabricated readiness flag.
+        client.post(f"/api/v1/marketplaces/amazon/accounts/{account_id}/validate", headers=ORIGIN)
+        client.post(
+            f"/api/v1/marketplaces/amazon/accounts/{account_id}/enable",
+            json={"confirm": True},
+            headers=ORIGIN,
+        )
+        picture = io.BytesIO()
+        Image.new("RGB", (600, 600), "white").save(picture, format="PNG")
+        upload = client.post(
+            "/api/v1/media",
+            files={"file": ("synthetic-controls.png", picture.getvalue(), "image/png")},
+            headers=ORIGIN,
+        )
+        assert upload.status_code == 201
+        with factory() as db:
+            owner = db.query(User).one()
+            stamp = now()
+            listing_uuid = uuid.UUID(listing.json()["id"])
+            common = {
+                "owner_id": owner.id,
+                "listing_id": listing_uuid,
+                "created_at": stamp,
+                "updated_at": stamp,
+            }
+            db.add(
+                MarketplaceVariant(
+                    **common,
+                    product_id=product_id,
+                    stable_variant_key="default",
+                    sku="CTRL-001",
+                    price_amount=Decimal("100.25"),
+                    currency="INR",
+                    options_json={"variation_theme": "Size"},
+                )
+            )
+            db.add(
+                MarketplaceMediaMapping(
+                    **common, media_id=uuid.UUID(upload.json()["id"]), position=0, status="pending"
+                )
+            )
+            db.add(
+                MarketplacePrice(
+                    **common, currency="INR", amount=Decimal("100.25"), effective_from=stamp
+                )
+            )
+            db.commit()
+        assert (
+            client.get(
+                f"/api/v1/marketplaces/amazon/listings/{listing.json()['id']}/readiness"
+            ).json()["ready"]
+            is True
+        )
     return account_id, listing.json()["id"]
 
 
 @pytest.fixture
-def client(pr56_client: TestClient) -> Generator[TestClient, None, None]:
+def client(
+    pr56_client: TestClient, monkeypatch: pytest.MonkeyPatch
+) -> Generator[TestClient, None, None]:
+    # Fake-transport positive path; the test explicitly checks stop/live default-deny below.
+    monkeypatch.setattr(get_settings(), "external_mutations_emergency_stop", False)
+    monkeypatch.setattr(get_settings(), "live_marketplace_mutations_enabled", False)
+    monkeypatch.setattr(
+        get_settings(), "credential_encryption_key", Fernet.generate_key().decode("ascii")
+    )
     yield pr56_client
 
 

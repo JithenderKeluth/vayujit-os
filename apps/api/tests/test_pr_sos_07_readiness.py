@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from pathlib import Path
 
 import pytest
 
@@ -24,13 +24,13 @@ def production(**overrides: object) -> Settings:
         "public_web_url": "https://app.example.com",
     }
     values.update(overrides)
-    return cast(Any, Settings)(**values)
+    return Settings.model_validate(values)
 
 
 def test_production_report_is_safe_and_mutations_default_deny() -> None:
     settings = production()
     report = settings.configuration_report()
-    assert report["expected_migration_revision"] == "20261203_0146"
+    assert report["expected_migration_revision"] == "20261207_0150"
     assert report["external_mutations_default_deny"] is True
     assert report["emergency_stop_active"] is False
     serialized = str(report).casefold()
@@ -57,3 +57,15 @@ def test_production_rejects_unsafe_runtime_defaults(overrides: dict[str, object]
 def test_expected_migration_revision_is_deployment_configurable() -> None:
     settings = production(expected_migration_revision="release-2026-10")
     assert settings.configuration_report()["expected_migration_revision"] == "release-2026-10"
+
+
+def test_default_expected_revision_matches_the_checked_in_release_head() -> None:
+    from alembic.config import Config
+    from alembic.script import ScriptDirectory
+
+    api = Path(__file__).resolve().parents[1]
+    config = Config(str(api / "alembic.ini"))
+    config.set_main_option("script_location", str(api / "alembic"))
+    assert ScriptDirectory.from_config(config).get_heads() == [
+        Settings.model_fields["expected_migration_revision"].default
+    ]

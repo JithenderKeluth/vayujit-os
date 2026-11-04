@@ -98,7 +98,8 @@ describe('AlibabaDiscoveryComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('main[aria-labelledby="alibaba-title"]')).not.toBeNull();
+    expect(root.querySelector('section[aria-labelledby="alibaba-title"]')).not.toBeNull();
+    expect(root.querySelectorAll('main')).toHaveLength(0);
     expect(root.querySelectorAll('h1')).toHaveLength(1);
     expect(root.querySelector('form[aria-label="Alibaba discovery request"]')).not.toBeNull();
     expect(root.querySelectorAll('label').length).toBeGreaterThanOrEqual(4);

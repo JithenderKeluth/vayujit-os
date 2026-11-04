@@ -128,10 +128,10 @@ class AdsCampaignCreate(BaseModel):
     start_at: datetime | None = None
     end_at: datetime | None = None
     idempotency_key: str = Field(min_length=1, max_length=180)
+    creative: AdsCreativeDraft | None = None
 
 
-class AdsCreativeCreate(BaseModel):
-    campaign_id: uuid.UUID
+class AdsCreativeDraft(BaseModel):
     product_id: uuid.UUID | None = None
     creative_type: Literal["content", "image", "video", "manual"] = "content"
     artifact_id: uuid.UUID | None = None
@@ -151,6 +151,18 @@ class AdsCreativeCreate(BaseModel):
     destination_url: str | None = Field(default=None, max_length=2048)
     placements: list[str] = Field(default_factory=list, max_length=20)
     idempotency_key: str = Field(min_length=1, max_length=180)
+
+
+class AdsCreativeCreate(AdsCreativeDraft):
+    campaign_id: uuid.UUID
+
+
+class AdsCreativeReadiness(AdsCreativeCreate):
+    account_id: uuid.UUID | None = None
+    objective: str = "awareness"
+
+
+AdsCampaignCreate.model_rebuild()
 
 
 class AdsCampaignConfirm(BaseModel):

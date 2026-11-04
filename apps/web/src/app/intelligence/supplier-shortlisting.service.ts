@@ -15,6 +15,13 @@ export class SupplierShortlistingService {
   contexts() {
     return firstValueFrom(this.http.get<unknown[]>(`${this.base}/contexts`));
   }
+  verificationContexts() {
+    return firstValueFrom(
+      this.http.get<Array<{ supplier_id: string; opportunity_id?: string }>>(
+        `${environment.apiUrl}/intelligence/supplier-due-diligence/contexts`,
+      ),
+    );
+  }
   operations() {
     return firstValueFrom(this.http.get<Record<string, unknown>>(`${this.base}/operations`));
   }

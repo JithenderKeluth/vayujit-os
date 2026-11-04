@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AIService } from './ai.service';
@@ -46,6 +46,7 @@ import type { AIStudioPreset } from '@vayujit/shared';
 })
 export class PresetWorkspaceComponent implements OnInit {
   private readonly ai = inject(AIService);
+  private readonly changeDetector = inject(ChangeDetectorRef);
   presets: AIStudioPreset[] = [];
   message = '';
   channels = 'amazon,flipkart';
@@ -59,6 +60,8 @@ export class PresetWorkspaceComponent implements OnInit {
       this.presets = await this.ai.studioPresets();
     } catch {
       this.message = 'Presets are unavailable right now.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
   async save() {
@@ -78,6 +81,8 @@ export class PresetWorkspaceComponent implements OnInit {
       await this.load();
     } catch {
       this.message = 'Could not create this preset.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
   async setDefault(p: AIStudioPreset): Promise<void> {
@@ -87,6 +92,8 @@ export class PresetWorkspaceComponent implements OnInit {
       await this.load();
     } catch {
       this.message = 'Could not set the default preset.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
   async archive(p: AIStudioPreset): Promise<void> {
@@ -96,6 +103,8 @@ export class PresetWorkspaceComponent implements OnInit {
       await this.load();
     } catch {
       this.message = 'Could not archive this preset.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
   async duplicate(p: AIStudioPreset) {
@@ -105,6 +114,8 @@ export class PresetWorkspaceComponent implements OnInit {
       await this.load();
     } catch {
       this.message = 'Could not duplicate this preset.';
+    } finally {
+      this.changeDetector.markForCheck();
     }
   }
 }

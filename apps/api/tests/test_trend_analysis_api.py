@@ -11,7 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session, sessionmaker
-
+from vayujit_api.core.config import get_settings
 from vayujit_api.core.database import Base, get_session
 from vayujit_api.core.test_database import reset_test_schema
 from vayujit_api.main import create_app
@@ -24,7 +24,8 @@ pytestmark = pytest.mark.integration
 
 
 @pytest.fixture
-def client() -> Generator[TestClient, None, None]:
+def client(monkeypatch: pytest.MonkeyPatch) -> Generator[TestClient, None, None]:
+    monkeypatch.setattr(get_settings(), "intelligence_enabled", True)
     assert TEST_DATABASE_URL and TEST_DATABASE_URL.startswith("postgresql")
     engine = create_engine(TEST_DATABASE_URL)
     reset_test_schema(engine, Base.metadata, database_url=TEST_DATABASE_URL)
@@ -100,6 +101,16 @@ def test_analysis_is_snapshot_bound_descriptive_and_idempotent(client: TestClien
             headers=ORIGIN,
         )
         assert response.status_code == 201, response.text
+    listed = client.get(f"/api/v1/intelligence/trends/contexts/{context_id}/observations")
+    assert listed.status_code == 200
+    assert listed.json()["total"] == 3
+    assert all(isinstance(item["value_numeric"], str) for item in listed.json()["items"])
+    assert {Decimal(item["value_numeric"]) for item in listed.json()["items"]} == {
+        Decimal("10"),
+        Decimal("12"),
+        Decimal("15"),
+    }
+    assert all(item["context_id"] == context_id for item in listed.json()["items"])
     snapshot = client.post(
         f"/api/v1/intelligence/trends/contexts/{context_id}/snapshots",
         json={},

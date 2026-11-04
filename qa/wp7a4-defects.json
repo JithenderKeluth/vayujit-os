@@ -1,0 +1,169 @@
+{
+  "package": "WP7A-4",
+  "application": [
+    {
+      "id": "WP7A4-APP-01",
+      "severity": "P2",
+      "entries": ["R-a8d8b217"],
+      "root": "Destination editor included immutable connector_key in PATCH; canonical DestinationUpdate forbids extra fields.",
+      "fix": "Send name, brand_id and configuration only on edit; preserve the create contract.",
+      "regression": "ai-wp7a4.spec.ts destination PATCH test"
+    },
+    {
+      "id": "WP7A4-APP-02",
+      "severity": "P2",
+      "entries": ["L-18", "L-19"],
+      "root": "Plain asynchronous Brand Voice/Preset fields did not notify zoneless Angular change detection; POST 201 succeeded while lists remained empty.",
+      "fix": "Notify ChangeDetectorRef after asynchronous loads/actions, including error paths; no backend authority change.",
+      "regression": "Two asynchronous render regressions and actual create/default/duplicate/version/archive browser actions"
+    },
+    {
+      "id": "WP7A4-APP-03",
+      "severity": "P1",
+      "entries": ["R-9dc8a702", "R-5e241b88"],
+      "root": "Named generic workflow/comparison divs lacked an appropriate ARIA role.",
+      "fix": "Use role=group with the existing accessible names; no axe suppression.",
+      "regression": "Workflow group regression and real axe scans of populated comparison/workflow"
+    },
+    {
+      "id": "WP7A4-APP-04",
+      "severity": "P1",
+      "entries": ["R-75d260b7", "R-541d7261", "L-25"],
+      "root": "Review serialization forced every GeneratedArtifact into legacy ProductContent; channel-specific Studio content caused ValidationError and HTTP 500, including comparison versions.",
+      "fix": "Keep strict legacy generation validation; expose exact persisted Studio dictionaries in review responses and render all saved fields without invented SEO/caption data. Edits retain the correct field names.",
+      "regression": "Four persisted mixed-schema tests plus translation/review browser actions"
+    },
+    {
+      "id": "WP7A4-APP-05",
+      "severity": "P1",
+      "entries": ["R-551d2f8c", "R-db243c36"],
+      "root": "Flipkart/Meesho selectors treated paginated Products/Brands response objects as iterable arrays, producing Angular TypeError.",
+      "fix": "Unwrap canonical items at the HTTP boundary.",
+      "regression": "Two paginated response regressions and populated workspace browser checks"
+    },
+    {
+      "id": "WP7A4-APP-06",
+      "severity": "P2",
+      "entries": ["L-25"],
+      "root": "Legacy product_content offered a Studio translation action despite not being an accepted Studio content type; POST returned 422.",
+      "fix": "Disable that incompatible action with an explanation. Exercise translation with genuinely supported channel-specific Studio content; do not relabel legacy content to force acceptance.",
+      "regression": "Legacy no-submit regression and supported translation browser lineage checks"
+    },
+    {
+      "id": "WP7A4-APP-07",
+      "severity": "P2",
+      "entries": ["R-8f16bd41", "L-12", "L-21"],
+      "root": "Unbroken image checksum/Video fingerprint text overflowed the mobile document. Screenshots establish overflow; it is not assumed to explain every click timeout.",
+      "fix": "Wrap long code/pre identifiers in the relevant existing layouts.",
+      "regression": "Actual 390px screenshots and bounded interaction retests; no physical-device claim"
+    },
+    {
+      "id": "WP7A4-APP-08",
+      "severity": "P2",
+      "entries": ["L-23"],
+      "root": "Wizard repeated the entire total for every channel. Retained traces show INR 250.50 total with two INR 250.50 allocations; the API persisted a blocked plan. No spend occurred.",
+      "fix": "Expose explicit manual channel allocations; omit unknown blanks rather than inserting zero. Reuse the existing canonical budget validator for initial plan input, as for later budget changes.",
+      "regression": "Four budget model cases, two Angular allocation cases and existing marketing-plan API tests"
+    }
+  ],
+  "additional_application": [
+    {
+      "id": "WP7A4-APP-09",
+      "severity": "P1",
+      "entries": ["R-eb4987ba"],
+      "root": "Parallel events/product-channel projections raced on the same unique audit idempotency key (SQLSTATE23505).",
+      "fix": "Lock the exact owned portfolio row before snapshotting keys/emitting its existing projection; shared audit authority and immutable history are unchanged.",
+      "regression": "Six simultaneous requests plus existing portfolio integration tests"
+    },
+    {
+      "id": "WP7A4-APP-10",
+      "severity": "P2",
+      "entries": ["R-184826c3"],
+      "root": "Trend route contextId was ignored; the page remained unselected or followed a different active journey.",
+      "fix": "Resolve the exact owned context from the route; missing IDs never substitute another context or create new research.",
+      "regression": "Owned/missing deep-link regressions and actual reload/analysis checks"
+    },
+    {
+      "id": "WP7A4-APP-11",
+      "severity": "P2",
+      "entries": ["R-a8d8b217"],
+      "root": "Destination form was editable before its asynchronous data load completed, allowing later patchValue to overwrite seller input. Retained mobile traces additionally show Save pointer interception and an overflowing form.",
+      "fix": "Render/accept saves only after successful initialization; failed initialization remains blocked. Constrain grid tracks, labels and controls to available form width; use normal browser clicks rather than force-clicking.",
+      "regression": "Early-save rejection and loaded PATCH regression, plus mobile document-width and actual Save/reload assertions"
+    },
+    {
+      "id": "WP7A4-APP-12",
+      "severity": "P2",
+      "entries": ["L-14"],
+      "root": "Bulk image Retry was inside an overflowing mobile table without a focusable horizontal scroll container.",
+      "fix": "Use the existing table-scroll layout with a named keyboard-focusable region.",
+      "regression": "Focusable region regression and actual mobile failed-job Retry"
+    },
+    {
+      "id": "WP7A4-APP-13",
+      "severity": "P1",
+      "entries": ["R-eb4987ba"],
+      "root": "Populated portfolio dimension limitations failed color contrast; supplier/history scroll regions were not keyboard-focusable.",
+      "fix": "Use the existing dark muted palette and named focusable table regions; no axe-rule suppression.",
+      "regression": "Populated portfolio axe retest, all four browser contexts"
+    },
+    {
+      "id": "WP7A4-APP-14",
+      "severity": "P2",
+      "entries": ["L-14"],
+      "root": "The bulk-image Queue CTA remained enabled after the canonical preview reported missing-source blockers, although the backend rejected ineligible work.",
+      "fix": "Disable Queue and guard its handler while the current preview contains blockers; retain authoritative backend validation.",
+      "regression": "Blocked-preview Angular no-submit test and authenticated missing-source preview browser assertion before valid queue/retry"
+    }
+  ],
+  "workflow_gaps": [
+    {
+      "id": "WP7A4-GAP-01",
+      "severity": "P2",
+      "entries": ["R-794214d7"],
+      "finding": "Campaign Video activityId route uses the overview component, which does not read activityId. A focused activity detail/rejection contract is not established.",
+      "disposition": "Retain partial; do not claim a populated overview proves activity-specific navigation."
+    },
+    {
+      "id": "WP7A4-GAP-02",
+      "severity": "P2",
+      "entries": ["L-21"],
+      "finding": "Bulk Video component holds operation identity only in memory and does not expose all canonical retry/cancel/reopen controls.",
+      "disposition": "Canonical API and deterministic worker behavior are separate from missing browser recovery/reload proof."
+    },
+    {
+      "id": "WP7A4-GAP-03",
+      "severity": "P2",
+      "entries": ["L-15"],
+      "finding": "SEO save actions do not establish a complete scoped keyword/tag/history management journey; tag list is not rendered by this component.",
+      "disposition": "Retain partial rather than fabricate a saved-list UI assertion."
+    }
+  ],
+  "harness": [
+    {
+      "id": "WP7A4-HARNESS-01",
+      "finding": "Orphaned response waiter could reject after a failed click and terminate Node before later entries ran.",
+      "fix": "Observe the pending rejection without suppressing its actual awaited assertion; regression executed."
+    },
+    {
+      "id": "WP7A4-HARNESS-02",
+      "finding": "Transient UNKNOWN file-open error interrupted the ledger writer.",
+      "fix": "Atomic bounded replacement and retry for Windows sharing failures; persistent write failures still fail closed."
+    },
+    {
+      "id": "WP7A4-HARNESS-03",
+      "finding": "Repeated destination names, wrong catalog-vs-marketplace IDs, wrong social content type, inactive/missing-price test Products, unselected current brand, incorrect waiter paths/status expectations, and an absent local Video HUMAN-approval allowlist produced false blockers.",
+      "fix": "Use exact canonical identities/contracts, unique fixture names, active explicit priced synthetic Products, correct current-brand activation, awaited action completion and safe worker-ID projection. Allow only the existing local feedback-only HUMAN Video review in WP7A4, not provider dispatch or approval bypass."
+    },
+    {
+      "id": "WP7A4-HARNESS-04",
+      "finding": "Initial responsive-width contexts were not touch-emulated. Arbitrary Tab focus-count assertion could fail at the browser chrome boundary.",
+      "fix": "Final mobile contexts enable isMobile/hasTouch. Focus a visible named control before bounded Tab/Shift+Tab checks; do not claim exhaustive keyboard coverage."
+    },
+    {
+      "id": "WP7A4-HARNESS-05",
+      "finding": "Run 412436d33a219d5f DROP timed out, leaving a signed exact OID tombstone.",
+      "fix": "After explicit HUMAN approval, existing non-FORCE resume_drop completed in 1.672s with all guards intact. No general recovery authority added."
+    }
+  ]
+}

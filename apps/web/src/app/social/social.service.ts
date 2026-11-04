@@ -200,6 +200,47 @@ export class SocialService {
       this.http.post<SocialPost>(this.baseUrl + '/posts', payload, this.options),
     );
   }
+  updatePost(postId: string, payload: Record<string, unknown>): Promise<SocialPost> {
+    return firstValueFrom(
+      this.http.patch<SocialPost>(this.baseUrl + '/posts/' + postId, payload, this.options),
+    );
+  }
+  approveImagePost(postId: string, fingerprint: string): Promise<SocialPost> {
+    return firstValueFrom(
+      this.http.post<SocialPost>(
+        this.baseUrl + '/posts/' + postId + '/approve',
+        { confirm: true, preview_fingerprint: fingerprint },
+        this.options,
+      ),
+    );
+  }
+  previewVideo(payload: Record<string, unknown>): Promise<Record<string, unknown>> {
+    return firstValueFrom(
+      this.http.post<Record<string, unknown>>(
+        environment.apiUrl + '/ai/video/channels/preview',
+        payload,
+        this.options,
+      ),
+    );
+  }
+  prepareVideo(payload: Record<string, unknown>): Promise<{ id: string; fingerprint: string }> {
+    return firstValueFrom(
+      this.http.post<{ id: string; fingerprint: string }>(
+        environment.apiUrl + '/ai/video/channels/prepare',
+        payload,
+        this.options,
+      ),
+    );
+  }
+  confirmVideoDraft(id: string, fingerprint: string): Promise<{ social_post_id: string | null }> {
+    return firstValueFrom(
+      this.http.post<{ social_post_id: string | null }>(
+        environment.apiUrl + '/ai/video/channels/' + id + '/confirm',
+        { fingerprint, confirm: true },
+        this.options,
+      ),
+    );
+  }
 
   schedulePost(
     postId: string,

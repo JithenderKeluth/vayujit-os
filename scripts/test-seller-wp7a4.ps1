@@ -1,0 +1,24 @@
+param([ValidateSet('Browser','Backend','BackendMarketing','BackendPortfolio')][string]$Action='Browser',[switch]$Focused)
+$ErrorActionPreference='Stop'
+$repo=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+Push-Location $repo
+try {
+    & (Join-Path $PSScriptRoot 'qa-postgres.ps1') -Action Environment
+    $env:QA_PHASE='2'; $env:QA_DATABASE_DROP_TIMEOUT_MS='90000'; $env:QA_ORIGIN='http://127.0.0.1:4200'
+    if($Action -eq 'Browser') {
+        $env:QA_WP7A_FOCUSED=if($Focused){'1'}else{'0'}
+        & node qa/wp7-run.mjs wp7a4; exit $LASTEXITCODE
+    }
+    $token=[guid]::NewGuid().ToString('N').Substring(0,16)
+    $output=Join-Path $repo ('tmp/qa-wp7a4-backend/'+$token)
+    Import-Module (Join-Path $PSScriptRoot 'pc-first-key-security.psm1') -Force
+    $tests=@('test_seller_wp7a4.py','test_seller_wp7a3.py','test_ai_studio_e2e.py','test_ai_images_bulk.py','test_ai_images_integration.py','test_ai_images_handoff.py')
+    if(-not $Focused){$tests+=@('test_seller_wp7a.py','test_seller_wp6a.py','test_business_agent_orchestration.py','test_ai_video_recovery.py','test_ads_failure_acceptance.py','test_ads_concurrency_acceptance.py','test_ads_security_privacy_acceptance.py','test_ads_version_safety_acceptance.py')}
+    if($Action -eq 'BackendMarketing'){$tests=@('test_seller_wp7a4.py','test_marketing_plan.py')}
+    if($Action -eq 'BackendPortfolio'){$tests=@('test_seller_wp7a4.py','test_supplier_portfolio_integration.py')}
+    $result=Invoke-VayujitNativeCapture -FilePath (Join-Path $repo 'apps/api/.venv/Scripts/python.exe') -Arguments (@('-m','qa.fixture_server','--port','62118','--output',$output,'--token',$token,'--migrate','--pytest')+$tests) -WorkingDirectory $repo
+    $record=@{token=$token;exit_code=$result.ExitCode;raw_output_persisted=$false;tests=$tests;output_bytes=($result.StdOut.Length+$result.StdErr.Length)}
+    if(Test-Path -LiteralPath $output){[IO.File]::WriteAllText((Join-Path $output 'runner.json'),($record|ConvertTo-Json -Depth 4))}
+    $record|ConvertTo-Json -Compress
+    exit $result.ExitCode
+} finally { Pop-Location }

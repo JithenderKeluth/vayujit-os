@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
 import { ErrorStateComponent, LoadingStateComponent } from '../shared/state-components';
@@ -17,6 +17,16 @@ import type {
 } from '@vayujit/shared';
 
 import { AIService } from './ai.service';
+type SavedSet = {
+  id: string;
+  name: string;
+  product_id?: string | null;
+  locale: string;
+  version?: number;
+  primary?: string[];
+  secondary?: string[];
+  tags?: string[];
+};
 
 @Component({
   selector: 'app-ai-seo',
@@ -33,7 +43,7 @@ import { AIService } from './ai.service';
     RouterLink,
   ],
   template: `
-    <main class="ai-shell">
+    <section class="ai-shell">
       <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         eyebrow="Create / SEO"
@@ -69,6 +79,9 @@ import { AIService } from './ai.service';
       @if (error()) {
         <app-error-state title="SEO analysis is unavailable" [message]="error()" />
       }
+      @if (message()) {
+        <p role="status">{{ message() }}</p>
+      }
       @if (loading()) {
         <app-loading-state message="Loading saved SEO analysis..." />
       }
@@ -78,7 +91,7 @@ import { AIService } from './ai.service';
             [showArtifact]="true"
             [productId]="productId"
             [artifactId]="artifactId"
-            (productIdChange)="productId = $event"
+            (productIdChange)="setProductContext($event)"
             (artifactIdChange)="artifactId = $event"
           />
           <label
@@ -95,6 +108,13 @@ import { AIService } from './ai.service';
               <option value="amazon">Amazon</option>
               <option value="flipkart">Flipkart</option>
               <option value="meesho">Meesho</option>
+            </select></label
+          ><label
+            >Saved keyword set<select [(ngModel)]="keywordSetId">
+              <option value="">No saved set</option>
+              @for (item of keywordSets(); track item.id) {
+                <option [value]="item.id">{{ item.name }} — revision {{ item.version }}</option>
+              }
             </select></label
           ><label>Primary keyword<input [(ngModel)]="primaryKeyword" /></label
           ><button type="button" (click)="analyze()" [disabled]="loading()">
@@ -178,12 +198,24 @@ import { AIService } from './ai.service';
               [(ngModel)]="keywordPaste"
               placeholder="One keyword per line"
             ></textarea></label
-          ><button type="button" (click)="saveKeywords()">Save Keyword Set</button
+          ><button type="button" (click)="saveKeywords()" [disabled]="metadataBusy()">
+            Save Keyword Set</button
           ><button type="button" (click)="suggestKeywords()">AI Suggestions</button>
           <ul>
             @for (item of suggestions(); track item.keyword) {
               <li>
                 {{ item.keyword }} <small>{{ item.category }} - AI Suggested</small>
+              </li>
+            }
+          </ul>
+          <button type="button" (click)="loadSets()">Refresh saved metadata</button>
+          <ul aria-label="Saved keyword sets">
+            @for (item of keywordSets(); track item.id) {
+              <li>
+                {{ item.name }} — revision {{ item.version }}
+                <button type="button" (click)="editSet('keywords', item)">
+                  Edit {{ item.name }}
+                </button>
               </li>
             }
           </ul>
@@ -195,8 +227,17 @@ import { AIService } from './ai.service';
           <label>Tag set name<input [(ngModel)]="tagName" /></label
           ><label
             >Tags<textarea [(ngModel)]="tagPaste" placeholder="One tag per line"></textarea></label
-          ><button type="button" (click)="saveTags()">Save tags</button>
+          ><button type="button" (click)="saveTags()" [disabled]="metadataBusy()">Save tags</button>
           <p>Tags are metadata preparation only and do not mutate Product tags automatically.</p>
+          <button type="button" (click)="loadSets()">Refresh saved metadata</button>
+          <ul aria-label="Saved tag sets">
+            @for (item of tagSets(); track item.id) {
+              <li>
+                {{ item.name }} — {{ item.tags?.join(', ') }}
+                <button type="button" (click)="editSet('tags', item)">Edit {{ item.name }}</button>
+              </li>
+            }
+          </ul>
         </section>
       }
       @if (tab() === 'history') {
@@ -208,12 +249,19 @@ import { AIService } from './ai.service';
               <li>
                 v{{ item.artifact_version || '-' }} - {{ item.channel }} -
                 {{ item.overall_score }}/100 - {{ item.status }} - {{ item.locale }}
+                <button type="button" (click)="analysis.set(item); tab.set('overview')">
+                  Open saved analysis
+                </button>
+                <button type="button" (click)="reanalyze(item)">Re-analyze saved snapshot</button>
+                @if (item.artifact_id) {
+                  <a [routerLink]="['/ai/artifacts', item.artifact_id]">Review analyzed artifact</a>
+                }
               </li>
             }
           </ul>
         </section>
       }
-    </main>
+    </section>
   `,
   styles: [
     `
@@ -294,12 +342,74 @@ import { AIService } from './ai.service';
 export class AISeoComponent {
   private readonly api = inject(AIService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   readonly tab = signal('overview');
   readonly loading = signal(false);
   readonly error = signal('');
+  readonly message = signal('');
   readonly analysis = signal<AISEOAnalysisResponse | null>(null);
   readonly history = signal<AISEOAnalysisResponse[]>([]);
   readonly suggestions = signal<AIKeywordSuggestion[]>([]);
+  readonly keywordSets = signal<SavedSet[]>([]);
+  readonly metadataBusy = signal(false);
+  readonly tagSets = signal<SavedSet[]>([]);
+  private editingKeyword: Record<string, unknown> | null = null;
+  private editingTag: Record<string, unknown> | null = null;
+  constructor() {
+    this.productId = this.route.snapshot.queryParamMap.get('product') || '';
+    this.artifactId = this.route.snapshot.queryParamMap.get('artifact') || '';
+    this.keywordSetId = this.route.snapshot.queryParamMap.get('keywords') || '';
+    void this.loadSets();
+  }
+  async loadSets(): Promise<void> {
+    const contextProduct = this.productId;
+    try {
+      const [keywords, tags] = await Promise.all([
+        this.api.seoSets('keywords'),
+        this.api.seoSets('tags'),
+      ]);
+      if (this.productId !== contextProduct) return;
+      const scoped = (items: Record<string, unknown>[]) =>
+        items.filter((i) => !this.productId || i['product_id'] === this.productId) as SavedSet[];
+      this.keywordSets.set(scoped(keywords));
+      this.tagSets.set(scoped(tags));
+    } catch {
+      this.error.set('Saved SEO metadata is unavailable. Retry the authenticated connection.');
+    }
+  }
+  setProductContext(id: string): void {
+    if (this.productId === id) return;
+    this.productId = id;
+    this.keywordSetId = '';
+    this.editingKeyword = null;
+    this.editingTag = null;
+    this.analysis.set(null);
+    this.history.set([]);
+    this.keywordSets.set([]);
+    this.tagSets.set([]);
+    void this.loadSets();
+  }
+  editSet(kind: 'keywords' | 'tags', item: SavedSet): void {
+    if (kind === 'keywords') {
+      this.editingKeyword = { ...item };
+      this.keywordName = item.name;
+      this.keywordPaste = [...(item.primary || []), ...(item.secondary || [])].join('\n');
+    } else {
+      this.editingTag = { ...item };
+      this.tagName = item.name;
+      this.tagPaste = (item.tags || []).join('\n');
+    }
+    this.locale = item.locale;
+  }
+  async reanalyze(item: AISEOAnalysisResponse): Promise<void> {
+    try {
+      this.analysis.set(await this.api.seoReanalyze(item.id));
+      this.tab.set('overview');
+      await this.loadHistory();
+    } catch {
+      this.error.set('SEO re-analysis is unavailable.');
+    }
+  }
   productId = '';
   readonly breadcrumbs: BreadcrumbItem[] = [
     { label: 'Products', url: '/products' },
@@ -309,6 +419,7 @@ export class AISeoComponent {
   locale = 'en-IN';
   channel = 'canonical';
   primaryKeyword = '';
+  keywordSetId = '';
   keywordName = '';
   keywordPaste = '';
   tagName = '';
@@ -324,11 +435,20 @@ export class AISeoComponent {
         await this.api.seoAnalyze({
           product_id: this.productId,
           artifact_id: this.artifactId || undefined,
+          keyword_set_id: this.keywordSetId || undefined,
           channel: this.channel,
           locale: this.locale,
           primary_keyword: this.primaryKeyword || undefined,
         }),
       );
+      await this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: {
+          product: this.productId,
+          artifact: this.artifactId || null,
+          keywords: this.keywordSetId || null,
+        },
+      });
     } catch {
       this.error.set('SEO analysis is unavailable. Check the API connection and selected IDs.');
     } finally {
@@ -362,7 +482,7 @@ export class AISeoComponent {
       }
       try {
         await this.api.studioRegenerate(current.artifact_id);
-        this.error.set('Regeneration queued for review.');
+        this.message.set('Regeneration queued for review.');
       } catch (error) {
         this.error.set(AIService.errorMessage(error));
       }
@@ -370,26 +490,43 @@ export class AISeoComponent {
   }
   async loadHistory() {
     try {
-      this.history.set(await this.api.seoAnalyses());
+      this.history.set(
+        (await this.api.seoAnalyses()).filter(
+          (a) => !this.productId || a.product_id === this.productId,
+        ),
+      );
     } catch {
       this.error.set('Analysis history is unavailable.');
     }
   }
   async saveKeywords() {
+    if (this.metadataBusy()) return;
+    this.metadataBusy.set(true);
+    this.error.set('');
+    this.message.set('');
     const values = this.keywordPaste
       .split(/\r?\n/)
       .map((value) => value.trim())
       .filter(Boolean);
     try {
-      await this.api.seoCreateKeywords({
+      const data = {
+        ...this.editingKeyword,
         name: this.keywordName || 'Product keywords',
+        product_id: this.productId || undefined,
         locale: this.locale,
         primary: values.slice(0, 1),
         secondary: values.slice(1),
-      });
-      this.error.set('Keyword Set saved.');
+      };
+      if (this.editingKeyword)
+        await this.api.seoUpdateSet('keywords', String(this.editingKeyword['id']), data);
+      else await this.api.seoCreateKeywords(data);
+      this.editingKeyword = null;
+      await this.loadSets();
+      this.message.set('Keyword Set saved.');
     } catch {
       this.error.set('Keyword Set could not be saved.');
+    } finally {
+      this.metadataBusy.set(false);
     }
   }
   async suggestKeywords() {
@@ -406,20 +543,31 @@ export class AISeoComponent {
     }
   }
   async saveTags() {
+    if (this.metadataBusy()) return;
+    this.metadataBusy.set(true);
+    this.error.set('');
+    this.message.set('');
     const tags = this.tagPaste
       .split(/\r?\n/)
       .map((value) => value.trim().replace(/^#/, ''))
       .filter(Boolean);
     try {
-      await this.api.seoCreateTags({
+      const data = {
+        ...this.editingTag,
         name: this.tagName || 'Product tags',
         product_id: this.productId || undefined,
         locale: this.locale,
         tags,
-      });
-      this.error.set('Tags saved as metadata.');
+      };
+      if (this.editingTag) await this.api.seoUpdateSet('tags', String(this.editingTag['id']), data);
+      else await this.api.seoCreateTags(data);
+      this.editingTag = null;
+      await this.loadSets();
+      this.message.set('Tags saved as metadata.');
     } catch {
       this.error.set('Tags could not be saved.');
+    } finally {
+      this.metadataBusy.set(false);
     }
   }
 }

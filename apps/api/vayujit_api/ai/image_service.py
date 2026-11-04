@@ -493,6 +493,10 @@ def queue_generation(
     if commit:
         db.commit()
         db.refresh(image_generation)
+    else:
+        # The application session disables autoflush. Bulk callers must be able
+        # to reference these planned outputs within the same atomic transaction.
+        db.flush()
     return generation_response(db, image_generation)
 
 

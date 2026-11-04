@@ -46,7 +46,10 @@ from vayujit_api.intelligence.trend_change_service import (
 from vayujit_api.intelligence.trend_change_service import (
     doctor as change_doctor,
 )
-from vayujit_api.intelligence.trend_ingestion_models import TrendIngestionBatch
+from vayujit_api.intelligence.trend_ingestion_models import (
+    TrendIngestionBatch,
+    TrendIngestionCandidate,
+)
 from vayujit_api.intelligence.trend_ingestion_schemas import (
     TrendIngestionBatchResponse,
     TrendIngestionCandidateResponse,
@@ -206,7 +209,12 @@ def observation_list(
     items = list(
         db.scalars(query.order_by(TrendObservation.observed_at.desc()).offset(offset).limit(limit))
     )
-    return TrendPage(items=items, total=total, limit=limit, offset=offset)
+    return TrendPage(
+        items=[TrendObservationResponse.model_validate(item) for item in items],
+        total=total,
+        limit=limit,
+        offset=offset,
+    )
 
 
 @router.post(
@@ -329,7 +337,7 @@ def ingestion_candidate_list(
     owner: Owner,
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
-) -> list:
+) -> list[TrendIngestionCandidate]:
     context_or_404(db, owner, context_id)
     return ingestion_candidates(
         db, owner, batch_or_404(db, owner, batch_id), limit=limit, offset=offset
@@ -347,7 +355,7 @@ def ingestion_rejection_list(
     owner: Owner,
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
-) -> list:
+) -> list[TrendIngestionCandidate]:
     context_or_404(db, owner, context_id)
     return ingestion_candidates(
         db, owner, batch_or_404(db, owner, batch_id), rejected_only=True, limit=limit, offset=offset

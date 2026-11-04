@@ -1,0 +1,307 @@
+{
+  "generated_at": "2026-10-26T17:41:34.810Z",
+  "read_only_verification": true,
+  "checked": 27,
+  "remaining": [],
+  "matching_qa_processes": [],
+  "targets": [
+    {
+      "token": "08d6bb79d9da4a2e",
+      "database": "vayujit_qa08d6bb79d9da4a2e_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa08d6bb79d9da4a2e_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "0cdab10244f96439",
+      "database": "vayujit_qa0cdab10244f96439_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa0cdab10244f96439_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "12b406043b4f94f2",
+      "database": "vayujit_qa12b406043b4f94f2_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa12b406043b4f94f2_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "2af5f146287bb2ee",
+      "database": "vayujit_qa2af5f146287bb2ee_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa2af5f146287bb2ee_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "30a6499519b354a2",
+      "database": "vayujit_qa30a6499519b354a2_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa30a6499519b354a2_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "47669eb4b2fd4fc6",
+      "database": "vayujit_qa47669eb4b2fd4fc6_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa47669eb4b2fd4fc6_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "49e7bebb7ccd109c",
+      "database": "vayujit_qa49e7bebb7ccd109c_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa49e7bebb7ccd109c_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "59c378d9fc810464",
+      "database": "vayujit_qa59c378d9fc810464_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa59c378d9fc810464_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "8bdfe17e3d733d33",
+      "database": "vayujit_qa8bdfe17e3d733d33_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa8bdfe17e3d733d33_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "8ca0acab1c144b26",
+      "database": "vayujit_qa8ca0acab1c144b26_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa8ca0acab1c144b26_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "91e7b5b165bd479b",
+      "database": "vayujit_qa91e7b5b165bd479b_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa91e7b5b165bd479b_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "926a9f9062ce3c63",
+      "database": "vayujit_qa926a9f9062ce3c63_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa926a9f9062ce3c63_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "92cbbda15c17f411",
+      "database": "vayujit_qa92cbbda15c17f411_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa92cbbda15c17f411_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "9bd6395e142f5801",
+      "database": "vayujit_qa9bd6395e142f5801_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qa9bd6395e142f5801_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "a373cbfc14cb7ea6",
+      "database": "vayujit_qaa373cbfc14cb7ea6_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qaa373cbfc14cb7ea6_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "a917ff3341ae0ac4",
+      "database": "vayujit_qaa917ff3341ae0ac4_test",
+      "normal": null,
+      "recovered": {
+        "status": "PASS",
+        "database": "vayujit_qaa917ff3341ae0ac4_test",
+        "database_absent": true,
+        "marker_verified_before_drop": false,
+        "session_termination_used": false
+      }
+    },
+    {
+      "token": "b2aae66c87a14d04",
+      "database": "vayujit_qab2aae66c87a14d04_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qab2aae66c87a14d04_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "c8986ac7881272e0",
+      "database": "vayujit_qac8986ac7881272e0_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qac8986ac7881272e0_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "ca9723f9edadec6e",
+      "database": "vayujit_qaca9723f9edadec6e_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qaca9723f9edadec6e_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "cb6f57399d90f171",
+      "database": "vayujit_qacb6f57399d90f171_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qacb6f57399d90f171_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "d00af1f2c833fba6",
+      "database": "vayujit_qad00af1f2c833fba6_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qad00af1f2c833fba6_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "d6348ccbed646b3b",
+      "database": "vayujit_qad6348ccbed646b3b_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qad6348ccbed646b3b_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "dd4df12c9c8610d3",
+      "database": "vayujit_qadd4df12c9c8610d3_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qadd4df12c9c8610d3_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "df731018cff94996",
+      "database": "vayujit_qadf731018cff94996_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qadf731018cff94996_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "e6d4d3923344b2db",
+      "database": "vayujit_qae6d4d3923344b2db_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qae6d4d3923344b2db_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "ead549323967be3d",
+      "database": "vayujit_qaead549323967be3d_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qaead549323967be3d_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    },
+    {
+      "token": "f1135970e590be9e",
+      "database": "vayujit_qaf1135970e590be9e_test",
+      "normal": {
+        "status": "PASS",
+        "database": "vayujit_qaf1135970e590be9e_test",
+        "marker_verified": true,
+        "database_absent": true
+      },
+      "recovered": null
+    }
+  ]
+}

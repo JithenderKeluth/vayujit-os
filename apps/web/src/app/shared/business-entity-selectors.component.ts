@@ -13,6 +13,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import type { AIStudioArtifact, BrandSummary, ProductSummary } from '@vayujit/shared';
 import { environment } from '../../environments/environment';
@@ -45,6 +46,7 @@ export type BusinessMediaOption = {
     EmptyStateComponent,
     ErrorStateComponent,
     FormsModule,
+    RouterLink,
     LoadingStateComponent,
   ],
   template: `
@@ -53,12 +55,18 @@ export type BusinessMediaOption = {
         <app-loading-state message="Loading available business context..." />
       }
       @if (error()) {
-        <app-error-state title="Business context is unavailable" [message]="error()" />
+        <app-error-state
+          title="Business context is unavailable"
+          [message]="error()"
+          retryLabel="Retry business context"
+          (retry)="loadContext()"
+        />
       }
       @if (showProduct && !multiProduct) {
         <label>
           {{ productLabel }}
           <select
+            [attr.aria-label]="productLabel"
             [value]="productId"
             (change)="selectProduct($any($event.target).value)"
             [disabled]="loading()"
@@ -90,14 +98,16 @@ export type BusinessMediaOption = {
       }
       @if (showProduct && !products().length && !loading() && !error()) {
         <app-empty-state
-          title="No products yet"
-          message="Create a Product before continuing this workflow."
-        />
+          title="No active products available"
+          message="This workflow lists active products only. Draft and archived products are not eligible. Review your existing Catalog and product status before creating another product."
+          ><a routerLink="/catalog">Review Catalog products</a></app-empty-state
+        >
       }
       @if (showBrand) {
         <label>
           {{ brandLabel }}
           <select
+            [attr.aria-label]="brandLabel"
             [value]="brandId"
             (change)="selectBrand($any($event.target).value)"
             [disabled]="loading()"
@@ -119,6 +129,7 @@ export type BusinessMediaOption = {
         <label>
           {{ artifactLabel }}
           <select
+            [attr.aria-label]="artifactLabel"
             [value]="artifactId"
             (change)="selectArtifact($any($event.target).value)"
             [disabled]="artifactLoading() || !productId"
@@ -182,6 +193,16 @@ export type BusinessMediaOption = {
         gap: 0.75rem;
         grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
         align-items: start;
+        min-width: 0;
+      }
+      :host,
+      .business-selectors > *,
+      label {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      :host {
+        display: block;
       }
       .business-selectors label,
       .media-selector,
@@ -244,11 +265,24 @@ export class BusinessEntitySelectorsComponent implements OnInit, OnChanges {
   readonly artifactLoading = signal(false);
   readonly mediaLoading = signal(false);
   readonly error = signal('');
+  private contextRequest = 0;
+  private requestedBrand = '';
 
   ngOnInit(): void {
     void this.loadContext();
   }
   ngOnChanges(changes: SimpleChanges): void {
+    if (
+      changes['brandId'] &&
+      !changes['brandId'].firstChange &&
+      this.brandId !== this.requestedBrand
+    ) {
+      if (!changes['productId']) {
+        this.productId = '';
+        this.productIdChange.emit('');
+      }
+      void this.loadContext();
+    }
     if (
       changes['productId'] &&
       !changes['productId'].firstChange &&
@@ -257,28 +291,40 @@ export class BusinessEntitySelectorsComponent implements OnInit, OnChanges {
       void this.loadProductDependents();
   }
   async loadContext(): Promise<void> {
+    const request = ++this.contextRequest;
+    this.requestedBrand = this.brandId;
     this.loading.set(true);
     this.error.set('');
+    this.products.set([]);
+    this.brands.set([]);
     try {
       const tasks: Promise<unknown>[] = [];
       if (this.showProduct)
         tasks.push(
           this.productsService
-            .list({ status: 'active', pageSize: 50 })
-            .then((page) => this.products.set(page.items)),
+            .list({
+              status: 'active',
+              pageSize: 50,
+              ...(this.brandId ? { brandId: this.brandId } : {}),
+            })
+            .then((page) => {
+              if (request === this.contextRequest) this.products.set(page.items);
+            }),
         );
       if (this.showBrand)
         tasks.push(
-          this.brandsService
-            .list({ status: 'active', pageSize: 50 })
-            .then((page) => this.brands.set(page.items)),
+          this.brandsService.list({ status: 'active', pageSize: 50 }).then((page) => {
+            if (request === this.contextRequest) this.brands.set(page.items);
+          }),
         );
       await Promise.all(tasks);
+      if (request !== this.contextRequest) return;
       await this.loadProductDependents();
     } catch {
-      this.error.set('Unable to load available Products, Brands, or content.');
+      if (request === this.contextRequest)
+        this.error.set('Unable to load available Products, Brands, or content.');
     } finally {
-      this.loading.set(false);
+      if (request === this.contextRequest) this.loading.set(false);
     }
   }
   async loadProductDependents(): Promise<void> {
@@ -337,8 +383,20 @@ export class BusinessEntitySelectorsComponent implements OnInit, OnChanges {
     this.productIdsChange.emit(next);
   }
   selectBrand(value: string): void {
+    if (value === this.brandId) return;
     this.brandId = value;
+    this.productId = '';
+    this.productIds = [];
+    this.artifactId = '';
+    this.mediaIds = [];
+    this.artifacts.set([]);
+    this.media.set([]);
+    this.productIdChange.emit('');
+    this.productIdsChange.emit([]);
+    this.artifactIdChange.emit('');
+    this.mediaIdsChange.emit([]);
     this.brandIdChange.emit(value);
+    void this.loadContext();
   }
   selectArtifact(value: string): void {
     this.artifactId = value;

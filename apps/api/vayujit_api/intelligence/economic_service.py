@@ -10,7 +10,7 @@ from decimal import Decimal
 from typing import Any
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.models import AuditEvent
@@ -115,6 +115,11 @@ def _validate_context_refs(
 def create_context(
     db: Session, owner: User, data: EconomicContextCreate
 ) -> tuple[EconomicContext, bool]:
+    if db.get_bind().dialect.name == "postgresql":
+        db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
+            {"key": f"economic-context:{owner.id}:{data.idempotency_key}"},
+        )
     existing = db.scalar(
         select(EconomicContext).where(
             EconomicContext.owner_id == owner.id,
@@ -122,8 +127,71 @@ def create_context(
         )
     )
     if existing:
+        if any(getattr(existing, key) != value for key, value in data.model_dump().items()):
+            raise HTTPException(409, "This context request changed. Start a new explicit context.")
         return existing, True
     _validate_context_refs(db, owner, data)
+    if data.canonical_supplier_id and not data.product_opportunity_id:
+        raise HTTPException(409, "Select the product opportunity for this supplier context.")
+    if data.product_opportunity_id:
+        from vayujit_api.intelligence.cross_marketplace_models import (
+            CrossMarketplaceSupplier,
+            CrossMarketplaceSupplierLink,
+        )
+        from vayujit_api.intelligence.product_opportunity_models import (
+            ProductOpportunity,
+        )
+        from vayujit_api.intelligence.supplier_models import SupplierSearch
+
+        opportunity = _owned(
+            db,
+            ProductOpportunity,
+            owner.id,
+            data.product_opportunity_id,
+            "Product opportunity",
+        )
+        if opportunity.lifecycle_status == "archived":
+            raise HTTPException(
+                409, "This product opportunity is archived. Review its current context."
+            )
+        if data.product_id and data.product_id != opportunity.product_id:
+            raise HTTPException(409, "Product does not match this opportunity.")
+        if data.opportunity_id or data.supplier_id:
+            raise HTTPException(409, "Do not mix canonical and legacy context identities.")
+        if data.canonical_supplier_id:
+            _owned(
+                db,
+                CrossMarketplaceSupplier,
+                owner.id,
+                data.canonical_supplier_id,
+                "Supplier",
+            )
+            sources = {
+                str(value)
+                for value in db.scalars(
+                    select(CrossMarketplaceSupplierLink.supplier_id).where(
+                        CrossMarketplaceSupplierLink.owner_id == owner.id,
+                        CrossMarketplaceSupplierLink.canonical_supplier_id
+                        == data.canonical_supplier_id,
+                    )
+                )
+            }
+            searches = db.scalars(select(SupplierSearch).where(SupplierSearch.owner_id == owner.id))
+            related = False
+            for search in searches:
+                raw_ids = (search.summary_json or {}).get("supplier_ids", [])
+                if not isinstance(raw_ids, list):
+                    continue
+                if str((search.requirements or {}).get("product_opportunity_id")) == str(
+                    opportunity.id
+                ) and sources.intersection(str(value) for value in raw_ids):
+                    related = True
+                    break
+            if not related:
+                raise HTTPException(
+                    409,
+                    "Supplier evidence does not belong to this product opportunity.",
+                )
     row = EconomicContext(owner_id=owner.id, **data.model_dump())
     db.add(row)
     db.flush()
@@ -143,6 +211,14 @@ def create_context(
 def update_context(
     db: Session, owner: User, row: EconomicContext, data: EconomicContextUpdate
 ) -> EconomicContext:
+    if row.product_opportunity_id and any(
+        key in data.model_fields_set
+        for key in ("product_id", "opportunity_id", "supplier_id", "scenario_id")
+    ):
+        raise HTTPException(
+            409,
+            "Canonical context identity is immutable. Create a new explicit context.",
+        )
     _validate_context_refs(db, owner, data)
     values = data.model_dump(exclude_unset=True)
     for key, value in values.items():
@@ -166,6 +242,11 @@ def create_quote(
     db: Session, owner: User, data: EconomicQuoteInputCreate
 ) -> tuple[EconomicQuoteInput, bool]:
     context = _owned(db, EconomicContext, owner.id, data.context_id, "Economic context")
+    if db.get_bind().dialect.name == "postgresql":
+        db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
+            {"key": f"economic-quote:{owner.id}:{data.idempotency_key}"},
+        )
     existing = db.scalar(
         select(EconomicQuoteInput).where(
             EconomicQuoteInput.owner_id == owner.id,
@@ -173,7 +254,13 @@ def create_quote(
         )
     )
     if existing:
+        if any(getattr(existing, key) != value for key, value in data.model_dump().items()):
+            raise HTTPException(
+                409, "This quote-input request changed. Record a new explicit input."
+            )
         return existing, True
+    if data.product_id and context.product_id and data.product_id != context.product_id:
+        raise HTTPException(409, "Cost input product does not match its economic context.")
     for value, model, label in (
         (data.supplier_id, Supplier, "Supplier"),
         (data.product_id, Product, "Product"),
@@ -346,6 +433,11 @@ def _snapshot_payload(
 def create_snapshot(
     db: Session, owner: User, context_id: uuid.UUID
 ) -> tuple[EconomicInputSnapshot, bool]:
+    if db.get_bind().dialect.name == "postgresql":
+        db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:key))"),
+            {"key": f"economic-snapshot:{owner.id}:{context_id}"},
+        )
     context = _owned(db, EconomicContext, owner.id, context_id, "Economic context")
     payload, components, input_fingerprint = _snapshot_payload(db, context, owner.id)
     existing = db.scalar(

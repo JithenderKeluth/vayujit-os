@@ -1,0 +1,1648 @@
+{
+  "schema_version": "seller-wp6b-quality-gate-v1",
+  "date": "2026-10-30",
+  "classification": "WP6B BOUNDED LOCAL QUALITY WORK VALIDATED",
+  "application_certification": "INCOMPLETE",
+  "wp7_recommendation": "GO FOR COMPREHENSIVE TESTING ONLY",
+  "wp7_started": false,
+  "real_business_activation": "NO-GO",
+  "gates": {
+    "new_backend": true,
+    "adjacent_assertions": true,
+    "new_backend_cleanup": true,
+    "adjacent_clean_runner_cleanup": true,
+    "main_browser": true,
+    "social_browser": true,
+    "accepted_browsers_clean": true,
+    "final_isolation": true,
+    "original_docker_preserved": true,
+    "no_credential_matches": true,
+    "no_axe_violations": true,
+    "known_schema_classified": true
+  },
+  "blockers": [],
+  "new_backend": {
+    "token": "64b108e20bd44e44",
+    "tests": 28,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "cleanup": {
+      "status": "PASS",
+      "database": "vayujit_qa64b108e20bd44e44_test",
+      "marker_verified": true,
+      "database_absent": true,
+      "drop_statement_timeout_ms": 90000,
+      "signed_lifecycle": true
+    }
+  },
+  "adjacent_backend": {
+    "token": "8118ef894b5f40f5",
+    "tests": 49,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "cleanup": {
+      "status": "PASS",
+      "database": "vayujit_qa8118ef894b5f40f5_test",
+      "marker_verified": true,
+      "database_absent": true,
+      "drop_statement_timeout_ms": 90000,
+      "signed_lifecycle": true
+    }
+  },
+  "browser": {
+    "main_token": "e62facf73615c750",
+    "grouped_checks": 8,
+    "scans": 28,
+    "violations": 0,
+    "incomplete_rule_occurrences": 12,
+    "incomplete_nodes": 19,
+    "manual_measurements": 30,
+    "manual_not_passed": 0
+  },
+  "social_followup": {
+    "token": "dca65d7d5070a63b",
+    "grouped_checks": 4,
+    "scans": 10,
+    "violations": 0,
+    "incomplete_rule_occurrences": 11,
+    "incomplete_nodes": 13,
+    "manual_measurements": 9,
+    "manual_not_passed": 0
+  },
+  "observed_command_results": {
+    "angular_passed": 373,
+    "angular_files": 81,
+    "node_qa_passed": 66,
+    "python_qa_passed": 57,
+    "production_build": "PASS",
+    "initial_bundle_kb": 422.71,
+    "unchanged_warning_budget_kb": 500,
+    "focused_eslint": "PASS",
+    "app_spec_typescript": "PASS",
+    "project_ruff_black": "PASS",
+    "strict_new_money_module_mypy": "PASS_NO_SUPPRESSION",
+    "compileall": "PASS",
+    "powershell_parser": "PASS",
+    "javascript_syntax": "PASS",
+    "repository_wide_debt": "NOT_RECERTIFIED",
+    "git_diff_check": "PASS_WITH_EXISTING_CRLF_NOTICES"
+  },
+  "ads_502": {
+    "status": "UNREPRODUCED_CAUSE_UNCLASSIFIED",
+    "priority": "P2",
+    "historical_count": 1,
+    "historical_path": "/api/v1/ads/comparison",
+    "explicit_main_read_attempts": 32,
+    "read_results": [
+      {
+        "path": "ads/comparison",
+        "status": 200,
+        "attempt": 1
+      },
+      {
+        "path": "ads/overview",
+        "status": 200,
+        "attempt": 1
+      },
+      {
+        "path": "ads/optimization/overview",
+        "status": 200,
+        "attempt": 1
+      },
+      {
+        "path": "ads/anomalies",
+        "status": 200,
+        "attempt": 1
+      },
+      {
+        "path": "ads/comparison",
+        "status": 200,
+        "attempt": 2
+      },
+      {
+        "path": "ads/overview",
+        "status": 200,
+        "attempt": 2
+      },
+      {
+        "path": "ads/optimization/overview",
+        "status": 200,
+        "attempt": 2
+      },
+      {
+        "path": "ads/anomalies",
+        "status": 200,
+        "attempt": 2
+      },
+      {
+        "path": "ads/comparison",
+        "status": 200,
+        "attempt": 3
+      },
+      {
+        "path": "ads/overview",
+        "status": 200,
+        "attempt": 3
+      },
+      {
+        "path": "ads/optimization/overview",
+        "status": 200,
+        "attempt": 3
+      },
+      {
+        "path": "ads/anomalies",
+        "status": 200,
+        "attempt": 3
+      },
+      {
+        "path": "ads/comparison",
+        "status": 200,
+        "attempt": 4
+      },
+      {
+        "path": "ads/overview",
+        "status": 200,
+        "attempt": 4
+      },
+      {
+        "path": "ads/optimization/overview",
+        "status": 200,
+        "attempt": 4
+      },
+      {
+        "path": "ads/anomalies",
+        "status": 200,
+        "attempt": 4
+      },
+      {
+        "path": "ads/comparison",
+        "status": 200,
+        "attempt": 5
+      },
+      {
+        "path": "ads/overview",
+        "status": 200,
+        "attempt": 5
+      },
+      {
+        "path": "ads/optimization/overview",
+        "status": 200,
+        "attempt": 5
+      },
+      {
+        "path": "ads/anomalies",
+        "status": 200,
+        "attempt": 5
+      },
+      {
+        "path": "ads/comparison",
+        "status": 200,
+        "attempt": 6
+      },
+      {
+        "path": "ads/overview",
+        "status": 200,
+        "attempt": 6
+      },
+      {
+        "path": "ads/optimization/overview",
+        "status": 200,
+        "attempt": 6
+      },
+      {
+        "path": "ads/anomalies",
+        "status": 200,
+        "attempt": 6
+      },
+      {
+        "path": "ads/comparison",
+        "status": 200,
+        "attempt": 7
+      },
+      {
+        "path": "ads/overview",
+        "status": 200,
+        "attempt": 7
+      },
+      {
+        "path": "ads/optimization/overview",
+        "status": 200,
+        "attempt": 7
+      },
+      {
+        "path": "ads/anomalies",
+        "status": 200,
+        "attempt": 7
+      },
+      {
+        "path": "ads/comparison",
+        "status": 200,
+        "attempt": 8
+      },
+      {
+        "path": "ads/overview",
+        "status": 200,
+        "attempt": 8
+      },
+      {
+        "path": "ads/optimization/overview",
+        "status": 200,
+        "attempt": 8
+      },
+      {
+        "path": "ads/anomalies",
+        "status": 200,
+        "attempt": 8
+      }
+    ],
+    "not_claimed_resolved": true,
+    "forward_transport_diagnostics": "ALLOWLISTED_QA_PROXY_ORIGIN_AND_CODE_ONLY"
+  },
+  "monetary_policy": {
+    "projection_version": "pr-sos-05-v2",
+    "stored_numeric_scales_changed": false,
+    "old_version_snapshot_preservation_tested": true,
+    "per_version_current_projection_mutable": true,
+    "undefined_zero_sales_margin": "NULL_NOT_ZERO"
+  },
+  "schema_review": {
+    "token": "e62facf73615c750",
+    "read_only": true,
+    "migration_heads": [
+      "20261206_0149"
+    ],
+    "inventory_tables": 42,
+    "index_debt": [
+      {
+        "table": "video_projects",
+        "index": "ix_video_projects_status",
+        "columns": [
+          "status"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_projects",
+        "index": "ix_video_projects_brand_id",
+        "columns": [
+          "brand_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_scripts",
+        "index": "ix_video_scripts_product_id",
+        "columns": [
+          "product_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_scripts",
+        "index": "ix_video_scripts_status",
+        "columns": [
+          "status"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_scripts",
+        "index": "ix_video_scripts_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_scripts",
+        "index": "ix_video_scripts_brand_id",
+        "columns": [
+          "brand_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_storyboards",
+        "index": "ix_video_storyboards_context_fingerprint",
+        "columns": [
+          "context_fingerprint"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_storyboards",
+        "index": "ix_video_storyboards_product_id",
+        "columns": [
+          "product_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_storyboards",
+        "index": "ix_video_storyboards_brand_id",
+        "columns": [
+          "brand_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_storyboards",
+        "index": "ix_video_storyboards_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_storyboards",
+        "index": "ix_video_storyboards_state",
+        "columns": [
+          "state"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_styles",
+        "index": "ix_video_styles_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_styles",
+        "index": "ix_video_styles_brand_id",
+        "columns": [
+          "brand_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_generations",
+        "index": "ix_video_generations_project_id",
+        "columns": [
+          "project_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_generations",
+        "index": "ix_video_generations_context_fingerprint",
+        "columns": [
+          "context_fingerprint"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_generations",
+        "index": "ix_video_generations_correlation_id",
+        "columns": [
+          "correlation_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_generations",
+        "index": "ix_video_generations_brand_id",
+        "columns": [
+          "brand_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_scenes",
+        "index": "ix_video_scenes_storyboard_id",
+        "columns": [
+          "storyboard_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_scenes",
+        "index": "ix_video_scenes_generation_id",
+        "columns": [
+          "generation_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_caption_tracks",
+        "index": "ix_video_caption_tracks_generation_id",
+        "columns": [
+          "generation_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_audio_attachments",
+        "index": "ix_video_audio_attachments_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "video_bulk_children",
+        "index": "ix_video_bulk_children_brand_id",
+        "columns": [
+          "brand_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_accounts",
+        "index": "ix_ad_accounts_external_account_id",
+        "columns": [
+          "external_account_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_accounts",
+        "index": "ix_ad_accounts_status",
+        "columns": [
+          "status"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_accounts",
+        "index": "ix_ad_accounts_enabled",
+        "columns": [
+          "enabled"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_accounts",
+        "index": "ix_ad_accounts_validated",
+        "columns": [
+          "validated"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_campaigns",
+        "index": "ix_ad_campaigns_brand_id",
+        "columns": [
+          "brand_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_campaigns",
+        "index": "ix_ad_campaigns_keyword_set_id",
+        "columns": [
+          "keyword_set_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_campaigns",
+        "index": "ix_ad_campaigns_account_id",
+        "columns": [
+          "account_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_campaigns",
+        "index": "ix_ad_campaigns_remote_campaign_id",
+        "columns": [
+          "remote_campaign_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_campaigns",
+        "index": "ix_ad_campaign_owner_filters",
+        "columns": [
+          "owner_id",
+          "provider",
+          "state"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_campaigns",
+        "index": "ix_ad_campaigns_product_id",
+        "columns": [
+          "product_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_marketplace_listings",
+        "index": "ix_ad_marketplace_listings_product_id",
+        "columns": [
+          "product_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_marketplace_listings",
+        "index": "ix_ad_marketplace_listings_marketplace",
+        "columns": [
+          "marketplace"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_marketplace_listings",
+        "index": "ix_ad_marketplace_listings_listing_id",
+        "columns": [
+          "listing_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_marketplace_listings",
+        "index": "ix_ad_marketplace_listings_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_marketplace_listings",
+        "index": "ix_ad_marketplace_listings_account_id",
+        "columns": [
+          "account_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_groups",
+        "index": "ix_ad_groups_remote_group_id",
+        "columns": [
+          "remote_group_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_groups",
+        "index": "ix_ad_groups_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_groups",
+        "index": "ix_ad_groups_state",
+        "columns": [
+          "state"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_budgets",
+        "index": "ix_ad_budgets_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creatives",
+        "index": "ix_ad_creatives_approval_status",
+        "columns": [
+          "approval_status"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creatives",
+        "index": "ix_ad_creatives_artifact_id",
+        "columns": [
+          "artifact_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creatives",
+        "index": "ix_ad_creatives_video_output_id",
+        "columns": [
+          "video_output_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creatives",
+        "index": "ix_ad_creatives_image_output_id",
+        "columns": [
+          "image_output_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creatives",
+        "index": "ix_ad_creatives_video_media_id",
+        "columns": [
+          "video_media_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creatives",
+        "index": "ix_ad_creatives_product_id",
+        "columns": [
+          "product_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creatives",
+        "index": "ix_ad_creatives_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creatives",
+        "index": "ix_ad_creatives_image_media_id",
+        "columns": [
+          "image_media_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creatives",
+        "index": "ix_ad_creatives_video_generation_id",
+        "columns": [
+          "video_generation_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ads",
+        "index": "ix_ads_group_id",
+        "columns": [
+          "group_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ads",
+        "index": "ix_ads_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ads",
+        "index": "ix_ads_remote_ad_id",
+        "columns": [
+          "remote_ad_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ads",
+        "index": "ix_ads_product_id",
+        "columns": [
+          "product_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ads",
+        "index": "ix_ads_creative_id",
+        "columns": [
+          "creative_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ads",
+        "index": "ix_ads_state",
+        "columns": [
+          "state"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ads",
+        "index": "ix_ads_provider",
+        "columns": [
+          "provider"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_schedules",
+        "index": "ix_ad_schedules_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_schedules",
+        "index": "ix_ad_schedules_campaign_id",
+        "columns": [
+          "campaign_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_metrics",
+        "index": "ix_ad_metrics_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_metrics",
+        "index": "ix_ad_metrics_campaign_id",
+        "columns": [
+          "campaign_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_metrics",
+        "index": "ix_ad_metrics_observed_at",
+        "columns": [
+          "observed_at"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_conversions",
+        "index": "ix_ad_conversions_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_conversions",
+        "index": "ix_ad_conversions_campaign_id",
+        "columns": [
+          "campaign_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_failure_records",
+        "index": "ix_ad_failure_records_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_recovery_records",
+        "index": "ix_ad_recovery_records_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_drift_findings",
+        "index": "ix_ad_drift_findings_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_optimization_rules",
+        "index": "ix_ad_optimization_rules_campaign_id",
+        "columns": [
+          "campaign_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_optimization_rules",
+        "index": "ix_ad_optimization_rules_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_experiments",
+        "index": "ix_ad_experiments_campaign_id",
+        "columns": [
+          "campaign_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_experiments",
+        "index": "ix_ad_experiments_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_optimization_recommendations",
+        "index": "ix_ad_optimization_recommendations_ad_id",
+        "columns": [
+          "ad_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_optimization_recommendations",
+        "index": "ix_ad_optimization_recommendations_recommendation_type",
+        "columns": [
+          "recommendation_type"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_optimization_recommendations",
+        "index": "ix_ad_optimization_recommendations_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_optimization_recommendations",
+        "index": "ix_ad_optimization_recommendations_rule_id",
+        "columns": [
+          "rule_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_optimization_recommendations",
+        "index": "ix_ad_optimization_recommendations_creative_id",
+        "columns": [
+          "creative_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_optimization_recommendations",
+        "index": "ix_ad_optimization_recommendations_group_id",
+        "columns": [
+          "group_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_optimization_decisions",
+        "index": "ix_ad_optimization_decisions_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_optimization_executions",
+        "index": "ix_ad_optimization_executions_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_performance_anomalies",
+        "index": "ix_ad_performance_anomalies_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_performance_anomalies",
+        "index": "ix_ad_performance_anomalies_fingerprint",
+        "columns": [
+          "fingerprint"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creative_fatigue_signals",
+        "index": "ix_ad_creative_fatigue_signals_creative_id",
+        "columns": [
+          "creative_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creative_fatigue_signals",
+        "index": "ix_ad_creative_fatigue_signals_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creative_fatigue_signals",
+        "index": "ix_ad_creative_fatigue_signals_fatigue_state",
+        "columns": [
+          "fatigue_state"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_creative_fatigue_signals",
+        "index": "ix_ad_creative_fatigue_signals_fingerprint",
+        "columns": [
+          "fingerprint"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_experiment_variants",
+        "index": "ix_ad_experiment_variants_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_experiment_results",
+        "index": "ix_ad_experiment_results_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_budget_recommendations",
+        "index": "ix_ad_budget_recommendations_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_budget_recommendations",
+        "index": "ix_ad_budget_recommendations_recommendation_id",
+        "columns": [
+          "recommendation_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_bid_recommendations",
+        "index": "ix_ad_bid_recommendations_recommendation_id",
+        "columns": [
+          "recommendation_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_bid_recommendations",
+        "index": "ix_ad_bid_recommendations_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_remote_mappings",
+        "index": "ix_ad_remote_mappings_local_entity_id",
+        "columns": [
+          "local_entity_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_remote_mappings",
+        "index": "ix_ad_remote_mappings_provider",
+        "columns": [
+          "provider"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_remote_mappings",
+        "index": "ix_ad_remote_mappings_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_remote_mappings",
+        "index": "ix_ad_remote_mappings_remote_id",
+        "columns": [
+          "remote_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_remote_mappings",
+        "index": "ix_ad_remote_mappings_entity_type",
+        "columns": [
+          "entity_type"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_jobs",
+        "index": "ix_ad_jobs_status",
+        "columns": [
+          "status"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_jobs",
+        "index": "ix_ad_jobs_operation",
+        "columns": [
+          "operation"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_jobs",
+        "index": "ix_ad_jobs_correlation_id",
+        "columns": [
+          "correlation_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_jobs",
+        "index": "ix_ad_jobs_entity_id",
+        "columns": [
+          "entity_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_jobs",
+        "index": "ix_ad_jobs_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_jobs",
+        "index": "ix_ad_jobs_provider",
+        "columns": [
+          "provider"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_groups",
+        "index": "ix_ad_groups_remote_group_id",
+        "columns": [
+          "remote_group_id"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_groups",
+        "index": "ix_ad_groups_owner_id",
+        "columns": [
+          "owner_id"
+        ],
+        "prefix_access_path_present": true,
+        "classification": "MAINTAINABILITY_NAMING_DEBT",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      },
+      {
+        "table": "ad_groups",
+        "index": "ix_ad_groups_state",
+        "columns": [
+          "state"
+        ],
+        "prefix_access_path_present": false,
+        "classification": "RELIABILITY_PERFORMANCE_RISK",
+        "reason": "No missing columns or demonstrated incorrect read; workload/load plan not certified."
+      }
+    ],
+    "nullable_debt": [
+      {
+        "table": "video_generations",
+        "column": "audio_mode",
+        "database_nullable": true,
+        "orm_nullable": false,
+        "null_rows": 0,
+        "classification": "NON_BLOCKING_HISTORICAL_CONSTRAINT_RISK",
+        "limitation": "Fresh synthetic state is not proof legacy rows are non-NULL; no unsafe backfill or tightening."
+      },
+      {
+        "table": "video_bulk_operations",
+        "column": "request_snapshot_json",
+        "database_nullable": true,
+        "orm_nullable": false,
+        "null_rows": 0,
+        "classification": "NON_BLOCKING_HISTORICAL_CONSTRAINT_RISK",
+        "limitation": "Fresh synthetic state is not proof legacy rows are non-NULL; no unsafe backfill or tightening."
+      },
+      {
+        "table": "video_bulk_children",
+        "column": "source_media_ids_json",
+        "database_nullable": true,
+        "orm_nullable": false,
+        "null_rows": 0,
+        "classification": "NON_BLOCKING_HISTORICAL_CONSTRAINT_RISK",
+        "limitation": "Fresh synthetic state is not proof legacy rows are non-NULL; no unsafe backfill or tightening."
+      }
+    ],
+    "float_double_precision_alembic_types_equivalent": true,
+    "missing_orm_columns": []
+  },
+  "remaining": [
+    {
+      "id": "SE-WP6-ADS-502-001",
+      "priority": "P2",
+      "status": "UNREPRODUCED_CAUSE_UNCLASSIFIED"
+    },
+    {
+      "id": "SE-WP5-PRICE-001",
+      "priority": "P2",
+      "status": "POLICY_DEFINED_SUBPAISE_SOURCE_VERSUS_ROUNDED_ORDER_PROJECTION_LIMITATION"
+    },
+    {
+      "id": "QA-P3-GAP-001",
+      "priority": "P2",
+      "status": "NO_IMMUTABLE_FINANCIAL_REVISION_HISTORY_NOT_SOLE_ACCOUNTING_SYSTEM"
+    },
+    {
+      "id": "WP6B-A11Y-MANUAL",
+      "priority": "P2",
+      "status": "MANUAL_LIMITATIONS_RECORDED",
+      "scope": [
+        "populated Social/provider video states",
+        "all dialogs/screen-reader software",
+        "forced colours/themes/browser zoom",
+        "inline-link touch-spacing exceptions",
+        "historic Catalog inline mutation error"
+      ]
+    },
+    {
+      "id": "WP6B-SCHEMA-DEBT",
+      "priority": "P2",
+      "status": "CLASSIFIED_DEFERRED_LOAD_AND_HISTORIC_CONSTRAINT_REVIEW"
+    },
+    {
+      "id": "WP6B-QA-CLEANUP",
+      "priority": "P2",
+      "status": "HISTORICAL_INTERRUPTED_DROPS_RETAINED_GUARDED_RECOVERY_VERIFIED",
+      "root_cause": "15-second guarded DROP cancellation reproduced: SQLSTATE57014 after16.5s. Explicit WP6B90s connection deadline; host deletion latency cause unknown. No FORCE or unrelated cleanup."
+    }
+  ],
+  "p0_p1_disposition": {
+    "scope": "WP6B evidenced defects only, not whole-application certification",
+    "known_untriaged_application_p0": 0,
+    "known_untriaged_application_p1": 0,
+    "corrected": [
+      "conserved monetary allocation",
+      "caption input submitted actual content",
+      "appropriate Quick actions role",
+      "Video table column span/scopes",
+      "explicit money rounding/UNKNOWN/undefined margin"
+    ]
+  },
+  "cleanup_audit": {
+    "status": "PASS",
+    "read_only": true,
+    "databases": [
+      {
+        "token": "02ecb813fd29f146",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "27c1bacc93a57a37",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": true,
+        "recovery_statement_timeout_ms": 90000
+      },
+      {
+        "token": "2a022faa09f74c89",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": true,
+        "recovery_statement_timeout_ms": 90000
+      },
+      {
+        "token": "541a4afffe674e44",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "64b108e20bd44e44",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "8118ef894b5f40f5",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "8b319ea2c843497c",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "9962918f1d9709f7",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": true,
+        "recovery_statement_timeout_ms": 90000
+      },
+      {
+        "token": "abbb4a513af94777",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "d674ce34191048a1",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": true,
+        "recovery_statement_timeout_ms": 90000
+      },
+      {
+        "token": "dca65d7d5070a63b",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "e62facf73615c750",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "f08380eda97e982d",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "f225ea2985d84f89",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": true,
+        "recovery_statement_timeout_ms": 90000
+      },
+      {
+        "token": "fd50b7a62bdf4984",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      }
+    ],
+    "traces": [
+      {
+        "path": "tmp/qa-seller-browser/02ecb813fd29f146/wp6b-desktop/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/27c1bacc93a57a37/mobile/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/27c1bacc93a57a37/wp6b-desktop/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/9962918f1d9709f7/mobile/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/9962918f1d9709f7/wp6b-desktop/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/dca65d7d5070a63b/mobile/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/dca65d7d5070a63b/wp6b-desktop/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/dca65d7d5070a63b/wp6b-edge-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/dca65d7d5070a63b/wp6b-edge-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/e62facf73615c750/mobile/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/e62facf73615c750/wp6b-desktop/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/e62facf73615c750/wp6b-edge-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/e62facf73615c750/wp6b-edge-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/f08380eda97e982d/wp6b-desktop/trace.zip",
+        "crc": "PASS"
+      }
+    ],
+    "docker_preservation": {
+      "original_containers": 10,
+      "original_networks_and_volumes_preserved": true
+    },
+    "secret_scan": {
+      "credential_matches": 0,
+      "raw_container_logs_persisted": false
+    }
+  },
+  "cleanup_timeout_diagnostic": {
+    "token": "2a022faa09f74c89",
+    "operation": "guarded_drop_retry",
+    "status": "FAILED",
+    "exception_type": "OperationalError",
+    "sqlstate": "57014",
+    "statement_timeout_ms": 15000,
+    "elapsed_seconds": 16.5,
+    "raw_exception_or_output_persisted": false
+  },
+  "changed_files": [
+    "apps/api/vayujit_api/commerce/money.py",
+    "apps/api/vayujit_api/commerce/financial_router.py",
+    "apps/api/vayujit_api/commerce/financial_models.py",
+    "apps/api/tests/test_seller_wp6b.py",
+    "apps/web/src/app/ai/ai-video.component.ts",
+    "apps/web/src/app/ai/ai-video.component.spec.ts",
+    "qa/postgres_instance.py",
+    "qa/fixture_server.py",
+    "qa/unit/test_postgres_instance.py",
+    "qa/safety.mjs",
+    "qa/server.mjs",
+    "qa/seller-browser-session.mjs",
+    "qa/seller-browser-explore.mjs",
+    "qa/wp4_final_audit.py",
+    "qa/wp6b-accessibility.mjs",
+    "qa/wp6b-browser-retest.mjs",
+    "qa/wp6b-report.mjs",
+    "qa/wp6b_schema_review.py",
+    "qa/wp6b_final_audit.py",
+    "qa/unit/wp6b-safety.test.mjs",
+    "scripts/test-seller-wp6b.ps1",
+    "docs/qa/seller-experience/wp6b-remediation.md",
+    "docs/qa/seller-experience/wp6b-browser-retest.md",
+    "docs/qa/seller-experience/wp6b-accessibility-review.md",
+    "docs/qa/seller-experience/wp6b-financial-precision-policy.md",
+    "docs/qa/seller-experience/wp6b-quality-gate.json",
+    "docs/qa/seller-experience/wp6-quality-debt.md",
+    "docs/qa/seller-experience/prioritized-completion-backlog.md",
+    "docs/qa/seller-experience/browser-journey-coverage.md"
+  ],
+  "limitations": [
+    "Grouped checks/repeated scans are not comprehensive feature coverage.",
+    "Zero axe violations and39 normal-state measurements are not WCAG conformance.",
+    "No live advertising, rendering, marketplace, supplier or payment activity.",
+    "Old failed/intermediate reports and nonzero cleanup exits retained; reruns not summed.",
+    "Backup certification remains parked."
+  ],
+  "safety": {
+    "permanent_golden_database_changes": false,
+    "live_provider_calls": false,
+    "human_bypass": false,
+    "external_commercial_writes": false,
+    "historical_migrations_modified": false,
+    "branches_commits_pushes": false
+  }
+}

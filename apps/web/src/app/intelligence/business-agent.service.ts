@@ -168,22 +168,30 @@ export class BusinessAgentService {
     return firstValueFrom(this.http.get<BusinessAgentGoal[]>(`${this.base}/goals`, this.options));
   }
 
-  latestPlan(goalId: string): Promise<BusinessAgentPlan> {
+  latestPlan(goalId: string): Promise<BusinessAgentPlan>;
+  latestPlan(goalId: string, allowMissing: true): Promise<BusinessAgentPlan | null>;
+  latestPlan(goalId: string, allowMissing = false): Promise<BusinessAgentPlan | null> {
     return firstValueFrom(
-      this.http.get<BusinessAgentPlan>(`${this.base}/goals/${goalId}/plan`, this.options),
+      this.http.get<BusinessAgentPlan | null>(`${this.base}/goals/${goalId}/plan`, {
+        ...this.options,
+        params: allowMissing ? { allow_missing: 'true' } : {},
+      }),
     );
   }
 
-  latestRun(goalId: string): Promise<BusinessAgentRun> {
+  latestRun(goalId: string): Promise<BusinessAgentRun>;
+  latestRun(goalId: string, allowMissing: true): Promise<BusinessAgentRun | null>;
+  latestRun(goalId: string, allowMissing = false): Promise<BusinessAgentRun | null> {
     return firstValueFrom(
-      this.http.get<BusinessAgentRun>(`${this.base}/goals/${goalId}/runs/latest`, this.options),
+      this.http.get<BusinessAgentRun | null>(`${this.base}/goals/${goalId}/runs/latest`, {
+        ...this.options,
+        params: allowMissing ? { allow_missing: 'true' } : {},
+      }),
     );
   }
 
   deleteGoal(goalId: string): Promise<void> {
-    return firstValueFrom(
-      this.http.delete<void>(`${this.base}/goals/${goalId}`, this.options),
-    );
+    return firstValueFrom(this.http.delete<void>(`${this.base}/goals/${goalId}`, this.options));
   }
 
   createGoal(payload: BusinessGoalCreatePayload): Promise<BusinessAgentGoal> {

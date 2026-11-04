@@ -315,6 +315,26 @@ def campaign_preview(db: Session, owner: User, data: AdsCampaignCreate) -> dict[
     if data.budget.daily_amount is not None and data.budget.daily_amount < 10:
         raise HTTPException(422, "The daily budget is below the local fake-provider minimum.")
     payload = data.model_dump(mode="json")
+    if data.creative is not None:
+        prospective = AdCampaign(
+            id=uuid.UUID(int=0),
+            owner_id=owner.id,
+            account_id=account.id,
+            provider=data.provider,
+            product_id=data.product_id,
+            objective=data.objective,
+        )
+        readiness = require_creative_readiness(
+            db,
+            owner,
+            AdsCreativeCreate(campaign_id=prospective.id, **data.creative.model_dump()),
+            prospective,
+        )
+        payload["creative_readiness_fingerprint"] = readiness["fingerprint"]
+        payload["account_credential_version"] = account.credential_version
+    else:
+        # Preserve legacy preview identity when no selected creative was supplied.
+        payload.pop("creative", None)
     return {
         "provider": data.provider,
         "account_id": data.account_id,
@@ -328,8 +348,14 @@ def campaign_preview(db: Session, owner: User, data: AdsCampaignCreate) -> dict[
 
 
 def create_campaign(
-    db: Session, owner: User, data: AdsCampaignCreate, preview_fingerprint: str | None = None
+    db: Session,
+    owner: User,
+    data: AdsCampaignCreate,
+    preview_fingerprint: str | None = None,
+    *,
+    commit: bool = True,
 ) -> AdCampaign:
+    db.scalar(select(User).where(User.id == owner.id).with_for_update())
     preview = campaign_preview(db, owner, data)
     if preview_fingerprint is not None and preview_fingerprint != preview["fingerprint"]:
         raise HTTPException(409, "The Ads preview is stale; generate a new preview.")
@@ -340,6 +366,8 @@ def create_campaign(
         )
     )
     if campaign:
+        if campaign.preview_fingerprint != preview["fingerprint"]:
+            raise HTTPException(409, "Campaign idempotency key conflicts with reviewed inputs.")
         return campaign
     campaign = AdCampaign(
         owner_id=owner.id,
@@ -384,6 +412,13 @@ def create_campaign(
         updated_at=timestamp,
     )
     db.add(budget)
+    if data.creative is not None:
+        create_creative(
+            db,
+            owner,
+            AdsCreativeCreate(campaign_id=campaign.id, **data.creative.model_dump()),
+            commit=False,
+        )
     record_event(
         db,
         actor_id=owner.id,
@@ -392,12 +427,21 @@ def create_campaign(
         entity_id=campaign.id,
         metadata={"provider": campaign.provider},
     )
-    db.commit()
-    db.refresh(campaign)
+    if commit:
+        db.commit()
+        db.refresh(campaign)
+    else:
+        db.flush()
     return campaign
 
 
-def create_creative(db: Session, owner: User, data: AdsCreativeCreate) -> AdCreative:
+def create_creative(
+    db: Session,
+    owner: User,
+    data: AdsCreativeCreate,
+    *,
+    commit: bool = True,
+) -> AdCreative:
     campaign = db.scalar(
         select(AdCampaign).where(AdCampaign.id == data.campaign_id, AdCampaign.owner_id == owner.id)
     )
@@ -426,11 +470,14 @@ def create_creative(db: Session, owner: User, data: AdsCreativeCreate) -> AdCrea
         )
     )
     if value:
+        if value.campaign_id != campaign.id:
+            raise HTTPException(409, "Creative idempotency key belongs to another campaign.")
         return value
     lineage = {
         "artifact_id": str(data.artifact_id) if data.artifact_id else None,
         "artifact_version": data.artifact_version,
         "image_output_id": str(data.image_output_id) if data.image_output_id else None,
+        "image_media_id": str(data.image_media_id) if data.image_media_id else None,
         "image_version": data.image_version,
         "video_output_id": str(data.video_output_id) if data.video_output_id else None,
         "video_version": data.video_version,
@@ -467,8 +514,11 @@ def create_creative(db: Session, owner: User, data: AdsCreativeCreate) -> AdCrea
         updated_at=timestamp,
     )
     db.add(value)
-    db.commit()
-    db.refresh(value)
+    if commit:
+        db.commit()
+        db.refresh(value)
+    else:
+        db.flush()
     return value
 
 
@@ -481,6 +531,8 @@ def queue_job(
     request: dict[str, object],
     entity_type: str = "campaign",
     entity_id: uuid.UUID | None = None,
+    *,
+    commit: bool = True,
 ) -> AdJob:
     job = db.scalar(
         select(AdJob).where(AdJob.owner_id == owner.id, AdJob.idempotency_key == idempotency_key)
@@ -502,6 +554,11 @@ def queue_job(
         updated_at=now(),
     )
     db.add(job)
+    if not commit:
+        # Recovery owns the transaction: persist its intent and job atomically
+        # without releasing the campaign lock between these two records.
+        db.flush()
+        return job
     try:
         db.commit()
     except IntegrityError:

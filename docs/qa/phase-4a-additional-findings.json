@@ -1,0 +1,1796 @@
+[
+  {
+    "id": "QA-P4-AXE-53F6D1D5D94D",
+    "feature": "Phase 4 exploratory accessibility",
+    "area": "intelligence",
+    "journey": "First-seller supported task review",
+    "route": "/intelligence/trends",
+    "type": "ACCESSIBILITY",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "No axe landmark-unique violation in the recorded application state.",
+    "actual": "{\"id\":\"landmark-unique\",\"impact\":\"moderate\",\"nodes\":[{\"target\":[\".panel[aria-labelledby=\\\"context-heading\\\"]\"],\"remediation\":\"Fix any of the following:\\n  The landmark must have a unique aria-label, aria-labelledby, or title to make landmarks distinguishable\"}]}",
+    "business_impact": "Recorded semantics, readability or keyboard access impede seller comprehension or assistive navigation.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase4",
+      "Open /intelligence/trends in the recorded synthetic scenario; inspect attached state and network evidence."
+    ],
+    "evidence": [
+      {
+        "name": "planned-routes",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/0-planned-routes.json"
+      },
+      {
+        "name": "surface-screen-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/1-surface-screen-ee6bc0a4ad19.png"
+      },
+      {
+        "name": "surface-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/2-surface-ee6bc0a4ad19.json"
+      },
+      {
+        "name": "axe-surface-a02e693b0a69",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/3-axe-surface-a02e693b0a69.json"
+      },
+      {
+        "name": "surface-screen-24e4c64820d7",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/4-surface-screen-24e4c64820d7.png"
+      },
+      {
+        "name": "surface-24e4c64820d7",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/5-surface-24e4c64820d7.json"
+      },
+      {
+        "name": "axe-surface-9fc503a85e55",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/6-axe-surface-9fc503a85e55.json"
+      },
+      {
+        "name": "surface-screen-46373fced2e4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/7-surface-screen-46373fced2e4.png"
+      },
+      {
+        "name": "surface-46373fced2e4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/8-surface-46373fced2e4.json"
+      },
+      {
+        "name": "axe-surface-97238094fc2f",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/9-axe-surface-97238094fc2f.json"
+      },
+      {
+        "name": "surface-screen-0c12f8030a89",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/10-surface-screen-0c12f8030a89.png"
+      },
+      {
+        "name": "surface-0c12f8030a89",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/11-surface-0c12f8030a89.json"
+      },
+      {
+        "name": "axe-surface-f95efc15ab97",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/12-axe-surface-f95efc15ab97.json"
+      },
+      {
+        "name": "surface-screen-584f5ea85d1f",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/13-surface-screen-584f5ea85d1f.png"
+      },
+      {
+        "name": "surface-584f5ea85d1f",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/14-surface-584f5ea85d1f.json"
+      },
+      {
+        "name": "axe-surface-4b51f2a5321d",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/15-axe-surface-4b51f2a5321d.json"
+      },
+      {
+        "name": "surface-screen-0ac49026fa90",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/16-surface-screen-0ac49026fa90.png"
+      },
+      {
+        "name": "surface-0ac49026fa90",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/17-surface-0ac49026fa90.json"
+      },
+      {
+        "name": "axe-surface-c81ca144a3c9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/18-axe-surface-c81ca144a3c9.json"
+      },
+      {
+        "name": "surface-screen-8a3ae4ede53d",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/19-surface-screen-8a3ae4ede53d.png"
+      },
+      {
+        "name": "surface-8a3ae4ede53d",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/20-surface-8a3ae4ede53d.json"
+      },
+      {
+        "name": "axe-surface-140e7b1b7089",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/21-axe-surface-140e7b1b7089.json"
+      },
+      {
+        "name": "surface-screen-0faf63fcf942",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/22-surface-screen-0faf63fcf942.png"
+      },
+      {
+        "name": "surface-0faf63fcf942",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/23-surface-0faf63fcf942.json"
+      },
+      {
+        "name": "axe-surface-b75ef701d2f0",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/24-axe-surface-b75ef701d2f0.json"
+      },
+      {
+        "name": "surface-screen-043fffb00dcb",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/25-surface-screen-043fffb00dcb.png"
+      },
+      {
+        "name": "surface-043fffb00dcb",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/26-surface-043fffb00dcb.json"
+      },
+      {
+        "name": "axe-surface-8bfd5f49c365",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/27-axe-surface-8bfd5f49c365.json"
+      },
+      {
+        "name": "surface-screen-3b60467d4fa3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/28-surface-screen-3b60467d4fa3.png"
+      },
+      {
+        "name": "surface-3b60467d4fa3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/29-surface-3b60467d4fa3.json"
+      },
+      {
+        "name": "axe-surface-f71dc0c33cd9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/30-axe-surface-f71dc0c33cd9.json"
+      },
+      {
+        "name": "surface-screen-2510e49b68e1",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/31-surface-screen-2510e49b68e1.png"
+      },
+      {
+        "name": "surface-2510e49b68e1",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/32-surface-2510e49b68e1.json"
+      },
+      {
+        "name": "axe-surface-c1d7150d9190",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/33-axe-surface-c1d7150d9190.json"
+      },
+      {
+        "name": "surface-screen-6842cbb1f16a",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/34-surface-screen-6842cbb1f16a.png"
+      },
+      {
+        "name": "surface-6842cbb1f16a",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/35-surface-6842cbb1f16a.json"
+      },
+      {
+        "name": "axe-surface-f86def0adcce",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/36-axe-surface-f86def0adcce.json"
+      },
+      {
+        "name": "surface-screen-ce785fd33749",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/37-surface-screen-ce785fd33749.png"
+      },
+      {
+        "name": "surface-ce785fd33749",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/38-surface-ce785fd33749.json"
+      },
+      {
+        "name": "axe-surface-80793fd0d0e4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/39-axe-surface-80793fd0d0e4.json"
+      },
+      {
+        "name": "surface-screen-9f0c7a539df3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/40-surface-screen-9f0c7a539df3.png"
+      },
+      {
+        "name": "surface-9f0c7a539df3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/41-surface-9f0c7a539df3.json"
+      },
+      {
+        "name": "axe-surface-321d9a2fe0a5",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/42-axe-surface-321d9a2fe0a5.json"
+      },
+      {
+        "name": "surface-screen-7c35cac419c4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/43-surface-screen-7c35cac419c4.png"
+      },
+      {
+        "name": "surface-7c35cac419c4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/44-surface-7c35cac419c4.json"
+      },
+      {
+        "name": "axe-surface-623bf3117462",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/45-axe-surface-623bf3117462.json"
+      },
+      {
+        "name": "surface-screen-31279458c620",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/46-surface-screen-31279458c620.png"
+      },
+      {
+        "name": "surface-31279458c620",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/47-surface-31279458c620.json"
+      },
+      {
+        "name": "axe-surface-8ceea21726ee",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/48-axe-surface-8ceea21726ee.json"
+      },
+      {
+        "name": "surface-screen-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/49-surface-screen-8c4f8b0e0cd9.png"
+      },
+      {
+        "name": "surface-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/50-surface-8c4f8b0e0cd9.json"
+      },
+      {
+        "name": "axe-surface-4a67c5636387",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/51-axe-surface-4a67c5636387.json"
+      },
+      {
+        "name": "surface-screen-3e0651fa1742",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/52-surface-screen-3e0651fa1742.png"
+      },
+      {
+        "name": "surface-3e0651fa1742",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/53-surface-3e0651fa1742.json"
+      },
+      {
+        "name": "axe-surface-2c21737d150b",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/54-axe-surface-2c21737d150b.json"
+      },
+      {
+        "name": "surface-screen-d266af06dc35",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/55-surface-screen-d266af06dc35.png"
+      },
+      {
+        "name": "surface-d266af06dc35",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/56-surface-d266af06dc35.json"
+      },
+      {
+        "name": "axe-surface-f1bf4f4cb1da",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/57-axe-surface-f1bf4f4cb1da.json"
+      },
+      {
+        "name": "surface-screen-92846ba8f8d0",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/58-surface-screen-92846ba8f8d0.png"
+      },
+      {
+        "name": "surface-92846ba8f8d0",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/59-surface-92846ba8f8d0.json"
+      },
+      {
+        "name": "axe-surface-9ed6dd63b993",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/60-axe-surface-9ed6dd63b993.json"
+      },
+      {
+        "name": "surface-screen-a9b3daf2c95e",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/61-surface-screen-a9b3daf2c95e.png"
+      },
+      {
+        "name": "surface-a9b3daf2c95e",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/62-surface-a9b3daf2c95e.json"
+      },
+      {
+        "name": "axe-surface-0198914a159b",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/63-axe-surface-0198914a159b.json"
+      },
+      {
+        "name": "surface-screen-19227f6165ca",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/64-surface-screen-19227f6165ca.png"
+      },
+      {
+        "name": "surface-19227f6165ca",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/65-surface-19227f6165ca.json"
+      },
+      {
+        "name": "axe-surface-99bea7b2f3e1",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/66-axe-surface-99bea7b2f3e1.json"
+      },
+      {
+        "name": "screenshot",
+        "path": "tmp/qa-agent/463ad3c679d589bc/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-desktop/test-failed-1.png"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/68-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/69-final-screen.png"
+      },
+      {
+        "name": "error-context",
+        "path": "tmp/qa-agent/463ad3c679d589bc/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-desktop/error-context.md"
+      },
+      {
+        "name": "trace",
+        "path": "tmp/qa-agent/463ad3c679d589bc/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-desktop/trace.zip"
+      },
+      {
+        "name": "planned-routes",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/0-planned-routes.json"
+      },
+      {
+        "name": "surface-screen-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/1-surface-screen-ee6bc0a4ad19.png"
+      },
+      {
+        "name": "surface-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/2-surface-ee6bc0a4ad19.json"
+      },
+      {
+        "name": "axe-surface-a02e693b0a69",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/3-axe-surface-a02e693b0a69.json"
+      },
+      {
+        "name": "surface-screen-24e4c64820d7",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/4-surface-screen-24e4c64820d7.png"
+      },
+      {
+        "name": "surface-24e4c64820d7",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/5-surface-24e4c64820d7.json"
+      },
+      {
+        "name": "axe-surface-9fc503a85e55",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/6-axe-surface-9fc503a85e55.json"
+      },
+      {
+        "name": "surface-screen-46373fced2e4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/7-surface-screen-46373fced2e4.png"
+      },
+      {
+        "name": "surface-46373fced2e4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/8-surface-46373fced2e4.json"
+      },
+      {
+        "name": "axe-surface-97238094fc2f",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/9-axe-surface-97238094fc2f.json"
+      },
+      {
+        "name": "surface-screen-0c12f8030a89",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/10-surface-screen-0c12f8030a89.png"
+      },
+      {
+        "name": "surface-0c12f8030a89",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/11-surface-0c12f8030a89.json"
+      },
+      {
+        "name": "axe-surface-f95efc15ab97",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/12-axe-surface-f95efc15ab97.json"
+      },
+      {
+        "name": "surface-screen-584f5ea85d1f",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/13-surface-screen-584f5ea85d1f.png"
+      },
+      {
+        "name": "surface-584f5ea85d1f",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/14-surface-584f5ea85d1f.json"
+      },
+      {
+        "name": "axe-surface-4b51f2a5321d",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/15-axe-surface-4b51f2a5321d.json"
+      },
+      {
+        "name": "surface-screen-0ac49026fa90",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/16-surface-screen-0ac49026fa90.png"
+      },
+      {
+        "name": "surface-0ac49026fa90",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/17-surface-0ac49026fa90.json"
+      },
+      {
+        "name": "axe-surface-c81ca144a3c9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/18-axe-surface-c81ca144a3c9.json"
+      },
+      {
+        "name": "surface-screen-8a3ae4ede53d",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/19-surface-screen-8a3ae4ede53d.png"
+      },
+      {
+        "name": "surface-8a3ae4ede53d",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/20-surface-8a3ae4ede53d.json"
+      },
+      {
+        "name": "axe-surface-140e7b1b7089",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/21-axe-surface-140e7b1b7089.json"
+      },
+      {
+        "name": "surface-screen-0faf63fcf942",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/22-surface-screen-0faf63fcf942.png"
+      },
+      {
+        "name": "surface-0faf63fcf942",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/23-surface-0faf63fcf942.json"
+      },
+      {
+        "name": "axe-surface-b75ef701d2f0",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/24-axe-surface-b75ef701d2f0.json"
+      },
+      {
+        "name": "surface-screen-043fffb00dcb",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/25-surface-screen-043fffb00dcb.png"
+      },
+      {
+        "name": "surface-043fffb00dcb",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/26-surface-043fffb00dcb.json"
+      },
+      {
+        "name": "axe-surface-8bfd5f49c365",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/27-axe-surface-8bfd5f49c365.json"
+      },
+      {
+        "name": "surface-screen-3b60467d4fa3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/28-surface-screen-3b60467d4fa3.png"
+      },
+      {
+        "name": "surface-3b60467d4fa3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/29-surface-3b60467d4fa3.json"
+      },
+      {
+        "name": "axe-surface-f71dc0c33cd9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/30-axe-surface-f71dc0c33cd9.json"
+      },
+      {
+        "name": "surface-screen-2510e49b68e1",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/31-surface-screen-2510e49b68e1.png"
+      },
+      {
+        "name": "surface-2510e49b68e1",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/32-surface-2510e49b68e1.json"
+      },
+      {
+        "name": "axe-surface-c1d7150d9190",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/33-axe-surface-c1d7150d9190.json"
+      },
+      {
+        "name": "surface-screen-6842cbb1f16a",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/34-surface-screen-6842cbb1f16a.png"
+      },
+      {
+        "name": "surface-6842cbb1f16a",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/35-surface-6842cbb1f16a.json"
+      },
+      {
+        "name": "axe-surface-f86def0adcce",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/36-axe-surface-f86def0adcce.json"
+      },
+      {
+        "name": "surface-screen-ce785fd33749",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/37-surface-screen-ce785fd33749.png"
+      },
+      {
+        "name": "surface-ce785fd33749",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/38-surface-ce785fd33749.json"
+      },
+      {
+        "name": "axe-surface-80793fd0d0e4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/39-axe-surface-80793fd0d0e4.json"
+      },
+      {
+        "name": "surface-screen-9f0c7a539df3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/40-surface-screen-9f0c7a539df3.png"
+      },
+      {
+        "name": "surface-9f0c7a539df3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/41-surface-9f0c7a539df3.json"
+      },
+      {
+        "name": "axe-surface-321d9a2fe0a5",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/42-axe-surface-321d9a2fe0a5.json"
+      },
+      {
+        "name": "surface-screen-7c35cac419c4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/43-surface-screen-7c35cac419c4.png"
+      },
+      {
+        "name": "surface-7c35cac419c4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/44-surface-7c35cac419c4.json"
+      },
+      {
+        "name": "axe-surface-623bf3117462",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/45-axe-surface-623bf3117462.json"
+      },
+      {
+        "name": "surface-screen-31279458c620",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/46-surface-screen-31279458c620.png"
+      },
+      {
+        "name": "surface-31279458c620",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/47-surface-31279458c620.json"
+      },
+      {
+        "name": "axe-surface-8ceea21726ee",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/48-axe-surface-8ceea21726ee.json"
+      },
+      {
+        "name": "surface-screen-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/49-surface-screen-8c4f8b0e0cd9.png"
+      },
+      {
+        "name": "surface-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/50-surface-8c4f8b0e0cd9.json"
+      },
+      {
+        "name": "axe-surface-4a67c5636387",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/51-axe-surface-4a67c5636387.json"
+      },
+      {
+        "name": "surface-screen-3e0651fa1742",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/52-surface-screen-3e0651fa1742.png"
+      },
+      {
+        "name": "surface-3e0651fa1742",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/53-surface-3e0651fa1742.json"
+      },
+      {
+        "name": "axe-surface-2c21737d150b",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/54-axe-surface-2c21737d150b.json"
+      },
+      {
+        "name": "surface-screen-d266af06dc35",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/55-surface-screen-d266af06dc35.png"
+      },
+      {
+        "name": "surface-d266af06dc35",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/56-surface-d266af06dc35.json"
+      },
+      {
+        "name": "axe-surface-f1bf4f4cb1da",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/57-axe-surface-f1bf4f4cb1da.json"
+      },
+      {
+        "name": "surface-screen-92846ba8f8d0",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/58-surface-screen-92846ba8f8d0.png"
+      },
+      {
+        "name": "surface-92846ba8f8d0",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/59-surface-92846ba8f8d0.json"
+      },
+      {
+        "name": "axe-surface-9ed6dd63b993",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/60-axe-surface-9ed6dd63b993.json"
+      },
+      {
+        "name": "surface-screen-a9b3daf2c95e",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/61-surface-screen-a9b3daf2c95e.png"
+      },
+      {
+        "name": "surface-a9b3daf2c95e",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/62-surface-a9b3daf2c95e.json"
+      },
+      {
+        "name": "axe-surface-0198914a159b",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/63-axe-surface-0198914a159b.json"
+      },
+      {
+        "name": "surface-screen-19227f6165ca",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/64-surface-screen-19227f6165ca.png"
+      },
+      {
+        "name": "surface-19227f6165ca",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/65-surface-19227f6165ca.json"
+      },
+      {
+        "name": "axe-surface-99bea7b2f3e1",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/66-axe-surface-99bea7b2f3e1.json"
+      },
+      {
+        "name": "screenshot",
+        "path": "tmp/qa-agent/d307e20c763219b7/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-mobile/test-failed-1.png"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/68-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/69-final-screen.png"
+      },
+      {
+        "name": "error-context",
+        "path": "tmp/qa-agent/d307e20c763219b7/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-mobile/error-context.md"
+      },
+      {
+        "name": "trace",
+        "path": "tmp/qa-agent/d307e20c763219b7/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-mobile/trace.zip"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "suggested_fix": "Remove nested/duplicate landmark semantics while retaining the canonical application main and named regions; retest all shared component routes. Complexity: small to medium.",
+    "retest_status": "NOT_RETESTED"
+  },
+  {
+    "id": "QA-P4-AXE-26DC4E2A2543",
+    "feature": "Phase 4 exploratory accessibility",
+    "area": "intelligence",
+    "journey": "First-seller supported task review",
+    "route": "/intelligence/product-opportunities/:id",
+    "type": "ACCESSIBILITY",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "No axe landmark-unique violation in the recorded application state.",
+    "actual": "{\"id\":\"landmark-unique\",\"impact\":\"moderate\",\"nodes\":[{\"target\":[\".workspace\"],\"remediation\":\"Fix any of the following:\\n  The landmark must have a unique aria-label, aria-labelledby, or title to make landmarks distinguishable\"}]}",
+    "business_impact": "Recorded semantics, readability or keyboard access impede seller comprehension or assistive navigation.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase4",
+      "Open /intelligence/product-opportunities/:id in the recorded synthetic scenario; inspect attached state and network evidence."
+    ],
+    "evidence": [
+      {
+        "name": "planned-routes",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/0-planned-routes.json"
+      },
+      {
+        "name": "surface-screen-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/1-surface-screen-ee6bc0a4ad19.png"
+      },
+      {
+        "name": "surface-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/2-surface-ee6bc0a4ad19.json"
+      },
+      {
+        "name": "axe-surface-a02e693b0a69",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/3-axe-surface-a02e693b0a69.json"
+      },
+      {
+        "name": "surface-screen-24e4c64820d7",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/4-surface-screen-24e4c64820d7.png"
+      },
+      {
+        "name": "surface-24e4c64820d7",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/5-surface-24e4c64820d7.json"
+      },
+      {
+        "name": "axe-surface-9fc503a85e55",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/6-axe-surface-9fc503a85e55.json"
+      },
+      {
+        "name": "surface-screen-46373fced2e4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/7-surface-screen-46373fced2e4.png"
+      },
+      {
+        "name": "surface-46373fced2e4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/8-surface-46373fced2e4.json"
+      },
+      {
+        "name": "axe-surface-97238094fc2f",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/9-axe-surface-97238094fc2f.json"
+      },
+      {
+        "name": "surface-screen-0c12f8030a89",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/10-surface-screen-0c12f8030a89.png"
+      },
+      {
+        "name": "surface-0c12f8030a89",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/11-surface-0c12f8030a89.json"
+      },
+      {
+        "name": "axe-surface-f95efc15ab97",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/12-axe-surface-f95efc15ab97.json"
+      },
+      {
+        "name": "surface-screen-584f5ea85d1f",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/13-surface-screen-584f5ea85d1f.png"
+      },
+      {
+        "name": "surface-584f5ea85d1f",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/14-surface-584f5ea85d1f.json"
+      },
+      {
+        "name": "axe-surface-4b51f2a5321d",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/15-axe-surface-4b51f2a5321d.json"
+      },
+      {
+        "name": "surface-screen-0ac49026fa90",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/16-surface-screen-0ac49026fa90.png"
+      },
+      {
+        "name": "surface-0ac49026fa90",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/17-surface-0ac49026fa90.json"
+      },
+      {
+        "name": "axe-surface-c81ca144a3c9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/18-axe-surface-c81ca144a3c9.json"
+      },
+      {
+        "name": "surface-screen-8a3ae4ede53d",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/19-surface-screen-8a3ae4ede53d.png"
+      },
+      {
+        "name": "surface-8a3ae4ede53d",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/20-surface-8a3ae4ede53d.json"
+      },
+      {
+        "name": "axe-surface-140e7b1b7089",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/21-axe-surface-140e7b1b7089.json"
+      },
+      {
+        "name": "surface-screen-0faf63fcf942",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/22-surface-screen-0faf63fcf942.png"
+      },
+      {
+        "name": "surface-0faf63fcf942",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/23-surface-0faf63fcf942.json"
+      },
+      {
+        "name": "axe-surface-b75ef701d2f0",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/24-axe-surface-b75ef701d2f0.json"
+      },
+      {
+        "name": "surface-screen-043fffb00dcb",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/25-surface-screen-043fffb00dcb.png"
+      },
+      {
+        "name": "surface-043fffb00dcb",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/26-surface-043fffb00dcb.json"
+      },
+      {
+        "name": "axe-surface-8bfd5f49c365",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/27-axe-surface-8bfd5f49c365.json"
+      },
+      {
+        "name": "surface-screen-3b60467d4fa3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/28-surface-screen-3b60467d4fa3.png"
+      },
+      {
+        "name": "surface-3b60467d4fa3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/29-surface-3b60467d4fa3.json"
+      },
+      {
+        "name": "axe-surface-f71dc0c33cd9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/30-axe-surface-f71dc0c33cd9.json"
+      },
+      {
+        "name": "surface-screen-2510e49b68e1",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/31-surface-screen-2510e49b68e1.png"
+      },
+      {
+        "name": "surface-2510e49b68e1",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/32-surface-2510e49b68e1.json"
+      },
+      {
+        "name": "axe-surface-c1d7150d9190",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/33-axe-surface-c1d7150d9190.json"
+      },
+      {
+        "name": "surface-screen-6842cbb1f16a",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/34-surface-screen-6842cbb1f16a.png"
+      },
+      {
+        "name": "surface-6842cbb1f16a",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/35-surface-6842cbb1f16a.json"
+      },
+      {
+        "name": "axe-surface-f86def0adcce",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/36-axe-surface-f86def0adcce.json"
+      },
+      {
+        "name": "surface-screen-ce785fd33749",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/37-surface-screen-ce785fd33749.png"
+      },
+      {
+        "name": "surface-ce785fd33749",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/38-surface-ce785fd33749.json"
+      },
+      {
+        "name": "axe-surface-80793fd0d0e4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/39-axe-surface-80793fd0d0e4.json"
+      },
+      {
+        "name": "surface-screen-9f0c7a539df3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/40-surface-screen-9f0c7a539df3.png"
+      },
+      {
+        "name": "surface-9f0c7a539df3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/41-surface-9f0c7a539df3.json"
+      },
+      {
+        "name": "axe-surface-321d9a2fe0a5",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/42-axe-surface-321d9a2fe0a5.json"
+      },
+      {
+        "name": "surface-screen-7c35cac419c4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/43-surface-screen-7c35cac419c4.png"
+      },
+      {
+        "name": "surface-7c35cac419c4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/44-surface-7c35cac419c4.json"
+      },
+      {
+        "name": "axe-surface-623bf3117462",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/45-axe-surface-623bf3117462.json"
+      },
+      {
+        "name": "surface-screen-31279458c620",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/46-surface-screen-31279458c620.png"
+      },
+      {
+        "name": "surface-31279458c620",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/47-surface-31279458c620.json"
+      },
+      {
+        "name": "axe-surface-8ceea21726ee",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/48-axe-surface-8ceea21726ee.json"
+      },
+      {
+        "name": "surface-screen-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/49-surface-screen-8c4f8b0e0cd9.png"
+      },
+      {
+        "name": "surface-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/50-surface-8c4f8b0e0cd9.json"
+      },
+      {
+        "name": "axe-surface-4a67c5636387",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/51-axe-surface-4a67c5636387.json"
+      },
+      {
+        "name": "surface-screen-3e0651fa1742",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/52-surface-screen-3e0651fa1742.png"
+      },
+      {
+        "name": "surface-3e0651fa1742",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/53-surface-3e0651fa1742.json"
+      },
+      {
+        "name": "axe-surface-2c21737d150b",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/54-axe-surface-2c21737d150b.json"
+      },
+      {
+        "name": "surface-screen-d266af06dc35",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/55-surface-screen-d266af06dc35.png"
+      },
+      {
+        "name": "surface-d266af06dc35",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/56-surface-d266af06dc35.json"
+      },
+      {
+        "name": "axe-surface-f1bf4f4cb1da",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/57-axe-surface-f1bf4f4cb1da.json"
+      },
+      {
+        "name": "surface-screen-92846ba8f8d0",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/58-surface-screen-92846ba8f8d0.png"
+      },
+      {
+        "name": "surface-92846ba8f8d0",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/59-surface-92846ba8f8d0.json"
+      },
+      {
+        "name": "axe-surface-9ed6dd63b993",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/60-axe-surface-9ed6dd63b993.json"
+      },
+      {
+        "name": "surface-screen-a9b3daf2c95e",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/61-surface-screen-a9b3daf2c95e.png"
+      },
+      {
+        "name": "surface-a9b3daf2c95e",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/62-surface-a9b3daf2c95e.json"
+      },
+      {
+        "name": "axe-surface-0198914a159b",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/63-axe-surface-0198914a159b.json"
+      },
+      {
+        "name": "surface-screen-19227f6165ca",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/64-surface-screen-19227f6165ca.png"
+      },
+      {
+        "name": "surface-19227f6165ca",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/65-surface-19227f6165ca.json"
+      },
+      {
+        "name": "axe-surface-99bea7b2f3e1",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/66-axe-surface-99bea7b2f3e1.json"
+      },
+      {
+        "name": "screenshot",
+        "path": "tmp/qa-agent/463ad3c679d589bc/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-desktop/test-failed-1.png"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/68-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/69-final-screen.png"
+      },
+      {
+        "name": "error-context",
+        "path": "tmp/qa-agent/463ad3c679d589bc/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-desktop/error-context.md"
+      },
+      {
+        "name": "trace",
+        "path": "tmp/qa-agent/463ad3c679d589bc/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-desktop/trace.zip"
+      },
+      {
+        "name": "planned-routes",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/0-planned-routes.json"
+      },
+      {
+        "name": "surface-screen-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/1-surface-screen-ee6bc0a4ad19.png"
+      },
+      {
+        "name": "surface-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/2-surface-ee6bc0a4ad19.json"
+      },
+      {
+        "name": "axe-surface-a02e693b0a69",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/3-axe-surface-a02e693b0a69.json"
+      },
+      {
+        "name": "surface-screen-24e4c64820d7",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/4-surface-screen-24e4c64820d7.png"
+      },
+      {
+        "name": "surface-24e4c64820d7",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/5-surface-24e4c64820d7.json"
+      },
+      {
+        "name": "axe-surface-9fc503a85e55",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/6-axe-surface-9fc503a85e55.json"
+      },
+      {
+        "name": "surface-screen-46373fced2e4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/7-surface-screen-46373fced2e4.png"
+      },
+      {
+        "name": "surface-46373fced2e4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/8-surface-46373fced2e4.json"
+      },
+      {
+        "name": "axe-surface-97238094fc2f",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/9-axe-surface-97238094fc2f.json"
+      },
+      {
+        "name": "surface-screen-0c12f8030a89",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/10-surface-screen-0c12f8030a89.png"
+      },
+      {
+        "name": "surface-0c12f8030a89",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/11-surface-0c12f8030a89.json"
+      },
+      {
+        "name": "axe-surface-f95efc15ab97",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/12-axe-surface-f95efc15ab97.json"
+      },
+      {
+        "name": "surface-screen-584f5ea85d1f",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/13-surface-screen-584f5ea85d1f.png"
+      },
+      {
+        "name": "surface-584f5ea85d1f",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/14-surface-584f5ea85d1f.json"
+      },
+      {
+        "name": "axe-surface-4b51f2a5321d",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/15-axe-surface-4b51f2a5321d.json"
+      },
+      {
+        "name": "surface-screen-0ac49026fa90",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/16-surface-screen-0ac49026fa90.png"
+      },
+      {
+        "name": "surface-0ac49026fa90",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/17-surface-0ac49026fa90.json"
+      },
+      {
+        "name": "axe-surface-c81ca144a3c9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/18-axe-surface-c81ca144a3c9.json"
+      },
+      {
+        "name": "surface-screen-8a3ae4ede53d",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/19-surface-screen-8a3ae4ede53d.png"
+      },
+      {
+        "name": "surface-8a3ae4ede53d",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/20-surface-8a3ae4ede53d.json"
+      },
+      {
+        "name": "axe-surface-140e7b1b7089",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/21-axe-surface-140e7b1b7089.json"
+      },
+      {
+        "name": "surface-screen-0faf63fcf942",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/22-surface-screen-0faf63fcf942.png"
+      },
+      {
+        "name": "surface-0faf63fcf942",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/23-surface-0faf63fcf942.json"
+      },
+      {
+        "name": "axe-surface-b75ef701d2f0",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/24-axe-surface-b75ef701d2f0.json"
+      },
+      {
+        "name": "surface-screen-043fffb00dcb",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/25-surface-screen-043fffb00dcb.png"
+      },
+      {
+        "name": "surface-043fffb00dcb",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/26-surface-043fffb00dcb.json"
+      },
+      {
+        "name": "axe-surface-8bfd5f49c365",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/27-axe-surface-8bfd5f49c365.json"
+      },
+      {
+        "name": "surface-screen-3b60467d4fa3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/28-surface-screen-3b60467d4fa3.png"
+      },
+      {
+        "name": "surface-3b60467d4fa3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/29-surface-3b60467d4fa3.json"
+      },
+      {
+        "name": "axe-surface-f71dc0c33cd9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/30-axe-surface-f71dc0c33cd9.json"
+      },
+      {
+        "name": "surface-screen-2510e49b68e1",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/31-surface-screen-2510e49b68e1.png"
+      },
+      {
+        "name": "surface-2510e49b68e1",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/32-surface-2510e49b68e1.json"
+      },
+      {
+        "name": "axe-surface-c1d7150d9190",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/33-axe-surface-c1d7150d9190.json"
+      },
+      {
+        "name": "surface-screen-6842cbb1f16a",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/34-surface-screen-6842cbb1f16a.png"
+      },
+      {
+        "name": "surface-6842cbb1f16a",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/35-surface-6842cbb1f16a.json"
+      },
+      {
+        "name": "axe-surface-f86def0adcce",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/36-axe-surface-f86def0adcce.json"
+      },
+      {
+        "name": "surface-screen-ce785fd33749",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/37-surface-screen-ce785fd33749.png"
+      },
+      {
+        "name": "surface-ce785fd33749",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/38-surface-ce785fd33749.json"
+      },
+      {
+        "name": "axe-surface-80793fd0d0e4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/39-axe-surface-80793fd0d0e4.json"
+      },
+      {
+        "name": "surface-screen-9f0c7a539df3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/40-surface-screen-9f0c7a539df3.png"
+      },
+      {
+        "name": "surface-9f0c7a539df3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/41-surface-9f0c7a539df3.json"
+      },
+      {
+        "name": "axe-surface-321d9a2fe0a5",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/42-axe-surface-321d9a2fe0a5.json"
+      },
+      {
+        "name": "surface-screen-7c35cac419c4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/43-surface-screen-7c35cac419c4.png"
+      },
+      {
+        "name": "surface-7c35cac419c4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/44-surface-7c35cac419c4.json"
+      },
+      {
+        "name": "axe-surface-623bf3117462",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/45-axe-surface-623bf3117462.json"
+      },
+      {
+        "name": "surface-screen-31279458c620",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/46-surface-screen-31279458c620.png"
+      },
+      {
+        "name": "surface-31279458c620",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/47-surface-31279458c620.json"
+      },
+      {
+        "name": "axe-surface-8ceea21726ee",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/48-axe-surface-8ceea21726ee.json"
+      },
+      {
+        "name": "surface-screen-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/49-surface-screen-8c4f8b0e0cd9.png"
+      },
+      {
+        "name": "surface-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/50-surface-8c4f8b0e0cd9.json"
+      },
+      {
+        "name": "axe-surface-4a67c5636387",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/51-axe-surface-4a67c5636387.json"
+      },
+      {
+        "name": "surface-screen-3e0651fa1742",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/52-surface-screen-3e0651fa1742.png"
+      },
+      {
+        "name": "surface-3e0651fa1742",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/53-surface-3e0651fa1742.json"
+      },
+      {
+        "name": "axe-surface-2c21737d150b",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/54-axe-surface-2c21737d150b.json"
+      },
+      {
+        "name": "surface-screen-d266af06dc35",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/55-surface-screen-d266af06dc35.png"
+      },
+      {
+        "name": "surface-d266af06dc35",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/56-surface-d266af06dc35.json"
+      },
+      {
+        "name": "axe-surface-f1bf4f4cb1da",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/57-axe-surface-f1bf4f4cb1da.json"
+      },
+      {
+        "name": "surface-screen-92846ba8f8d0",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/58-surface-screen-92846ba8f8d0.png"
+      },
+      {
+        "name": "surface-92846ba8f8d0",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/59-surface-92846ba8f8d0.json"
+      },
+      {
+        "name": "axe-surface-9ed6dd63b993",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/60-axe-surface-9ed6dd63b993.json"
+      },
+      {
+        "name": "surface-screen-a9b3daf2c95e",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/61-surface-screen-a9b3daf2c95e.png"
+      },
+      {
+        "name": "surface-a9b3daf2c95e",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/62-surface-a9b3daf2c95e.json"
+      },
+      {
+        "name": "axe-surface-0198914a159b",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/63-axe-surface-0198914a159b.json"
+      },
+      {
+        "name": "surface-screen-19227f6165ca",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/64-surface-screen-19227f6165ca.png"
+      },
+      {
+        "name": "surface-19227f6165ca",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/65-surface-19227f6165ca.json"
+      },
+      {
+        "name": "axe-surface-99bea7b2f3e1",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/66-axe-surface-99bea7b2f3e1.json"
+      },
+      {
+        "name": "screenshot",
+        "path": "tmp/qa-agent/d307e20c763219b7/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-mobile/test-failed-1.png"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/68-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/69-final-screen.png"
+      },
+      {
+        "name": "error-context",
+        "path": "tmp/qa-agent/d307e20c763219b7/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-mobile/error-context.md"
+      },
+      {
+        "name": "trace",
+        "path": "tmp/qa-agent/d307e20c763219b7/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-mobile/trace.zip"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "suggested_fix": "Remove nested/duplicate landmark semantics while retaining the canonical application main and named regions; retest all shared component routes. Complexity: small to medium.",
+    "retest_status": "NOT_RETESTED"
+  },
+  {
+    "id": "QA-P4-AXE-C81046A29D13",
+    "feature": "Phase 4 exploratory accessibility",
+    "area": "intelligence",
+    "journey": "First-seller supported task review",
+    "route": "/intelligence/external",
+    "type": "ACCESSIBILITY",
+    "severity": "MAJOR",
+    "priority": "P1",
+    "expected": "No axe aria-prohibited-attr violation in the recorded application state.",
+    "actual": "{\"id\":\"aria-prohibited-attr\",\"impact\":\"serious\",\"nodes\":[{\"target\":[\"#recovery > .badge-row\"],\"remediation\":\"Fix all of the following:\\n  aria-label attribute cannot be used on a div with no valid role attribute.\"}]}",
+    "business_impact": "Recorded semantics, readability or keyboard access impede seller comprehension or assistive navigation.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase4",
+      "Open /intelligence/external in the recorded synthetic scenario; inspect attached state and network evidence."
+    ],
+    "evidence": [
+      {
+        "name": "planned-routes",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/0-planned-routes.json"
+      },
+      {
+        "name": "surface-screen-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/1-surface-screen-ee6bc0a4ad19.png"
+      },
+      {
+        "name": "surface-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/2-surface-ee6bc0a4ad19.json"
+      },
+      {
+        "name": "axe-surface-a02e693b0a69",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/3-axe-surface-a02e693b0a69.json"
+      },
+      {
+        "name": "surface-screen-24e4c64820d7",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/4-surface-screen-24e4c64820d7.png"
+      },
+      {
+        "name": "surface-24e4c64820d7",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/5-surface-24e4c64820d7.json"
+      },
+      {
+        "name": "axe-surface-9fc503a85e55",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/6-axe-surface-9fc503a85e55.json"
+      },
+      {
+        "name": "surface-screen-46373fced2e4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/7-surface-screen-46373fced2e4.png"
+      },
+      {
+        "name": "surface-46373fced2e4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/8-surface-46373fced2e4.json"
+      },
+      {
+        "name": "axe-surface-97238094fc2f",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/9-axe-surface-97238094fc2f.json"
+      },
+      {
+        "name": "surface-screen-0c12f8030a89",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/10-surface-screen-0c12f8030a89.png"
+      },
+      {
+        "name": "surface-0c12f8030a89",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/11-surface-0c12f8030a89.json"
+      },
+      {
+        "name": "axe-surface-f95efc15ab97",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/12-axe-surface-f95efc15ab97.json"
+      },
+      {
+        "name": "surface-screen-584f5ea85d1f",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/13-surface-screen-584f5ea85d1f.png"
+      },
+      {
+        "name": "surface-584f5ea85d1f",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/14-surface-584f5ea85d1f.json"
+      },
+      {
+        "name": "axe-surface-4b51f2a5321d",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/15-axe-surface-4b51f2a5321d.json"
+      },
+      {
+        "name": "surface-screen-0ac49026fa90",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/16-surface-screen-0ac49026fa90.png"
+      },
+      {
+        "name": "surface-0ac49026fa90",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/17-surface-0ac49026fa90.json"
+      },
+      {
+        "name": "axe-surface-c81ca144a3c9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/18-axe-surface-c81ca144a3c9.json"
+      },
+      {
+        "name": "surface-screen-8a3ae4ede53d",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/19-surface-screen-8a3ae4ede53d.png"
+      },
+      {
+        "name": "surface-8a3ae4ede53d",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/20-surface-8a3ae4ede53d.json"
+      },
+      {
+        "name": "axe-surface-140e7b1b7089",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/21-axe-surface-140e7b1b7089.json"
+      },
+      {
+        "name": "surface-screen-0faf63fcf942",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/22-surface-screen-0faf63fcf942.png"
+      },
+      {
+        "name": "surface-0faf63fcf942",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/23-surface-0faf63fcf942.json"
+      },
+      {
+        "name": "axe-surface-b75ef701d2f0",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/24-axe-surface-b75ef701d2f0.json"
+      },
+      {
+        "name": "surface-screen-043fffb00dcb",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/25-surface-screen-043fffb00dcb.png"
+      },
+      {
+        "name": "surface-043fffb00dcb",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/26-surface-043fffb00dcb.json"
+      },
+      {
+        "name": "axe-surface-8bfd5f49c365",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/27-axe-surface-8bfd5f49c365.json"
+      },
+      {
+        "name": "surface-screen-3b60467d4fa3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/28-surface-screen-3b60467d4fa3.png"
+      },
+      {
+        "name": "surface-3b60467d4fa3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/29-surface-3b60467d4fa3.json"
+      },
+      {
+        "name": "axe-surface-f71dc0c33cd9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/30-axe-surface-f71dc0c33cd9.json"
+      },
+      {
+        "name": "surface-screen-2510e49b68e1",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/31-surface-screen-2510e49b68e1.png"
+      },
+      {
+        "name": "surface-2510e49b68e1",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/32-surface-2510e49b68e1.json"
+      },
+      {
+        "name": "axe-surface-c1d7150d9190",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/33-axe-surface-c1d7150d9190.json"
+      },
+      {
+        "name": "surface-screen-6842cbb1f16a",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/34-surface-screen-6842cbb1f16a.png"
+      },
+      {
+        "name": "surface-6842cbb1f16a",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/35-surface-6842cbb1f16a.json"
+      },
+      {
+        "name": "axe-surface-f86def0adcce",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/36-axe-surface-f86def0adcce.json"
+      },
+      {
+        "name": "surface-screen-ce785fd33749",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/37-surface-screen-ce785fd33749.png"
+      },
+      {
+        "name": "surface-ce785fd33749",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/38-surface-ce785fd33749.json"
+      },
+      {
+        "name": "axe-surface-80793fd0d0e4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/39-axe-surface-80793fd0d0e4.json"
+      },
+      {
+        "name": "surface-screen-9f0c7a539df3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/40-surface-screen-9f0c7a539df3.png"
+      },
+      {
+        "name": "surface-9f0c7a539df3",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/41-surface-9f0c7a539df3.json"
+      },
+      {
+        "name": "axe-surface-321d9a2fe0a5",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/42-axe-surface-321d9a2fe0a5.json"
+      },
+      {
+        "name": "surface-screen-7c35cac419c4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/43-surface-screen-7c35cac419c4.png"
+      },
+      {
+        "name": "surface-7c35cac419c4",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/44-surface-7c35cac419c4.json"
+      },
+      {
+        "name": "axe-surface-623bf3117462",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/45-axe-surface-623bf3117462.json"
+      },
+      {
+        "name": "surface-screen-31279458c620",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/46-surface-screen-31279458c620.png"
+      },
+      {
+        "name": "surface-31279458c620",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/47-surface-31279458c620.json"
+      },
+      {
+        "name": "axe-surface-8ceea21726ee",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/48-axe-surface-8ceea21726ee.json"
+      },
+      {
+        "name": "surface-screen-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/49-surface-screen-8c4f8b0e0cd9.png"
+      },
+      {
+        "name": "surface-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/50-surface-8c4f8b0e0cd9.json"
+      },
+      {
+        "name": "axe-surface-4a67c5636387",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/51-axe-surface-4a67c5636387.json"
+      },
+      {
+        "name": "surface-screen-3e0651fa1742",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/52-surface-screen-3e0651fa1742.png"
+      },
+      {
+        "name": "surface-3e0651fa1742",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/53-surface-3e0651fa1742.json"
+      },
+      {
+        "name": "axe-surface-2c21737d150b",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/54-axe-surface-2c21737d150b.json"
+      },
+      {
+        "name": "surface-screen-d266af06dc35",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/55-surface-screen-d266af06dc35.png"
+      },
+      {
+        "name": "surface-d266af06dc35",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/56-surface-d266af06dc35.json"
+      },
+      {
+        "name": "axe-surface-f1bf4f4cb1da",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/57-axe-surface-f1bf4f4cb1da.json"
+      },
+      {
+        "name": "surface-screen-92846ba8f8d0",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/58-surface-screen-92846ba8f8d0.png"
+      },
+      {
+        "name": "surface-92846ba8f8d0",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/59-surface-92846ba8f8d0.json"
+      },
+      {
+        "name": "axe-surface-9ed6dd63b993",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/60-axe-surface-9ed6dd63b993.json"
+      },
+      {
+        "name": "surface-screen-a9b3daf2c95e",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/61-surface-screen-a9b3daf2c95e.png"
+      },
+      {
+        "name": "surface-a9b3daf2c95e",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/62-surface-a9b3daf2c95e.json"
+      },
+      {
+        "name": "axe-surface-0198914a159b",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/63-axe-surface-0198914a159b.json"
+      },
+      {
+        "name": "surface-screen-19227f6165ca",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/64-surface-screen-19227f6165ca.png"
+      },
+      {
+        "name": "surface-19227f6165ca",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/65-surface-19227f6165ca.json"
+      },
+      {
+        "name": "axe-surface-99bea7b2f3e1",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/66-axe-surface-99bea7b2f3e1.json"
+      },
+      {
+        "name": "screenshot",
+        "path": "tmp/qa-agent/463ad3c679d589bc/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-desktop/test-failed-1.png"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/68-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/463ad3c679d589bc/evidence/desktop-QA-P4-SURFACE-INTELLIGENCE/69-final-screen.png"
+      },
+      {
+        "name": "error-context",
+        "path": "tmp/qa-agent/463ad3c679d589bc/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-desktop/error-context.md"
+      },
+      {
+        "name": "trace",
+        "path": "tmp/qa-agent/463ad3c679d589bc/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-desktop/trace.zip"
+      },
+      {
+        "name": "planned-routes",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/0-planned-routes.json"
+      },
+      {
+        "name": "surface-screen-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/1-surface-screen-ee6bc0a4ad19.png"
+      },
+      {
+        "name": "surface-ee6bc0a4ad19",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/2-surface-ee6bc0a4ad19.json"
+      },
+      {
+        "name": "axe-surface-a02e693b0a69",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/3-axe-surface-a02e693b0a69.json"
+      },
+      {
+        "name": "surface-screen-24e4c64820d7",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/4-surface-screen-24e4c64820d7.png"
+      },
+      {
+        "name": "surface-24e4c64820d7",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/5-surface-24e4c64820d7.json"
+      },
+      {
+        "name": "axe-surface-9fc503a85e55",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/6-axe-surface-9fc503a85e55.json"
+      },
+      {
+        "name": "surface-screen-46373fced2e4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/7-surface-screen-46373fced2e4.png"
+      },
+      {
+        "name": "surface-46373fced2e4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/8-surface-46373fced2e4.json"
+      },
+      {
+        "name": "axe-surface-97238094fc2f",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/9-axe-surface-97238094fc2f.json"
+      },
+      {
+        "name": "surface-screen-0c12f8030a89",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/10-surface-screen-0c12f8030a89.png"
+      },
+      {
+        "name": "surface-0c12f8030a89",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/11-surface-0c12f8030a89.json"
+      },
+      {
+        "name": "axe-surface-f95efc15ab97",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/12-axe-surface-f95efc15ab97.json"
+      },
+      {
+        "name": "surface-screen-584f5ea85d1f",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/13-surface-screen-584f5ea85d1f.png"
+      },
+      {
+        "name": "surface-584f5ea85d1f",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/14-surface-584f5ea85d1f.json"
+      },
+      {
+        "name": "axe-surface-4b51f2a5321d",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/15-axe-surface-4b51f2a5321d.json"
+      },
+      {
+        "name": "surface-screen-0ac49026fa90",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/16-surface-screen-0ac49026fa90.png"
+      },
+      {
+        "name": "surface-0ac49026fa90",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/17-surface-0ac49026fa90.json"
+      },
+      {
+        "name": "axe-surface-c81ca144a3c9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/18-axe-surface-c81ca144a3c9.json"
+      },
+      {
+        "name": "surface-screen-8a3ae4ede53d",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/19-surface-screen-8a3ae4ede53d.png"
+      },
+      {
+        "name": "surface-8a3ae4ede53d",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/20-surface-8a3ae4ede53d.json"
+      },
+      {
+        "name": "axe-surface-140e7b1b7089",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/21-axe-surface-140e7b1b7089.json"
+      },
+      {
+        "name": "surface-screen-0faf63fcf942",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/22-surface-screen-0faf63fcf942.png"
+      },
+      {
+        "name": "surface-0faf63fcf942",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/23-surface-0faf63fcf942.json"
+      },
+      {
+        "name": "axe-surface-b75ef701d2f0",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/24-axe-surface-b75ef701d2f0.json"
+      },
+      {
+        "name": "surface-screen-043fffb00dcb",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/25-surface-screen-043fffb00dcb.png"
+      },
+      {
+        "name": "surface-043fffb00dcb",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/26-surface-043fffb00dcb.json"
+      },
+      {
+        "name": "axe-surface-8bfd5f49c365",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/27-axe-surface-8bfd5f49c365.json"
+      },
+      {
+        "name": "surface-screen-3b60467d4fa3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/28-surface-screen-3b60467d4fa3.png"
+      },
+      {
+        "name": "surface-3b60467d4fa3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/29-surface-3b60467d4fa3.json"
+      },
+      {
+        "name": "axe-surface-f71dc0c33cd9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/30-axe-surface-f71dc0c33cd9.json"
+      },
+      {
+        "name": "surface-screen-2510e49b68e1",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/31-surface-screen-2510e49b68e1.png"
+      },
+      {
+        "name": "surface-2510e49b68e1",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/32-surface-2510e49b68e1.json"
+      },
+      {
+        "name": "axe-surface-c1d7150d9190",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/33-axe-surface-c1d7150d9190.json"
+      },
+      {
+        "name": "surface-screen-6842cbb1f16a",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/34-surface-screen-6842cbb1f16a.png"
+      },
+      {
+        "name": "surface-6842cbb1f16a",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/35-surface-6842cbb1f16a.json"
+      },
+      {
+        "name": "axe-surface-f86def0adcce",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/36-axe-surface-f86def0adcce.json"
+      },
+      {
+        "name": "surface-screen-ce785fd33749",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/37-surface-screen-ce785fd33749.png"
+      },
+      {
+        "name": "surface-ce785fd33749",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/38-surface-ce785fd33749.json"
+      },
+      {
+        "name": "axe-surface-80793fd0d0e4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/39-axe-surface-80793fd0d0e4.json"
+      },
+      {
+        "name": "surface-screen-9f0c7a539df3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/40-surface-screen-9f0c7a539df3.png"
+      },
+      {
+        "name": "surface-9f0c7a539df3",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/41-surface-9f0c7a539df3.json"
+      },
+      {
+        "name": "axe-surface-321d9a2fe0a5",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/42-axe-surface-321d9a2fe0a5.json"
+      },
+      {
+        "name": "surface-screen-7c35cac419c4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/43-surface-screen-7c35cac419c4.png"
+      },
+      {
+        "name": "surface-7c35cac419c4",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/44-surface-7c35cac419c4.json"
+      },
+      {
+        "name": "axe-surface-623bf3117462",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/45-axe-surface-623bf3117462.json"
+      },
+      {
+        "name": "surface-screen-31279458c620",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/46-surface-screen-31279458c620.png"
+      },
+      {
+        "name": "surface-31279458c620",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/47-surface-31279458c620.json"
+      },
+      {
+        "name": "axe-surface-8ceea21726ee",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/48-axe-surface-8ceea21726ee.json"
+      },
+      {
+        "name": "surface-screen-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/49-surface-screen-8c4f8b0e0cd9.png"
+      },
+      {
+        "name": "surface-8c4f8b0e0cd9",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/50-surface-8c4f8b0e0cd9.json"
+      },
+      {
+        "name": "axe-surface-4a67c5636387",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/51-axe-surface-4a67c5636387.json"
+      },
+      {
+        "name": "surface-screen-3e0651fa1742",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/52-surface-screen-3e0651fa1742.png"
+      },
+      {
+        "name": "surface-3e0651fa1742",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/53-surface-3e0651fa1742.json"
+      },
+      {
+        "name": "axe-surface-2c21737d150b",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/54-axe-surface-2c21737d150b.json"
+      },
+      {
+        "name": "surface-screen-d266af06dc35",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/55-surface-screen-d266af06dc35.png"
+      },
+      {
+        "name": "surface-d266af06dc35",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/56-surface-d266af06dc35.json"
+      },
+      {
+        "name": "axe-surface-f1bf4f4cb1da",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/57-axe-surface-f1bf4f4cb1da.json"
+      },
+      {
+        "name": "surface-screen-92846ba8f8d0",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/58-surface-screen-92846ba8f8d0.png"
+      },
+      {
+        "name": "surface-92846ba8f8d0",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/59-surface-92846ba8f8d0.json"
+      },
+      {
+        "name": "axe-surface-9ed6dd63b993",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/60-axe-surface-9ed6dd63b993.json"
+      },
+      {
+        "name": "surface-screen-a9b3daf2c95e",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/61-surface-screen-a9b3daf2c95e.png"
+      },
+      {
+        "name": "surface-a9b3daf2c95e",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/62-surface-a9b3daf2c95e.json"
+      },
+      {
+        "name": "axe-surface-0198914a159b",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/63-axe-surface-0198914a159b.json"
+      },
+      {
+        "name": "surface-screen-19227f6165ca",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/64-surface-screen-19227f6165ca.png"
+      },
+      {
+        "name": "surface-19227f6165ca",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/65-surface-19227f6165ca.json"
+      },
+      {
+        "name": "axe-surface-99bea7b2f3e1",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/66-axe-surface-99bea7b2f3e1.json"
+      },
+      {
+        "name": "screenshot",
+        "path": "tmp/qa-agent/d307e20c763219b7/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-mobile/test-failed-1.png"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/68-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/d307e20c763219b7/evidence/mobile-QA-P4-SURFACE-INTELLIGENCE/69-final-screen.png"
+      },
+      {
+        "name": "error-context",
+        "path": "tmp/qa-agent/d307e20c763219b7/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-mobile/error-context.md"
+      },
+      {
+        "name": "trace",
+        "path": "tmp/qa-agent/d307e20c763219b7/browser-artifacts/phase4-QA-P4-SURFACE-INTEL-e1d4f-only-intelligence-discovery-mobile/trace.zip"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "suggested_fix": "Use an appropriate progress role/element for the recorded ARIA properties, preserving accurate state values. Complexity: small.",
+    "retest_status": "NOT_RETESTED"
+  }
+]

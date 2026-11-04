@@ -1,0 +1,53 @@
+{
+  "schema_version": "seller-wp1-resolution-v1",
+  "date": "2026-10-28",
+  "classification": "WP1 COMPLETE / BOUNDED LOCAL BROWSER RETEST PASSED",
+  "application_certification": "INCOMPLETE",
+  "synthetic_only": true,
+  "live_acquisition_executed": false,
+  "permanent_database_modified": false,
+  "backup_certification": "PARKED",
+  "resolved_findings": ["SE-BROWSER-001", "SE-BROWSER-002", "SE-BROWSER-003", "SE-BROWSER-004"],
+  "unresolved_findings": ["SE-BROWSER-005", "SE-BROWSER-006", "SE-BROWSER-007", "SE-BROWSER-008", "SE-BROWSER-009", "SE-BROWSER-010", "SE-BROWSER-011", "SE-BROWSER-012", "SE-BROWSER-013", "SE-BROWSER-014", "SE-BROWSER-015", "SE-BROWSER-016", "SE-BROWSER-017", "SE-BROWSER-018", "SE-BROWSER-019", "SE-BROWSER-020"],
+  "additional_suspected_contrast_finding": "OPEN_UNVERIFIED",
+  "counts": {
+    "backend_passed": 13,
+    "backend_failed": 0,
+    "angular_passed": 280,
+    "angular_failed": 0,
+    "node_qa_passed": 49,
+    "python_qa_passed": 53,
+    "main_browser_raw_attempts": 32,
+    "main_browser_final_passes": 31,
+    "main_browser_early_timing_failure_retained": 1,
+    "final_browser_passed": 13,
+    "final_browser_failed": 0,
+    "final_axe_scans": 4,
+    "final_axe_violations": 0,
+    "final_mobile_assessment_incomplete_nodes": 17,
+    "wp1_databases_absent_and_signed_dropped": 11,
+    "original_docker_containers_preserved": 10
+  },
+  "final_browser_token": "baa7fa4093efbf17",
+  "final_backend_token": "172a4676e9954763",
+  "before_browser_token": "eca20e8eced7f200",
+  "main_browser_token": "d13067df8b66b91a",
+  "failed_replays_retained": ["8c8e0f00a236849d", "c46926f3a9d35b94"],
+  "evidence": [
+    "tmp/qa-seller-browser/baa7fa4093efbf17/wp1-final-browser.json",
+    "tmp/qa-seller-browser/baa7fa4093efbf17/final-desktop/trace.zip",
+    "tmp/qa-seller-browser/baa7fa4093efbf17/final-mobile/trace.zip",
+    "tmp/qa-seller-browser/baa7fa4093efbf17/session-final.json",
+    "tmp/qa-wp1-backend/172a4676e9954763/backend-results.xml",
+    "tmp/qa-wp1-final-audit.json"
+  ],
+  "limitations": [
+    "Earlier main mobile trace is incomplete; PNG/JSON remain and final independent desktop/mobile traces pass CRC.",
+    "17 obscured mobile table nodes require manual contrast review; no WCAG certification claim.",
+    "Real supplier acquisition, two-supplier comparison, whole-application and live category research not certified.",
+    "Existing bundle warning 517.89kB versus 500kB remains.",
+    "Focused mypy covers four changed contracts, not historical repository-wide debt.",
+    "Original cause of interrupted preflight DROP is unknown; exact signed invalid tombstone safely recovered and absence independently verified."
+  ],
+  "next_package_started": false
+}

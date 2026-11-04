@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import type {
@@ -21,6 +22,7 @@ import {
 import { CatalogService } from './catalog.service';
 import { ProductService } from '../products/product.service';
 import { environment } from '../../environments/environment';
+import { CatalogCostEstimateComponent } from './catalog-cost-estimate.component';
 
 interface DraftEditState {
   title: string;
@@ -42,6 +44,9 @@ interface MediaAssetOption {
 
 interface VariantEditState {
   title: string;
+  sku: string;
+  price: string;
+  currency: string;
 }
 
 @Component({
@@ -55,14 +60,16 @@ interface VariantEditState {
     LoadingStateComponent,
     PageHeaderComponent,
     RouterLink,
+    CatalogCostEstimateComponent,
   ],
   template: `
-    <main class="page catalog-page">
+    <section class="page catalog-page" aria-label="Seller catalog workspace">
       @if (selectedId) {
         <a class="back-link" routerLink="/catalog">← Back to Seller Catalog</a>
         @if (detailLoading()) {
           <app-loading-state message="Loading catalog context..." />
-        } @else if (error()) {
+        } @else if (error() && !detail()) {
+          <h1>Catalog product</h1>
           <app-error-state
             title="Catalog context is unavailable"
             [message]="error()"
@@ -73,56 +80,221 @@ interface VariantEditState {
           <app-page-header
             eyebrow="Seller Catalog / Product master"
             [title]="detail()!.product.name"
+            headingId="catalog-product-title"
             description="Prepare seller-owned product data and channel drafts. Nothing is published from this workspace."
           >
-            <div page-header-actions>
-              <a class="button" [routerLink]="['/products', detail()!.product.id]">Product record</a>
-              <a class="button" [routerLink]="['/products', detail()!.product.id, 'edit']">Edit product</a>
+            <div page-header-actions class="actions">
+              <a class="button" [routerLink]="['/products', detail()!.product.id]"
+                >Product record</a
+              >
+              <a class="button" [routerLink]="['/products', detail()!.product.id, 'edit']"
+                >Edit product</a
+              >
             </div>
           </app-page-header>
 
+          @if (error()) {
+            <div role="alert" class="card mutation-error">
+              <h2>Change not completed</h2>
+              <p>{{ error() }}</p>
+              <p>
+                Your loaded product and entered values are retained. Check the details and retry. If
+                another edit changed this record, reload before saving again.
+              </p>
+              <button class="button" type="button" (click)="loadDetail()">
+                Reload saved product
+              </button>
+            </div>
+          }
+
           <section class="trust-banner" aria-label="Catalog safety boundary">
             <strong>Preparation only</strong>
-            <span>Drafts are owner-scoped, require HUMAN review, and have no marketplace or supplier side effects.</span>
+            <span
+              >Drafts are owner-scoped, require HUMAN review, and have no marketplace or supplier
+              side effects.</span
+            >
           </section>
 
+          <nav class="trust-banner" aria-label="Product preparation steps">
+            <a
+              class="button"
+              routerLink="/marketplaces/inventory/opening"
+              [queryParams]="{ product_id: selectedId }"
+              >Record counted opening stock</a
+            >
+            <a
+              class="button"
+              routerLink="/marketplaces/inventory"
+              [queryParams]="{ product_id: selectedId }"
+              >Review stock ledger</a
+            >
+            <a class="button" [routerLink]="['/products', selectedId, 'channels']"
+              >Marketplace readiness</a
+            >
+            @if (detail()!.lineage?.opportunity_id) {
+              <a
+                class="button"
+                [routerLink]="[
+                  '/intelligence/product-opportunities',
+                  detail()!.lineage!.opportunity_id,
+                ]"
+                >Return to research and suppliers</a
+              >
+            }
+          </nav>
+
           <section class="card context-card" aria-labelledby="identity-title">
-            <div class="section-heading"><div><p class="eyebrow">Canonical identity</p><h2 id="identity-title">Product context</h2></div><span class="badge">{{ detail()!.product.status }}</span></div>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Canonical identity</p>
+                <h2 id="identity-title">Product context</h2>
+              </div>
+              <span class="badge">{{ detail()!.product.status }}</span>
+            </div>
             <dl class="facts">
-              <div><dt>Brand</dt><dd>{{ detail()!.product.brand_name }}</dd></div>
-              <div><dt>SKU</dt><dd>{{ detail()!.product.sku || 'Not assigned' }}</dd></div>
-              <div><dt>Category</dt><dd>{{ detail()!.product.category || 'Not recorded' }}</dd></div>
-              <div><dt>Lineage</dt><dd>{{ detail()!.lineage?.source_kind || 'Manual catalog product' }}</dd></div>
+              <div>
+                <dt>Brand</dt>
+                <dd>{{ detail()!.product.brand_name }}</dd>
+              </div>
+              <div>
+                <dt>SKU</dt>
+                <dd>{{ detail()!.product.sku || 'Not assigned' }}</dd>
+              </div>
+              <div>
+                <dt>Category</dt>
+                <dd>{{ detail()!.product.category || 'Not recorded' }}</dd>
+              </div>
+              <div>
+                <dt>Lineage</dt>
+                <dd>{{ detail()!.lineage?.source_kind || 'Manual catalog product' }}</dd>
+              </div>
             </dl>
             @if (detail()!.lineage) {
-              <p class="muted">Source: {{ detail()!.lineage!.provenance_json['source'] || 'Product Opportunity' }}. Claims remain subject to seller review.</p>
+              <p class="muted">
+                Source: {{ detail()!.lineage!.provenance_json['source'] || 'Product Opportunity' }}.
+                Claims remain subject to seller review.
+              </p>
             }
           </section>
 
           <section class="card" aria-labelledby="images-title">
-            <div class="section-heading"><div><p class="eyebrow">Secure assets</p><h2 id="images-title">Product images</h2></div><span class="badge">Owner-scoped</span></div>
-            <p class="muted">Select ready images from your private Media Library. Preview URLs require your authenticated session and never fetch remote URLs.</p>
-            @if (imagesLoading()) { <app-loading-state message="Loading product images..." /> }
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Secure assets</p>
+                <h2 id="images-title">Product images</h2>
+              </div>
+              <span class="badge">Owner-scoped</span>
+            </div>
+            <p class="muted">
+              Select ready images from your private Media Library. Preview URLs require your
+              authenticated session and never fetch remote URLs.
+            </p>
+            <div class="actions">
+              <a
+                class="button"
+                routerLink="/media/upload"
+                [queryParams]="{ catalog_product_id: selectedId }"
+                >Upload a product image</a
+              >
+              <button
+                class="button"
+                type="button"
+                (click)="loadMediaAssets()"
+                [disabled]="imagesLoading()"
+              >
+                Refresh image library
+              </button>
+            </div>
+            @if (mediaError()) {
+              <p role="alert">{{ mediaError() }}</p>
+            }
+            @if (!imagesLoading() && !mediaError() && !mediaAssets().length) {
+              <p>
+                No ready images in your private library yet. Upload a local JPEG, PNG or WebP, then
+                return here and explicitly add it to this product.
+              </p>
+            }
+            @if (imagesLoading()) {
+              <app-loading-state message="Loading product images..." />
+            }
             @if (!imagesLoading()) {
               <div class="asset-picker">
-                <label>Choose a ready media asset
-                  <select [value]="selectedMediaId()" (change)="selectMedia($event)">
+                <label
+                  >Choose a ready media asset
+                  <select
+                    name="catalog-media-picker"
+                    [ngModel]="selectedMediaId()"
+                    (ngModelChange)="selectedMediaId.set($event)"
+                  >
                     <option value="">Select an image…</option>
-                    @for (media of mediaAssets(); track media.id) { <option [value]="media.id">{{ media.original_filename }}</option> }
+                    @for (media of mediaAssets(); track media.id) {
+                      <option [value]="media.id">{{ media.original_filename }}</option>
+                    }
                   </select>
                 </label>
-                <label>Alt text (recommended)<input [value]="newImageAlt()" (input)="newImageAlt.set($any($event.target).value)" maxlength="500" placeholder="Describe the product image" /></label>
-                <label class="checkbox"><input type="checkbox" [checked]="newImagePrimary()" (change)="newImagePrimary.set($any($event.target).checked)" /> Make primary</label>
-                <button class="button primary" type="button" [disabled]="!selectedMediaId() || imageSaving()" (click)="attachImage()">{{ imageSaving() ? 'Saving…' : 'Add image' }}</button>
+                <label
+                  >Alt text (recommended)<input
+                    [value]="newImageAlt()"
+                    (input)="newImageAlt.set($any($event.target).value)"
+                    maxlength="500"
+                    placeholder="Describe the product image"
+                /></label>
+                <label class="checkbox"
+                  ><input
+                    type="checkbox"
+                    [checked]="newImagePrimary()"
+                    (change)="newImagePrimary.set($any($event.target).checked)"
+                  />
+                  Make primary</label
+                >
+                <button
+                  class="button primary"
+                  type="button"
+                  [disabled]="!selectedMediaId() || imageSaving()"
+                  (click)="attachImage()"
+                >
+                  {{ imageSaving() ? 'Saving…' : 'Add image' }}
+                </button>
               </div>
-              @if (!images().length) { <p class="muted">No product images selected yet. Add a ready asset before preparing a channel draft.</p> }
+              @if (!images().length) {
+                <p class="muted">
+                  No product images selected yet. Add a ready asset before preparing a channel
+                  draft.
+                </p>
+              }
               <div class="image-grid">
                 @for (image of images(); track image.id) {
                   <article class="image-card" [class.primary-image]="image.is_primary">
-                    <img [src]="mediaPreview(image.preview_url)" [alt]="image.alt_text || 'Product image'" loading="lazy" />
-                    <div><strong>{{ image.is_primary ? 'Primary image' : 'Gallery image' }}</strong><span class="muted">{{ image.width }}×{{ image.height }} · {{ image.mime_type }}</span></div>
-                    <label>Alt text<input [name]="image.id + '-alt'" [value]="image.alt_text || ''" (change)="updateImageAlt(image, $event)" maxlength="500" /></label>
-                    <div class="actions"><button class="button" type="button" (click)="setPrimary(image)" [disabled]="image.is_primary">Set primary</button><button class="button danger" type="button" (click)="removeImage(image)">Remove</button></div>
+                    <img
+                      [src]="mediaPreview(image.preview_url)"
+                      [alt]="image.alt_text || 'Product image'"
+                      loading="lazy"
+                    />
+                    <div>
+                      <strong>{{ image.is_primary ? 'Primary image' : 'Gallery image' }}</strong
+                      ><span class="muted"
+                        >{{ image.width }}×{{ image.height }} · {{ image.mime_type }}</span
+                      >
+                    </div>
+                    <label
+                      >Alt text<input
+                        [name]="image.id + '-alt'"
+                        [value]="image.alt_text || ''"
+                        (change)="updateImageAlt(image, $event)"
+                        maxlength="500"
+                    /></label>
+                    <div class="actions">
+                      <button
+                        class="button"
+                        type="button"
+                        (click)="setPrimary(image)"
+                        [disabled]="image.is_primary"
+                      >
+                        Set primary</button
+                      ><button class="button danger" type="button" (click)="removeImage(image)">
+                        Remove
+                      </button>
+                    </div>
                   </article>
                 }
               </div>
@@ -130,68 +302,285 @@ interface VariantEditState {
           </section>
 
           <section class="card" aria-labelledby="economics-title">
-            <div class="section-heading"><div><p class="eyebrow">Canonical commercial context</p><h2 id="economics-title">Economics readiness</h2></div><span class="badge">No invented values</span></div>
-            @if (economicsLoading()) { <app-loading-state message="Loading canonical economics..." /> }
-            @else if (economics() && !economics()!.available) {
-              <app-blocked-state title="Economics are not available yet" [reason]="economics()!.reason || 'Create a canonical sourcing economics context from the selected opportunity before making commercial decisions.'" />
-              <a class="button" [routerLink]="['/intelligence/product-opportunities']">Review opportunity economics</a>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Canonical commercial context</p>
+                <h2 id="economics-title">Economics readiness</h2>
+              </div>
+              <span class="badge">No invented values</span>
+            </div>
+            @if (economicsLoading()) {
+              <app-loading-state message="Loading canonical economics..." />
+            } @else if (economics() && !economics()!.available) {
+              <app-blocked-state
+                title="Economics are not available yet"
+                [reason]="
+                  economics()!.reason ||
+                  'Create a canonical sourcing economics context from the selected opportunity before making commercial decisions.'
+                "
+              />
+              <p>
+                A Catalog item is not automatically a researched or fully costed product. No
+                supplier quote, fees or cost basis will be invented or copied from another product.
+              </p>
+              @if (detail()!.lineage?.opportunity_id) {
+                <a
+                  class="button"
+                  routerLink="/intelligence/sourcing-economics"
+                  [queryParams]="{ opportunity_id: detail()!.lineage!.opportunity_id }"
+                  >Prepare this product's economics</a
+                >
+              }
             } @else if (economics()?.projection) {
-              <p class="success">Canonical economics are available for review. Values remain evidence-backed and may be partial.</p>
-              <dl class="facts compact"><div><dt>Status</dt><dd>{{ economics()!.projection!['status'] || 'UNKNOWN' }}</dd></div><div><dt>Readiness</dt><dd>{{ economics()!.projection!['readiness'] || 'UNKNOWN' }}</dd></div><div><dt>Currency</dt><dd>{{ economics()!.projection!['currency'] || economics()!.projection!['reporting_currency'] || 'UNKNOWN' }}</dd></div></dl>
-            } @else { <p class="muted">Canonical economics are unavailable for this product context.</p> }
+              <p class="success">
+                Canonical economics are available for review. Values remain evidence-backed and may
+                be partial.
+              </p>
+              <dl class="facts compact">
+                <div>
+                  <dt>Status</dt>
+                  <dd>{{ economics()!.projection!['status'] || 'UNKNOWN' }}</dd>
+                </div>
+                <div>
+                  <dt>Readiness</dt>
+                  <dd>{{ economics()!.projection!['readiness'] || 'UNKNOWN' }}</dd>
+                </div>
+                <div>
+                  <dt>Currency</dt>
+                  <dd>
+                    {{
+                      economics()!.projection!['base_currency'] ||
+                        economics()!.projection!['currency'] ||
+                        economics()!.projection!['reporting_currency'] ||
+                        'UNKNOWN'
+                    }}
+                  </dd>
+                </div>
+              </dl>
+              <a
+                class="button"
+                routerLink="/intelligence/sourcing-economics"
+                [queryParams]="{ opportunity_id: economics()!.opportunity_id }"
+                >Review this product's economics</a
+              >
+            } @else {
+              <p class="muted">Canonical economics are unavailable for this product context.</p>
+            }
+          </section>
+
+          @if (!detail()!.lineage?.opportunity_id) {
+            <app-catalog-cost-estimate [productId]="detail()!.product.id" />
+          }
+
+          <section class="card" aria-labelledby="supplier-context-title">
+            <h2 id="supplier-context-title">Supplier and quotation context</h2>
+            @if (!detail()!.supplier_associations.length) {
+              <p>
+                No supplier association is recorded for this Catalog product. A product, image or
+                estimate does not establish a supplier or quotation.
+              </p>
+            }
+            @for (association of detail()!.supplier_associations; track association.id) {
+              <p>
+                Supplier reference {{ association.supplier_id }} · {{ association.status }}.
+                Association alone does not verify supplier terms or import a cost basis.
+              </p>
+            }
+            @if (detail()!.lineage?.opportunity_id) {
+              <a
+                class="button"
+                routerLink="/intelligence/cross-marketplace"
+                [queryParams]="{ opportunity_id: detail()!.lineage!.opportunity_id }"
+                >Review this product's suppliers</a
+              >
+              <a
+                class="button"
+                routerLink="/intelligence/sourcing"
+                [queryParams]="{ opportunity_id: detail()!.lineage!.opportunity_id }"
+                >Review local requirements and quotations</a
+              >
+            } @else {
+              <p>
+                Manual supplier registration is separate from researched-product discovery.
+                Product-only assumptions above are not supplier evidence.
+              </p>
+            }
           </section>
 
           <section class="card" aria-labelledby="agent-title">
-            <div class="section-heading"><div><p class="eyebrow">Guided research</p><h2 id="agent-title">Business Agent guidance</h2></div><span class="badge">HUMAN review</span></div>
-            <p class="muted">Product claims, suggestions, and supplier decisions must come from the canonical Business Agent and remain subject to your review. Catalog does not invent AI recommendations.</p>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Guided research</p>
+                <h2 id="agent-title">Business Agent guidance</h2>
+              </div>
+              <span class="badge">HUMAN review</span>
+            </div>
+            <p class="muted">
+              Product claims, suggestions, and supplier decisions must come from the canonical
+              Business Agent and remain subject to your review. Catalog does not invent AI
+              recommendations.
+            </p>
             <a class="button" routerLink="/intelligence/business-agent">Open Business Agent</a>
           </section>
 
           @if (readiness()) {
             <section class="card readiness-card" aria-labelledby="readiness-title">
-              <div class="section-heading"><div><p class="eyebrow">Readiness</p><h2 id="readiness-title">{{ readiness()!.readiness === 'BLOCKED' ? 'More information is required' : 'Ready for future submission' }}</h2></div><span class="badge" [class.ready]="readiness()!.readiness !== 'BLOCKED'">{{ readiness()!.readiness }}</span></div>
+              <div class="section-heading">
+                <div>
+                  <p class="eyebrow">Local Catalog checks</p>
+                  <h2 id="readiness-title">
+                    {{
+                      readiness()!.readiness === 'BLOCKED'
+                        ? 'More information is required'
+                        : 'Catalog drafts reviewed locally'
+                    }}
+                  </h2>
+                </div>
+                <span class="badge" [class.ready]="readiness()!.readiness !== 'BLOCKED'">{{
+                  readiness()!.readiness
+                }}</span>
+              </div>
               @if (readiness()!.blockers.length) {
-                <app-blocked-state title="Resolve these blockers before approval" [reason]="readiness()!.blockers.join(' · ')" />
+                <app-blocked-state
+                  title="Resolve these blockers before approval"
+                  [reason]="readiness()!.blockers.join(' · ')"
+                />
               } @else {
-                <p class="success">All current draft checks pass. HUMAN approval is still required before any future submission.</p>
+                <p class="success">
+                  All current draft checks pass. HUMAN approval is still required before any future
+                  submission.
+                </p>
               }
-              <ol class="next-actions"><li>Complete the channel draft.</li><li>Review claims, images, and compliance details.</li><li>Approve explicitly as HUMAN when ready.</li></ol>
-              <p class="muted">External publication: disabled in PR-SOS-01.</p>
+              <ol class="next-actions">
+                <li>Complete the channel draft.</li>
+                <li>Review claims, images, and compliance details.</li>
+                <li>Approve explicitly as HUMAN when ready.</li>
+              </ol>
+              <p class="muted">
+                These are local draft checks, not seller account connection, official marketplace
+                acceptance or publication. External publication is not performed here.
+              </p>
             </section>
           }
 
           <section class="card" aria-labelledby="drafts-title">
-            <div class="section-heading"><div><p class="eyebrow">Channel preparation</p><h2 id="drafts-title">Listing drafts</h2></div></div>
-            <p class="muted">Create one seller-authored draft per channel. Drafts never create remote listings.</p>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Channel preparation</p>
+                <h2 id="drafts-title">Listing drafts</h2>
+              </div>
+            </div>
+            <p class="muted">
+              Create one seller-authored draft per channel. Drafts never create remote listings.
+            </p>
             <div class="channel-grid">
               @for (channel of channels; track channel) {
                 @let draft = draftFor(channel);
                 <article class="channel-card">
-                  <div class="channel-header"><h3>{{ channelLabel(channel) }}</h3><span class="badge">{{ draft?.status || 'not started' }}</span></div>
+                  <div class="channel-header">
+                    <h3>{{ channelLabel(channel) }}</h3>
+                    <span class="badge">{{ draft?.status || 'not started' }}</span>
+                  </div>
                   @if (draft) {
                     <p>{{ draft.title || 'Untitled draft' }}</p>
                     <form class="draft-form" (ngSubmit)="saveDraft(draft)">
-                      <label>Title<input [name]="draft.id + '-title'" [(ngModel)]="draftEdits[draft.id].title" maxlength="500" required /></label>
-                      <label>Description<textarea [name]="draft.id + '-description'" [(ngModel)]="draftEdits[draft.id].description" maxlength="20000" rows="3"></textarea></label>
+                      <label
+                        >Title<input
+                          [name]="draft.id + '-title'"
+                          [(ngModel)]="draftEdits[draft.id].title"
+                          maxlength="500"
+                          required
+                      /></label>
+                      <label
+                        >Description<textarea
+                          [name]="draft.id + '-description'"
+                          [(ngModel)]="draftEdits[draft.id].description"
+                          maxlength="20000"
+                          rows="3"
+                        ></textarea>
+                      </label>
                       <div class="draft-form-grid">
-                        <label>Category<input [name]="draft.id + '-category'" [(ngModel)]="draftEdits[draft.id].category" maxlength="240" /></label>
-                        <label>Image reference<input [name]="draft.id + '-image'" [(ngModel)]="draftEdits[draft.id].imageRef" maxlength="500" placeholder="seller-upload://..." /></label>
-                        <label>Intended price<input [name]="draft.id + '-price'" [(ngModel)]="draftEdits[draft.id].intendedPrice" inputmode="decimal" /></label>
-                        <label>Currency<input [name]="draft.id + '-currency'" [(ngModel)]="draftEdits[draft.id].currency" maxlength="3" /></label>
+                        <label
+                          >Category<input
+                            [name]="draft.id + '-category'"
+                            [(ngModel)]="draftEdits[draft.id].category"
+                            maxlength="240"
+                        /></label>
+                        <label
+                          >Image reference (private product preview)<input
+                            [name]="draft.id + '-image'"
+                            [(ngModel)]="draftEdits[draft.id].imageRef"
+                            maxlength="500"
+                        /></label>
+                        <button
+                          class="button"
+                          type="button"
+                          [disabled]="!images().length"
+                          (click)="useProductImage(draft)"
+                        >
+                          Use primary product image
+                        </button>
+                        <label
+                          >Intended price (estimate, not profit)<input
+                            [name]="draft.id + '-price'"
+                            [(ngModel)]="draftEdits[draft.id].intendedPrice"
+                            inputmode="decimal"
+                        /></label>
+                        <label
+                          >Currency (for example INR)<input
+                            [name]="draft.id + '-currency'"
+                            [(ngModel)]="draftEdits[draft.id].currency"
+                            maxlength="3"
+                        /></label>
                       </div>
-                      <label>Compliance JSON<textarea [name]="draft.id + '-compliance'" [(ngModel)]="draftEdits[draft.id].complianceJson" rows="3" spellcheck="false"></textarea></label>
-                      <button class="button" type="submit" [disabled]="draftSaving() === draft.id">{{ draftSaving() === draft.id ? 'Saving…' : 'Save draft' }}</button>
+                      <label
+                        >Compliance JSON<textarea
+                          [name]="draft.id + '-compliance'"
+                          [(ngModel)]="draftEdits[draft.id].complianceJson"
+                          rows="3"
+                          spellcheck="false"
+                        ></textarea>
+                      </label>
+                      <button class="button" type="submit" [disabled]="draftSaving() === draft.id">
+                        {{ draftSaving() === draft.id ? 'Saving…' : 'Save draft' }}
+                      </button>
                     </form>
-                    <p class="muted">{{ draft.missing_fields.length ? 'Missing: ' + draft.missing_fields.join(', ') : 'All required fields present' }}</p>
+                    <p class="muted">
+                      {{
+                        draft.missing_fields.length
+                          ? 'Missing: ' + draft.missing_fields.join(', ')
+                          : 'All local required fields present; marketplace requirements remain separate'
+                      }}
+                    </p>
                     <div class="actions">
-                      @if (draft.human_review_state !== 'approved' && !draft.missing_fields.length) {
-                        <button class="button primary" type="button" (click)="approve(draft)">Approve as HUMAN</button>
+                      @if (
+                        draft.human_review_state !== 'approved' && !draft.missing_fields.length
+                      ) {
+                        <button
+                          class="button primary"
+                          type="button"
+                          (click)="approve(draft)"
+                          [disabled]="draftSaving() !== null"
+                        >
+                          Approve as HUMAN
+                        </button>
                       }
-                      @if (draft.human_review_state === 'approved') { <span class="success">Approved for future submission</span> }
+                      @if (draft.human_review_state === 'approved') {
+                        <span class="success"
+                          >HUMAN-reviewed local draft — not published or execution-authorized</span
+                        >
+                      }
                     </div>
                   } @else {
                     <p class="muted">No draft exists yet.</p>
-                    <button class="button" type="button" (click)="createDraft(channel)">Start {{ channelLabel(channel) }} draft</button>
+                    <button
+                      class="button"
+                      type="button"
+                      (click)="createDraft(channel)"
+                      [disabled]="draftSaving() !== null"
+                    >
+                      Start {{ channelLabel(channel) }} draft
+                    </button>
                   }
                 </article>
               }
@@ -199,22 +588,92 @@ interface VariantEditState {
           </section>
 
           <section class="card" aria-labelledby="variants-title">
-            <div class="section-heading"><div><p class="eyebrow">Product master</p><h2 id="variants-title">Variants</h2></div></div>
-            <p class="muted">Use one stable key per sellable combination. SKU uniqueness is enforced per owner and stale edits are rejected.</p>
+            <div class="section-heading">
+              <div>
+                <p class="eyebrow">Product master</p>
+                <h2 id="variants-title">Variants</h2>
+              </div>
+            </div>
+            <p class="muted">
+              Use one stable key per sellable combination. SKU uniqueness is enforced per owner and
+              stale edits are rejected.
+            </p>
             <form class="variant-form" (ngSubmit)="addVariant()">
-              <label>Variant key<input name="new-variant-key" [(ngModel)]="newVariantKey" required maxlength="120" placeholder="default or blue-small" /></label>
-              <label>Title<input name="new-variant-title" [(ngModel)]="newVariantTitle" maxlength="160" /></label>
-              <label>SKU<input name="new-variant-sku" [(ngModel)]="newVariantSku" maxlength="100" /></label>
-              <label>Options JSON<input name="new-variant-options" [(ngModel)]="newVariantOptions" placeholder='{"size":"M","color":"Blue"}' /></label>
-              <button class="button primary" type="submit" [disabled]="variantSaving()">{{ variantSaving() ? 'Saving…' : 'Add variant' }}</button>
+              <label
+                >Variant key<input
+                  name="new-variant-key"
+                  [(ngModel)]="newVariantKey"
+                  required
+                  maxlength="120"
+                  placeholder="default or blue-small"
+              /></label>
+              <label
+                >Title<input name="new-variant-title" [(ngModel)]="newVariantTitle" maxlength="160"
+              /></label>
+              <label
+                >SKU<input name="new-variant-sku" [(ngModel)]="newVariantSku" maxlength="100"
+              /></label>
+              <label
+                >Options JSON<input
+                  name="new-variant-options"
+                  [(ngModel)]="newVariantOptions"
+                  placeholder='{"size":"M","color":"Blue"}'
+              /></label>
+              <button class="button primary" type="submit" [disabled]="variantSaving()">
+                {{ variantSaving() ? 'Saving…' : 'Add variant' }}
+              </button>
             </form>
-            @if (!detail()!.variants.length) { <p class="muted">No variants have been added. Product SKU and core attributes remain the source of truth.</p> }
+            @if (!detail()!.variants.length) {
+              <p class="muted">
+                No variants have been added. Product SKU and core attributes remain the source of
+                truth.
+              </p>
+            }
             @for (variant of detail()!.variants; track variant.id) {
               <form class="variant-row" (ngSubmit)="saveVariant(variant)">
-                <label class="sr-only" [for]="variant.id + '-title'">Variant title</label><input [id]="variant.id + '-title'" [name]="variant.id + '-title'" [(ngModel)]="variantEdits[variant.id].title" maxlength="160" />
-                <span>{{ variant.variant_key }}</span><span>{{ variant.sku || 'SKU not assigned' }}</span><span class="badge">{{ variant.status }}</span>
-                <button class="button" type="submit" [disabled]="variantSaving() === variant.id">{{ variantSaving() === variant.id ? 'Saving…' : 'Save title' }}</button>
-                @if (variant.status !== 'archived') { <button class="button danger" type="button" (click)="archiveVariant(variant)">Archive</button> }
+                <label class="sr-only" [for]="variant.id + '-title'">Variant title</label
+                ><input
+                  [id]="variant.id + '-title'"
+                  [name]="variant.id + '-title'"
+                  [(ngModel)]="variantEdits[variant.id].title"
+                  maxlength="160"
+                />
+                <span>{{ variant.variant_key }}</span
+                ><span class="badge">{{ variant.status }}</span>
+                <label
+                  >Variant SKU<input
+                    [name]="variant.id + '-sku'"
+                    [(ngModel)]="variantEdits[variant.id].sku"
+                    maxlength="100"
+                /></label>
+                <label
+                  >Variant price (optional)<input
+                    [name]="variant.id + '-price'"
+                    [(ngModel)]="variantEdits[variant.id].price"
+                    inputmode="decimal"
+                /></label>
+                <label
+                  >Variant currency<input
+                    [name]="variant.id + '-currency'"
+                    [(ngModel)]="variantEdits[variant.id].currency"
+                    maxlength="3"
+                /></label>
+                <button class="button" type="submit" [disabled]="variantSaving() !== null">
+                  {{ variantSaving() === variant.id ? 'Saving…' : 'Save variant' }}
+                </button>
+                @if (variant.status !== 'archived') {
+                  <button class="button danger" type="button" (click)="archiveVariant(variant)">
+                    Archive
+                  </button>
+                }
+                @if (variant.status !== 'archived') {
+                  <a
+                    class="button"
+                    routerLink="/marketplaces/inventory/opening"
+                    [queryParams]="{ product_id: selectedId, variant_id: variant.id }"
+                    >Record stock for {{ variant.title || variant.variant_key }}</a
+                  >
+                }
               </form>
             }
           </section>
@@ -225,35 +684,104 @@ interface VariantEditState {
           title="Product master & listing preparation"
           description="A clear, owner-scoped workspace for turning selected product context into channel-ready drafts. Marketplace publication is intentionally disabled."
         >
-          <a page-header-actions class="button primary" routerLink="/products/new">Create product</a>
+          <a page-header-actions class="button primary" routerLink="/products/new"
+            >Create product</a
+          >
         </app-page-header>
-        <section class="trust-banner" aria-label="Catalog guidance"><strong>Next step</strong><span>Select a product below, then complete its draft and approve it explicitly as HUMAN.</span></section>
-        @if (listLoading()) { <app-loading-state message="Loading catalog products..." /> }
-        @else if (error()) { <app-error-state title="Catalog products are unavailable" [message]="error()" retryLabel="Retry" (retry)="loadList()" /> }
-        @else if (!products()?.items?.length) { <app-empty-state title="Your catalog is empty" message="Create a product or convert a HUMAN-selected Product Opportunity before preparing a listing."><a class="button" routerLink="/products/new">Create a product</a><a class="button" routerLink="/intelligence/product-opportunities">Review opportunities</a></app-empty-state> }
-        @else {
+        <section class="trust-banner" aria-label="Catalog guidance">
+          <strong>Next step</strong
+          ><span
+            >Select a product below, then complete its draft and approve it explicitly as
+            HUMAN.</span
+          >
+        </section>
+        @if (listLoading()) {
+          <app-loading-state message="Loading catalog products..." />
+        } @else if (error()) {
+          <app-error-state
+            title="Catalog products are unavailable"
+            [message]="error()"
+            retryLabel="Retry"
+            (retry)="loadList()"
+          />
+        } @else if (!products()?.items?.length) {
+          <app-empty-state
+            title="Your catalog is empty"
+            message="Create a product or convert a HUMAN-selected Product Opportunity before preparing a listing."
+            ><a class="button" routerLink="/products/new">Create a product</a
+            ><a class="button" routerLink="/intelligence/product-opportunities"
+              >Review opportunities</a
+            ></app-empty-state
+          >
+        } @else {
           <section class="catalog-filters" aria-label="Catalog filters">
-            <label>Search products<input type="search" [value]="catalogSearch()" (input)="updateSearch($event)" placeholder="Name, SKU, or category" /></label>
-            <label>Status<select [value]="catalogStatus()" (change)="updateStatus($event)"><option value="all">All statuses</option><option value="draft">Draft</option><option value="active">Active</option><option value="archived">Archived</option></select></label>
-            <p class="muted">{{ filteredProducts().length }} product{{ filteredProducts().length === 1 ? '' : 's' }} shown.</p>
+            <label
+              >Search products<input
+                type="search"
+                [value]="catalogSearch()"
+                (input)="updateSearch($event)"
+                placeholder="Name, SKU, or category"
+            /></label>
+            <label
+              >Status<select [value]="catalogStatus()" (change)="updateStatus($event)">
+                <option value="all">All statuses</option>
+                <option value="draft">Draft</option>
+                <option value="active">Active</option>
+                <option value="archived">Archived</option>
+              </select></label
+            >
+            <p class="muted">
+              {{ filteredProducts().length }} product{{
+                filteredProducts().length === 1 ? '' : 's'
+              }}
+              shown.
+            </p>
           </section>
           @if (!filteredProducts().length) {
-            <app-empty-state title="No matching products" message="Try a different search or status filter." />
+            <app-empty-state
+              title="No matching products"
+              message="Try a different search or status filter."
+            />
           } @else {
-          <section class="product-grid" aria-label="Seller catalog products">
-            @for (product of filteredProducts(); track product.id) {
-              <article class="card product-card">
-                <div class="section-heading"><div><p class="eyebrow">{{ product.category || 'Uncategorized' }}</p><h2>{{ product.name }}</h2></div><span class="badge">{{ product.status }}</span></div>
-                <p>{{ product.short_description || product.description || 'No seller description recorded yet.' }}</p>
-                <dl class="facts compact"><div><dt>SKU</dt><dd>{{ product.sku || 'Not assigned' }}</dd></div><div><dt>Brand</dt><dd>{{ product.brand_name }}</dd></div></dl>
-                <div class="actions"><a class="button primary" [routerLink]="['/catalog', product.id]">Open catalog workspace</a><a class="button" [routerLink]="['/products', product.id]">View product</a></div>
-              </article>
-            }
-          </section>
+            <section class="product-grid" aria-label="Seller catalog products">
+              @for (product of filteredProducts(); track product.id) {
+                <article class="card product-card">
+                  <div class="section-heading">
+                    <div>
+                      <p class="eyebrow">{{ product.category || 'Uncategorized' }}</p>
+                      <h2>{{ product.name }}</h2>
+                    </div>
+                    <span class="badge">{{ product.status }}</span>
+                  </div>
+                  <p>
+                    {{
+                      product.short_description ||
+                        product.description ||
+                        'No seller description recorded yet.'
+                    }}
+                  </p>
+                  <dl class="facts compact">
+                    <div>
+                      <dt>SKU</dt>
+                      <dd>{{ product.sku || 'Not assigned' }}</dd>
+                    </div>
+                    <div>
+                      <dt>Brand</dt>
+                      <dd>{{ product.brand_name }}</dd>
+                    </div>
+                  </dl>
+                  <div class="actions">
+                    <a class="button primary" [routerLink]="['/catalog', product.id]"
+                      >Open catalog workspace</a
+                    ><a class="button" [routerLink]="['/products', product.id]">View product</a>
+                  </div>
+                </article>
+              }
+            </section>
           }
         }
       }
-    </main>
+    </section>
   `,
   styleUrl: './catalog-workspace.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -262,7 +790,7 @@ export class CatalogWorkspaceComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly catalog = inject(CatalogService);
   private readonly productService = inject(ProductService);
-  readonly selectedId = this.route.snapshot.paramMap.get('id');
+  selectedId = this.route.snapshot.paramMap.get('id');
   readonly channels: readonly CatalogChannel[] = ['amazon_in', 'flipkart'];
   readonly products = signal<PaginatedProductResponse | null>(null);
   readonly detail = signal<CatalogProductDetails | null>(null);
@@ -289,10 +817,25 @@ export class CatalogWorkspaceComponent {
   readonly listLoading = signal(!this.selectedId);
   readonly detailLoading = signal(Boolean(this.selectedId));
   readonly error = signal('');
+  readonly mediaError = signal('');
+  private scope = 0;
 
   constructor() {
-    if (this.selectedId) void this.loadDetail();
-    else void this.loadList();
+    this.route.paramMap.pipe(takeUntilDestroyed()).subscribe((params) => {
+      this.selectedId = params.get('id');
+      this.scope++;
+      this.detail.set(null);
+      this.readiness.set(null);
+      this.images.set([]);
+      this.economics.set(null);
+      this.mediaAssets.set([]);
+      this.selectedMediaId.set('');
+      this.newImageAlt.set('');
+      this.newImagePrimary.set(false);
+      this.error.set('');
+      if (this.selectedId) void this.loadDetail();
+      else void this.loadList();
+    });
   }
 
   async loadList(): Promise<void> {
@@ -309,25 +852,37 @@ export class CatalogWorkspaceComponent {
 
   async loadDetail(): Promise<void> {
     if (!this.selectedId) return;
+    const id = this.selectedId,
+      scope = this.scope;
     this.detailLoading.set(true);
     this.error.set('');
     try {
       const [detail, readiness] = await Promise.all([
-        this.catalog.getProduct(this.selectedId),
-        this.catalog.readiness(this.selectedId),
+        this.catalog.getProduct(id),
+        this.catalog.readiness(id),
       ]);
+      if (scope !== this.scope) return;
       this.detail.set(detail);
       this.images.set(detail.images || []);
-      for (const variant of detail.variants) this.variantEdits[variant.id] = { title: variant.title };
-      for (const draft of detail.listing_drafts) this.draftEdits[draft.id] = this.toDraftEdit(draft);
+      for (const variant of detail.variants)
+        this.variantEdits[variant.id] = {
+          title: variant.title,
+          sku: variant.sku || '',
+          price: variant.price_amount ?? '',
+          currency: variant.currency || '',
+        };
+      for (const draft of detail.listing_drafts)
+        this.draftEdits[draft.id] = this.toDraftEdit(draft);
       this.readiness.set(readiness);
       void this.loadMediaAssets();
       this.economicsLoading.set(true);
       try {
-        this.economics.set(await this.catalog.economics(this.selectedId));
+        const economics = await this.catalog.economics(id);
+        if (scope === this.scope) this.economics.set(economics);
       } catch {
+        if (scope !== this.scope) return;
         this.economics.set({
-          product_id: this.selectedId,
+          product_id: id,
           available: false,
           opportunity_id: null,
           assessment_id: null,
@@ -335,26 +890,37 @@ export class CatalogWorkspaceComponent {
           reason: 'Canonical economics could not be loaded. Refresh to retry.',
         });
       } finally {
-        this.economicsLoading.set(false);
+        if (scope === this.scope) this.economicsLoading.set(false);
       }
     } catch (error) {
-      this.error.set(CatalogService.errorMessage(error));
+      if (scope === this.scope) this.error.set(CatalogService.errorMessage(error));
     } finally {
-      this.detailLoading.set(false);
+      if (scope === this.scope) this.detailLoading.set(false);
     }
   }
 
   async loadMediaAssets(): Promise<void> {
+    const scope = this.scope;
     this.imagesLoading.set(true);
+    this.mediaError.set('');
     try {
       const result = await this.catalog.media();
+      if (scope !== this.scope) return;
       this.mediaAssets.set(
-        result.items.filter((item) => item.status === 'ready' && item.mime_type.startsWith('image/')),
+        result.items.filter(
+          (item) => item.status === 'ready' && item.mime_type.startsWith('image/'),
+        ),
       );
+      const returned = this.route.snapshot.queryParamMap.get('media_id');
+      if (returned && this.mediaAssets().some((item) => item.id === returned))
+        this.selectedMediaId.set(returned);
     } catch {
-      this.mediaAssets.set([]);
+      if (scope === this.scope)
+        this.mediaError.set(
+          'The image library could not be loaded. Refresh it to retry; no image was attached.',
+        );
     } finally {
-      this.imagesLoading.set(false);
+      if (scope === this.scope) this.imagesLoading.set(false);
     }
   }
 
@@ -368,7 +934,7 @@ export class CatalogWorkspaceComponent {
   }
 
   async attachImage(): Promise<void> {
-    if (!this.selectedId || !this.selectedMediaId()) return;
+    if (!this.selectedId || !this.selectedMediaId() || this.imageSaving()) return;
     this.imageSaving.set(true);
     this.error.set('');
     try {
@@ -418,10 +984,12 @@ export class CatalogWorkspaceComponent {
   }
 
   async addVariant(): Promise<void> {
-    if (!this.selectedId) return;
+    if (!this.selectedId || this.variantSaving()) return;
     let options: Record<string, unknown>;
     try {
       options = JSON.parse(this.newVariantOptions || '{}') as Record<string, unknown>;
+      if (!options || Array.isArray(options) || typeof options !== 'object')
+        throw new Error('OBJECT_REQUIRED');
     } catch {
       this.error.set('Variant options must be valid JSON.');
       return;
@@ -448,10 +1016,25 @@ export class CatalogWorkspaceComponent {
 
   async saveVariant(variant: CatalogVariant): Promise<void> {
     const edit = this.variantEdits[variant.id];
-    if (!edit) return;
+    if (!edit || this.variantSaving()) return;
+    if (
+      edit.price.trim() &&
+      (!/^(?:0|[1-9]\d*)(?:\.\d{1,8})?$/.test(edit.price.trim()) ||
+        !/^[a-z]{3}$/i.test(edit.currency.trim()))
+    ) {
+      this.error.set(
+        'A known variant price needs a non-negative decimal and explicit three-letter currency. Leave unknown price blank.',
+      );
+      return;
+    }
     this.variantSaving.set(variant.id);
     try {
-      await this.catalog.updateVariant(variant, { title: edit.title });
+      await this.catalog.updateVariant(variant, {
+        title: edit.title,
+        sku: edit.sku.trim() || null,
+        price_amount: edit.price.trim() || null,
+        currency: edit.currency.trim().toUpperCase() || null,
+      });
       await this.loadDetail();
     } catch (error) {
       this.error.set(CatalogService.errorMessage(error));
@@ -461,6 +1044,7 @@ export class CatalogWorkspaceComponent {
   }
 
   async archiveVariant(variant: CatalogVariant): Promise<void> {
+    if (this.variantSaving()) return;
     this.variantSaving.set(variant.id);
     try {
       await this.catalog.updateVariant(variant, { status: 'archived' });
@@ -480,7 +1064,11 @@ export class CatalogWorkspaceComponent {
     const query = this.catalogSearch().trim().toLowerCase();
     const status = this.catalogStatus();
     return (this.products()?.items ?? []).filter((product) => {
-      const matchesQuery = !query || `${product.name} ${product.sku ?? ''} ${product.category ?? ''}`.toLowerCase().includes(query);
+      const matchesQuery =
+        !query ||
+        `${product.name} ${product.sku ?? ''} ${product.category ?? ''}`
+          .toLowerCase()
+          .includes(query);
       return matchesQuery && (status === 'all' || product.status === status);
     });
   }
@@ -513,9 +1101,14 @@ export class CatalogWorkspaceComponent {
     };
   }
 
+  useProductImage(draft: CatalogListingDraft): void {
+    const image = this.images().find((item) => item.is_primary) || this.images()[0];
+    if (image && this.draftEdits[draft.id]) this.draftEdits[draft.id].imageRef = image.preview_url;
+  }
+
   async saveDraft(draft: CatalogListingDraft): Promise<void> {
     const edit = this.draftEdits[draft.id];
-    if (!edit) return;
+    if (!edit || this.draftSaving()) return;
     let compliance: Record<string, unknown>;
     try {
       compliance = JSON.parse(edit.complianceJson || '{}') as Record<string, unknown>;
@@ -548,7 +1141,8 @@ export class CatalogWorkspaceComponent {
   }
 
   async createDraft(channel: CatalogChannel): Promise<void> {
-    if (!this.selectedId) return;
+    if (!this.selectedId || this.draftSaving()) return;
+    this.draftSaving.set(channel);
     try {
       await this.catalog.createListingDraft(this.selectedId, {
         channel,
@@ -560,15 +1154,21 @@ export class CatalogWorkspaceComponent {
       await this.loadDetail();
     } catch (error) {
       this.error.set(CatalogService.errorMessage(error));
+    } finally {
+      this.draftSaving.set(null);
     }
   }
 
   async approve(draft: CatalogListingDraft): Promise<void> {
+    if (this.draftSaving() || draft.missing_fields.length) return;
+    this.draftSaving.set(draft.id);
     try {
       await this.catalog.reviewListingDraft(draft, 'approve');
       await this.loadDetail();
     } catch (error) {
       this.error.set(CatalogService.errorMessage(error));
+    } finally {
+      this.draftSaving.set(null);
     }
   }
 }

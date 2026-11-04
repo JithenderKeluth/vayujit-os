@@ -1,0 +1,157 @@
+{
+  "generated_at": "2026-10-25T16:45:20.773Z",
+  "classification": "BOUNDED_REMEDIATION_VALIDATED_APPLICATION_INCOMPLETE",
+  "phase3": {
+    "status": "INCOMPLETE",
+    "passed": 10,
+    "failed": 2,
+    "total": 12,
+    "full_application_coverage": false,
+    "api_passed": 34,
+    "api_failed": 2,
+    "api_errors": 0,
+    "confirmed_defect_roots": 2,
+    "product_gaps": 3,
+    "manual_accessibility_tasks": 1,
+    "cleanup": [
+      {
+        "project": "desktop",
+        "database": "vayujit_qac679f23161944f0a_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qac679f23161944f0a_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      },
+      {
+        "project": "mobile",
+        "database": "vayujit_qa843dd2863af31c62_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qa843dd2863af31c62_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      }
+    ]
+  },
+  "phase2": {
+    "status": "PASS_BOUNDED_SMOKE",
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "full_application_coverage": false,
+    "api_passed": 22,
+    "api_failed": 0,
+    "api_errors": 0,
+    "cleanup": [
+      {
+        "project": "desktop",
+        "database": "vayujit_qa6c513e21f44c66af_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qa6c513e21f44c66af_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      },
+      {
+        "project": "mobile",
+        "database": "vayujit_qa36deee4b3bc0c8e6_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qa36deee4b3bc0c8e6_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      }
+    ]
+  },
+  "phase1": {
+    "status": "PASS_BOUNDED_SMOKE",
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "full_application_coverage": false,
+    "cleanup": [
+      {
+        "project": "desktop",
+        "database": "vayujit_qaee70f72d32c4168c_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qaee70f72d32c4168c_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      },
+      {
+        "project": "mobile",
+        "database": "vayujit_qa29b53109b5f06066_test",
+        "status": "PASS",
+        "child_exit": 0,
+        "proof": {
+          "status": "PASS",
+          "database": "vayujit_qa29b53109b5f06066_test",
+          "marker_verified": true,
+          "database_absent": true
+        }
+      }
+    ]
+  },
+  "targeted_evidence": {
+    "verified": true,
+    "token": "87f95bbe87d146e7",
+    "tests": 17,
+    "targeted_tests": 17,
+    "junit": "tmp/qa-agent/87f95bbe87d146e7/backend-results.xml",
+    "junit_sha256": "1b6f925e1d4899ebe6c40b1af20039acdf8d6d15f6e1b275b2310fe1a5d529c8",
+    "cleanup": "tmp/qa-agent/87f95bbe87d146e7/cleanup.json",
+    "test_contract_hashes_verified": true,
+    "original_api_tests_unchanged": true,
+    "browser_timing_correction": {
+      "baseline_sha256": "986105d28a17ca0df223766f3e09dacb124bdd7cb3ce7e981947ad87d83965d5",
+      "retested_sha256": "d862ddf17f9c1806bdd53bd1b6969411b5dff89ec8660db574768b87f0240e7c",
+      "change": "Only the QA-owned restart request gets timeout 45000 plus an explanatory comment. No assertion, locator, input or expected business behavior changed.",
+      "measured_restart_ms": 18871,
+      "evidence": "tmp/qa-agent/974f9e6a0ee5313a/owned-runtime-probe.json"
+    },
+    "tested_source_sha256": {
+      "apps/api/vayujit_api/commerce/financial_router.py": "de7d6a7737bf2fa7c7ed166c20a6db22d01b14a70822f9e9493ea104068ce17c",
+      "apps/api/vayujit_api/commerce/inventory_router.py": "8725e1c8be7e474a8f4c7c8242501db6c7c9d9937a963938841a1772c7e6e6a6",
+      "apps/api/vayujit_api/operations/action_center_router.py": "15917d4fc442629457f6d452b0ec8e21697fbbdd03b42105a48409eddad288be",
+      "apps/api/tests/test_qa_phase3a_remediation.py": "066aa9b4b73d3942155cdb53936a133b69eca2c63844df515c35b76771a5bcfa"
+    }
+  },
+  "resolved": [
+    "QA-P3-FIN-001",
+    "QA-P3-IDEM-001",
+    "QA-P3-IDEM-002",
+    "QA-P3-IDEM-003",
+    "QA-P3-SIGNAL-001"
+  ],
+  "remaining": [
+    "QA-P3-SOURCE-001",
+    "QA-P3-UX-001",
+    "QA-P3-GAP-001",
+    "QA-P3-GAP-002",
+    "QA-P3-GAP-003",
+    "QA-P3-A11Y-REVIEW-001"
+  ],
+  "full_application_certification": "INCOMPLETE",
+  "limits": [
+    "Six inherited usability recommendations remain open.",
+    "Six original caption occurrences and four financial-screen nodes still require manual accessibility review.",
+    "No full application, migration, real-provider or Docker backup certification is inferred."
+  ]
+}

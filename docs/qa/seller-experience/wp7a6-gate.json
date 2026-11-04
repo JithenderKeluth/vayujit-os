@@ -1,0 +1,608 @@
+{
+  "package": "WP7A-6",
+  "status": "INCOMPLETE",
+  "application_certification": "INCOMPLETE",
+  "original_denominator": 48,
+  "inherited_closed": 41,
+  "targeted": 7,
+  "closed": 41,
+  "remaining": 7,
+  "open_entries": [
+    "R-3feda36d",
+    "R-55e822d5",
+    "R-551d2f8c",
+    "R-db243c36",
+    "R-d6a495d5",
+    "L-16",
+    "L-17"
+  ],
+  "exact_scope": true,
+  "cleanup": "PASS",
+  "regressions": "INCOMPLETE",
+  "blockers": [
+    "R-3feda36d: duplicate_concurrent, failure_recovery, approval_no_publish, owner_isolation",
+    "R-55e822d5: missing_credentials, fake_validated_label, invalid_expired_revoked, account_mismatch, reload_recovery, default_deny",
+    "R-551d2f8c: legitimate_resolution, human_review, authorization_states, exact_fingerprint, stale_mismatch, repeat_concurrent, reload_failure_recovery, no_submission, owner_isolation",
+    "R-db243c36: manual_resolution, review_boundaries, unsupported_live_truthful, stale_duplicate, reload_failure_recovery, no_dispatch, owner_isolation",
+    "R-d6a495d5: legitimate_resolution, authorization_states, exact_fingerprint, stale_mismatch, repeat_concurrent, reload_failure_recovery, no_submission, owner_isolation",
+    "L-16: artifact_versions, dependency_graph, changed_preview_stale, fingerprint_confirmation, concurrent_replay, interrupted_recovery, no_release",
+    "L-17: creative_content_image, exact_versions, missing_invalid_prerequisites, authorization_states, preview_fingerprint, human_confirm, stale_concurrent, failure_recovery_latest, reload_owned, no_spend"
+  ],
+  "browser": {
+    "token": "befaa935c05fac4a",
+    "scenarios": 28,
+    "statuses": {
+      "PASS": 0,
+      "PARTIAL": 28,
+      "FAIL": 0,
+      "BLOCKED": 0
+    },
+    "versions": {
+      "chrome": "156.0.8078.76",
+      "msedge": "156.0.4314.58"
+    },
+    "axe_scans": 28,
+    "axe_violations": 0,
+    "axe_incomplete": 14,
+    "cleanup": "CLEANED"
+  },
+  "backend": {
+    "complete": true,
+    "tests": 72,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "runs": [
+      {
+        "token": "d3c3c74314ee4424",
+        "file": "tmp/qa-wp7a6-backend/d3c3c74314ee4424/backend-results.xml",
+        "modified": 1793725035093.739,
+        "tests": 2,
+        "passed": 0,
+        "failures": 2,
+        "skipped": 0
+      },
+      {
+        "token": "57c2123925eb489f",
+        "file": "tmp/qa-wp7a6-backend/57c2123925eb489f/backend-results.xml",
+        "modified": 1793725226247.2124,
+        "tests": 2,
+        "passed": 1,
+        "failures": 1,
+        "skipped": 0
+      },
+      {
+        "token": "5740623d2b3c4fc8",
+        "file": "tmp/qa-wp7a6-backend/5740623d2b3c4fc8/backend-results.xml",
+        "modified": 1793726193773.8474,
+        "tests": 3,
+        "passed": 3,
+        "failures": 0,
+        "skipped": 0
+      },
+      {
+        "token": "bed1d274ee1d45bb",
+        "file": "tmp/qa-wp7a6-backend/bed1d274ee1d45bb/backend-results.xml",
+        "modified": 1793726254077.5652,
+        "tests": 71,
+        "passed": 70,
+        "failures": 1,
+        "skipped": 0
+      }
+    ],
+    "latest_outcomes": [
+      {
+        "key": "tests.test_seller_wp7a6::test_amazon_incomplete_listing_cannot_receive_human_review",
+        "status": "FAIL",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_seller_wp7a6::test_amazon_review_still_requires_explicit_human_confirmation",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_seller_wp7a6::test_amazon_authorization_rechecks_prerequisites_after_review",
+        "status": "PASS",
+        "token": "5740623d2b3c4fc8"
+      },
+      {
+        "key": "tests.test_pr_sos_02_amazon_controls::test_listing_requires_review_then_single_use_authorization",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_pr_sos_02_amazon_controls::test_listing_authorization_is_stale_after_payload_change",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_pr_sos_02_amazon_controls::test_amazon_drift_serializes_media_identifiers",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_pr_sos_02_amazon_controls::test_keep_remote_clears_listing_readiness_drift_blocker",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_pr_sos_02_amazon_controls::test_amazon_authorization_rejects_expired_revoked_and_kill_switch_states",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_pr_sos_03_flipkart_controls::test_flipkart_requires_human_review_and_single_use_authorization",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_pr_sos_03_flipkart_controls::test_flipkart_authorization_is_stale_after_listing_change",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_pr_sos_03_flipkart_controls::test_flipkart_provider_rejection_does_not_claim_existing_remote_listing",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_metadata_version_safety",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_thumbnail_version_safety",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_caption_version_safety",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_recovery_sequential_idempotency",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_recovery_concurrent_idempotency",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_account_disable_video_e2e",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_new_video_version_safety_and_product_channel_update",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_replacement_preview_and_confirmation",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_three_platform_publication_isolation",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_metrics_exact_video_identity_and_history_safety",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[youtube_video]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[youtube_short]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[instagram_reel]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[instagram_story]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[facebook_reel]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_full_publication_e2e_for_each_social_video_target[facebook_story]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_product_channel_action_matrix",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[wrong-owner-video]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[wrong-product-video]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[draft-video]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[rejected-video]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[failed-video]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[stale-video]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[invalid-video-media]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[disabled-account]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[incompatible-format]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[stale-preview]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[hostile-title]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[hostile-description]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[hostile-caption]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[unsafe-url]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[duplicate-confirmation]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[cross-owner-account]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[cross-owner-thumbnail]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[cross-owner-caption]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[unapproved-thumbnail]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_cases[incompatible-caption-locale]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_social_video_security_matrix_has_twenty_cases",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_acceptance::test_connector_privacy_and_storage_integrity",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_http_confirm_does_not_call_connector_and_pins_context",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_remote_checkpoint_is_normalized_and_secret_free",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_crash_after_checkpoint_recovers_without_second_connector_call",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_ambiguous_publication_reconciles_without_republish",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_calendar_analytics_and_channel_projection_pin_identity",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_crash_before_connector_invocation_recovers_once",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.account_disabled-expected_actions0]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.invalid_credentials-expected_actions1]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.unsupported_format-expected_actions2]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.video_not_ready-expected_actions3]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.throttled-expected_actions4]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.timeout-expected_actions5]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.connector_unavailable-expected_actions6]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.ambiguous_publication-expected_actions7]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.stale_video-expected_actions8]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.stale_post-expected_actions9]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.scheduling_failure-expected_actions10]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_social_video_durable::test_video_recovery_projection_matrix[social.video.policy_rejection-expected_actions11]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_ads_concurrency_acceptance::test_concurrent_pause_requests_share_one_logical_job",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_ads_concurrency_acceptance::test_concurrent_recovery_requests_share_one_record",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_ads_version_safety_acceptance::test_approved_media_v2_does_not_mutate_active_ad[meta-image]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      },
+      {
+        "key": "tests.test_ads_version_safety_acceptance::test_approved_media_v2_does_not_mutate_active_ad[meta-video]",
+        "status": "PASS",
+        "token": "bed1d274ee1d45bb"
+      }
+    ],
+    "interpretation": "Latest outcome per stable test identity after affected-test reruns; NOT a claim that the original full run had zero failures."
+  },
+  "quality": {
+    "started_at": "2026-11-03T17:15:14.254Z",
+    "raw_output_persisted": false,
+    "checks": [
+      {
+        "id": "node_qa",
+        "command": "npm.cmd run qa:unit",
+        "exit_code": 0,
+        "status": "PASS",
+        "passed": 120
+      },
+      {
+        "id": "python_qa",
+        "command": "apps/api/.venv/Scripts/python.exe -m pytest qa/unit -q",
+        "exit_code": 0,
+        "status": "PASS",
+        "passed": 156
+      },
+      {
+        "id": "angular",
+        "command": "npm.cmd run test --workspace @vayujit/web",
+        "exit_code": 0,
+        "status": "PASS",
+        "passed": 428
+      },
+      {
+        "id": "build",
+        "command": "npm.cmd run build --workspace @vayujit/web",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "lint",
+        "command": "npx.cmd eslint apps/web/src/app/social/social-workspace.component.ts apps/web/src/app/social/social.service.ts apps/web/src/app/social/social-workspace.component.spec.ts",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "typescript_app",
+        "command": "npx.cmd tsc -p apps/web/tsconfig.app.json --noEmit",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "typescript_spec",
+        "command": "npx.cmd tsc -p apps/web/tsconfig.spec.json --noEmit",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "mypy",
+        "command": "apps/api/.venv/Scripts/mypy.exe --strict --config-file apps/api/pyproject.toml apps/api/vayujit_api/commerce/amazon_router.py",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "ruff",
+        "command": "apps/api/.venv/Scripts/ruff.exe check apps/api/vayujit_api/commerce/amazon_router.py apps/api/tests/test_seller_wp7a6.py apps/api/tests/test_pr_sos_02_amazon_controls.py qa/wp7a6_snapshot.py qa/wp7a6_final_audit.py qa/wp7a4_final_audit.py qa/wp4_final_audit.py qa/wp7a_fixture.py qa/wp7a2_fixture.py qa/wp7a3_fixture.py qa/wp7a4_fixture.py qa/fixture_server.py",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "black_backend",
+        "command": "apps/api/.venv/Scripts/black.exe --check --config apps/api/pyproject.toml apps/api/vayujit_api/commerce/amazon_router.py apps/api/tests/test_seller_wp7a6.py apps/api/tests/test_pr_sos_02_amazon_controls.py",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "black_qa",
+        "command": "apps/api/.venv/Scripts/black.exe --check qa/wp7a6_snapshot.py qa/wp7a6_final_audit.py qa/wp7a4_final_audit.py qa/wp4_final_audit.py qa/wp7a_fixture.py qa/wp7a2_fixture.py qa/wp7a3_fixture.py qa/wp7a4_fixture.py qa/fixture_server.py",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "compile",
+        "command": "apps/api/.venv/Scripts/python.exe -m compileall -q apps/api/vayujit_api/commerce/amazon_router.py apps/api/tests/test_seller_wp7a6.py apps/api/tests/test_pr_sos_02_amazon_controls.py qa/wp7a6_snapshot.py qa/wp7a6_final_audit.py qa/wp7a4_final_audit.py qa/wp4_final_audit.py qa/wp7a_fixture.py qa/wp7a2_fixture.py qa/wp7a3_fixture.py qa/wp7a4_fixture.py qa/fixture_server.py",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "parser",
+        "command": "$tokens=$null; $errors=$null; [void][Management.Automation.Language.Parser]::ParseFile((Join-Path (Get-Location) 'scripts/test-seller-wp7a6.ps1'),[ref]$tokens,[ref]$errors); if($errors.Count){exit 1}; node --check qa/wp7a6-scenarios.mjs; if($LASTEXITCODE){exit $LASTEXITCODE}; node --check qa/wp7a6-safety.mjs; exit $LASTEXITCODE",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "diff",
+        "command": "git -c safe.directory=C:/Users/jithe/Documents/vayujit-os diff --check",
+        "exit_code": 0,
+        "status": "PASS"
+      }
+    ],
+    "completed_at": "2026-11-03T17:18:15.713Z"
+  },
+  "cleanup_evidence": "tmp/qa-wp7a6-final-audit.json",
+  "cleanup_recovery": {
+    "token": "0e63cd34fede26e1",
+    "database": "vayujit_qa0e63cd34fede26e1_test",
+    "oid": 13516456,
+    "human_approval": "Exact recovery approved in conversation on 2026-11-04 Asia/Calcutta",
+    "non_force": true,
+    "raw_output_persisted": false,
+    "process_check": {
+      "exit_code": 0,
+      "matching_count": 0,
+      "stderr_bytes": 0,
+      "raw_output_persisted": false
+    },
+    "preflight": "PASS",
+    "matching_qa_processes": 0,
+    "sessions": 0,
+    "signed_state": "DROPPING",
+    "previous_evidence_archive": "tmp\\qa-wp7a6\\before-approved-recovery-20261104T015051Z",
+    "status": "DROPPED",
+    "seconds": 1.016,
+    "completed_at": "2026-11-04T01:50:52.736514+00:00",
+    "state": "DROPPED"
+  },
+  "historical_risks": [
+    "PostgreSQL StartedAt/FinishedAt discrepancy remains unattributed",
+    "Historical Ads 502 UNREPRODUCED / CAUSE UNCLASSIFIED",
+    "Manual accessibility remains incomplete",
+    "Repository-wide typing/lint debt not recertified",
+    "Financial reconciliation / immutable accounting limitations",
+    "PC-first backup certification PARKED"
+  ],
+  "normal_app": {
+    "restored": true,
+    "api_before": {
+      "workers": 0,
+      "status": "VERIFIED",
+      "process_count": 3,
+      "reload": true
+    },
+    "frontend_was_running": true,
+    "token": "29a7dd1644814733",
+    "api_paused": true,
+    "frontend_paused": true,
+    "database_modified": false
+  },
+  "normal_app_health": {
+    "checked_at": "2026-11-04T01:52:27.790Z",
+    "api": {
+      "http_status": 200,
+      "available": true
+    },
+    "frontend": {
+      "http_status": 200,
+      "available": true
+    }
+  }
+}

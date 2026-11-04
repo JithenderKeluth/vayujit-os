@@ -44,18 +44,26 @@ import {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="workspace" aria-labelledby="supplier-intelligence-title">
+    <section class="workspace" aria-labelledby="supplier-intelligence-title">
       <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         class="page-header"
         eyebrow="Intelligence / Supplier Intelligence"
         title="Cross-marketplace Supplier Intelligence"
+        headingId="supplier-intelligence-title"
         description="One canonical, evidence-first view across independent sources."
       >
         <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
       </app-page-header>
       <app-supplier-journey-nav current="discover" />
-      <app-commerce-journey-context />
+      <p>Find candidates, review their evidence, then explicitly shortlist and assess them. A candidate is not a verified supplier or a quotation.</p>
+      <details><summary>Already know a supplier?</summary>
+        <p>Use the existing manual supplier register to record its name and provenance. Manual entry is not verification and does not automatically associate it with this selected product.</p>
+        <a routerLink="/intelligence" fragment="offline-supplier-title">Record a supplier manually</a>
+      </details>
+      @if (!productContext()) {
+        <app-commerce-journey-context />
+      }
 
       @if (productContext(); as context) {
         <section class="context-panel" aria-labelledby="research-context-title">
@@ -86,15 +94,32 @@ import {
           @if (researchMode === 'LOCAL_FIXTURE') {
             <p class="fixture-boundary" role="note">Local demo data — not live market evidence.</p>
           }
-          <div class="research-form" aria-label="Selected product supplier research">
+          <div class="research-form" role="group" aria-label="Selected product supplier research">
             <p class="research-intent">
-              VAYUJIT will derive a bounded supplier-search intent from this selected product.
-              You do not need to enter a product ID or search string.
+              VAYUJIT will derive a bounded supplier-search intent from this selected product. You
+              do not need to enter a product ID or search string.
             </p>
-            <p class="research-mode">Mode: <strong>{{ researchMode }}</strong> · no supplier contact or external write</p>
-            <button type="button" (click)="startResearch()" [disabled]="researchBusy()">
+            <p class="research-mode">
+              Mode: <strong>{{ researchMode }}</strong> · no supplier contact or external write
+            </p>
+            <button
+              type="button"
+              (click)="startResearch()"
+              [disabled]="researchBusy() || loading() || !researchMode"
+            >
               {{ researchBusy() ? 'Finding suppliers...' : 'Find suppliers for this product' }}
             </button>
+            @if (!researchMode) {
+              <p role="status">
+                Discovery is unavailable in the configured mode. Check research settings; live
+                access is never enabled automatically.
+              </p>
+            } @else if (researchMode === 'LIVE_READ_ONLY') {
+              <p>
+                Live read-only research remains subject to backend source, execution-authorization
+                and provider policy checks.
+              </p>
+            }
           </div>
           @if (research(); as state) {
             <div class="research-status" role="status" aria-live="polite">
@@ -218,7 +243,11 @@ import {
             title="No suppliers were found from the currently available sources"
             message="Research completed with gaps, or supplier research has not started for this product. Adjust the research terms or review the product before trying again."
           >
-            <button type="button" (click)="startResearch()" [disabled]="researchBusy()">
+            <button
+              type="button"
+              (click)="startResearch()"
+              [disabled]="researchBusy() || loading() || !researchMode"
+            >
               Research again
             </button>
           </app-empty-state>
@@ -307,12 +336,7 @@ import {
       </section>
 
       @if (selected()) {
-        <section
-          id="supplier-detail"
-          class="panel"
-          aria-labelledby="detail-title"
-          tabindex="-1"
-        >
+        <section id="supplier-detail" class="panel" aria-labelledby="detail-title" tabindex="-1">
           <p class="eyebrow">Supplier detail</p>
           <h2 id="detail-title">{{ selected()?.display_name }}</h2>
           <p class="detail-lede">
@@ -440,6 +464,8 @@ import {
                 [queryParams]="economicsParams()"
                 >Continue to sourcing economics</a
               >
+              <a routerLink="/intelligence/sourcing" [queryParams]="economicsParams()">Prepare local requirements and record quotes</a>
+              <p>A Catalog draft is required for the existing quotation workflow. Preparing a local request never sends it; unknown commercial terms remain unknown.</p>
             }
             <details class="advanced-actions">
               <summary>Advanced research controls</summary>
@@ -514,7 +540,7 @@ import {
           </details>
         }
       </section>
-    </main>
+    </section>
   `,
   styles: [
     `
@@ -884,7 +910,7 @@ export class CrossMarketplaceSupplierComponent {
   readonly research = signal<Record<string, unknown> | null>(null);
   readonly researchBusy = signal(false);
   researchQuery = '';
-  researchMode: 'LOCAL_FIXTURE' | 'LIVE_READ_ONLY' = 'LIVE_READ_ONLY';
+  researchMode: 'LOCAL_FIXTURE' | 'LIVE_READ_ONLY' | null = null;
   readonly error = signal('');
   comparisonIds = '';
   private requestedSupplierId = '';
@@ -898,6 +924,23 @@ export class CrossMarketplaceSupplierComponent {
     this.requestedSupplierId =
       params.get('supplier_id') || params.get('canonical_supplier_id') || '';
     this.route.queryParamMap.subscribe((queryParams) => {
+      const nextOpportunity = queryParams.get('opportunity_id');
+      if (
+        nextOpportunity &&
+        this.productContext() &&
+        nextOpportunity !== this.productContext()?.opportunityId
+      ) {
+        this.selected.set(null);
+        this.suppliers.set([]);
+        this.researchMode = null;
+        this.productContext.set({
+          ...this.productContext()!,
+          opportunityId: nextOpportunity,
+          product: '',
+          category: '',
+        });
+        void this.load();
+      }
       const nextSupplierId =
         queryParams.get('supplier_id') || queryParams.get('canonical_supplier_id') || '';
       if (nextSupplierId === this.requestedSupplierId) return;
@@ -992,6 +1035,7 @@ export class CrossMarketplaceSupplierComponent {
       product: context.product,
       category: context.category,
       marketplace: context.marketplace,
+      ...(this.selected() ? { supplier_id: this.selected()!.id } : {}),
       ...(selected.length ? { supplier_ids: selected.join(',') } : {}),
     };
   }
@@ -1020,7 +1064,8 @@ export class CrossMarketplaceSupplierComponent {
             }
           : null,
       );
-      const projectedMode = projectedResearch?.['mode'];
+      const projectedMode = result['execution_mode'];
+      this.researchMode = null;
       if (projectedMode === 'LOCAL_FIXTURE' || projectedMode === 'LIVE_READ_ONLY') {
         this.researchMode = projectedMode;
       }
@@ -1049,14 +1094,16 @@ export class CrossMarketplaceSupplierComponent {
       }
       this.unscopedSuppliers.set([]);
       this.comparisonSelection.set(new Set());
-    } catch {
-      // The main discovery list remains usable when the optional journey projection is unavailable.
+    } catch (error) {
+      this.researchMode = null;
+      this.suppliers.set([]);
+      throw error;
     }
   }
 
   async startResearch(): Promise<void> {
     const context = this.productContext();
-    if (!context || !this.researchQuery.trim()) return;
+    if (!context || !this.researchQuery.trim() || !this.researchMode || this.researchBusy()) return;
     this.researchBusy.set(true);
     this.error.set('');
     try {
@@ -1064,9 +1111,9 @@ export class CrossMarketplaceSupplierComponent {
         product_query: this.researchQuery.trim(),
         product_opportunity_id: context.opportunityId,
         category: context.category,
-        mode: 'LIVE_READ_ONLY',
+        mode: this.researchMode,
         max_candidates: 10,
-        idempotency_key: `gp4-${context.opportunityId}-${this.researchQuery.trim().toLowerCase()}`,
+        idempotency_key: `gp4-${this.researchMode}-${context.opportunityId}-${this.researchQuery.trim().toLowerCase()}`,
       });
       const summary = (result['result'] as Record<string, unknown>) || result;
       this.research.set(summary);
@@ -1166,16 +1213,25 @@ export class CrossMarketplaceSupplierComponent {
     const status = this.researchStatus();
     const messages: Record<string, string> = {
       NOT_STARTED: 'Supplier research has not started for this selected product.',
-      RUNNING: 'Bounded supplier research is running. Results remain read-only until you review them.',
-      COMPLETED: 'Research completed. Review evidence, freshness, risks, and unknown commercial fields before comparing.',
-      NO_CANDIDATES: 'No canonical supplier candidate survived the evidence and relevance gates for this product.',
-      PROVIDER_UNAVAILABLE: 'The configured provider is unavailable. No supplier contact or external write was attempted.',
+      RUNNING:
+        'Bounded supplier research is running. Results remain read-only until you review them.',
+      COMPLETED:
+        'Research completed. Review evidence, freshness, risks, and unknown commercial fields before comparing.',
+      NO_CANDIDATES:
+        'No canonical supplier candidate survived the evidence and relevance gates for this product.',
+      PROVIDER_UNAVAILABLE:
+        'The configured provider is unavailable. No supplier contact or external write was attempted.',
       APPROVAL_REQUIRED: 'Human approval is required before this research can continue.',
-      BLOCKED: 'Research is blocked by a canonical safety or context gate. Review the selected product and the error above.',
-      FAILED: 'Research failed before a canonical supplier projection was produced. Retry only after reviewing the error.',
+      BLOCKED:
+        'Research is blocked by a canonical safety or context gate. Review the selected product and the error above.',
+      FAILED:
+        'Research failed before a canonical supplier projection was produced. Retry only after reviewing the error.',
       STALE: 'The available supplier evidence is stale and needs human review before it is used.',
     };
-    return messages[status] || 'Review the canonical result and its evidence before taking the next step.';
+    return (
+      messages[status] ||
+      'Review the canonical result and its evidence before taking the next step.'
+    );
   }
   private researchStatus(): string {
     const value = this.research()?.['status'];

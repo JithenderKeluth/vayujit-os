@@ -1,0 +1,459 @@
+{
+  "schema_version": "seller-wp3-resolution-v1",
+  "date": "2026-10-29",
+  "classification": "WP3 IMPLEMENTED / BOUNDED LOCAL JOURNEY VALIDATED / GUARDED CLEANUP RECOVERY DISCLOSED",
+  "application_certification": "INCOMPLETE",
+  "synthetic_only": true,
+  "changed_files": [
+    "apps/api/vayujit_api/intelligence/sourcing_service.py",
+    "apps/api/vayujit_api/intelligence/economic_integration_service.py",
+    "apps/api/tests/test_seller_wp3.py",
+    "apps/web/src/app/shared/seller-navigation.component.ts",
+    "apps/web/src/app/shared/seller-navigation.component.spec.ts",
+    "apps/web/src/app/catalog/catalog-workspace.component.ts",
+    "apps/web/src/app/catalog/catalog-economics-presentation.spec.ts",
+    "apps/web/src/app/intelligence/cross-marketplace-supplier.component.ts",
+    "apps/web/src/app/intelligence/intelligence.service.ts",
+    "apps/web/src/app/intelligence/supplier-shortlisting.component.ts",
+    "apps/web/src/app/intelligence/supplier-shortlisting.component.spec.ts",
+    "apps/web/src/app/intelligence/sourcing-workspace.component.ts",
+    "apps/web/src/app/intelligence/sourcing-workspace.component.spec.ts",
+    "apps/web/src/app/intelligence/sourcing-economics-workspace.component.ts",
+    "apps/web/src/app/intelligence/sourcing-economics-workspace.component.spec.ts",
+    "apps/web/src/app/intelligence/seller-financial-format.ts",
+    "apps/web/src/app/intelligence/seller-financial-format.spec.ts",
+    "apps/web/src/app/intelligence/economic-evidence-note.component.ts",
+    "apps/web/src/app/intelligence/economic-evidence-note.component.spec.ts",
+    "qa/wp3-fixtures.mjs",
+    "qa/wp3-before.mjs",
+    "qa/wp3-sourcing-before.mjs",
+    "qa/wp3-browser-retest.mjs",
+    "qa/wp3-reporting.mjs",
+    "qa/wp3_final_audit.py",
+    "qa/unit/wp3-safety.test.mjs",
+    "qa/fixture_server.py",
+    "qa/safety.mjs",
+    "scripts/test-seller-wp3.ps1",
+    "docs/qa/seller-experience/wp3-remediation.md",
+    "docs/qa/seller-experience/wp3-browser-retest.md",
+    "docs/qa/seller-experience/wp3-resolution.json",
+    "docs/qa/seller-experience/browser-findings.json",
+    "docs/qa/seller-experience/prioritized-completion-backlog.md",
+    "docs/qa/seller-experience/browser-journey-coverage.md"
+  ],
+  "resolved_findings": [
+    "SE-BROWSER-006",
+    "SE-BROWSER-007",
+    "SE-BROWSER-013",
+    "SE-BROWSER-015",
+    "SE-BROWSER-016"
+  ],
+  "preserved_wp1_resolutions": [
+    "SE-BROWSER-001",
+    "SE-BROWSER-002",
+    "SE-BROWSER-003",
+    "SE-BROWSER-004"
+  ],
+  "preserved_wp2_resolutions": [
+    "SE-BROWSER-005",
+    "SE-BROWSER-008",
+    "SE-BROWSER-011",
+    "SE-BROWSER-014"
+  ],
+  "remaining_browser_findings": [
+    "SE-BROWSER-009",
+    "SE-BROWSER-010",
+    "SE-BROWSER-012",
+    "SE-BROWSER-017",
+    "SE-BROWSER-018",
+    "SE-BROWSER-019",
+    "SE-BROWSER-020"
+  ],
+  "suspected_advanced_navigation_contrast": "OPEN_NOT_GLOBALLY_RETESTED",
+  "additional_corrections": [
+    {
+      "id": "SE-WP3-QUOTE-001",
+      "status": "RESOLVED_LOCAL_BROWSER",
+      "root": "Empty product UUID, canonical IDs placed in legacy identity fields, and RFQ response envelope mismatch.",
+      "evidence": [
+        "tmp/qa-seller-browser/8d0cfff3b3f4abeb/wp3-sourcing-before.json",
+        "tmp/qa-seller-browser/0ebe4155420b6950/wp3-after-desktop/010-local-quote-scoped-and-unverified.png"
+      ]
+    },
+    {
+      "id": "SE-WP3-REPLAY-001",
+      "status": "RESOLVED_PERSISTED_REGRESSION_AND_BROWSER",
+      "root": "Replay material not compared and concurrent version collisions could return another request.",
+      "tests": [
+        "local requirement/RFQ/quote exact replay versus conflict",
+        "concurrent same quote produces one immutable version"
+      ]
+    },
+    {
+      "id": "SE-WP3-EMPTY-001",
+      "status": "RESOLVED_LOCAL_BROWSER_AND_API",
+      "root": "NOT_EVALUATED economics omitted scenario_comparisons; compiled Angular template dereferenced .length.",
+      "evidence": [
+        "tmp/qa-seller-browser/eb7feec0e33e4d3c/wp3-after-desktop/browser-evidence.json",
+        "tmp/qa-seller-browser/0ebe4155420b6950/wp3-retest.json"
+      ],
+      "note": "Earlier 16-check reports were superseded, not accepted as console-clean certification."
+    },
+    {
+      "id": "SE-WP3-FX-DISPLAY-001",
+      "status": "SOURCE_AND_UNIT_VERIFIED_NOT_FX_BROWSER_CERTIFIED",
+      "root": "Converted per-unit component amounts require base-currency labels, not original component currency."
+    }
+  ],
+  "counts": {
+    "wp3_backend_passed": 7,
+    "wp1_backend_passed": 8,
+    "wp2_backend_passed": 8,
+    "adjacent_backend_passed": 14,
+    "backend_final_failed": 0,
+    "angular_passed": 319,
+    "angular_failed": 0,
+    "node_qa_passed": 55,
+    "python_qa_passed": 54,
+    "browser_journey_checks_passed": 17,
+    "browser_journey_checks_failed": 0,
+    "full_document_axe_scans": 4,
+    "axe_violations": 0,
+    "full_document_axe_incomplete_rules": 1,
+    "full_document_axe_incomplete_nodes": 37,
+    "exposed_node_contrast_scans_passed": 37,
+    "exposed_node_contrast_incomplete": 0,
+    "final_browser_pngs": 19,
+    "final_browser_traces": 2,
+    "wp3_databases_absent_and_signed_dropped": 17,
+    "guarded_cleanup_recoveries": 4
+  },
+  "final_browser": {
+    "token": "0ebe4155420b6950",
+    "status": "COMPLETE",
+    "checks": [
+      {
+        "name": "013 primary Suppliers opens discovery, not sourcing decisions",
+        "status": "PASS"
+      },
+      {
+        "name": "selected product to LOCAL_FIXTURE supplier with provenance",
+        "status": "PASS"
+      },
+      {
+        "name": "007 persisted HUMAN shortlist refreshes canonical counts without reload",
+        "status": "PASS"
+      },
+      {
+        "name": "existing evidence assessment is discoverable and does not verify synthetic supplier",
+        "status": "PASS"
+      },
+      {
+        "name": "canonical financial arithmetic remains precise, assumed and incomplete (not net profit)",
+        "status": "PASS"
+      },
+      {
+        "name": "supplier brief blocked until exact scoped economic inputs exist, with useful next action",
+        "status": "PASS"
+      },
+      {
+        "name": "015/016 product-level summary, INR grouping, percentages, exact evidence retained",
+        "status": "PASS"
+      },
+      {
+        "name": "original warning evidence remains keyboard discoverable, not parsed into financial facts",
+        "status": "PASS"
+      },
+      {
+        "name": "006 Catalog conversion and authoritative INR currency survives reload",
+        "status": "PASS"
+      },
+      {
+        "name": "canonical supplier to local pricing draft and seller-entered quotation, no dispatch",
+        "status": "PASS"
+      },
+      {
+        "name": "mobile persisted economics, readable summary, no document overflow, keyboard links",
+        "status": "PASS"
+      },
+      {
+        "name": "mobile quotation deep link preserves exact saved draft and unverified quote",
+        "status": "PASS"
+      },
+      {
+        "name": "invalid supplier context fails closed without another supplier or cost substitution",
+        "status": "PASS"
+      },
+      {
+        "name": "manual Catalog product stays distinct from a researched opportunity",
+        "status": "PASS"
+      },
+      {
+        "name": "backend read failure is explicit and recovery restores the same economic scope",
+        "status": "PASS"
+      },
+      {
+        "name": "explicit HUMAN keep-under-review persists; unknown/synthetic evidence cannot enable Proceed",
+        "status": "PASS"
+      },
+      {
+        "name": "no unexpected Angular console, page, network or provider errors",
+        "status": "PASS"
+      }
+    ],
+    "desktop_height": 7149,
+    "mobile_size": {
+      "width": 390,
+      "scroll": 390,
+      "height": 10840
+    },
+    "axe": [
+      {
+        "state": "readiness-details-open",
+        "violations": 0,
+        "incomplete_rules": 0,
+        "incomplete_nodes": 0
+      },
+      {
+        "state": "scoped-local-quote-reloaded",
+        "violations": 0,
+        "incomplete_rules": 0,
+        "incomplete_nodes": 0
+      },
+      {
+        "state": "economics-mobile",
+        "violations": 0,
+        "incomplete_rules": 1,
+        "incomplete_nodes": 37
+      },
+      {
+        "state": "mobile-local-quote",
+        "violations": 0,
+        "incomplete_rules": 0,
+        "incomplete_nodes": 0
+      }
+    ],
+    "exposed_nodes": 37,
+    "exposed_all_pass": true,
+    "report": "tmp/qa-seller-browser/0ebe4155420b6950/wp3-retest.json",
+    "browser_process_exit_code": 0,
+    "viewports": [
+      {
+        "width": 1440,
+        "height": 900
+      },
+      {
+        "width": 390,
+        "height": 844
+      }
+    ],
+    "unexpected_console_or_page_errors": 0,
+    "expected_events": [
+      "one injected exact decision-brief 503 and resource error",
+      "anonymous mobile GET auth/me 401 on login and resource error"
+    ],
+    "actual_supplier_detail_quotation_cta_clicked": true
+  },
+  "before_browser_token": "c664f26be17f72e7",
+  "final_backend_token": "017310dc9bfe4e65",
+  "adjacent_backend_token": "a2ff14300c664ae6",
+  "cleanup": {
+    "read_only_audit": "tmp/qa-wp3-final-audit.json",
+    "status": "PASS",
+    "databases": [
+      {
+        "token": "0039f102098b3111",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "017310dc9bfe4e65",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "0a5ff48060324aad",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "0ebe4155420b6950",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "397c861ae788b9a8",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "4509607974c64beb",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "4b299ec35a40faa7",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": true,
+        "recovery_statement_timeout_ms": 60000
+      },
+      {
+        "token": "4e79b65a9a79412e",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "8d0cfff3b3f4abeb",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": true,
+        "recovery_statement_timeout_ms": 60000
+      },
+      {
+        "token": "9d8c5ecc4b2aceb3",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "a136e7fc5c888b0d",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": true,
+        "recovery_statement_timeout_ms": 60000
+      },
+      {
+        "token": "a2ff14300c664ae6",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "a4832f6e5540468d",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "c664f26be17f72e7",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "cb7276e258ec05e7",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": true,
+        "recovery_statement_timeout_ms": 60000
+      },
+      {
+        "token": "eb7feec0e33e4d3c",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "fb33680f8063a983",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      }
+    ],
+    "final_runtime_original_status": "CLEANED",
+    "final_runtime_original_child_exit": 0,
+    "final_runtime_recovery": "Not required for final run. Four earlier interrupted drops and original failed runtime reports remain disclosed; exact signed lifecycle recovery and independent absence verification passed.",
+    "unrelated_docker": {
+      "original_containers": 10,
+      "original_networks_and_volumes_preserved": true
+    },
+    "secret_scan": {
+      "credential_matches": 0,
+      "raw_container_logs_persisted": false
+    },
+    "prior_runtime_failures": [
+      {
+        "token": "4b299ec35a40faa7",
+        "original_status": "CLEANUP_BLOCKED",
+        "recovered_state": "DROPPED",
+        "absence_verified": true
+      },
+      {
+        "token": "8d0cfff3b3f4abeb",
+        "original_status": "CLEANUP_BLOCKED",
+        "recovered_state": "DROPPED",
+        "absence_verified": true
+      },
+      {
+        "token": "a136e7fc5c888b0d",
+        "original_status": "CLEANUP_BLOCKED",
+        "recovered_state": "DROPPED",
+        "absence_verified": true
+      },
+      {
+        "token": "cb7276e258ec05e7",
+        "original_status": "CLEANUP_BLOCKED",
+        "recovered_state": "DROPPED",
+        "absence_verified": true
+      }
+    ]
+  },
+  "quality": {
+    "production_build": "PASS_WITH_EXISTING_INITIAL_BUNDLE_WARNING_518.25kB",
+    "focused_eslint": "PASS",
+    "typescript": "PASS",
+    "ruff": "PASS",
+    "black": "PASS",
+    "compileall": "PASS",
+    "powershell_parser": "PASS_0_ERRORS",
+    "strict_mypy_economic_projection": "PASS",
+    "strict_mypy_legacy_sourcing": {
+      "status": "NOT_CLEAN_BASELINE_DEBT",
+      "current_errors": 29,
+      "untouched_HEAD_shadow_errors": 29,
+      "checks_not_weakened": true
+    },
+    "git_diff_check": "PASS"
+  },
+  "remaining_limits": [
+    "Manual Catalog Product-only known-cost API is tested; complete seller-facing manual product quote/cost-input editor remains a UX gap, not fabricated opportunity lineage.",
+    "Existing manual supplier register is linked, but automatic product association is not invented or certified.",
+    "Legacy quotation currency comparison does not establish full unit/freight/tax/expiry compatibility.",
+    "No live supplier/provider, real marketplace fee/GST, two-real-supplier comparison, procurement, or whole-application certification.",
+    "No comprehensive manual assistive-technology/WCAG certification; earlier global accessibility findings are preserved.",
+    "Four original interrupted DROP failures remain recorded; safe recovery establishes absence, not a false normal runtime exit."
+  ],
+  "safety": {
+    "permanent_or_golden_database_modified": false,
+    "real_provider_calls": false,
+    "supplier_contact": false,
+    "rfq_dispatch": false,
+    "external_writes": false,
+    "backup_certification": "PARKED_UNTOUCHED",
+    "new_milestone_started": false,
+    "commits": false,
+    "pushes": false,
+    "branches": false
+  }
+}

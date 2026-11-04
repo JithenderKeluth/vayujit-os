@@ -157,4 +157,11 @@ describe('DashboardComponent', () => {
     expect(element.querySelector('button')?.textContent).toContain('Try again');
     expect(element.textContent).not.toContain('backend detail should stay hidden');
   });
+  it('does not label configured publishing destinations as connected seller accounts', async () => {
+    journeyService.active.mockResolvedValue(null);
+    const fixture = await create(response({active_destinations:1}));
+    expect(fixture.nativeElement.textContent).toContain('1 configured publishing destination');
+    expect(fixture.nativeElement.textContent).not.toContain('sales channel connected');
+    expect(fixture.nativeElement.textContent).toContain('not a connected seller account');
+  });
 });

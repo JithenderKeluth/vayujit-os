@@ -56,7 +56,7 @@ type Capability = Json & {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="ads-shell" aria-labelledby="ads-title">
+    <section class="ads-shell" aria-labelledby="ads-title">
       <app-growth-journey-nav current="advertising" />
       <app-page-header
         eyebrow="Grow / advertising"
@@ -124,7 +124,7 @@ type Capability = Json & {
           }
         }
       }
-    </main>
+    </section>
     <ng-template #overviewView
       ><section class="section-heading">
         <div>
@@ -230,7 +230,7 @@ type Capability = Json & {
           </div>
         </form>
       }
-      <section class="panel table-scroll">
+      <section class="panel table-scroll" tabindex="0" aria-label="Ads accounts table">
         <table>
           <caption class="sr-only">
             Ads accounts
@@ -317,7 +317,7 @@ type Capability = Json & {
           </select></label
         >
       </section>
-      <section class="panel table-scroll">
+      <section class="panel table-scroll" tabindex="0" aria-label="Ads campaigns table">
         <table>
           <caption class="sr-only">
             Ads campaigns
@@ -496,6 +496,17 @@ type Capability = Json & {
                 (artifactIdChange)="creativeDraft.artifact_id = $event"
                 (mediaIdsChange)="creativeDraft.media_id = $event[0] || ''"
               />
+              @if (creativeDraft.creative_type === 'image') {
+                <label
+                  >Approved Image Output ID<input
+                    name="image_output_id"
+                    [(ngModel)]="creativeDraft.image_output_id"
+                /></label>
+                <p>
+                  Use the exact approved output and its matching media. This is a local preview, not
+                  provider approval.
+                </p>
+              }
               <label
                 >Exact Artifact version<input
                   type="number"
@@ -615,7 +626,7 @@ type Capability = Json & {
             </button>
             @if (preview()) {
               <div class="preview">
-                <strong>Preview fingerprint:</strong> {{ preview()?.preview_fingerprint }}
+                <strong>Preview fingerprint:</strong> {{ preview()?.fingerprint }}
                 <p>{{ preview()?.safe_message || 'Preview ready for explicit confirmation.' }}</p>
               </div>
             }
@@ -757,6 +768,16 @@ type Capability = Json & {
               <article>
                 <strong>{{ creative.type | titlecase }}</strong>
                 <p>Approval: {{ creative.approval_status }}</p>
+                @if (creative.lineage?.artifact_id) {
+                  <p>
+                    Content: {{ creative.lineage.artifact_id }} / version
+                    {{ creative.lineage.artifact_version }}
+                  </p>
+                }
+                @if (creative.lineage?.image_output_id) {
+                  <p>Image output: {{ creative.lineage.image_output_id }}</p>
+                  <p>Image media: {{ creative.lineage.image_media_id }}</p>
+                }
                 <p>Destination: {{ creative.destination_url || 'Not set' }}</p>
                 <small>Fingerprint: {{ creative.fingerprint || 'Unavailable' }}</small>
               </article>
@@ -797,7 +818,7 @@ type Capability = Json & {
           ><small>No live revenue attribution connected</small>
         </article>
       </section>
-      <section class="panel table-scroll">
+      <section class="panel table-scroll" tabindex="0" aria-label="Advertising analytics table">
         <table>
           <thead>
             <tr>
@@ -837,7 +858,7 @@ type Capability = Json & {
           </p>
         </div>
       </section>
-      <section class="panel table-scroll">
+      <section class="panel table-scroll" tabindex="0" aria-label="Ads schedule table">
         <table>
           <caption class="sr-only">
             Ads schedule
@@ -882,7 +903,7 @@ type Capability = Json & {
           <p>Actions are explicit, idempotent, and always return safe messages.</p>
         </div>
       </section>
-      <section class="panel table-scroll">
+      <section class="panel table-scroll" tabindex="0" aria-label="Advertising failures table">
         <table>
           <thead>
             <tr>
@@ -1405,6 +1426,8 @@ export class AdsWorkspaceComponent implements OnDestroy {
   analytics: Json | null = null;
   readonly readiness = signal<Json | null>(null);
   readonly preview = signal<Json | null>(null);
+  private previewedCampaign: ReturnType<AdsWorkspaceComponent['campaignPayload']> | null = null;
+  private campaignConfirmationKey = '';
   showAccountForm = false;
   campaignSearch = '';
   campaignProvider = '';
@@ -1424,6 +1447,7 @@ export class AdsWorkspaceComponent implements OnDestroy {
     artifact_id: '',
     artifact_version: null,
     media_id: '',
+    image_output_id: '',
     media_version: null,
     destination_url: '',
     headline: '',
@@ -1620,10 +1644,32 @@ export class AdsWorkspaceComponent implements OnDestroy {
   async checkReadiness() {
     const body: Json = {
       campaign_id: '00000000-0000-0000-0000-000000000000',
+      account_id: this.campaignDraft.account_id || null,
+      objective: this.campaignDraft.objective,
+      ...this.creativePayload('ads-readiness'),
+    };
+    this.submitting.set(true);
+    this.error.set(null);
+    try {
+      this.readiness.set(
+        await firstValueFrom(this.http.post<Json>('/api/v1/ads/creatives/readiness', body)),
+      );
+    } catch (error: any) {
+      this.error.set(this.safeError(error));
+    } finally {
+      this.submitting.set(false);
+    }
+  }
+  private creativePayload(idempotencyKey: string) {
+    return {
       product_id: this.campaignDraft.product_id || null,
       creative_type: this.creativeDraft.creative_type,
       artifact_id: this.creativeDraft.artifact_id || null,
       artifact_version: this.creativeDraft.artifact_version || null,
+      image_output_id:
+        this.creativeDraft.creative_type === 'image'
+          ? this.creativeDraft.image_output_id || null
+          : null,
       image_media_id:
         this.creativeDraft.creative_type === 'image' ? this.creativeDraft.media_id || null : null,
       image_version:
@@ -1637,20 +1683,11 @@ export class AdsWorkspaceComponent implements OnDestroy {
           ? this.creativeDraft.media_version || null
           : null,
       destination_url: this.creativeDraft.destination_url || null,
-      idempotency_key: `ads-readiness-${Date.now()}`,
+      headline: this.creativeDraft.headline || null,
+      idempotency_key: idempotencyKey,
     };
-    this.submitting.set(true);
-    try {
-      this.readiness.set(
-        await firstValueFrom(this.http.post<Json>('/api/v1/ads/creatives/readiness', body)),
-      );
-    } catch (error: any) {
-      this.error.set(this.safeError(error));
-    } finally {
-      this.submitting.set(false);
-    }
   }
-  private campaignPayload() {
+  private campaignPayload(idempotencyKey = `ads-campaign-${crypto.randomUUID()}`) {
     const budget: Json = { currency: 'INR', budget_type: this.campaignDraft.budget.budget_type };
     if (this.campaignDraft.budget.budget_type === 'lifetime')
       budget.lifetime_amount = this.campaignDraft.budget.amount;
@@ -1674,18 +1711,25 @@ export class AdsWorkspaceComponent implements OnDestroy {
       budget,
       start_at: this.campaignDraft.start_at || null,
       end_at: this.campaignDraft.end_at || null,
-      idempotency_key: `ads-campaign-${Date.now()}`,
+      idempotency_key: idempotencyKey,
+      creative: this.creativePayload(`${idempotencyKey}:creative`),
     };
   }
   async previewCampaign() {
+    if (this.submitting()) return;
     this.submitting.set(true);
     this.error.set(null);
+    this.preview.set(null);
+    this.previewedCampaign = null;
+    this.confirmChecked = false;
     try {
-      this.preview.set(
-        await firstValueFrom(
-          this.http.post<Json>('/api/v1/ads/campaigns/preview', this.campaignPayload()),
-        ),
+      const campaign = this.campaignPayload();
+      const preview = await firstValueFrom(
+        this.http.post<Json>('/api/v1/ads/campaigns/preview', campaign),
       );
+      this.previewedCampaign = campaign;
+      this.campaignConfirmationKey = `ads-campaign-confirm-${crypto.randomUUID()}`;
+      this.preview.set(preview);
     } catch (error: any) {
       this.error.set(this.safeError(error));
     } finally {
@@ -1693,22 +1737,34 @@ export class AdsWorkspaceComponent implements OnDestroy {
     }
   }
   async confirmCampaign() {
-    if (!this.confirmChecked) return;
+    if (!this.confirmChecked || this.submitting()) return;
     if (!this.preview()) await this.previewCampaign();
     const value = this.preview();
-    if (!value) return;
+    const campaign = this.previewedCampaign;
+    if (!value || !campaign) return;
+    if (
+      JSON.stringify(this.campaignPayload(campaign.idempotency_key)) !== JSON.stringify(campaign)
+    ) {
+      this.preview.set(null);
+      this.previewedCampaign = null;
+      this.confirmChecked = false;
+      this.error.set(
+        'Campaign inputs changed. Run a new server preview and review it before confirming.',
+      );
+      return;
+    }
     this.submitting.set(true);
     try {
       const result = await firstValueFrom(
         this.http.post<Json>('/api/v1/ads/campaigns/confirm', {
-          campaign: this.campaignPayload(),
-          preview_fingerprint: value.preview_fingerprint,
+          campaign,
+          preview_fingerprint: value.fingerprint,
           confirm: true,
-          idempotency_key: `ads-campaign-confirm-${Date.now()}`,
+          idempotency_key: this.campaignConfirmationKey,
         }),
       );
       this.notice.set(`Campaign queued safely. Job ${result.job?.id || 'created'}.`);
-      await this.router.navigate(['/ads/campaigns']);
+      await this.router.navigate(['/ads/campaigns', result.campaign.id]);
     } catch (error: any) {
       this.error.set(this.safeError(error));
     } finally {
@@ -1752,7 +1808,7 @@ export class AdsWorkspaceComponent implements OnDestroy {
         entity_id: failure.entity_id,
         failure_code: failure.failure_code,
         confirm: true,
-        idempotency_key: `ads-recovery-${action}-${failure.entity_id}`,
+        idempotency_key: `ads-recovery-${action}-${failure.entity_id}-${failure.correlation_id || 'unobserved'}`,
       }),
     );
   }

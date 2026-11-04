@@ -1,0 +1,1318 @@
+{
+  "generated_at": "2026-10-26T17:41:34.842Z",
+  "records": [
+    {
+      "finding": {
+        "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-COLOR-CONTRAST",
+        "feature": "axe-goal-plan",
+        "route": "/intelligence/business-agent",
+        "type": "ACCESSIBILITY",
+        "severity": "MAJOR",
+        "priority": "P1",
+        "expected": "No axe color-contrast violation in this state.",
+        "actual": "{\"id\":\"color-contrast\",\"impact\":\"serious\",\"help\":\"Elements must meet minimum color contrast ratio thresholds\",\"nodes\":[{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(6) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(7) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"listings\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"}]}",
+        "reproduction_steps": [
+          "npm.cmd run qa:smoke",
+          "QA-SMOKE-04: axe-goal-plan (desktop)"
+        ],
+        "evidence": [
+          {
+            "name": "axe-goal-plan",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+          },
+          {
+            "name": "journey-boundary",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+          },
+          {
+            "name": "screenshot",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+          },
+          {
+            "name": "network-and-console",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+          },
+          {
+            "name": "final-screen",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+          },
+          {
+            "name": "error-context",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+          },
+          {
+            "name": "trace",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+        "retest_status": "NOT_RETESTED"
+      },
+      "prior_resolution": {
+        "file": "docs/qa/remediation-retest.json",
+        "decision": {
+          "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-COLOR-CONTRAST",
+          "baseline": "PHASE_1",
+          "status": "RESOLVED",
+          "priority": "P1",
+          "confidence": "CONFIRMED",
+          "original_finding": {
+            "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-COLOR-CONTRAST",
+            "feature": "axe-goal-plan",
+            "route": "/intelligence/business-agent",
+            "type": "ACCESSIBILITY",
+            "severity": "MAJOR",
+            "priority": "P1",
+            "expected": "No axe color-contrast violation in this state.",
+            "actual": "{\"id\":\"color-contrast\",\"impact\":\"serious\",\"help\":\"Elements must meet minimum color contrast ratio thresholds\",\"nodes\":[{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(6) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(7) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"listings\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"}]}",
+            "reproduction_steps": [
+              "npm.cmd run qa:smoke",
+              "QA-SMOKE-04: axe-goal-plan (desktop)"
+            ],
+            "evidence": [
+              {
+                "name": "axe-goal-plan",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+              },
+              {
+                "name": "journey-boundary",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+              },
+              {
+                "name": "screenshot",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+              },
+              {
+                "name": "network-and-console",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+              },
+              {
+                "name": "final-screen",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+              },
+              {
+                "name": "error-context",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+              },
+              {
+                "name": "trace",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+              }
+            ],
+            "confidence": "CONFIRMED",
+            "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+            "retest_status": "NOT_RETESTED"
+          },
+          "retest_evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/3-final-screen.png"
+            }
+          ]
+        }
+      },
+      "disposition": "Historical record regenerated by older report writers; already resolved before Phase 4B, current adjacent/full regressions pass. Not a new finding or a new Phase 4B closure."
+    },
+    {
+      "finding": {
+        "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-COMPLEMENTARY-IS-TOP-LEVEL",
+        "feature": "axe-goal-plan",
+        "route": "/intelligence/business-agent",
+        "type": "ACCESSIBILITY",
+        "severity": "MODERATE",
+        "priority": "P1",
+        "expected": "No axe landmark-complementary-is-top-level violation in this state.",
+        "actual": "{\"id\":\"landmark-complementary-is-top-level\",\"impact\":\"moderate\",\"help\":\"Aside should not be contained in another landmark\",\"nodes\":[{\"target\":[\".commerce-next-action\"],\"remediation\":\"Fix any of the following:\\n  The complementary landmark is contained in another landmark.\"}]}",
+        "reproduction_steps": [
+          "npm.cmd run qa:smoke",
+          "QA-SMOKE-04: axe-goal-plan (desktop)"
+        ],
+        "evidence": [
+          {
+            "name": "axe-goal-plan",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+          },
+          {
+            "name": "journey-boundary",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+          },
+          {
+            "name": "screenshot",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+          },
+          {
+            "name": "network-and-console",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+          },
+          {
+            "name": "final-screen",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+          },
+          {
+            "name": "error-context",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+          },
+          {
+            "name": "trace",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+        "retest_status": "NOT_RETESTED"
+      },
+      "prior_resolution": {
+        "file": "docs/qa/remediation-retest.json",
+        "decision": {
+          "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-COMPLEMENTARY-IS-TOP-LEVEL",
+          "baseline": "PHASE_1",
+          "status": "RESOLVED",
+          "priority": "P1",
+          "confidence": "CONFIRMED",
+          "original_finding": {
+            "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-COMPLEMENTARY-IS-TOP-LEVEL",
+            "feature": "axe-goal-plan",
+            "route": "/intelligence/business-agent",
+            "type": "ACCESSIBILITY",
+            "severity": "MODERATE",
+            "priority": "P1",
+            "expected": "No axe landmark-complementary-is-top-level violation in this state.",
+            "actual": "{\"id\":\"landmark-complementary-is-top-level\",\"impact\":\"moderate\",\"help\":\"Aside should not be contained in another landmark\",\"nodes\":[{\"target\":[\".commerce-next-action\"],\"remediation\":\"Fix any of the following:\\n  The complementary landmark is contained in another landmark.\"}]}",
+            "reproduction_steps": [
+              "npm.cmd run qa:smoke",
+              "QA-SMOKE-04: axe-goal-plan (desktop)"
+            ],
+            "evidence": [
+              {
+                "name": "axe-goal-plan",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+              },
+              {
+                "name": "journey-boundary",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+              },
+              {
+                "name": "screenshot",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+              },
+              {
+                "name": "network-and-console",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+              },
+              {
+                "name": "final-screen",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+              },
+              {
+                "name": "error-context",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+              },
+              {
+                "name": "trace",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+              }
+            ],
+            "confidence": "CONFIRMED",
+            "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+            "retest_status": "NOT_RETESTED"
+          },
+          "retest_evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/3-final-screen.png"
+            }
+          ]
+        }
+      },
+      "disposition": "Historical record regenerated by older report writers; already resolved before Phase 4B, current adjacent/full regressions pass. Not a new finding or a new Phase 4B closure."
+    },
+    {
+      "finding": {
+        "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-MAIN-IS-TOP-LEVEL",
+        "feature": "axe-goal-plan",
+        "route": "/intelligence/business-agent",
+        "type": "ACCESSIBILITY",
+        "severity": "MODERATE",
+        "priority": "P1",
+        "expected": "No axe landmark-main-is-top-level violation in this state.",
+        "actual": "{\"id\":\"landmark-main-is-top-level\",\"impact\":\"moderate\",\"help\":\"Main landmark should not be contained in another landmark\",\"nodes\":[{\"target\":[\".agent-page\"],\"remediation\":\"Fix any of the following:\\n  The main landmark is contained in another landmark.\"}]}",
+        "reproduction_steps": [
+          "npm.cmd run qa:smoke",
+          "QA-SMOKE-04: axe-goal-plan (desktop)"
+        ],
+        "evidence": [
+          {
+            "name": "axe-goal-plan",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+          },
+          {
+            "name": "journey-boundary",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+          },
+          {
+            "name": "screenshot",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+          },
+          {
+            "name": "network-and-console",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+          },
+          {
+            "name": "final-screen",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+          },
+          {
+            "name": "error-context",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+          },
+          {
+            "name": "trace",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+        "retest_status": "NOT_RETESTED"
+      },
+      "prior_resolution": {
+        "file": "docs/qa/remediation-retest.json",
+        "decision": {
+          "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-MAIN-IS-TOP-LEVEL",
+          "baseline": "PHASE_1",
+          "status": "RESOLVED",
+          "priority": "P1",
+          "confidence": "CONFIRMED",
+          "original_finding": {
+            "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-MAIN-IS-TOP-LEVEL",
+            "feature": "axe-goal-plan",
+            "route": "/intelligence/business-agent",
+            "type": "ACCESSIBILITY",
+            "severity": "MODERATE",
+            "priority": "P1",
+            "expected": "No axe landmark-main-is-top-level violation in this state.",
+            "actual": "{\"id\":\"landmark-main-is-top-level\",\"impact\":\"moderate\",\"help\":\"Main landmark should not be contained in another landmark\",\"nodes\":[{\"target\":[\".agent-page\"],\"remediation\":\"Fix any of the following:\\n  The main landmark is contained in another landmark.\"}]}",
+            "reproduction_steps": [
+              "npm.cmd run qa:smoke",
+              "QA-SMOKE-04: axe-goal-plan (desktop)"
+            ],
+            "evidence": [
+              {
+                "name": "axe-goal-plan",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+              },
+              {
+                "name": "journey-boundary",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+              },
+              {
+                "name": "screenshot",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+              },
+              {
+                "name": "network-and-console",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+              },
+              {
+                "name": "final-screen",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+              },
+              {
+                "name": "error-context",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+              },
+              {
+                "name": "trace",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+              }
+            ],
+            "confidence": "CONFIRMED",
+            "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+            "retest_status": "NOT_RETESTED"
+          },
+          "retest_evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/3-final-screen.png"
+            }
+          ]
+        }
+      },
+      "disposition": "Historical record regenerated by older report writers; already resolved before Phase 4B, current adjacent/full regressions pass. Not a new finding or a new Phase 4B closure."
+    },
+    {
+      "finding": {
+        "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-NO-DUPLICATE-MAIN",
+        "feature": "axe-goal-plan",
+        "route": "/intelligence/business-agent",
+        "type": "ACCESSIBILITY",
+        "severity": "MODERATE",
+        "priority": "P1",
+        "expected": "No axe landmark-no-duplicate-main violation in this state.",
+        "actual": "{\"id\":\"landmark-no-duplicate-main\",\"impact\":\"moderate\",\"help\":\"Document should not have more than one main landmark\",\"nodes\":[{\"target\":[\"#main-content\"],\"remediation\":\"Fix any of the following:\\n  Document has more than one main landmark\"}]}",
+        "reproduction_steps": [
+          "npm.cmd run qa:smoke",
+          "QA-SMOKE-04: axe-goal-plan (desktop)"
+        ],
+        "evidence": [
+          {
+            "name": "axe-goal-plan",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+          },
+          {
+            "name": "journey-boundary",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+          },
+          {
+            "name": "screenshot",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+          },
+          {
+            "name": "network-and-console",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+          },
+          {
+            "name": "final-screen",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+          },
+          {
+            "name": "error-context",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+          },
+          {
+            "name": "trace",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+        "retest_status": "NOT_RETESTED"
+      },
+      "prior_resolution": {
+        "file": "docs/qa/remediation-retest.json",
+        "decision": {
+          "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-NO-DUPLICATE-MAIN",
+          "baseline": "PHASE_1",
+          "status": "RESOLVED",
+          "priority": "P1",
+          "confidence": "CONFIRMED",
+          "original_finding": {
+            "id": "QA-AXE-DESKTOP-AXE-GOAL-PLAN-LANDMARK-NO-DUPLICATE-MAIN",
+            "feature": "axe-goal-plan",
+            "route": "/intelligence/business-agent",
+            "type": "ACCESSIBILITY",
+            "severity": "MODERATE",
+            "priority": "P1",
+            "expected": "No axe landmark-no-duplicate-main violation in this state.",
+            "actual": "{\"id\":\"landmark-no-duplicate-main\",\"impact\":\"moderate\",\"help\":\"Document should not have more than one main landmark\",\"nodes\":[{\"target\":[\"#main-content\"],\"remediation\":\"Fix any of the following:\\n  Document has more than one main landmark\"}]}",
+            "reproduction_steps": [
+              "npm.cmd run qa:smoke",
+              "QA-SMOKE-04: axe-goal-plan (desktop)"
+            ],
+            "evidence": [
+              {
+                "name": "axe-goal-plan",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+              },
+              {
+                "name": "journey-boundary",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+              },
+              {
+                "name": "screenshot",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+              },
+              {
+                "name": "network-and-console",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+              },
+              {
+                "name": "final-screen",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+              },
+              {
+                "name": "error-context",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+              },
+              {
+                "name": "trace",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+              }
+            ],
+            "confidence": "CONFIRMED",
+            "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+            "retest_status": "NOT_RETESTED"
+          },
+          "retest_evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/3-final-screen.png"
+            }
+          ]
+        }
+      },
+      "disposition": "Historical record regenerated by older report writers; already resolved before Phase 4B, current adjacent/full regressions pass. Not a new finding or a new Phase 4B closure."
+    },
+    {
+      "finding": {
+        "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-COLOR-CONTRAST",
+        "feature": "axe-goal-plan",
+        "route": "/intelligence/business-agent",
+        "type": "ACCESSIBILITY",
+        "severity": "MAJOR",
+        "priority": "P1",
+        "expected": "No axe color-contrast violation in this state.",
+        "actual": "{\"id\":\"color-contrast\",\"impact\":\"serious\",\"help\":\"Elements must meet minimum color contrast ratio thresholds\",\"nodes\":[{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(6) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(7) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"listings\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"}]}",
+        "reproduction_steps": [
+          "npm.cmd run qa:smoke",
+          "QA-SMOKE-04: axe-goal-plan (mobile)"
+        ],
+        "evidence": [
+          {
+            "name": "axe-goal-plan",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+          },
+          {
+            "name": "journey-boundary",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+          },
+          {
+            "name": "screenshot",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+          },
+          {
+            "name": "network-and-console",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+          },
+          {
+            "name": "final-screen",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+          },
+          {
+            "name": "error-context",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+          },
+          {
+            "name": "trace",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+        "retest_status": "NOT_RETESTED"
+      },
+      "prior_resolution": {
+        "file": "docs/qa/remediation-retest.json",
+        "decision": {
+          "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-COLOR-CONTRAST",
+          "baseline": "PHASE_1",
+          "status": "RESOLVED",
+          "priority": "P1",
+          "confidence": "CONFIRMED",
+          "original_finding": {
+            "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-COLOR-CONTRAST",
+            "feature": "axe-goal-plan",
+            "route": "/intelligence/business-agent",
+            "type": "ACCESSIBILITY",
+            "severity": "MAJOR",
+            "priority": "P1",
+            "expected": "No axe color-contrast violation in this state.",
+            "actual": "{\"id\":\"color-contrast\",\"impact\":\"serious\",\"help\":\"Elements must meet minimum color contrast ratio thresholds\",\"nodes\":[{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(6) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(7) > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"},{\"target\":[\".blocked[href$=\\\"listings\\\"][data-status=\\\"BLOCKED\\\"] > small\"],\"remediation\":\"Fix any of the following:\\n  Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\"}]}",
+            "reproduction_steps": [
+              "npm.cmd run qa:smoke",
+              "QA-SMOKE-04: axe-goal-plan (mobile)"
+            ],
+            "evidence": [
+              {
+                "name": "axe-goal-plan",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+              },
+              {
+                "name": "journey-boundary",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+              },
+              {
+                "name": "screenshot",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+              },
+              {
+                "name": "network-and-console",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+              },
+              {
+                "name": "final-screen",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+              },
+              {
+                "name": "error-context",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+              },
+              {
+                "name": "trace",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+              }
+            ],
+            "confidence": "CONFIRMED",
+            "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+            "retest_status": "NOT_RETESTED"
+          },
+          "retest_evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/3-final-screen.png"
+            }
+          ]
+        }
+      },
+      "disposition": "Historical record regenerated by older report writers; already resolved before Phase 4B, current adjacent/full regressions pass. Not a new finding or a new Phase 4B closure."
+    },
+    {
+      "finding": {
+        "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-COMPLEMENTARY-IS-TOP-LEVEL",
+        "feature": "axe-goal-plan",
+        "route": "/intelligence/business-agent",
+        "type": "ACCESSIBILITY",
+        "severity": "MODERATE",
+        "priority": "P1",
+        "expected": "No axe landmark-complementary-is-top-level violation in this state.",
+        "actual": "{\"id\":\"landmark-complementary-is-top-level\",\"impact\":\"moderate\",\"help\":\"Aside should not be contained in another landmark\",\"nodes\":[{\"target\":[\".commerce-next-action\"],\"remediation\":\"Fix any of the following:\\n  The complementary landmark is contained in another landmark.\"}]}",
+        "reproduction_steps": [
+          "npm.cmd run qa:smoke",
+          "QA-SMOKE-04: axe-goal-plan (mobile)"
+        ],
+        "evidence": [
+          {
+            "name": "axe-goal-plan",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+          },
+          {
+            "name": "journey-boundary",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+          },
+          {
+            "name": "screenshot",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+          },
+          {
+            "name": "network-and-console",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+          },
+          {
+            "name": "final-screen",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+          },
+          {
+            "name": "error-context",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+          },
+          {
+            "name": "trace",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+        "retest_status": "NOT_RETESTED"
+      },
+      "prior_resolution": {
+        "file": "docs/qa/remediation-retest.json",
+        "decision": {
+          "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-COMPLEMENTARY-IS-TOP-LEVEL",
+          "baseline": "PHASE_1",
+          "status": "RESOLVED",
+          "priority": "P1",
+          "confidence": "CONFIRMED",
+          "original_finding": {
+            "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-COMPLEMENTARY-IS-TOP-LEVEL",
+            "feature": "axe-goal-plan",
+            "route": "/intelligence/business-agent",
+            "type": "ACCESSIBILITY",
+            "severity": "MODERATE",
+            "priority": "P1",
+            "expected": "No axe landmark-complementary-is-top-level violation in this state.",
+            "actual": "{\"id\":\"landmark-complementary-is-top-level\",\"impact\":\"moderate\",\"help\":\"Aside should not be contained in another landmark\",\"nodes\":[{\"target\":[\".commerce-next-action\"],\"remediation\":\"Fix any of the following:\\n  The complementary landmark is contained in another landmark.\"}]}",
+            "reproduction_steps": [
+              "npm.cmd run qa:smoke",
+              "QA-SMOKE-04: axe-goal-plan (mobile)"
+            ],
+            "evidence": [
+              {
+                "name": "axe-goal-plan",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+              },
+              {
+                "name": "journey-boundary",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+              },
+              {
+                "name": "screenshot",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+              },
+              {
+                "name": "network-and-console",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+              },
+              {
+                "name": "final-screen",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+              },
+              {
+                "name": "error-context",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+              },
+              {
+                "name": "trace",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+              }
+            ],
+            "confidence": "CONFIRMED",
+            "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+            "retest_status": "NOT_RETESTED"
+          },
+          "retest_evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/3-final-screen.png"
+            }
+          ]
+        }
+      },
+      "disposition": "Historical record regenerated by older report writers; already resolved before Phase 4B, current adjacent/full regressions pass. Not a new finding or a new Phase 4B closure."
+    },
+    {
+      "finding": {
+        "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-MAIN-IS-TOP-LEVEL",
+        "feature": "axe-goal-plan",
+        "route": "/intelligence/business-agent",
+        "type": "ACCESSIBILITY",
+        "severity": "MODERATE",
+        "priority": "P1",
+        "expected": "No axe landmark-main-is-top-level violation in this state.",
+        "actual": "{\"id\":\"landmark-main-is-top-level\",\"impact\":\"moderate\",\"help\":\"Main landmark should not be contained in another landmark\",\"nodes\":[{\"target\":[\".agent-page\"],\"remediation\":\"Fix any of the following:\\n  The main landmark is contained in another landmark.\"}]}",
+        "reproduction_steps": [
+          "npm.cmd run qa:smoke",
+          "QA-SMOKE-04: axe-goal-plan (mobile)"
+        ],
+        "evidence": [
+          {
+            "name": "axe-goal-plan",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+          },
+          {
+            "name": "journey-boundary",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+          },
+          {
+            "name": "screenshot",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+          },
+          {
+            "name": "network-and-console",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+          },
+          {
+            "name": "final-screen",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+          },
+          {
+            "name": "error-context",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+          },
+          {
+            "name": "trace",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+        "retest_status": "NOT_RETESTED"
+      },
+      "prior_resolution": {
+        "file": "docs/qa/remediation-retest.json",
+        "decision": {
+          "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-MAIN-IS-TOP-LEVEL",
+          "baseline": "PHASE_1",
+          "status": "RESOLVED",
+          "priority": "P1",
+          "confidence": "CONFIRMED",
+          "original_finding": {
+            "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-MAIN-IS-TOP-LEVEL",
+            "feature": "axe-goal-plan",
+            "route": "/intelligence/business-agent",
+            "type": "ACCESSIBILITY",
+            "severity": "MODERATE",
+            "priority": "P1",
+            "expected": "No axe landmark-main-is-top-level violation in this state.",
+            "actual": "{\"id\":\"landmark-main-is-top-level\",\"impact\":\"moderate\",\"help\":\"Main landmark should not be contained in another landmark\",\"nodes\":[{\"target\":[\".agent-page\"],\"remediation\":\"Fix any of the following:\\n  The main landmark is contained in another landmark.\"}]}",
+            "reproduction_steps": [
+              "npm.cmd run qa:smoke",
+              "QA-SMOKE-04: axe-goal-plan (mobile)"
+            ],
+            "evidence": [
+              {
+                "name": "axe-goal-plan",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+              },
+              {
+                "name": "journey-boundary",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+              },
+              {
+                "name": "screenshot",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+              },
+              {
+                "name": "network-and-console",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+              },
+              {
+                "name": "final-screen",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+              },
+              {
+                "name": "error-context",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+              },
+              {
+                "name": "trace",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+              }
+            ],
+            "confidence": "CONFIRMED",
+            "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+            "retest_status": "NOT_RETESTED"
+          },
+          "retest_evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/3-final-screen.png"
+            }
+          ]
+        }
+      },
+      "disposition": "Historical record regenerated by older report writers; already resolved before Phase 4B, current adjacent/full regressions pass. Not a new finding or a new Phase 4B closure."
+    },
+    {
+      "finding": {
+        "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-NO-DUPLICATE-MAIN",
+        "feature": "axe-goal-plan",
+        "route": "/intelligence/business-agent",
+        "type": "ACCESSIBILITY",
+        "severity": "MODERATE",
+        "priority": "P1",
+        "expected": "No axe landmark-no-duplicate-main violation in this state.",
+        "actual": "{\"id\":\"landmark-no-duplicate-main\",\"impact\":\"moderate\",\"help\":\"Document should not have more than one main landmark\",\"nodes\":[{\"target\":[\"#main-content\"],\"remediation\":\"Fix any of the following:\\n  Document has more than one main landmark\"}]}",
+        "reproduction_steps": [
+          "npm.cmd run qa:smoke",
+          "QA-SMOKE-04: axe-goal-plan (mobile)"
+        ],
+        "evidence": [
+          {
+            "name": "axe-goal-plan",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+          },
+          {
+            "name": "journey-boundary",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+          },
+          {
+            "name": "screenshot",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+          },
+          {
+            "name": "network-and-console",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+          },
+          {
+            "name": "final-screen",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+          },
+          {
+            "name": "error-context",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+          },
+          {
+            "name": "trace",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+          }
+        ],
+        "confidence": "CONFIRMED",
+        "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+        "retest_status": "NOT_RETESTED"
+      },
+      "prior_resolution": {
+        "file": "docs/qa/remediation-retest.json",
+        "decision": {
+          "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-NO-DUPLICATE-MAIN",
+          "baseline": "PHASE_1",
+          "status": "RESOLVED",
+          "priority": "P1",
+          "confidence": "CONFIRMED",
+          "original_finding": {
+            "id": "QA-AXE-MOBILE-AXE-GOAL-PLAN-LANDMARK-NO-DUPLICATE-MAIN",
+            "feature": "axe-goal-plan",
+            "route": "/intelligence/business-agent",
+            "type": "ACCESSIBILITY",
+            "severity": "MODERATE",
+            "priority": "P1",
+            "expected": "No axe landmark-no-duplicate-main violation in this state.",
+            "actual": "{\"id\":\"landmark-no-duplicate-main\",\"impact\":\"moderate\",\"help\":\"Document should not have more than one main landmark\",\"nodes\":[{\"target\":[\"#main-content\"],\"remediation\":\"Fix any of the following:\\n  Document has more than one main landmark\"}]}",
+            "reproduction_steps": [
+              "npm.cmd run qa:smoke",
+              "QA-SMOKE-04: axe-goal-plan (mobile)"
+            ],
+            "evidence": [
+              {
+                "name": "axe-goal-plan",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+              },
+              {
+                "name": "journey-boundary",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+              },
+              {
+                "name": "screenshot",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+              },
+              {
+                "name": "network-and-console",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+              },
+              {
+                "name": "final-screen",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+              },
+              {
+                "name": "error-context",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+              },
+              {
+                "name": "trace",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+              }
+            ],
+            "confidence": "CONFIRMED",
+            "suggested_fix": "Review the recorded axe targets and remediation; authorize an application fix separately. Automated rule finding is not complete WCAG certification.",
+            "retest_status": "NOT_RETESTED"
+          },
+          "retest_evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/3-final-screen.png"
+            }
+          ]
+        }
+      },
+      "disposition": "Historical record regenerated by older report writers; already resolved before Phase 4B, current adjacent/full regressions pass. Not a new finding or a new Phase 4B closure."
+    },
+    {
+      "finding": {
+        "id": "QA-RUN-DESKTOP-001",
+        "feature": "QA-SMOKE-04 business goal to persisted plan; no discovery execution",
+        "route": "See screenshot/trace; failure may be in test harness",
+        "type": "SUSPECTED_DEFECT",
+        "severity": "MAJOR",
+        "priority": "P1",
+        "expected": "Scenario assertions pass using canonical disposable data.",
+        "actual": "Error: goal-plan: no serious/critical axe violations\n\nexpect(received).toEqual(expected) // deep equality\n\n- Expected  -  1\n+ Received  + 51\n\n- Array []\n+ Array [\n+   Object {\n+     \"help\": \"Elements must meet minimum color contrast ratio thresholds\",\n+     \"id\": \"color-contrast\",\n+     \"impact\": \"serious\",\n+     \"nodes\": Array [\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\":",
+        "reproduction_steps": [
+          "npm.cmd run qa:smoke",
+          "Inspect QA-SMOKE-04 (desktop)"
+        ],
+        "evidence": [
+          {
+            "name": "axe-goal-plan",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+          },
+          {
+            "name": "journey-boundary",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+          },
+          {
+            "name": "screenshot",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+          },
+          {
+            "name": "network-and-console",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+          },
+          {
+            "name": "final-screen",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+          },
+          {
+            "name": "error-context",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+          },
+          {
+            "name": "trace",
+            "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+          }
+        ],
+        "confidence": "SUSPECTED",
+        "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+        "retest_status": "NOT_RETESTED"
+      },
+      "prior_resolution": {
+        "file": "docs/qa/remediation-retest.json",
+        "decision": {
+          "id": "QA-RUN-DESKTOP-001",
+          "baseline": "PHASE_1",
+          "status": "RESOLVED",
+          "priority": "P1",
+          "confidence": "SUSPECTED",
+          "original_finding": {
+            "id": "QA-RUN-DESKTOP-001",
+            "feature": "QA-SMOKE-04 business goal to persisted plan; no discovery execution",
+            "route": "See screenshot/trace; failure may be in test harness",
+            "type": "SUSPECTED_DEFECT",
+            "severity": "MAJOR",
+            "priority": "P1",
+            "expected": "Scenario assertions pass using canonical disposable data.",
+            "actual": "Error: goal-plan: no serious/critical axe violations\n\nexpect(received).toEqual(expected) // deep equality\n\n- Expected  -  1\n+ Received  + 51\n\n- Array []\n+ Array [\n+   Object {\n+     \"help\": \"Elements must meet minimum color contrast ratio thresholds\",\n+     \"id\": \"color-contrast\",\n+     \"impact\": \"serious\",\n+     \"nodes\": Array [\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\":",
+            "reproduction_steps": [
+              "npm.cmd run qa:smoke",
+              "Inspect QA-SMOKE-04 (desktop)"
+            ],
+            "evidence": [
+              {
+                "name": "axe-goal-plan",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+              },
+              {
+                "name": "journey-boundary",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+              },
+              {
+                "name": "screenshot",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/test-failed-1.png"
+              },
+              {
+                "name": "network-and-console",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/3-network-and-console.json"
+              },
+              {
+                "name": "final-screen",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+              },
+              {
+                "name": "error-context",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/error-context.md"
+              },
+              {
+                "name": "trace",
+                "path": "tmp/qa-agent/5c2928f8ef249c37/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-desktop/trace.zip"
+              }
+            ],
+            "confidence": "SUSPECTED",
+            "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+            "retest_status": "NOT_RETESTED"
+          },
+          "retest_evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/50347ab7e7b05511/evidence/desktop-QA-SMOKE-04/3-final-screen.png"
+            }
+          ]
+        }
+      },
+      "disposition": "Historical record regenerated by older report writers; already resolved before Phase 4B, current adjacent/full regressions pass. Not a new finding or a new Phase 4B closure."
+    },
+    {
+      "finding": {
+        "id": "QA-RUN-MOBILE-001",
+        "feature": "QA-SMOKE-04 business goal to persisted plan; no discovery execution",
+        "route": "See screenshot/trace; failure may be in test harness",
+        "type": "SUSPECTED_DEFECT",
+        "severity": "MAJOR",
+        "priority": "P1",
+        "expected": "Scenario assertions pass using canonical disposable data.",
+        "actual": "Error: goal-plan: no serious/critical axe violations\n\nexpect(received).toEqual(expected) // deep equality\n\n- Expected  -  1\n+ Received  + 51\n\n- Array []\n+ Array [\n+   Object {\n+     \"help\": \"Elements must meet minimum color contrast ratio thresholds\",\n+     \"id\": \"color-contrast\",\n+     \"impact\": \"serious\",\n+     \"nodes\": Array [\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\":",
+        "reproduction_steps": [
+          "npm.cmd run qa:smoke",
+          "Inspect QA-SMOKE-04 (mobile)"
+        ],
+        "evidence": [
+          {
+            "name": "axe-goal-plan",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+          },
+          {
+            "name": "journey-boundary",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+          },
+          {
+            "name": "screenshot",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+          },
+          {
+            "name": "network-and-console",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+          },
+          {
+            "name": "final-screen",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+          },
+          {
+            "name": "error-context",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+          },
+          {
+            "name": "trace",
+            "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+          }
+        ],
+        "confidence": "SUSPECTED",
+        "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+        "retest_status": "NOT_RETESTED"
+      },
+      "prior_resolution": {
+        "file": "docs/qa/remediation-retest.json",
+        "decision": {
+          "id": "QA-RUN-MOBILE-001",
+          "baseline": "PHASE_1",
+          "status": "RESOLVED",
+          "priority": "P1",
+          "confidence": "SUSPECTED",
+          "original_finding": {
+            "id": "QA-RUN-MOBILE-001",
+            "feature": "QA-SMOKE-04 business goal to persisted plan; no discovery execution",
+            "route": "See screenshot/trace; failure may be in test harness",
+            "type": "SUSPECTED_DEFECT",
+            "severity": "MAJOR",
+            "priority": "P1",
+            "expected": "Scenario assertions pass using canonical disposable data.",
+            "actual": "Error: goal-plan: no serious/critical axe violations\n\nexpect(received).toEqual(expected) // deep equality\n\n- Expected  -  1\n+ Received  + 51\n\n- Array []\n+ Array [\n+   Object {\n+     \"help\": \"Elements must meet minimum color contrast ratio thresholds\",\n+     \"id\": \"color-contrast\",\n+     \"impact\": \"serious\",\n+     \"nodes\": Array [\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[data-status=\\\"BLOCKED\\\"][_ngcontent-ng-c2587382897=\\\"\\\"]:nth-child(3) > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"sourcing\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\": Array [\n+           \".blocked[href$=\\\"due-diligence\\\"][data-status=\\\"BLOCKED\\\"] > small\",\n+         ],\n+       },\n+       Object {\n+         \"remediation\": \"Fix any of the following:\n+   Element has insufficient color contrast of 3.52 (foreground color: #748b91, background color: #fcfdfc, font size: 9.0pt (12px), font weight: normal). Expected contrast ratio of 4.5:1\",\n+         \"target\":",
+            "reproduction_steps": [
+              "npm.cmd run qa:smoke",
+              "Inspect QA-SMOKE-04 (mobile)"
+            ],
+            "evidence": [
+              {
+                "name": "axe-goal-plan",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+              },
+              {
+                "name": "journey-boundary",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+              },
+              {
+                "name": "screenshot",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/test-failed-1.png"
+              },
+              {
+                "name": "network-and-console",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/3-network-and-console.json"
+              },
+              {
+                "name": "final-screen",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-04/4-final-screen.png"
+              },
+              {
+                "name": "error-context",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/error-context.md"
+              },
+              {
+                "name": "trace",
+                "path": "tmp/qa-agent/3b66a14fad8e8648/browser-artifacts/smoke-QA-SMOKE-04-business-a185d-plan-no-discovery-execution-mobile/trace.zip"
+              }
+            ],
+            "confidence": "SUSPECTED",
+            "suggested_fix": "Triage assertion, locator and application evidence before requesting a production fix.",
+            "retest_status": "NOT_RETESTED"
+          },
+          "retest_evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/a23237d1427abd0b/evidence/mobile-QA-SMOKE-04/3-final-screen.png"
+            }
+          ]
+        }
+      },
+      "disposition": "Historical record regenerated by older report writers; already resolved before Phase 4B, current adjacent/full regressions pass. Not a new finding or a new Phase 4B closure."
+    },
+    {
+      "finding": {
+        "id": "QA-UX-NAV-CURRENT-001",
+        "feature": "Seller navigation current-location clarity",
+        "route": "/intelligence/business-agent",
+        "type": "USABILITY",
+        "severity": "MINOR",
+        "priority": "P2",
+        "expected": "The seller can distinguish the current page from its broader research section.",
+        "actual": "In the reviewed 25 October 2026 synthetic desktop screenshot, Business Agent and My Research both use the same active sidebar treatment. The navigation uses prefix matching for the parent /intelligence link. This is a usability recommendation, not an authorization or navigation failure.",
+        "reproduction_steps": [
+          "Run the QA smoke suite",
+          "Create a goal and plan",
+          "Review the sidebar on /intelligence/business-agent"
+        ],
+        "evidence": [
+          {
+            "name": "reviewed-desktop-screenshot",
+            "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+          }
+        ],
+        "confidence": "RECOMMENDATION",
+        "suggested_fix": "Consider exact matching for the current page or a visually distinct parent-section state. Preserve all routes and access guards.",
+        "retest_status": "NOT_RETESTED"
+      },
+      "prior_resolution": {
+        "file": "docs/qa/phase-3b-resolution.json",
+        "decision": {
+          "id": "QA-UX-NAV-CURRENT-001",
+          "status": "RESOLVED",
+          "retest_status": "PASS",
+          "scope": "Low-risk navigation recommendation",
+          "historical_finding": {
+            "id": "QA-UX-NAV-CURRENT-001",
+            "feature": "Seller navigation current-location clarity",
+            "route": "/intelligence/business-agent",
+            "type": "USABILITY",
+            "severity": "MINOR",
+            "priority": "P2",
+            "expected": "The seller can distinguish the current page from its broader research section.",
+            "actual": "In the reviewed 25 October 2026 synthetic desktop screenshot, Business Agent and My Research both use the same active sidebar treatment. The navigation uses prefix matching for the parent /intelligence link. This is a usability recommendation, not an authorization or navigation failure.",
+            "reproduction_steps": [
+              "Run the QA smoke suite",
+              "Create a goal and plan",
+              "Review the sidebar on /intelligence/business-agent"
+            ],
+            "evidence": [
+              {
+                "name": "reviewed-desktop-screenshot",
+                "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+              }
+            ],
+            "confidence": "RECOMMENDATION",
+            "suggested_fix": "Consider exact matching for the current page or a visually distinct parent-section state. Preserve all routes and access guards.",
+            "retest_status": "NOT_RETESTED",
+            "area": "Seller navigation current-location clarity",
+            "journey": "Operational seller lifecycle",
+            "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+          }
+        }
+      },
+      "disposition": "Historical record regenerated by older report writers; already resolved before Phase 4B, current adjacent/full regressions pass. Not a new finding or a new Phase 4B closure."
+    }
+  ]
+}

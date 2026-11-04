@@ -4,6 +4,7 @@ import { ComponentFixtureAutoDetect, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { vi } from 'vitest';
 import { environment } from '../../environments/environment';
+import { BrandService } from '../brands/brand.service';
 import { ProductOpportunityWorkspaceComponent } from './product-opportunity-workspace.component';
 import {
   CompetitionProjection,
@@ -31,6 +32,9 @@ function setup() {
   const fixture = TestBed.createComponent(ProductOpportunityWorkspaceComponent);
   const component = fixture.componentInstance;
   vi.spyOn(component, 'load').mockResolvedValue();
+  // The separately tested next-actions child now reads persisted decision history.
+  vi.spyOn(TestBed.inject(ProductOpportunityService), 'decisions').mockResolvedValue([]);
+  vi.spyOn(TestBed.inject(BrandService), 'list').mockResolvedValue({items:[],page:1,page_size:100,total:0,pages:0});
   return {
     fixture,
     component,
@@ -131,6 +135,11 @@ describe('Product opportunity sourcing feasibility', () => {
     component.detail.set(detail);
     component.sourcingFeasibility.set(output);
     fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    expect(
+      root.querySelector('section.workspace[aria-label="Product opportunity workspace"]'),
+    ).not.toBeNull();
+    expect(root.querySelectorAll('main')).toHaveLength(0);
     const text = fixture.nativeElement.textContent as string;
     for (const expected of [
       'Fixture supplier',

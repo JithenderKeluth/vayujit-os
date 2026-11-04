@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import uuid
 from datetime import UTC, datetime
 from typing import Any, cast
@@ -15,6 +16,7 @@ from vayujit_api.ai.image_schemas import ImageGenerateRequest
 from vayujit_api.ai.image_service import queue_generation
 from vayujit_api.ai.models import GeneratedArtifact
 from vayujit_api.ai.studio_models import AIStudioGeneration, AIStudioJob
+from vayujit_api.audit.models import AuditEvent
 from vayujit_api.audit.service import record_event
 from vayujit_api.brands.models import Brand
 from vayujit_api.core.config import get_settings
@@ -886,7 +888,38 @@ def update_storyboard(
     if row.row_version != data.expected_row_version:
         raise HTTPException(409, "Storyboard changed; refresh before editing.")
     target = row
+    clone_key = None
     if row.state == "approved":
+        # Editing an approved version is a clone intent, not an in-place update.
+        # Serialize on the source and bind replay to its exact normalized inputs.
+        digest = hashlib.sha256(
+            json.dumps(
+                {
+                    "expected_row_version": data.expected_row_version,
+                    "scenes": [scene.model_dump(mode="json") for scene in data.scenes],
+                },
+                sort_keys=True,
+                separators=(",", ":"),
+            ).encode()
+        ).hexdigest()
+        clone_key = f"video-clone:{row.id}:{digest}"
+        existing = db.scalar(
+            select(AuditEvent).where(
+                AuditEvent.actor_id == owner.id,
+                AuditEvent.action == "ai.video_storyboard_updated",
+                AuditEvent.idempotency_key == clone_key,
+            )
+        )
+        if existing is not None:
+            clone = db.scalar(
+                select(VideoStoryboard).where(
+                    VideoStoryboard.id == existing.entity_id,
+                    VideoStoryboard.owner_id == owner.id,
+                )
+            )
+            if clone is None:
+                raise HTTPException(409, "Storyboard clone is unavailable; review version history.")
+            return storyboard_response(db, clone)
         now = stamp()
         target = VideoStoryboard(
             owner_id=row.owner_id,
@@ -945,6 +978,7 @@ def update_storyboard(
                 status="draft",
             )
         )
+    source = row
     row = target
     record_event(
         db,
@@ -952,7 +986,19 @@ def update_storyboard(
         action="ai.video_storyboard_updated",
         entity_type="video_storyboard",
         entity_id=row.id,
-        metadata={"version": row.version},
+        metadata={
+            "version": row.version,
+            **(
+                {
+                    "source_storyboard_id": str(source.id),
+                    "source_version": source.version,
+                    "approval_inherited": False,
+                }
+                if clone_key
+                else {}
+            ),
+        },
+        idempotency_key=clone_key,
     )
     db.commit()
     return storyboard_response(db, row)
@@ -1214,6 +1260,8 @@ def recovery_projection(db: Session, owner: User, generation_id: uuid.UUID) -> d
         "correlation_id": row.correlation_id,
         "generation_id": row.id,
         "job_id": job.id if job else None,
+        "status": row.status,
+        "attempt_count": job.attempt_count if job else None,
         "eligible_actions": list(spec.recovery_actions),
     }
 
@@ -1221,6 +1269,15 @@ def recovery_projection(db: Session, owner: User, generation_id: uuid.UUID) -> d
 def execute_recovery_action(
     db: Session, owner: User, generation_id: uuid.UUID, data: Any
 ) -> dict[str, object]:
+    # Lock before reading the recovery state: identical concurrent intentions
+    # replay, while a different intention cannot act on the superseded failure.
+    locked = db.scalar(
+        select(VideoGeneration)
+        .where(VideoGeneration.id == generation_id, VideoGeneration.owner_id == owner.id)
+        .with_for_update()
+    )
+    if locked is None:
+        raise HTTPException(404, "Video generation not found.")
     projection = recovery_projection(db, owner, generation_id)
     if data.idempotency_key is not None:
         current_job = db.scalar(
@@ -1292,6 +1349,9 @@ def execute_recovery_action(
             raise HTTPException(404, "Video recovery job not found.")
         if row.status == "succeeded":
             return _response(db, row)
+        if row.status not in {"failed", "retry_wait"} or job.state not in {"failed", "retry_wait"}:
+            raise HTTPException(409, "Video recovery state changed; refresh before confirming.")
+        previous_failure = row.failure_code
         row.status = "queued"
         row.failure_code = None
         row.safe_error_message = None
@@ -1301,8 +1361,27 @@ def execute_recovery_action(
         }
         job.state = "queued"
         job.failure_category = None
+        job.last_error_code = None
+        job.safe_error_message = None
+        job.next_retry_at = None
+        job.completed_at = None
+        job.lease_owner = None
+        job.lease_expires_at = None
         job.retryable = False
         job.available_at = stamp()
+        record_event(
+            db,
+            actor_id=owner.id,
+            action="ai.video_recovery_requested",
+            entity_type="video_generation",
+            entity_id=row.id,
+            metadata={
+                "action": data.action,
+                "failure_code": previous_failure,
+                "attempt_count": job.attempt_count,
+                "correlation_id": row.correlation_id,
+            },
+        )
         db.commit()
         return _response(db, row)
     return projection

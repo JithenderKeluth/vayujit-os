@@ -5,7 +5,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import Any
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from vayujit_api.commerce.models import Marketplace
 
@@ -97,6 +97,7 @@ class ListingCreate(BaseModel):
     marketplace_sku: str | None = Field(default=None, max_length=160)
     artifact_id: uuid.UUID | None = None
     idempotency_key: str = Field(default="", max_length=200)
+    prepare_only: bool = False
 
 
 class ListingUpdate(BaseModel):
@@ -225,13 +226,15 @@ class DriftResponse(BaseModel):
 
 
 class InventoryItemCreate(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True, extra="forbid")
+
     product_id: uuid.UUID
     variant_id: uuid.UUID | None = None
     internal_sku: str = Field(min_length=1, max_length=100)
     location_code: str = Field(default="default", min_length=1, max_length=80)
     unit: str = Field(default="each", min_length=1, max_length=24)
-    opening_quantity: int = Field(default=0, ge=0, le=2_000_000_000)
-    low_stock_threshold: int = Field(default=0, ge=0, le=2_000_000_000)
+    opening_quantity: int = Field(default=0, strict=True, ge=0, le=2_000_000_000)
+    low_stock_threshold: int = Field(default=0, strict=True, ge=0, le=2_000_000_000)
     idempotency_key: str = Field(min_length=1, max_length=220)
 
 
@@ -256,10 +259,17 @@ class InventoryItemResponse(BaseModel):
 
 
 class InventoryAdjustmentRequest(BaseModel):
-    delta: int = Field(ne=0, ge=-2_000_000_000, le=2_000_000_000)
+    delta: int = Field(ge=-2_000_000_000, le=2_000_000_000)
     reason: str = Field(min_length=1, max_length=500)
     expected_version: int = Field(ge=1)
     idempotency_key: str = Field(min_length=1, max_length=220)
+
+    @field_validator("delta")
+    @classmethod
+    def nonzero_delta(cls, value: int) -> int:
+        if value == 0:
+            raise ValueError("Inventory adjustment must change the counted quantity.")
+        return value
 
 
 class InventoryReserveRequest(BaseModel):
@@ -338,6 +348,16 @@ class FakeOrderEventRequest(BaseModel):
     reason: str | None = Field(default=None, max_length=240)
 
 
+class UnifiedOrderLineResponse(BaseModel):
+    id: uuid.UUID
+    product_id: uuid.UUID | None
+    marketplace_sku: str | None
+    title: str
+    quantity: int
+    unit_price: str
+    total_price: str
+
+
 class UnifiedOrderResponse(BaseModel):
     id: uuid.UUID
     account_id: uuid.UUID
@@ -348,6 +368,9 @@ class UnifiedOrderResponse(BaseModel):
     reservation_state: str
     line_count: int
     fake_provider: bool
+    provenance_status: str = "UNKNOWN"
+    currency: str | None = None
+    lines: list[UnifiedOrderLineResponse] = Field(default_factory=list)
     ordered_at: datetime
 
 

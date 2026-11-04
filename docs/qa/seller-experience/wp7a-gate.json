@@ -1,0 +1,692 @@
+{
+  "package": "WP7A",
+  "date": "2026-10-31T11:26:38.944Z",
+  "status": "INCOMPLETE",
+  "application_certification": "INCOMPLETE / WP7 ORIGINAL FAIL UNCHANGED",
+  "parent_finding": "SE-WP7-COVERAGE-001",
+  "scope": "Offline synthetic critical-journey coverage addendum; no live integration or release certification",
+  "original_baseline": "tmp/qa-wp7a/baseline.json",
+  "baseline_unchanged": true,
+  "targeted_matrix": [
+    {
+      "id": "B",
+      "capability": "Opportunity discovery and research",
+      "why": "WP7 reviewed saved candidates but did not execute the full discovery/provider-failure/retry path.",
+      "evidence": "B-01–06; real UI goal/plan/start, local synthetic partial results, classified provider failure, retry/replay, committed response loss, original goal navigation, truthful unavailable-category result.",
+      "remaining": "Source-observation freshness/staleness under materially changed research inputs has not been exercised. B-05 proves goal/navigation identity, not this broader semantic gate.",
+      "previous_status": "NOT_TESTED",
+      "executed": 24,
+      "passed": 24,
+      "failed": 0,
+      "new_status": "PARTIAL / INCOMPLETE"
+    },
+    {
+      "id": "G",
+      "capability": "Inventory adjustment and recovery",
+      "why": "Opening-stock and route review did not establish browser adjustment/recovery.",
+      "evidence": "G-01–05; actual positive/negative/zero/insufficient adjustments, response loss after commit, replay, stale version, double click, persisted ledger, sibling variant isolation, reload and unauthenticated denial.",
+      "remaining": null,
+      "previous_status": "NOT_TESTED",
+      "executed": 20,
+      "passed": 20,
+      "failed": 0,
+      "new_status": "PASS — BOUNDED LOCAL SCOPE"
+    },
+    {
+      "id": "H",
+      "capability": "Marketplace authorization boundaries",
+      "why": "Prior route checks did not prove missing/invalid/expired/revoked persisted authorization states and session recovery.",
+      "evidence": "H-01–04; Amazon/Flipkart credential-free accounts; missing/expired/invalid/revoked disabled UNVERIFIED states; UI error recovery; persisted session expiry/relogin; negative internal import requests rejected before dispatch.",
+      "remaining": null,
+      "previous_status": "NOT_TESTED",
+      "executed": 16,
+      "passed": 16,
+      "failed": 0,
+      "new_status": "PASS — BOUNDED LOCAL SCOPE"
+    },
+    {
+      "id": "L",
+      "capability": "Video, Ads and creative workflow",
+      "why": "Earlier empty reads/layout evidence did not establish populated queue/storyboard/caption flows.",
+      "evidence": "L-01–05; local queue and replay without worker output, pending-review caption validation/save/reload, draft row-version and stale-write rejection, read failure/retry, Ads wizard preparation and authoritative preview rejection, recovery catalog and 502 monitoring.",
+      "remaining": "Failed-generation worker/job retry and approved immutable storyboard version cloning were not exercised in the browser. Ads saved/observed campaign recovery is not covered by an empty campaign plus taxonomy catalog; no campaign confirmation was admitted.",
+      "previous_status": "NOT_TESTED",
+      "executed": 20,
+      "passed": 20,
+      "failed": 0,
+      "new_status": "PARTIAL / INCOMPLETE"
+    }
+  ],
+  "subcase_contracts": [
+    {
+      "id": "B-01",
+      "existing_matrix_id": "B",
+      "expected_seller_behavior": "UI goal, plan, research initiation and persisted synthetic partial evidence",
+      "why_wp7_did_not_close": "WP7 reviewed saved candidates but did not execute the full discovery/provider-failure/retry path.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "B-02",
+      "existing_matrix_id": "B",
+      "expected_seller_behavior": "Provider-unavailable persisted failure is visible with partial evidence and no fabricated verification",
+      "why_wp7_did_not_close": "WP7 reviewed saved candidates but did not execute the full discovery/provider-failure/retry path.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "B-03",
+      "existing_matrix_id": "B",
+      "expected_seller_behavior": "Real retry after offline recovery, repeated retry, reload, evidence lineage and candidate identity",
+      "why_wp7_did_not_close": "WP7 reviewed saved candidates but did not execute the full discovery/provider-failure/retry path.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "B-04",
+      "existing_matrix_id": "B",
+      "expected_seller_behavior": "Interrupted research response after server commit reconciles on reload without another run",
+      "why_wp7_did_not_close": "WP7 reviewed saved candidates but did not execute the full discovery/provider-failure/retry path.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "B-05",
+      "existing_matrix_id": "B",
+      "expected_seller_behavior": "Saved and superseding goal navigation never substitutes another candidate context",
+      "why_wp7_did_not_close": "WP7 reviewed saved candidates but did not execute the full discovery/provider-failure/retry path.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "B-06",
+      "existing_matrix_id": "B",
+      "expected_seller_behavior": "Unsupported local category is a persisted no-candidates result, never HTTP 500 or unrelated fallback",
+      "why_wp7_did_not_close": "WP7 reviewed saved candidates but did not execute the full discovery/provider-failure/retry path.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "G-01",
+      "existing_matrix_id": "G",
+      "expected_seller_behavior": "Human positive and negative adjustments preserve exact product, balance and persisted ledger",
+      "why_wp7_did_not_close": "Opening-stock and route review did not establish browser adjustment/recovery.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "G-02",
+      "existing_matrix_id": "G",
+      "expected_seller_behavior": "Zero and insufficient-stock inputs cannot create a stock movement",
+      "why_wp7_did_not_close": "Opening-stock and route review did not establish browser adjustment/recovery.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "G-03",
+      "existing_matrix_id": "G",
+      "expected_seller_behavior": "Lost committed adjustment response and immediate retry never duplicate the movement; reload reconciles",
+      "why_wp7_did_not_close": "Opening-stock and route review did not establish browser adjustment/recovery.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "G-04",
+      "existing_matrix_id": "G",
+      "expected_seller_behavior": "Duplicate clicks and unauthenticated stock writes remain fail-closed",
+      "why_wp7_did_not_close": "Opening-stock and route review did not establish browser adjustment/recovery.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "G-05",
+      "existing_matrix_id": "G",
+      "expected_seller_behavior": "Variant-specific adjustment and reload cannot move parent or sibling stock",
+      "why_wp7_did_not_close": "Opening-stock and route review did not establish browser adjustment/recovery.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "H-01",
+      "existing_matrix_id": "H",
+      "expected_seller_behavior": "Both marketplace destinations with missing credentials remain disabled/unverified, never connected",
+      "why_wp7_did_not_close": "Prior route checks did not prove missing/invalid/expired/revoked persisted authorization states and session recovery.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "H-02",
+      "existing_matrix_id": "H",
+      "expected_seller_behavior": "Expired, invalid and revoked synthetic authorization states persist without verified connection claims",
+      "why_wp7_did_not_close": "Prior route checks did not prove missing/invalid/expired/revoked persisted authorization states and session recovery.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "H-03",
+      "existing_matrix_id": "H",
+      "expected_seller_behavior": "Read failure is explicit; real retry recovers without enabling synchronization/publication",
+      "why_wp7_did_not_close": "Prior route checks did not prove missing/invalid/expired/revoked persisted authorization states and session recovery.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "H-04",
+      "existing_matrix_id": "H",
+      "expected_seller_behavior": "Expired login rejects protected marketplace UI/API; relogin restores only the same owner records",
+      "why_wp7_did_not_close": "Prior route checks did not prove missing/invalid/expired/revoked persisted authorization states and session recovery.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "L-01",
+      "existing_matrix_id": "L",
+      "expected_seller_behavior": "Real local-only Video queue creates one version-pinned record; duplicate queue cannot invent provider output",
+      "why_wp7_did_not_close": "Earlier empty reads/layout evidence did not establish populated queue/storyboard/caption flows.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "L-02",
+      "existing_matrix_id": "L",
+      "expected_seller_behavior": "Caption blank/unsafe data validation and real content save/reload keep explicit HUMAN review",
+      "why_wp7_did_not_close": "Earlier empty reads/layout evidence did not establish populated queue/storyboard/caption flows.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "L-03",
+      "existing_matrix_id": "L",
+      "expected_seller_behavior": "Storyboard Add scene, save, version reload and stale write rejection preserve exact product context",
+      "why_wp7_did_not_close": "Earlier empty reads/layout evidence did not establish populated queue/storyboard/caption flows.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "L-04",
+      "existing_matrix_id": "L",
+      "expected_seller_behavior": "Unavailable creative reads hide stale results and Retry restores canonical state",
+      "why_wp7_did_not_close": "Earlier empty reads/layout evidence did not establish populated queue/storyboard/caption flows.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    },
+    {
+      "id": "L-05",
+      "existing_matrix_id": "L",
+      "expected_seller_behavior": "Ads campaign preparation, missing prerequisites and historical-502 monitoring preserve HUMAN boundary",
+      "why_wp7_did_not_close": "Earlier empty reads/layout evidence did not establish populated queue/storyboard/caption flows.",
+      "required_environment": "Approved signed disposable PostgreSQL, actual authenticated Chrome/Edge at desktop/mobile, synthetic owner and owned exact-context artifacts",
+      "evidence_required": "Real UI actions and persistence/negative assertions; exact check and ORM snapshots in wp7a-browser.json, screenshots/network/trace in context directory",
+      "safety": "No live provider/worker; HUMAN and ownership controls unchanged; unknown evidence stays unknown"
+    }
+  ],
+  "accepted_full_browser_run": "36072ba383581557",
+  "browser_runs": [
+    {
+      "token": "5f0bd6e1f88ba938",
+      "evidence": "tmp/qa-seller-browser/5f0bd6e1f88ba938/wp7a-browser.json",
+      "passed": 0,
+      "failed": 0,
+      "status": "INCOMPLETE",
+      "cleanup": "CLEANED"
+    },
+    {
+      "token": "a6e705c3d8156014",
+      "evidence": "tmp/qa-seller-browser/a6e705c3d8156014/wp7a-browser.json",
+      "passed": 0,
+      "failed": 2,
+      "status": "RUNNING",
+      "cleanup": "CLEANED"
+    },
+    {
+      "token": "84b191290279edf4",
+      "evidence": "tmp/qa-seller-browser/84b191290279edf4/wp7a-browser.json",
+      "passed": 8,
+      "failed": 10,
+      "status": "INCOMPLETE",
+      "cleanup": "CLEANED"
+    },
+    {
+      "token": "900ec8ca748fa174",
+      "evidence": "tmp/qa-seller-browser/900ec8ca748fa174/wp7a-browser.json",
+      "passed": 11,
+      "failed": 8,
+      "status": "INCOMPLETE",
+      "cleanup": "CLEANED"
+    },
+    {
+      "token": "a2626483fc580c9f",
+      "evidence": "tmp/qa-seller-browser/a2626483fc580c9f/wp7a-browser.json",
+      "passed": 16,
+      "failed": 4,
+      "status": "INCOMPLETE",
+      "cleanup": "CLEANED"
+    },
+    {
+      "token": "0b083ed8209c786d",
+      "evidence": "tmp/qa-seller-browser/0b083ed8209c786d/wp7a-browser.json",
+      "passed": 70,
+      "failed": 10,
+      "status": "INCOMPLETE",
+      "cleanup": "CLEANED"
+    },
+    {
+      "token": "36072ba383581557",
+      "evidence": "tmp/qa-seller-browser/36072ba383581557/wp7a-browser.json",
+      "passed": 80,
+      "failed": 0,
+      "status": "PASS",
+      "cleanup": "CLEANED"
+    }
+  ],
+  "backend_runs": [
+    {
+      "token": "99d9f1ebc706414b",
+      "evidence": "tmp/qa-wp7a-backend/99d9f1ebc706414b/backend-results.xml",
+      "tests": 51,
+      "passed": 50,
+      "failed": 1,
+      "skipped": 0,
+      "runner_exit": 1,
+      "cleanup": "PASS"
+    },
+    {
+      "token": "094180dc7f304634",
+      "evidence": "tmp/qa-wp7a-backend/094180dc7f304634/backend-results.xml",
+      "tests": 56,
+      "passed": 56,
+      "failed": 0,
+      "skipped": 0,
+      "runner_exit": 0,
+      "cleanup": "PASS"
+    },
+    {
+      "token": "167ca6c77f8c4866",
+      "evidence": "tmp/qa-wp7a-backend/167ca6c77f8c4866/backend-results.xml",
+      "tests": 12,
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "runner_exit": 0,
+      "cleanup": "PASS"
+    }
+  ],
+  "quality": [
+    {
+      "name": "node-qa",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "tests": 78,
+      "pass": 78,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "name": "python-qa",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "tests": 70
+    },
+    {
+      "name": "angular",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "passed": 382,
+      "test_files": 83
+    },
+    {
+      "name": "typescript-app",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "typescript-spec",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "eslint-web",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "errors": 0,
+      "warnings": 2
+    },
+    {
+      "name": "eslint-qa",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "ruff",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "black",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "mypy-migration",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "diagnostics": []
+    },
+    {
+      "name": "mypy-research",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false,
+      "diagnostics": []
+    },
+    {
+      "name": "compileall",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "powershell-parser",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    },
+    {
+      "name": "diff-check",
+      "status": "PASS",
+      "exit_code": 0,
+      "raw_output_persisted": false
+    }
+  ],
+  "backend_distinct_last_observed": {
+    "tests": 56,
+    "passed": 56,
+    "failed": 0,
+    "overlapping_retests_not_added": true
+  },
+  "defects": [
+    {
+      "id": "SE-WP7A-VIDEO-QUEUE-001",
+      "priority": "P1",
+      "root": "Migration 0030 explicitly supplied nullable=None for six ORM-optional AI job recovery fields, resulting in NOT NULL PostgreSQL columns. Normal queued jobs omitted them and failed.",
+      "fix": "Migration 0150 drops only those NOT NULL constraints; verifies exact column types/defaults, retains every row/value and refuses unsafe downgrade.",
+      "files": [
+        "apps/api/alembic/versions/20261207_0150_ai_job_optional_recovery.py",
+        "apps/api/tests/test_seller_wp7a.py",
+        "apps/api/tests/test_seller_wp6a_migration.py"
+      ],
+      "test": "Original 50/51 run retains NotNullViolation. Retest 56/56 includes empty roundtrip, NULL rollback refusal and historical non-NULL value preservation; L-01 browser queue/replay.",
+      "status": "RESOLVED_IN_SCOPED_INDEPENDENT_RETEST"
+    },
+    {
+      "id": "SE-WP7A-RESEARCH-EMPTY-001",
+      "priority": "P1",
+      "root": "An explicit category with no local fixture reached an uncaught LookupError in execute_run; HTTP 500 replaced a legitimate no-results outcome.",
+      "fix": "Persist PARTIAL / NO_USEFUL_PRODUCT_CANDIDATES, failed discovery checkpoint and no external writes, matching the existing blocked-research architecture. Never relax the category or add fake candidates.",
+      "files": [
+        "apps/api/vayujit_api/intelligence/business_agent_service.py",
+        "apps/api/tests/test_seller_wp7a.py"
+      ],
+      "test": "Sanitized LookupError frames in 900ec8ca748fa174; two unavailable categories start/start/retry/reload and database zero opportunities; B-06 actual UI.",
+      "status": "RESOLVED_IN_SCOPED_INDEPENDENT_RETEST"
+    },
+    {
+      "id": "SE-WP7A-SELECTOR-CONTEXT-001",
+      "priority": "P1",
+      "root": "Business context selector loaded active-brand products only and changing its Brand did not reload products, so later brands could not choose their actual product.",
+      "fix": "Request the explicit brand, clear old product/artifact/media identities on user brand change, ignore late superseded context responses. Backend ownership guards unchanged.",
+      "files": [
+        "apps/web/src/app/shared/business-entity-selectors.component.ts",
+        "apps/web/src/app/shared/business-entity-selectors.component.spec.ts"
+      ],
+      "test": "0b083ed8209c786d mobile/Edge L-01 failure; two new Angular cases plus independent four-context browser retest.",
+      "status": "RESOLVED_IN_SCOPED_INDEPENDENT_RETEST"
+    },
+    {
+      "id": "SE-WP7A-CAPTION-FEEDBACK-001",
+      "priority": "P2",
+      "root": "addCaption retained previous error/success notices across a new request, so a persisted successful caption still displayed its previous rejection.",
+      "fix": "Clear prior feedback at the next valid caption attempt, retain authoritative failure and pending HUMAN review semantics.",
+      "files": [
+        "apps/web/src/app/ai/ai-video.component.ts",
+        "apps/web/src/app/ai/ai-video.component.spec.ts"
+      ],
+      "test": "900ec8ca748fa174 L-02 before evidence; invalid then valid actual caption save/reload, focused Angular failure/retry test.",
+      "status": "RESOLVED_IN_SCOPED_INDEPENDENT_RETEST"
+    },
+    {
+      "id": "SE-WP7A-STORYBOARD-CONTEXT-001",
+      "priority": "P2",
+      "root": "Storyboard cards showed version but no board/product identity; same-version drafts were ambiguous.",
+      "fix": "Display exact board ID and product ID; no new selection/version authority.",
+      "files": [
+        "apps/web/src/app/ai/ai-video.component.ts",
+        "apps/web/src/app/ai/ai-video.component.spec.ts"
+      ],
+      "test": "84b191290279edf4 L-03 before evidence; two same-version cards regression; actual editor save and stale row-version conflict.",
+      "status": "RESOLVED_IN_SCOPED_INDEPENDENT_RETEST"
+    },
+    {
+      "id": "SE-WP7A-RESEARCH-CONTRAST-001",
+      "priority": "P1",
+      "root": "Secondary-action anchors received a dark background but were omitted from the shared button foreground rule; axe measured blue #0000ee on #42616a at 1.4:1.",
+      "fix": "Include action-link in the existing accessible foreground/padding/theme rule and responsive sizing; no rule suppression.",
+      "files": [
+        "apps/web/src/app/intelligence/business-agent-workspace.css",
+        "qa/unit/wp7a-safety.test.mjs"
+      ],
+      "test": "a2626483fc580c9f B-02/B-03/B-06 serious axe findings; later populated-state scans.",
+      "status": "RESOLVED_IN_SCOPED_INDEPENDENT_RETEST"
+    },
+    {
+      "id": "SE-WP7A-RESEARCH-HEADINGS-001",
+      "priority": "P2",
+      "root": "Decision brief embeds a shared H3 evidence card under an H4 section, followed by H5 summaries, skipping levels.",
+      "fix": "Configurable semantic heading level with unchanged H3 default; this nested card requests H5.",
+      "files": [
+        "apps/web/src/app/shared/evidence-card.component.ts",
+        "apps/web/src/app/shared/evidence-card.component.spec.ts",
+        "apps/web/src/app/intelligence/business-agent-workspace.component.ts"
+      ],
+      "test": "0b083ed8209c786d B-03 heading-order findings in all four contexts; explicit heading regression and actual axe rescans.",
+      "status": "RESOLVED_IN_SCOPED_INDEPENDENT_RETEST"
+    }
+  ],
+  "remaining_critical_coverage": [
+    {
+      "matrix_id": "B",
+      "status": "NOT_FULLY_DEMONSTRATED",
+      "reason": "Source-observation freshness/staleness under materially changed research inputs has not been exercised. B-05 proves goal/navigation identity, not this broader semantic gate."
+    },
+    {
+      "matrix_id": "L",
+      "status": "NOT_FULLY_DEMONSTRATED",
+      "reason": "Failed-generation worker/job retry and approved immutable storyboard version cloning were not exercised in the browser. Ads saved/observed campaign recovery is not covered by an empty campaign plus taxonomy catalog; no campaign confirmation was admitted."
+    }
+  ],
+  "cleanup": {
+    "status": "PASS",
+    "read_only": true,
+    "databases": [
+      {
+        "token": "094180dc7f304634",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "0b083ed8209c786d",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "167ca6c77f8c4866",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "36072ba383581557",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "5f0bd6e1f88ba938",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "84b191290279edf4",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "900ec8ca748fa174",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "99d9f1ebc706414b",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "a2626483fc580c9f",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      },
+      {
+        "token": "a6e705c3d8156014",
+        "state": "DROPPED",
+        "absent": true,
+        "guarded_recovery": false,
+        "recovery_statement_timeout_ms": null
+      }
+    ],
+    "traces": [
+      {
+        "path": "tmp/qa-seller-browser/0b083ed8209c786d/wp7a-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/0b083ed8209c786d/wp7a-chrome-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/0b083ed8209c786d/wp7a-msedge-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/0b083ed8209c786d/wp7a-msedge-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/36072ba383581557/wp7a-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/36072ba383581557/wp7a-chrome-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/36072ba383581557/wp7a-msedge-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/36072ba383581557/wp7a-msedge-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/5f0bd6e1f88ba938/wp7a-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/84b191290279edf4/wp7a-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/900ec8ca748fa174/wp7a-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "path": "tmp/qa-seller-browser/a2626483fc580c9f/wp7a-chrome-1440/trace.zip",
+        "crc": "PASS"
+      }
+    ],
+    "docker_preservation": {
+      "original_containers": 10,
+      "original_networks_and_volumes_preserved": true
+    },
+    "secret_scan": {
+      "credential_matches": 0,
+      "raw_container_logs_persisted": false
+    },
+    "original_baseline_unchanged": true,
+    "extended_secret_scan": {
+      "files": 246,
+      "traces": 12,
+      "matches": 0
+    }
+  },
+  "accessibility": {
+    "scans": 52,
+    "violation_instances": 0,
+    "incomplete_rule_instances": 47,
+    "manual_assistive_technology": "NOT_CERTIFIED",
+    "wcag_compliance": "NOT_CLAIMED"
+  },
+  "historical_ads_502": "UNREPRODUCED / CAUSE UNCLASSIFIED / NOT RESOLVED",
+  "backup_restore": "PARKED",
+  "wp7b_started": false,
+  "wp7c_started": false,
+  "wp8_started": false,
+  "no_live_provider_calls": true,
+  "no_permanent_database_modifications": true,
+  "no_approval_bypass": true,
+  "no_commits_pushes_or_branches": true
+}

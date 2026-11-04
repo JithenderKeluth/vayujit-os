@@ -160,7 +160,9 @@ aside {
     border: 1px solid var(--vj-color-border);
     border-radius: var(--vj-radius-md);
     padding: var(--vj-space-3);
-    background: var(--vj-color-surface);
+    /* Reuse the sidebar palette: navigation links are intentionally light text. */
+    background: var(--vj-color-ink);
+    color: #fff;
   }
   .context-header {
     justify-content: flex-start;

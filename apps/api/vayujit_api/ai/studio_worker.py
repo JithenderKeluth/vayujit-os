@@ -274,6 +274,40 @@ def finish_ai_job(
         generation.context_refresh_required = spec.context_refresh_required
         generation.error_code = error_code
         generation.safe_error_message = safe_message
+    counted_output_failure = False
+    if row.job_type.startswith("ai_image_") and state != "succeeded":
+        image_output = db.scalar(
+            select(AIImageOutput).where(AIImageOutput.job_id == row.id).with_for_update()
+        )
+        if image_output is not None and image_output.media_id is None:
+            previous = image_output.status
+            image_output.status = state
+            if (
+                generation
+                and state in {"failed", "cancelled", "stale"}
+                and previous not in TERMINAL_STATES
+            ):
+                generation.failed_outputs += 1
+                counted_output_failure = True
+                if (
+                    generation.completed_outputs + generation.failed_outputs
+                    >= generation.total_outputs
+                ):
+                    generation.status = state
+                    generation.completed_at = now
+            record_event(
+                db,
+                actor_id=row.owner_id,
+                action="ai.image_job_observation",
+                entity_type="ai_image_output",
+                entity_id=image_output.id,
+                metadata={
+                    "job_id": str(row.id),
+                    "state": state,
+                    "error_code": error_code,
+                    "attempt": row.attempt_count,
+                },
+            )
     if state in {"failed", "cancelled", "stale"}:
         output = db.scalar(
             select(AIStudioOutput).where(
@@ -287,7 +321,7 @@ def finish_ai_job(
             output.status = state
             output.error_code = error_code
             output.safe_error_message = safe_message
-            if generation:
+            if generation and not counted_output_failure:
                 generation.failed_outputs += 1
                 if (
                     generation.completed_outputs + generation.failed_outputs
@@ -646,6 +680,17 @@ def execute_image_job(
         row.lease_owner = None
         row.lease_expires_at = None
         row.completed_at = utcnow()
+        attempt = db.scalar(
+            select(AIStudioJobAttempt).where(
+                AIStudioJobAttempt.job_id == row.id,
+                AIStudioJobAttempt.attempt_number == row.attempt_count,
+            )
+        )
+        if attempt is not None:
+            attempt.state = "succeeded"
+            attempt.provider_request_id = row.provider_request_id
+            attempt.checkpoint_fingerprint = row.provider_result_fingerprint
+            attempt.completed_at = row.completed_at
         generation.completed_outputs += 1
         generation.status = (
             "completed"

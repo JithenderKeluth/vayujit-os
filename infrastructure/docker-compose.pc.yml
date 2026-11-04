@@ -1,0 +1,125 @@
+name: ${VAYUJIT_PC_PROJECT_NAME:-vayujit-pc-business}
+
+# Windows Docker Desktop/WSL2, one seller and one persistent business database.
+# The private network has no internet egress. Only nginx publishes a loopback port.
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:?required}
+      POSTGRES_USER: ${POSTGRES_USER:?required}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?required}
+      VAYUJIT_DATABASE_NAME: ${VAYUJIT_DATABASE_NAME:?required}
+      VAYUJIT_DATABASE_USER: ${VAYUJIT_DATABASE_USER:?required}
+      VAYUJIT_DATABASE_PASSWORD: ${VAYUJIT_DATABASE_PASSWORD:?required}
+    volumes:
+      - pc_postgres_data:/var/lib/postgresql/data
+      - ./pc-postgres-init.sh:/docker-entrypoint-initdb.d/10-create-business-database.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [data]
+    stop_grace_period: 60s
+    deploy:
+      resources:
+        limits: { cpus: '2.0', memory: 3G }
+
+  api:
+    build: { context: .., dockerfile: infrastructure/Dockerfile.api }
+    restart: unless-stopped
+    env_file:
+      - ${VAYUJIT_PC_APP_ENV_FILE:?required}
+    depends_on:
+      postgres: { condition: service_healthy }
+    volumes:
+      - pc_media_data:/var/lib/vayujit/media
+      - pc_runtime_control:/var/lib/vayujit/maintenance
+    expose: ["8000"]
+    networks: [app, data]
+    stop_grace_period: 30s
+    deploy:
+      resources:
+        limits: { cpus: '2.0', memory: 2G }
+
+  worker:
+    build: { context: .., dockerfile: infrastructure/Dockerfile.api }
+    restart: unless-stopped
+    env_file:
+      - ${VAYUJIT_PC_APP_ENV_FILE:?required}
+    entrypoint: ["python", "-m", "vayujit_api.publishing.worker"]
+    command: ["run"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      api: { condition: service_healthy }
+    volumes:
+      - pc_media_data:/var/lib/vayujit/media
+      - pc_runtime_control:/var/lib/vayujit/maintenance
+    networks: [data]
+    stop_grace_period: 45s
+    healthcheck:
+      test:
+        ["CMD-SHELL", "python -c \"from datetime import timedelta; from sqlalchemy import select; from vayujit_api.core.database import SessionFactory; from vayujit_api.publishing.scheduler_time import utcnow; from vayujit_api.publishing.models import PublishingWorkerHeartbeat; db=SessionFactory(); row=db.scalar(select(PublishingWorkerHeartbeat).order_by(PublishingWorkerHeartbeat.last_heartbeat_at.desc())); db.close(); raise SystemExit(0 if row and row.last_heartbeat_at >= utcnow() - timedelta(minutes=2) else 1)\""]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 1G }
+
+  web:
+    build: { context: .., dockerfile: infrastructure/Dockerfile.web }
+    restart: unless-stopped
+    expose: ["8080"]
+    networks: [app]
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 512M }
+
+  proxy:
+    image: nginx:1.27-alpine
+    restart: unless-stopped
+    depends_on:
+      api: { condition: service_healthy }
+      web: { condition: service_healthy }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8081/health/ready >/dev/null"]
+      interval: 15s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+    ports:
+      - "127.0.0.1:${VAYUJIT_PC_HTTP_PORT:-8443}:8081"
+    volumes:
+      - ./nginx.pc.conf:/etc/nginx/conf.d/default.conf:ro
+    networks: [app, edge]
+    deploy:
+      resources:
+        limits: { cpus: '0.5', memory: 256M }
+
+networks:
+  data:
+    driver: bridge
+    internal: true
+  app:
+    driver: bridge
+    internal: true
+  edge:
+    driver: bridge
+    driver_opts:
+      # Docker Engine currently drops host port bindings for containers that
+      # only use internal networks. Keep this proxy-only network non-internal
+      # so the loopback binding works, but do not install container NAT egress.
+      com.docker.network.bridge.enable_ip_masquerade: "false"
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
+
+volumes:
+  pc_postgres_data:
+    name: ${VAYUJIT_PC_VOLUME_PREFIX:?required}_postgres_data
+  pc_media_data:
+    name: ${VAYUJIT_PC_VOLUME_PREFIX:?required}_media_data
+  pc_runtime_control:
+    name: ${VAYUJIT_PC_VOLUME_PREFIX:?required}_runtime_control

@@ -21,7 +21,7 @@ type NavigationGroup = {
         <div class="nav-group">
           <span class="nav-group-label">{{ group.label }}</span>
           @for (item of group.items; track item[1]) {
-            <a [routerLink]="item[1]" routerLinkActive="active" ariaCurrentWhenActive="page">
+            <a [routerLink]="item[1]" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: item[1] === '/intelligence' }" ariaCurrentWhenActive="page">
               {{ item[0] }}
             </a>
           }
@@ -124,13 +124,14 @@ export class SellerNavigationComponent {
       label: 'Research',
       items: [
         ['Product Opportunities', '/intelligence/product-opportunities'],
-        ['My Research', '/intelligence'],
+        ['My Research', '/intelligence/research'],
       ],
     },
     {
       label: 'Source',
       items: [
-        ['Suppliers', '/intelligence/sourcing'],
+        ['Suppliers', '/intelligence/cross-marketplace'],
+        ['Requirements & quotes', '/intelligence/sourcing'],
         ['Supplier engagement', '/intelligence/supplier-engagement'],
         ['Sourcing decisions', '/intelligence/sourcing-scenarios'],
       ],
@@ -176,7 +177,6 @@ export class SellerNavigationComponent {
         ['Website Intelligence', '/intelligence/websites'],
         ['External Research', '/intelligence/external'],
         ['Autonomous Research', '/intelligence/autonomous'],
-        ['Cross-marketplace Suppliers', '/intelligence/cross-marketplace'],
         ['IndiaMART Discovery', '/intelligence/indiamart'],
         ['Alibaba Discovery', '/intelligence/alibaba'],
         ['TradeIndia Discovery', '/intelligence/tradeindia'],
@@ -220,7 +220,6 @@ export class SellerNavigationComponent {
       '/intelligence/websites',
       '/intelligence/external',
       '/intelligence/autonomous',
-      '/intelligence/cross-marketplace',
       '/intelligence/indiamart',
       '/intelligence/alibaba',
       '/intelligence/tradeindia',

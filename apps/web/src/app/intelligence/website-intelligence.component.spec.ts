@@ -67,7 +67,8 @@ describe('WebsiteIntelligenceComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const root = fixture.nativeElement as HTMLElement;
-    expect(root.querySelector('main[aria-labelledby="website-intelligence-title"]')).not.toBeNull();
+    expect(root.querySelector('section[aria-labelledby="website-intelligence-title"]')).not.toBeNull();
+    expect(root.querySelectorAll('main')).toHaveLength(0);
     expect(root.querySelector('nav[aria-label="Website Intelligence sections"]')).not.toBeNull();
     expect(root.textContent).toContain('LIVE BROAD WEB');
     expect(root.textContent).toContain('RECURSIVE CRAWLING');

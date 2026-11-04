@@ -1,4 +1,4 @@
-param([ValidateSet("local", "test", "development", "staging", "production")][string]$Environment = "production")
+param([ValidateSet("local", "pc_local", "test", "development", "staging", "production")][string]$Environment = "production")
 $ErrorActionPreference = "Stop"
 $repo = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 $env:PYTHONPATH = Join-Path $repo "apps\api"

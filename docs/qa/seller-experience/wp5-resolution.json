@@ -1,0 +1,109 @@
+{
+  "schema_version": "seller-wp5-resolution-v1",
+  "date": "2026-10-30",
+  "classification": "WP5 IMPLEMENTED / BOUNDED LOCAL DAILY-OPERATIONS VALIDATED",
+  "application_certification": "INCOMPLETE",
+  "synthetic_only": true,
+  "resolved_original_findings": ["SE-BROWSER-012"],
+  "remaining_original_findings": ["SE-BROWSER-009", "SE-BROWSER-017", "SE-BROWSER-020"],
+  "preserved_prior_reports": ["wp1-resolution.json", "wp2-resolution.json", "wp3-resolution.json", "wp4-resolution.json"],
+  "suspected_global_advanced_contrast": "OPEN_NOT_GLOBALLY_RETESTED",
+  "before_run": "69d80dd4ed546298",
+  "final_browser_run": "80ca97a5e8d304d5",
+  "final_browser_report": "tmp/qa-seller-browser/80ca97a5e8d304d5/wp5-retest.json",
+  "final_browser_runtime": {"status":"CLEANED", "child_exit":0, "cleanup":"PASS"},
+  "counts": {
+    "wp5_backend_passed": 11,
+    "wp4_backend_passed": 10,
+    "adjacent_orders_passed": 8,
+    "adjacent_financial_passed": 7,
+    "adjacent_action_center_passed": 4,
+    "adjacent_phase3b_passed": 16,
+    "distinct_backend_passed": 56,
+    "final_backend_failed": 0,
+    "final_backend_skipped": 0,
+    "angular_passed": 352,
+    "angular_files": 80,
+    "node_qa_passed": 59,
+    "python_qa_passed": 54,
+    "browser_grouped_checks_passed": 21,
+    "browser_grouped_checks_failed": 0,
+    "final_screenshots": 31,
+    "final_traces": 4,
+    "final_document_axe_scans": 11,
+    "final_axe_violations": 0,
+    "final_axe_incomplete": 0
+  },
+  "backend_evidence": [
+    {"run":"127e6a50e69b46d8", "passed":21, "failed":0, "skipped":0, "cleanup":"PASS"},
+    {"run":"2a9a69a084d9400e", "passed":35, "failed":0, "skipped":0, "cleanup":"PASS"}
+  ],
+  "resolved_roots": [
+    {"id":"SE-WP5-DASH-001", "status":"RESOLVED_LOCAL_BROWSER", "root":"Configured publishing destinations labelled connected sales channels; daily seller evidence absent.", "fix":"Correct labels and canonical installation-wide daily reads; missing data UNKNOWN, synthetic records explicit."},
+    {"id":"SE-WP5-READ-001", "status":"RESOLVED_BOUNDED_REGRESSIONS", "root":"Unhandled brand initialization and stale asynchronous read responses.", "fix":"Safe initialization, clear old usable data, latest-request guards and explicit unavailable states."},
+    {"id":"SE-WP5-ACTION-001", "status":"RESOLVED_LOCAL_BROWSER_AND_ANGULAR", "root":"Rejected local action promises lacked feedback; pending duplicates and stale detail reads.", "fix":"Busy/error/retry handling, no false success notice, current detail and scoped URL trees."},
+    {"id":"SE-WP5-STALE-001", "status":"RESOLVED_PERSISTED_AND_BROWSER", "root":"Completed scans never retired absent non-stock conditions.", "fix":"Known scanner-owned derived rules not re-observed become STALE with preserved evidence and SYSTEM audit; no HUMAN execution fabricated."},
+    {"id":"SE-WP5-ORDER-001", "status":"RESOLVED_PERSISTED_AND_BROWSER", "root":"No line/product handoff or restorable selected order.", "fix":"Existing owned detail projection gains safe lines/nullable recorded currency and exact product links; order_id reload, invalid scope and read-failure states."},
+    {"id":"SE-WP5-PROVENANCE-001", "status":"RESOLVED_PERSISTED_CLASSIFICATION_AND_BROWSER", "root":"Unconditional fake-provider flag and incomplete metadata source lookup.", "fix":"Reuse canonical classifier, synthetic dominance, reported distinct from verified, missing UNKNOWN."},
+    {"id":"SE-WP5-FINANCE-001", "status":"RESOLVED_LOCAL_BROWSER_AND_ANGULAR", "root":"Old figures survived failed new filters; ambiguous contribution and history semantics.", "fix":"Scope/reset/race guards, URL dates, unknown sales, INR display, explicit mutable projection/UTC/source freshness limits."},
+    {"id":"SE-WP5-AGENT-001", "status":"RESOLVED_PERSISTED_AND_CLEAN_BROWSER", "root":"Legitimate owned absent plan/run read as failing 404 resource.", "fix":"Explicit allow_missing nullable read on existing authorities; default 404 and owned goal checks preserved. No fake run or error suppression."}
+  ],
+  "remaining_limits": [
+    {"id":"SE-WP5-PRICE-001", "severity":"MEDIUM", "priority":"P2", "status":"DISPLAY_MITIGATED_PRECISION_POLICY_OPEN", "expected":"Stored unit projections and source line rounding must be unambiguous.", "actual":"Accepted fake unit 100.125 is stored as 100.13 while two-unit recorded line total is 200.25.", "correction":"UI explicitly labels rounded unit projection and warns not to reconstruct totals; canonical amounts/arithmetic unchanged.", "evidence":"Final synthetic order screenshot/trace and canonical orders_router ingestion; source input retained in synthetic event.", "next":"Reviewed source precision/storage/correlation contract before accounting certification; no historical rewrite."},
+    {"id":"QA-P3-GAP-001", "status":"OPEN", "scope":"Financial working snapshot for same scope is mutable, not immutable accounting history. UI now explicit; no new ledger."},
+    {"id":"QA-P3-GAP-002", "status":"OPEN", "scope":"No generic execution engine introduced; recommendations stay advisory and canonical HUMAN workflows remain separate."},
+    {"id":"SE-WP5-TYPING-001", "status":"HISTORICAL_DEBT", "scope":"InventoryAdjustmentRequest Field(ne=0) has the same mypy overload error in HEAD; intended nonzero runtime enforcement not certified."},
+    {"id":"SE-WP5-UX-001", "status":"RECOMMENDATION_OPEN", "scope":"Long operational/financial pages, technical Product IDs and direct financial evidence entry still merit separately scoped UX work."}
+  ],
+  "financial_history": {
+    "immutable_accounting_journal": "NOT_SUPPORTED_BY_THIS_WORKING_SNAPSHOT",
+    "same_scope_recalculation": "Same persisted ID; metrics/lineage replaced",
+    "browser_examples": {"sales":"200.25", "fees":"20.05", "missing_cost_contribution":"UNKNOWN", "explicit_synthetic_cost":"300.00", "negative_contribution":"-119.80", "after_extra_fee":"-120.80", "after_additional_500_sale":"379.20"},
+    "net_profit_or_verified_real_financials": "NOT_CERTIFIED",
+    "source_freshness": "Not established by last successful read time"
+  },
+  "accessibility": {
+    "automated":"11 document scans: 0 violations, 0 incomplete in tested states",
+    "manual":"Actual screenshot visual contrast/readability spot review; bounded mobile focus/Enter/menu closure. Not all-pairs measured contrast or full assistive-technology certification.",
+    "historical_findings":"Global suspected contrast and WP4 seven incomplete textarea occurrences preserved",
+    "complete_wcag_compliance": false
+  },
+  "quality": {
+    "focused_eslint":"PASS", "typescript_app_and_spec":"PASS", "ruff":"PASS", "black":"PASS", "compileall":"PASS", "powershell_parser":"PASS", "git_diff_check":"PASS",
+    "strict_mypy":{"checked_backend_contracts":5, "errors":1, "untouched_head_schema_shadow_errors":1, "diagnostic":"Existing InventoryAdjustmentRequest.delta Field(ne=0) call-overload; checks not weakened"},
+    "production_build":"PASS_WITH_EXISTING_BUNDLE_WARNING", "initial_bundle_kb":519.17, "initial_budget_kb":500
+  },
+  "cleanup": {
+    "audit":"tmp/qa-wp5-final-audit.json", "status":"PASS", "signed_dropped_and_absent":14, "guarded_interrupted_drop_recoveries":7,
+    "recovery_timeout_ms":90000, "one_earlier_90000ms_recovery_timed_out":true,
+    "final_accepted_runs_normal_cleanup":true, "original_containers_preserved":10, "original_networks_and_volumes_preserved":true,
+    "retained_trace_crc_passed":20, "approved_credential_matches":0, "raw_container_logs_persisted":false,
+    "original_failure_records_preserved":true
+  },
+  "changed_files": [
+    "apps/api/vayujit_api/commerce/orders_router.py",
+    "apps/api/vayujit_api/commerce/schemas.py",
+    "apps/api/vayujit_api/commerce/financial_router.py",
+    "apps/api/vayujit_api/operations/action_center_router.py",
+    "apps/api/vayujit_api/intelligence/business_agent_router.py",
+    "apps/api/tests/test_seller_wp5.py",
+    "apps/web/src/app/operations/dashboard.component.ts",
+    "apps/web/src/app/operations/dashboard.component.spec.ts",
+    "apps/web/src/app/operations/operations.service.ts",
+    "apps/web/src/app/operations/action-center.component.ts",
+    "apps/web/src/app/operations/seller-wp5.spec.ts",
+    "apps/web/src/app/marketplaces/unified-orders.component.ts",
+    "apps/web/src/app/marketplaces/financial-workspace.component.ts",
+    "apps/web/src/app/marketplaces/marketplace.service.ts",
+    "apps/web/src/app/intelligence/business-agent-workspace.component.ts",
+    "apps/web/src/app/intelligence/business-agent-workspace.component.spec.ts",
+    "apps/web/src/app/intelligence/business-agent.service.ts",
+    "apps/web/src/app/app.component.ts",
+    "qa/wp5-fixtures.mjs", "qa/wp5-before.mjs", "qa/wp5-browser-retest.mjs", "qa/wp5_final_audit.py", "qa/unit/wp5-safety.test.mjs",
+    "qa/fixture_server.py", "qa/server.mjs", "qa/safety.mjs", "qa/seller-browser-session.mjs", "qa/wp4_final_audit.py", "scripts/test-seller-wp5.ps1",
+    "docs/qa/seller-experience/wp5-remediation.md", "docs/qa/seller-experience/wp5-browser-retest.md", "docs/qa/seller-experience/wp5-resolution.json",
+    "docs/qa/seller-experience/browser-findings.json", "docs/qa/seller-experience/prioritized-completion-backlog.md", "docs/qa/seller-experience/browser-journey-coverage.md"
+  ],
+  "restrictions_preserved":["single-owner installation", "no golden or permanent DB", "no live marketplace/supplier calls", "no external commercial writes", "HUMAN approval preserved", "no schema migration", "no dependency installation", "no unrelated Docker modifications", "backup parked", "no branch/commit/push", "stop before WP6"],
+  "not_certified":["complete application", "complete WCAG", "real marketplace authorization/connectivity", "live synchronization/publication", "real financial events", "immutable accounting history", "sub-paise order accounting", "full cross-owner matrix", "all browser lifecycle/error variants", "backup/restore activation"]
+}

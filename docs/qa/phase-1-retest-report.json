@@ -1,0 +1,1009 @@
+{
+  "generated_at": "2026-10-26T17:21:37.007Z",
+  "tested_source_sha256": {},
+  "phase": "QA_AGENT_PHASE_1",
+  "status": "PASS_BOUNDED_SMOKE",
+  "executive_summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "full_application_coverage": false
+  },
+  "coverage": {
+    "inventoried_routes": 155,
+    "api_declarations": 1610,
+    "runtime_api_operations": [
+      1629,
+      1629
+    ],
+    "models": 421,
+    "existing_backend_test_files": 391,
+    "existing_angular_spec_files": 71,
+    "historical_tests_rerun": false
+  },
+  "reports": [
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-26T17:20:03.295Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "passed",
+      "executive_summary": {
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-SMOKE-01",
+          "title": "QA-SMOKE-01 owner onboarding, invalid input and keyboard",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 2908,
+          "steps": [
+            {
+              "title": "Readiness and genuine empty installation",
+              "status": "PASS"
+            },
+            {
+              "title": "Keyboard, invalid email, mismatched password",
+              "status": "PASS"
+            },
+            {
+              "title": "Create owner through UI; single-owner enforcement",
+              "status": "PASS"
+            }
+          ],
+          "error": [],
+          "evidence": [
+            {
+              "name": "readiness-orm-fixture-not-migration-certified",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-01/0-readiness-orm-fixture-not-migration-certified.json"
+            },
+            {
+              "name": "axe-owner-validation",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-01/1-axe-owner-validation.json"
+            },
+            {
+              "name": "axe-dashboard",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-01/2-axe-dashboard.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-01/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-01/4-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/setup",
+              "/setup",
+              "/dashboard"
+            ],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": []
+          },
+          "axe": [
+            {
+              "state": "axe-owner-validation",
+              "route": "/setup",
+              "violations": [],
+              "incomplete": [],
+              "passes": 32
+            },
+            {
+              "state": "axe-dashboard",
+              "route": "/dashboard",
+              "violations": [],
+              "incomplete": [],
+              "passes": 37
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "title": "QA-SMOKE-02 seller creates and edits INR catalog product; persistence and blockers",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 8129,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-catalog-empty",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/0-axe-catalog-empty.json"
+            },
+            {
+              "name": "ux-observations",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/1-ux-observations.json"
+            },
+            {
+              "name": "axe-catalog-detail",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/2-axe-catalog-detail.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/4-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/catalog",
+              "/catalog",
+              "/brands/new",
+              "/brands/new",
+              "/brands/cc5a0813-f312-4f7a-8dac-256345d89749",
+              "/products/new",
+              "/products/new",
+              "/products/90b08bde-f403-44af-a443-9da482cc4269",
+              "/products/90b08bde-f403-44af-a443-9da482cc4269/edit",
+              "/products/90b08bde-f403-44af-a443-9da482cc4269/edit",
+              "/products/90b08bde-f403-44af-a443-9da482cc4269",
+              "/products/90b08bde-f403-44af-a443-9da482cc4269",
+              "/catalog/90b08bde-f403-44af-a443-9da482cc4269",
+              "/catalog/90b08bde-f403-44af-a443-9da482cc4269",
+              "/products/90b08bde-f403-44af-a443-9da482cc4269",
+              "/products/90b08bde-f403-44af-a443-9da482cc4269",
+              "/catalog/90b08bde-f403-44af-a443-9da482cc4269"
+            ],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": []
+          },
+          "axe": [
+            {
+              "state": "axe-catalog-empty",
+              "route": "/catalog",
+              "violations": [],
+              "incomplete": [],
+              "passes": 34
+            },
+            {
+              "state": "axe-catalog-detail",
+              "route": "/catalog/90b08bde-f403-44af-a443-9da482cc4269",
+              "violations": [],
+              "incomplete": [],
+              "passes": 41
+            }
+          ],
+          "usability": [
+            {
+              "id": "QA-UX-CURRENCY-DESKTOP",
+              "feature": "Indian seller product creation",
+              "route": "/products/new",
+              "type": "USABILITY",
+              "severity": "MINOR",
+              "priority": "P2",
+              "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+              "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+              "reproduction_steps": [
+                "Create a brand",
+                "Open /products/new",
+                "Inspect Currency before entering a price"
+              ],
+              "evidence": [],
+              "confidence": "RECOMMENDATION",
+              "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+              "retest_status": "NOT_RETESTED"
+            }
+          ]
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "title": "QA-SMOKE-03 navigation, failed API recovery, logout and protected deep link",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 6626,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "recovery-context",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-03/0-recovery-context.txt"
+            },
+            {
+              "name": "axe-login",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-03/1-axe-login.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-03/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-03/3-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/catalog",
+              "/catalog",
+              "/operations/action-center",
+              "/operations/action-center",
+              "/operations/launch-readiness",
+              "/operations/launch-readiness",
+              "/catalog",
+              "/catalog",
+              "/catalog/00000000-0000-0000-0000-000000000000",
+              "/login"
+            ],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+              "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              },
+              {
+                "path": "/api/v1/products",
+                "status": 503
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [
+              {
+                "path": "/api/v1/products",
+                "status": 503
+              }
+            ],
+            "denied_requests": []
+          },
+          "axe": [
+            {
+              "state": "axe-login",
+              "route": "/login",
+              "violations": [],
+              "incomplete": [],
+              "passes": 28
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-SMOKE-04",
+          "title": "QA-SMOKE-04 business goal to persisted plan; no discovery execution",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 6795,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-04/3-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/intelligence/business-agent",
+              "/intelligence/business-agent",
+              "/intelligence/business-agent",
+              "/intelligence/business-agent"
+            ],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+              "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              },
+              {
+                "path": "/api/v1/intelligence/business-agent/goals/5cc09869-bb51-4e89-977b-ae75f566bb22/plan",
+                "status": 404
+              },
+              {
+                "path": "/api/v1/intelligence/business-agent/goals/5cc09869-bb51-4e89-977b-ae75f566bb22/runs/latest",
+                "status": 404
+              },
+              {
+                "path": "/api/v1/intelligence/business-agent/goals/5cc09869-bb51-4e89-977b-ae75f566bb22/runs/latest",
+                "status": 404
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": []
+          },
+          "axe": [
+            {
+              "state": "axe-goal-plan",
+              "route": "/intelligence/business-agent",
+              "violations": [],
+              "incomplete": [],
+              "passes": 38
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [],
+      "confirmed_bugs": [],
+      "usability_findings": [
+        {
+          "id": "QA-UX-CURRENCY-DESKTOP",
+          "feature": "Indian seller product creation",
+          "route": "/products/new",
+          "type": "USABILITY",
+          "severity": "MINOR",
+          "priority": "P2",
+          "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+          "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+          "reproduction_steps": [
+            "Create a brand",
+            "Open /products/new",
+            "Inspect Currency before entering a price"
+          ],
+          "evidence": [
+            {
+              "name": "axe-catalog-empty",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/0-axe-catalog-empty.json"
+            },
+            {
+              "name": "ux-observations",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/1-ux-observations.json"
+            },
+            {
+              "name": "axe-catalog-detail",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/2-axe-catalog-detail.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/4-final-screen.png"
+            }
+          ],
+          "confidence": "RECOMMENDATION",
+          "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+          "retest_status": "NOT_RETESTED"
+        }
+      ],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "process_exit_code": 0,
+      "runtime_api_operations": 1629
+    },
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-26T17:21:11.412Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "passed",
+      "executive_summary": {
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-SMOKE-01",
+          "title": "QA-SMOKE-01 owner onboarding, invalid input and keyboard",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 2558,
+          "steps": [
+            {
+              "title": "Readiness and genuine empty installation",
+              "status": "PASS"
+            },
+            {
+              "title": "Keyboard, invalid email, mismatched password",
+              "status": "PASS"
+            },
+            {
+              "title": "Create owner through UI; single-owner enforcement",
+              "status": "PASS"
+            }
+          ],
+          "error": [],
+          "evidence": [
+            {
+              "name": "readiness-orm-fixture-not-migration-certified",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-01/0-readiness-orm-fixture-not-migration-certified.json"
+            },
+            {
+              "name": "axe-owner-validation",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-01/1-axe-owner-validation.json"
+            },
+            {
+              "name": "axe-dashboard",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-01/2-axe-dashboard.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-01/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-01/4-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/setup",
+              "/setup",
+              "/dashboard"
+            ],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": []
+          },
+          "axe": [
+            {
+              "state": "axe-owner-validation",
+              "route": "/setup",
+              "violations": [],
+              "incomplete": [],
+              "passes": 32
+            },
+            {
+              "state": "axe-dashboard",
+              "route": "/dashboard",
+              "violations": [],
+              "incomplete": [],
+              "passes": 34
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "title": "QA-SMOKE-02 seller creates and edits INR catalog product; persistence and blockers",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 5365,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-catalog-empty",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/0-axe-catalog-empty.json"
+            },
+            {
+              "name": "ux-observations",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/1-ux-observations.json"
+            },
+            {
+              "name": "axe-catalog-detail",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/2-axe-catalog-detail.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/4-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/catalog",
+              "/catalog",
+              "/brands/new",
+              "/brands/new",
+              "/brands/15bac32b-36b5-443c-bb9c-15109ffc1317",
+              "/products/new",
+              "/products/new",
+              "/products/36190022-9049-461d-94b1-577db28f882a",
+              "/products/36190022-9049-461d-94b1-577db28f882a/edit",
+              "/products/36190022-9049-461d-94b1-577db28f882a/edit",
+              "/products/36190022-9049-461d-94b1-577db28f882a",
+              "/products/36190022-9049-461d-94b1-577db28f882a",
+              "/products/36190022-9049-461d-94b1-577db28f882a",
+              "/catalog/36190022-9049-461d-94b1-577db28f882a",
+              "/catalog/36190022-9049-461d-94b1-577db28f882a",
+              "/products/36190022-9049-461d-94b1-577db28f882a",
+              "/products/36190022-9049-461d-94b1-577db28f882a",
+              "/catalog/36190022-9049-461d-94b1-577db28f882a"
+            ],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": []
+          },
+          "axe": [
+            {
+              "state": "axe-catalog-empty",
+              "route": "/catalog",
+              "violations": [],
+              "incomplete": [],
+              "passes": 31
+            },
+            {
+              "state": "axe-catalog-detail",
+              "route": "/catalog/36190022-9049-461d-94b1-577db28f882a",
+              "violations": [],
+              "incomplete": [],
+              "passes": 39
+            }
+          ],
+          "usability": [
+            {
+              "id": "QA-UX-CURRENCY-MOBILE",
+              "feature": "Indian seller product creation",
+              "route": "/products/new",
+              "type": "USABILITY",
+              "severity": "MINOR",
+              "priority": "P2",
+              "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+              "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+              "reproduction_steps": [
+                "Create a brand",
+                "Open /products/new",
+                "Inspect Currency before entering a price"
+              ],
+              "evidence": [],
+              "confidence": "RECOMMENDATION",
+              "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+              "retest_status": "NOT_RETESTED"
+            }
+          ]
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "title": "QA-SMOKE-03 navigation, failed API recovery, logout and protected deep link",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 2686,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "recovery-context",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-03/0-recovery-context.txt"
+            },
+            {
+              "name": "axe-login",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-03/1-axe-login.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-03/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-03/3-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/catalog",
+              "/catalog",
+              "/operations/action-center",
+              "/operations/action-center",
+              "/operations/launch-readiness",
+              "/operations/launch-readiness",
+              "/catalog",
+              "/catalog",
+              "/catalog/00000000-0000-0000-0000-000000000000",
+              "/login"
+            ],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+              "Failed to load resource: the server responded with a status of 503 (Service Unavailable)",
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              },
+              {
+                "path": "/api/v1/products",
+                "status": 503
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              }
+            ],
+            "expected_http_errors": [
+              {
+                "path": "/api/v1/products",
+                "status": 503
+              }
+            ],
+            "denied_requests": []
+          },
+          "axe": [
+            {
+              "state": "axe-login",
+              "route": "/login",
+              "violations": [],
+              "incomplete": [],
+              "passes": 28
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-SMOKE-04",
+          "title": "QA-SMOKE-04 business goal to persisted plan; no discovery execution",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 3004,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "axe-goal-plan",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-04/0-axe-goal-plan.json"
+            },
+            {
+              "name": "journey-boundary",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-04/1-journey-boundary.txt"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-04/2-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-04/3-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/login",
+              "/login",
+              "/dashboard",
+              "/intelligence/business-agent",
+              "/intelligence/business-agent",
+              "/intelligence/business-agent",
+              "/intelligence/business-agent"
+            ],
+            "console_errors": [
+              "Failed to load resource: the server responded with a status of 401 (Unauthorized)",
+              "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "Failed to load resource: the server responded with a status of 404 (Not Found)",
+              "Failed to load resource: the server responded with a status of 404 (Not Found)"
+            ],
+            "page_errors": [],
+            "failed_requests": [],
+            "http_errors": [
+              {
+                "path": "/api/v1/auth/me",
+                "status": 401
+              },
+              {
+                "path": "/api/v1/intelligence/business-agent/goals/296a61c4-73ab-44f4-aa7f-8941780e64e3/plan",
+                "status": 404
+              },
+              {
+                "path": "/api/v1/intelligence/business-agent/goals/296a61c4-73ab-44f4-aa7f-8941780e64e3/runs/latest",
+                "status": 404
+              },
+              {
+                "path": "/api/v1/intelligence/business-agent/goals/296a61c4-73ab-44f4-aa7f-8941780e64e3/runs/latest",
+                "status": 404
+              }
+            ],
+            "expected_http_errors": [],
+            "denied_requests": []
+          },
+          "axe": [
+            {
+              "state": "axe-goal-plan",
+              "route": "/intelligence/business-agent",
+              "violations": [],
+              "incomplete": [],
+              "passes": 36
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [],
+      "confirmed_bugs": [],
+      "usability_findings": [
+        {
+          "id": "QA-UX-CURRENCY-MOBILE",
+          "feature": "Indian seller product creation",
+          "route": "/products/new",
+          "type": "USABILITY",
+          "severity": "MINOR",
+          "priority": "P2",
+          "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+          "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+          "reproduction_steps": [
+            "Create a brand",
+            "Open /products/new",
+            "Inspect Currency before entering a price"
+          ],
+          "evidence": [
+            {
+              "name": "axe-catalog-empty",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/0-axe-catalog-empty.json"
+            },
+            {
+              "name": "ux-observations",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/1-ux-observations.json"
+            },
+            {
+              "name": "axe-catalog-detail",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/2-axe-catalog-detail.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/4-final-screen.png"
+            }
+          ],
+          "confidence": "RECOMMENDATION",
+          "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+          "retest_status": "NOT_RETESTED"
+        }
+      ],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "process_exit_code": 0,
+      "runtime_api_operations": 1629
+    }
+  ],
+  "cleanup": [
+    {
+      "project": "desktop",
+      "database": "vayujit_qaa373cbfc14cb7ea6_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qaa373cbfc14cb7ea6_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qa49e7bebb7ccd109c_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa49e7bebb7ccd109c_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    }
+  ],
+  "findings": [],
+  "confirmed_bugs": [],
+  "usability_findings": [
+    {
+      "id": "QA-UX-CURRENCY-DESKTOP",
+      "feature": "Indian seller product creation",
+      "route": "/products/new",
+      "type": "USABILITY",
+      "severity": "MINOR",
+      "priority": "P2",
+      "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+      "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+      "reproduction_steps": [
+        "Create a brand",
+        "Open /products/new",
+        "Inspect Currency before entering a price"
+      ],
+      "evidence": [
+        {
+          "name": "axe-catalog-empty",
+          "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/0-axe-catalog-empty.json"
+        },
+        {
+          "name": "ux-observations",
+          "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/1-ux-observations.json"
+        },
+        {
+          "name": "axe-catalog-detail",
+          "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/2-axe-catalog-detail.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/a373cbfc14cb7ea6/evidence/desktop-QA-SMOKE-02/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-UX-CURRENCY-MOBILE",
+      "feature": "Indian seller product creation",
+      "route": "/products/new",
+      "type": "USABILITY",
+      "severity": "MINOR",
+      "priority": "P2",
+      "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+      "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+      "reproduction_steps": [
+        "Create a brand",
+        "Open /products/new",
+        "Inspect Currency before entering a price"
+      ],
+      "evidence": [
+        {
+          "name": "axe-catalog-empty",
+          "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/0-axe-catalog-empty.json"
+        },
+        {
+          "name": "ux-observations",
+          "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/1-ux-observations.json"
+        },
+        {
+          "name": "axe-catalog-detail",
+          "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/2-axe-catalog-detail.json"
+        },
+        {
+          "name": "network-and-console",
+          "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/3-network-and-console.json"
+        },
+        {
+          "name": "final-screen",
+          "path": "tmp/qa-agent/49e7bebb7ccd109c/evidence/mobile-QA-SMOKE-02/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-UX-NAV-CURRENT-001",
+      "feature": "Seller navigation current-location clarity",
+      "route": "/intelligence/business-agent",
+      "type": "USABILITY",
+      "severity": "MINOR",
+      "priority": "P2",
+      "expected": "The seller can distinguish the current page from its broader research section.",
+      "actual": "In the reviewed 25 October 2026 synthetic desktop screenshot, Business Agent and My Research both use the same active sidebar treatment. The navigation uses prefix matching for the parent /intelligence link. This is a usability recommendation, not an authorization or navigation failure.",
+      "reproduction_steps": [
+        "Run the QA smoke suite",
+        "Create a goal and plan",
+        "Review the sidebar on /intelligence/business-agent"
+      ],
+      "evidence": [
+        {
+          "name": "reviewed-desktop-screenshot",
+          "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Consider exact matching for the current page or a visually distinct parent-section state. Preserve all routes and access guards.",
+      "retest_status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-UX-PRE-RUN-MODE-001",
+      "feature": "First research plan guidance",
+      "route": "/intelligence/business-agent",
+      "type": "USABILITY",
+      "severity": "INFO",
+      "priority": "P3",
+      "expected": "A first-time seller understands what is known before the first run and the single next action.",
+      "actual": "The reviewed synthetic planned-goal state displays a provider-mode-not-recorded warning, a DISABLED research-mode banner, journey research links, a separate confirm-context action and Start run. These describe different authorities, but their relationship may be unclear to a first-time seller. No blocked live-provider flow was executed.",
+      "reproduction_steps": [
+        "Use a fresh synthetic owner",
+        "Create the kids-category goal",
+        "Create a versioned plan without starting it",
+        "Review the journey header and goal card together"
+      ],
+      "evidence": [
+        {
+          "name": "reviewed-desktop-screenshot",
+          "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+        }
+      ],
+      "confidence": "RECOMMENDATION",
+      "suggested_fix": "Review pre-run wording and action hierarchy with a seller. Distinguish global configured mode from not-yet-recorded per-run mode; do not hide actual provider restrictions.",
+      "retest_status": "NOT_RETESTED"
+    }
+  ],
+  "next_phase": "Risk-first persisted seller journey, financial oracle and foreign-ID matrices; no autonomous production fixes."
+}

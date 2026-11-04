@@ -13,66 +13,82 @@ import { AIService } from './ai.service';
       <a class="ai-button" routerLink="/ai/generate">Generate</a>
     </header>
     <form class="ai-card ai-filters" (ngSubmit)="load(1)">
-      <select name="requestStatus" [(ngModel)]="requestStatus">
-        <option value="">All request statuses</option>
-        @for (status of requestStatuses; track status) {
-          <option [value]="status">{{ status }}</option>
-        }
-      </select>
-      <select name="artifactStatus" [(ngModel)]="artifactStatus">
-        <option value="">All review statuses</option>
-        @for (status of artifactStatuses; track status) {
-          <option [value]="status">{{ status }}</option>
-        }
-      </select>
-      <input name="dateFrom" type="date" [(ngModel)]="dateFrom" /><input
-        name="dateTo"
-        type="date"
-        [(ngModel)]="dateTo"
-      />
+      <div class="ai-filter-field">
+        <label for="history-request-status">Request status</label>
+        <select id="history-request-status" name="requestStatus" [(ngModel)]="requestStatus">
+          <option value="">All request statuses</option>
+          @for (status of requestStatuses; track status) {
+            <option [value]="status">{{ status }}</option>
+          }
+        </select>
+      </div>
+      <div class="ai-filter-field">
+        <label for="history-review-status">Review status</label>
+        <select id="history-review-status" name="artifactStatus" [(ngModel)]="artifactStatus">
+          <option value="">All review statuses</option>
+          @for (status of artifactStatuses; track status) {
+            <option [value]="status">{{ status }}</option>
+          }
+        </select>
+      </div>
+      <div class="ai-filter-field">
+        <label for="history-date-from">Date from</label>
+        <input id="history-date-from" name="dateFrom" type="date" [(ngModel)]="dateFrom" />
+      </div>
+      <div class="ai-filter-field">
+        <label for="history-date-to">Date to</label
+        ><input id="history-date-to" name="dateTo" type="date" [(ngModel)]="dateTo" />
+      </div>
       <button>Filter</button>
     </form>
     @if (error()) {
-      <p class="ai-error">{{ error() }}</p>
+      <p class="ai-error" role="alert">{{ error() }}</p>
     }
     <article class="ai-card">
-      <table class="ai-table">
-        <thead>
-          <tr>
-            <th>Created</th>
-            <th>Brand / product</th>
-            <th>Generation</th>
-            <th>Artifact</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (item of result()?.items ?? []; track item.generation_id) {
+      <div
+        class="ai-table-scroll"
+        role="region"
+        aria-label="AI generation history table"
+        tabindex="0"
+      >
+        <table class="ai-table">
+          <thead>
             <tr>
-              <td>{{ item.created_at.slice(0, 10) }}</td>
-              <td>
-                {{ item.brand_name }}<br /><strong>{{ item.product_name }}</strong>
-              </td>
-              <td>{{ item.request_status }}</td>
-              <td>
-                {{ item.artifact_status ?? '-' }}
-                @if (item.version_number) {
-                  - v{{ item.version_number }}
-                }
-              </td>
-              <td>
-                @if (item.artifact_id) {
-                  <a [routerLink]="['/ai/artifacts', item.artifact_id]">Open</a>
-                }
-              </td>
+              <th scope="col">Created</th>
+              <th scope="col">Brand / product</th>
+              <th scope="col">Generation</th>
+              <th scope="col">Artifact</th>
+              <th scope="col">Actions</th>
             </tr>
-          } @empty {
-            <tr>
-              <td colspan="5">No matching generations.</td>
-            </tr>
-          }
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            @for (item of result()?.items ?? []; track item.generation_id) {
+              <tr>
+                <td>{{ item.created_at.slice(0, 10) }}</td>
+                <td>
+                  {{ item.brand_name }}<br /><strong>{{ item.product_name }}</strong>
+                </td>
+                <td>{{ item.request_status }}</td>
+                <td>
+                  {{ item.artifact_status ?? '-' }}
+                  @if (item.version_number) {
+                    - v{{ item.version_number }}
+                  }
+                </td>
+                <td>
+                  @if (item.artifact_id) {
+                    <a [routerLink]="['/ai/artifacts', item.artifact_id]">Open</a>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5">No matching generations.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
       <div class="ai-actions">
         <button class="ai-secondary" [disabled]="page() <= 1" (click)="load(page() - 1)">
           Previous

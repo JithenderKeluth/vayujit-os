@@ -119,21 +119,73 @@ def list_inventory(
 def create_inventory_item(
     data: InventoryItemCreate, db: DatabaseSession, user: Owner
 ) -> InventoryItemResponse:
+    # A creation key identifies one immutable opening intent for this owner,
+    # including SKU/location. Serialize only this short local creation transaction
+    # on the existing owner row; no new ownership or approval authority.
+    # PostgreSQL FOR NO KEY UPDATE: serialize creators, but permit the KEY SHARE
+    # FK checks used by concurrent catalog/audit writes. FOR UPDATE can deadlock
+    # those writers when they already hold the Product row we need next.
+    db.scalar(select(User.id).where(User.id == user.id).with_for_update(key_share=True))
+    intent = data.model_dump(mode="json", exclude={"idempotency_key"})
+    duplicates = list(
+        db.scalars(
+            select(InventoryMovement)
+            .where(
+                InventoryMovement.owner_id == user.id,
+                InventoryMovement.movement_type == "opening_balance",
+                InventoryMovement.idempotency_key == data.idempotency_key,
+            )
+            .limit(2)
+        )
+    )
+    if duplicates:
+        if len(duplicates) != 1:
+            raise HTTPException(409, "This historical opening key is ambiguous; review the ledger.")
+        movement = duplicates[0]
+        replay_item = _item(db, user, movement.inventory_item_id)
+        original = movement.provenance_json.get("opening_intent")
+        if original is None:
+            # Legacy openings have no intent envelope. Their original quantity is
+            # the movement, not today's possibly adjusted balance.
+            original = {
+                "product_id": str(replay_item.product_id),
+                "variant_id": str(replay_item.variant_id) if replay_item.variant_id else None,
+                "internal_sku": replay_item.internal_sku,
+                "location_code": replay_item.location_code,
+                "unit": replay_item.unit,
+                "opening_quantity": movement.quantity,
+                "low_stock_threshold": replay_item.low_stock_threshold,
+            }
+        if original != intent or movement.actor_type != "HUMAN" or movement.actor_id != user.id:
+            raise HTTPException(
+                409, "Idempotency key belongs to a different opening stock request."
+            )
+        return _response(replay_item)
     product = db.scalar(
-        select(Product).where(Product.id == data.product_id, Product.owner_id == user.id)
+        select(Product)
+        .where(Product.id == data.product_id, Product.owner_id == user.id)
+        .with_for_update()
     )
     if product is None:
         raise HTTPException(404, "Product was not found.")
+    if product.product_type != "physical" or product.status == "archived":
+        raise HTTPException(409, "Opening stock requires a non-archived physical catalog product.")
     if data.variant_id:
         variant = db.scalar(
-            select(CatalogProductVariant).where(
+            select(CatalogProductVariant)
+            .where(
                 CatalogProductVariant.id == data.variant_id,
                 CatalogProductVariant.owner_id == user.id,
                 CatalogProductVariant.product_id == data.product_id,
             )
+            .with_for_update()
         )
         if variant is None:
             raise HTTPException(404, "Catalog variant was not found for this product.")
+        if variant.status == "archived":
+            raise HTTPException(
+                409, "This catalog variant is archived; choose an available variant."
+            )
     existing = db.scalar(
         select(InventoryItem).where(
             InventoryItem.owner_id == user.id,
@@ -142,15 +194,6 @@ def create_inventory_item(
         )
     )
     if existing is not None:
-        movement = db.scalar(
-            select(InventoryMovement).where(
-                InventoryMovement.owner_id == user.id,
-                InventoryMovement.inventory_item_id == existing.id,
-                InventoryMovement.idempotency_key == data.idempotency_key,
-            )
-        )
-        if movement is not None:
-            return _response(existing)
         raise HTTPException(409, "An inventory item already exists for this SKU and location.")
     stamp = now()
     row = InventoryItem(
@@ -186,7 +229,11 @@ def create_inventory_item(
             after_on_hand=data.opening_quantity,
             before_reserved=0,
             after_reserved=0,
-            provenance_json={"mode": "LOCAL_READ_ONLY", "synthetic": False},
+            provenance_json={
+                "mode": "LOCAL_READ_ONLY",
+                "synthetic": False,
+                "opening_intent": intent,
+            },
             created_at=stamp,
             updated_at=stamp,
         )
@@ -219,6 +266,18 @@ def adjust_inventory(
         )
     )
     if duplicate is not None:
+        if (
+            duplicate.movement_type != "adjustment"
+            or duplicate.quantity != data.delta
+            or duplicate.reason != data.reason
+            or duplicate.actor_type != "HUMAN"
+            or duplicate.actor_id != user.id
+            or (
+                duplicate.provenance_json.get("expected_version") is not None
+                and duplicate.provenance_json["expected_version"] != data.expected_version
+            )
+        ):
+            raise HTTPException(409, "Idempotency key belongs to a different stock adjustment.")
         return _response(row)
     if row.version != data.expected_version:
         raise HTTPException(409, "Inventory changed; refresh before adjusting stock.")
@@ -246,7 +305,7 @@ def adjust_inventory(
             after_on_hand=after,
             before_reserved=row.reserved_quantity,
             after_reserved=row.reserved_quantity,
-            provenance_json={"mode": "LOCAL_READ_ONLY"},
+            provenance_json={"mode": "LOCAL_READ_ONLY", "expected_version": data.expected_version},
             created_at=stamp,
             updated_at=stamp,
         )

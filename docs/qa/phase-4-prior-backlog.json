@@ -1,0 +1,329 @@
+[
+  {
+    "id": "QA-UX-CURRENCY-DESKTOP",
+    "feature": "Indian seller product creation",
+    "route": "/products/new",
+    "type": "USABILITY",
+    "severity": "MINOR",
+    "priority": "P2",
+    "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+    "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+    "reproduction_steps": [
+      "Create a brand",
+      "Open /products/new",
+      "Inspect Currency before entering a price"
+    ],
+    "evidence": [
+      {
+        "name": "axe-catalog-empty",
+        "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/0-axe-catalog-empty.json"
+      },
+      {
+        "name": "ux-observations",
+        "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/1-ux-observations.json"
+      },
+      {
+        "name": "axe-catalog-detail",
+        "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/2-axe-catalog-detail.json"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/3-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/5c2928f8ef249c37/evidence/desktop-QA-SMOKE-02/4-final-screen.png"
+      }
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+    "retest_status": "NOT_RETESTED",
+    "area": "Indian seller product creation",
+    "journey": "Operational seller lifecycle",
+    "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+  },
+  {
+    "id": "QA-UX-CURRENCY-MOBILE",
+    "feature": "Indian seller product creation",
+    "route": "/products/new",
+    "type": "USABILITY",
+    "severity": "MINOR",
+    "priority": "P2",
+    "expected": "A seller should understand and explicitly confirm the intended pricing currency.",
+    "actual": "The new product form defaults to USD even in this Indian-seller journey; INR must be entered manually.",
+    "reproduction_steps": [
+      "Create a brand",
+      "Open /products/new",
+      "Inspect Currency before entering a price"
+    ],
+    "evidence": [
+      {
+        "name": "axe-catalog-empty",
+        "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/0-axe-catalog-empty.json"
+      },
+      {
+        "name": "ux-observations",
+        "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/1-ux-observations.json"
+      },
+      {
+        "name": "axe-catalog-detail",
+        "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/2-axe-catalog-detail.json"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/3-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/3b66a14fad8e8648/evidence/mobile-QA-SMOKE-02/4-final-screen.png"
+      }
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Consider using an explicitly configured business currency or a prominent currency confirmation; do not infer currency silently.",
+    "retest_status": "NOT_RETESTED",
+    "area": "Indian seller product creation",
+    "journey": "Operational seller lifecycle",
+    "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+  },
+  {
+    "id": "QA-P2-UX-ECONOMICS-DESKTOP",
+    "feature": "Commercial decision brief information hierarchy",
+    "route": "/intelligence/sourcing-economics",
+    "type": "USABILITY",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+    "actual": "The populated page is 16236px high at a 1000px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase2",
+      "Open the populated economics scenario and review its full-page screenshot."
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+    "retest_status": "NOT_RETESTED",
+    "evidence": [
+      {
+        "name": "ux-observations",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/0-ux-observations.json"
+      },
+      {
+        "name": "axe-economics",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/1-axe-economics.json"
+      },
+      {
+        "name": "economics-overview",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/2-economics-overview.png"
+      },
+      {
+        "name": "axe-stale-economics",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/3-axe-stale-economics.json"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/4-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/d2325c9fd225057d/evidence/desktop-QA-P2-02/5-final-screen.png"
+      }
+    ],
+    "area": "Commercial decision brief information hierarchy",
+    "journey": "Phase 2 seller journey",
+    "business_impact": "May prevent trustworthy, repeatable seller decisions; inspect the specific evidence before remediation."
+  },
+  {
+    "id": "QA-P2-UX-ECONOMICS-MOBILE",
+    "feature": "Commercial decision brief information hierarchy",
+    "route": "/intelligence/sourcing-economics",
+    "type": "USABILITY",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "A first-time seller can review key economics, blockers and next action without traversing repeated technical detail.",
+    "actual": "The populated page is 43325px high at a 844px viewport. The screenshot contains extensive evidence/reason lists before and around the commercial decision.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase2",
+      "Open the populated economics scenario and review its full-page screenshot."
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Consider a concise seller summary, grouped/de-duplicated reasons, jump links and progressively disclosed evidence. Keep canonical provenance available.",
+    "retest_status": "NOT_RETESTED",
+    "evidence": [
+      {
+        "name": "ux-observations",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/0-ux-observations.json"
+      },
+      {
+        "name": "axe-economics",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/1-axe-economics.json"
+      },
+      {
+        "name": "economics-overview",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/2-economics-overview.png"
+      },
+      {
+        "name": "axe-stale-economics",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/3-axe-stale-economics.json"
+      },
+      {
+        "name": "network-and-console",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/4-network-and-console.json"
+      },
+      {
+        "name": "final-screen",
+        "path": "tmp/qa-agent/e7079a94ed8d0d2b/evidence/mobile-QA-P2-02/5-final-screen.png"
+      }
+    ],
+    "area": "Commercial decision brief information hierarchy",
+    "journey": "Phase 2 seller journey",
+    "business_impact": "May prevent trustworthy, repeatable seller decisions; inspect the specific evidence before remediation."
+  },
+  {
+    "id": "QA-P3-GAP-001",
+    "feature": "Historical operational financial calculation reconstruction",
+    "area": "Financial audit lineage",
+    "journey": "Reopen the exact calculation used before a later refund or cost revision",
+    "route": "/api/v1/financial/calculations",
+    "type": "MISSING_FLOW",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "If historical calculation review is offered, earlier metrics and complete input lineage can be reconstructed; otherwise explicitly document that only current projections are supported.",
+    "actual": "The supported authority overwrites one calculation row per scope/version. A later refund keeps the ID but changes metrics; the list is current projections, not immutable versions. Lineage lists event IDs but not the cost evidence used. This is a missing workflow, not a broken existing immutable-history contract. The final test validates the actual mutable contract.",
+    "business_impact": "A seller cannot reconstruct the exact earlier profitability calculation from this projection alone, even though source events remain persisted.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase3",
+      "Inspect test_09_current_financial_snapshot_and_later_refund and financial-snapshot-history.json."
+    ],
+    "evidence": [
+      {
+        "name": "Before/after and persisted projection",
+        "path": "tmp/qa-agent/96be1091b699b21b/financial-snapshot-history.json"
+      },
+      {
+        "name": "Scope-key update contract",
+        "path": "apps/api/vayujit_api/commerce/financial_router.py"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "suggested_fix": "Define whether retained calculation versions are required; reuse canonical snapshot/audit patterns and include applicable cost/source identities. Do not relabel current projections as immutable history.",
+    "retest_status": "BLOCKED"
+  },
+  {
+    "id": "QA-P3-GAP-002",
+    "feature": "Operational approve/reject/execution lifecycle",
+    "area": "Action Center",
+    "journey": "Turn an advisory signal into an explicitly reviewed supported action",
+    "route": "/api/v1/operations/action-center/signals/{id}/action",
+    "type": "MISSING_FLOW",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "Distinguish signal acknowledgement from a durable canonical HUMAN approval; do not claim approval or execution where only an advisory response exists.",
+    "actual": "The request-action authority returns approval_required and says the recommendation is recorded, but it adds no durable approval/action record. There is no approve/reject/failed-execution/retry lifecycle in this authority. The default-deny external boundary is working and was not bypassed.",
+    "business_impact": "A first-time seller may mistake a requested or acknowledged signal for a saved authorization or completed action.",
+    "reproduction_steps": [
+      "Read request_action in action_center_router.py",
+      "npm.cmd run qa:phase3",
+      "Inspect test_14_human_impersonation_external_action_and_unauthorized_resources."
+    ],
+    "evidence": [
+      {
+        "name": "Default-deny and advisory action response",
+        "path": "tmp/qa-agent/96be1091b699b21b/human-authority.json"
+      },
+      {
+        "name": "Canonical action authority",
+        "path": "apps/api/vayujit_api/operations/action_center_router.py"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "suggested_fix": "Clarify messaging and route only supported actions to their existing canonical HUMAN authorities; do not add a duplicate approval system or expose remote execution in QA.",
+    "retest_status": "BLOCKED"
+  },
+  {
+    "id": "QA-P3-GAP-003",
+    "feature": "Initial canonical inventory onboarding",
+    "area": "Seller usability",
+    "journey": "Create a first stock record from the inventory empty state",
+    "route": "/marketplaces/inventory",
+    "type": "MISSING_FLOW",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "An inventory empty state gives a supported UI path to create the canonical item before adjustments, reservations and channel mapping.",
+    "actual": "The workspace tells the seller to create a product stock record, but exposes filters, adjustments, ledger and mapping only for existing items. Its canonical creation API exists; this suite seeds it through that API. Product master inventory fields are a separate model and are not a demonstrated replacement for this missing handoff.",
+    "business_impact": "API fixtures can exercise populated inventory, but a first-time seller can still encounter a UI onboarding dead end.",
+    "reproduction_steps": [
+      "Inspect the empty state and controls in unified-inventory.component.ts",
+      "Compare POST /api/v1/inventory/items with MarketplaceService UI callers."
+    ],
+    "evidence": [
+      {
+        "name": "Audited UI and capabilities",
+        "path": "docs/qa/phase-3-architecture.md"
+      },
+      {
+        "name": "Inventory workspace",
+        "path": "apps/web/src/app/marketplaces/unified-inventory.component.ts"
+      }
+    ],
+    "confidence": "CONFIRMED",
+    "suggested_fix": "Plan an explicit canonical creation/handoff using the existing API, with opening balance provenance and HUMAN review. Do not duplicate stock ledgers.",
+    "retest_status": "BLOCKED"
+  },
+  {
+    "id": "QA-P3-A11Y-REVIEW-001",
+    "feature": "Mobile table contrast manual-review boundary",
+    "area": "Accessibility",
+    "journey": "Read due-diligence, economic and financial evidence on mobile",
+    "route": "/intelligence/sourcing-economics",
+    "type": "ACCESSIBILITY",
+    "severity": "MODERATE",
+    "priority": "P2",
+    "expected": "Every relevant visible caption and table cell can be evaluated without claiming obscured or incomplete contrast checks as passes.",
+    "actual": "All 107 original repeated-state target occurrences were examined after real scrolling using axe. 101 passed and six caption occurrences remain incomplete; no contrast violation was confirmed. A separate financial-loss screen also retains four incomplete mobile nodes. These are manual-review tasks, not confirmed WCAG failures and not resolved findings.",
+    "business_impact": "Automated testing cannot yet establish readability of every mobile caption/obscured table element; first-time seller comprehension and assistive-technology behavior still need review.",
+    "reproduction_steps": [
+      "npm.cmd run qa:phase3",
+      "Inspect QA-P3-06 scrolling diagnostics and QA-P3-03 full-document axe findings on mobile."
+    ],
+    "evidence": [
+      {
+        "name": "Exact original-target scrolling results",
+        "path": "docs/qa/phase-3-mobile-contrast-review.json"
+      },
+      {
+        "name": "Full-document scans and screenshots",
+        "path": "docs/qa/phase-3-report.json"
+      }
+    ],
+    "confidence": "SUSPECTED",
+    "suggested_fix": "Manually review clipped captions and table reading/keyboard behavior, then authorize a focused responsive/accessibility correction if needed. Retain full-document axe checks and do not suppress incomplete results.",
+    "retest_status": "BLOCKED"
+  },
+  {
+    "id": "QA-UX-PRE-RUN-MODE-001",
+    "feature": "First research plan guidance",
+    "route": "/intelligence/business-agent",
+    "type": "USABILITY",
+    "severity": "INFO",
+    "priority": "P3",
+    "expected": "A first-time seller understands what is known before the first run and the single next action.",
+    "actual": "The reviewed synthetic planned-goal state displays a provider-mode-not-recorded warning, a DISABLED research-mode banner, journey research links, a separate confirm-context action and Start run. These describe different authorities, but their relationship may be unclear to a first-time seller. No blocked live-provider flow was executed.",
+    "reproduction_steps": [
+      "Use a fresh synthetic owner",
+      "Create the kids-category goal",
+      "Create a versioned plan without starting it",
+      "Review the journey header and goal card together"
+    ],
+    "evidence": [
+      {
+        "name": "reviewed-desktop-screenshot",
+        "path": "tmp/qa-agent/27830f8ae482803a/evidence/desktop-QA-SMOKE-04/4-final-screen.png"
+      }
+    ],
+    "confidence": "RECOMMENDATION",
+    "suggested_fix": "Review pre-run wording and action hierarchy with a seller. Distinguish global configured mode from not-yet-recorded per-run mode; do not hide actual provider restrictions.",
+    "retest_status": "NOT_RETESTED",
+    "area": "First research plan guidance",
+    "journey": "Operational seller lifecycle",
+    "business_impact": "Seller may misinterpret or be unable to complete the recorded operational workflow."
+  }
+]

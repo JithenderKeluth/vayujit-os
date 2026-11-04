@@ -1,0 +1,52 @@
+name: vayujit-qa-postgres
+services:
+  postgres:
+    image: postgres@sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193
+    pull_policy: never
+    container_name: vayujit-qa-postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD_FILE: /run/secrets/bootstrap_password
+      POSTGRES_HOST_AUTH_METHOD: scram-sha-256
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+    secrets: [bootstrap_password, qa_password, instance_id]
+    ports: ["127.0.0.1:55432:5432"]
+    volumes:
+      - qa_data:/var/lib/postgresql/data
+      - ./qa-postgres-init.sh:/docker-entrypoint-initdb.d/10-qa-instance.sh:ro
+    networks: [qa_private, qa_host]
+    labels:
+      io.vayujit.qa.scope: disposable-only
+      io.vayujit.qa.instance: ${VAYUJIT_QA_INSTANCE_ID:?required}
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U postgres -d postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    restart: "no"
+    deploy:
+      resources:
+        limits: { cpus: '1.0', memory: 1G }
+secrets:
+  bootstrap_password:
+    file: ${VAYUJIT_QA_SECRET_DIR:?required}/bootstrap-password
+  qa_password:
+    file: ${VAYUJIT_QA_SECRET_DIR:?required}/qa-password
+  instance_id:
+    file: ${VAYUJIT_QA_SECRET_DIR:?required}/instance-id
+volumes:
+  qa_data:
+    name: vayujit-qa-postgres-data
+    labels: { io.vayujit.qa.scope: disposable-only, io.vayujit.qa.instance: "${VAYUJIT_QA_INSTANCE_ID:?required}" }
+networks:
+  qa_private:
+    name: vayujit-qa-postgres-net
+    internal: true
+    labels: { io.vayujit.qa.scope: disposable-only, io.vayujit.qa.instance: "${VAYUJIT_QA_INSTANCE_ID:?required}" }
+  qa_host:
+    name: vayujit-qa-postgres-host
+    driver_opts:
+      com.docker.network.bridge.enable_ip_masquerade: "false"
+      com.docker.network.bridge.host_binding_ipv4: "127.0.0.1"
+    labels: { io.vayujit.qa.scope: disposable-only, io.vayujit.qa.instance: "${VAYUJIT_QA_INSTANCE_ID:?required}" }

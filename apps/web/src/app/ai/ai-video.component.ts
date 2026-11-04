@@ -2,7 +2,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -29,7 +29,7 @@ type RecordValue = Record<string, unknown>;
     RouterLink,
   ],
   template: `
-    <main class="video-page">
+    <section class="video-page">
       <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         eyebrow="Create / video"
@@ -64,7 +64,7 @@ type RecordValue = Record<string, unknown>;
           </div>
           <button type="button" (click)="load()">Refresh</button>
         </div>
-        <div class="metrics" aria-label="Video status summary">
+        <div class="metrics" role="group" aria-label="Video status summary">
           @for (metric of metrics(); track metric.label) {
             <article class="metric">
               <span>{{ metric.label }}</span
@@ -72,7 +72,7 @@ type RecordValue = Record<string, unknown>;
             </article>
           }
         </div>
-        <div class="quick-actions" aria-label="Quick actions">
+        <div class="quick-actions" role="group" aria-label="Quick actions">
           <a class="button" routerLink="/ai/video/bulk">Bulk Video</a
           ><a class="button" [routerLink]="[]" fragment="generate">Create Video</a
           ><a class="button" [routerLink]="[]" fragment="storyboards">Open Storyboards</a
@@ -98,7 +98,15 @@ type RecordValue = Record<string, unknown>;
           </div>
           <span class="step-count">Step {{ step() }} of 14</span>
         </div>
-        <div class="progress" aria-label="Generate workflow progress">
+        <div
+          class="progress"
+          role="progressbar"
+          aria-label="Generate workflow progress"
+          aria-valuemin="0"
+          aria-valuemax="14"
+          [attr.aria-valuenow]="step()"
+          [attr.aria-valuetext]="'Step ' + step() + ' of 14'"
+        >
           <span [style.width.%]="(step() / 14) * 100"></span>
         </div>
         <div class="wizard-grid">
@@ -198,21 +206,21 @@ type RecordValue = Record<string, unknown>;
             placeholder="Search Product or generation ID"
           />
         </div>
-        <div class="table-wrap">
+        <div class="table-wrap" tabindex="0" role="region" aria-label="Video generation history">
           <table>
             <caption class="sr-only">
               Generated videos
             </caption>
             <thead>
               <tr>
-                <th>Product</th>
-                <th>Type</th>
-                <th>Target</th>
-                <th>Duration</th>
-                <th>State</th>
-                <th>Approval</th>
-                <th>Created</th>
-                <th>Review</th>
+                <th scope="col">Product</th>
+                <th scope="col">Type</th>
+                <th scope="col">Target</th>
+                <th scope="col">Duration</th>
+                <th scope="col">State</th>
+                <th scope="col">Approval</th>
+                <th scope="col">Created</th>
+                <th scope="col">Review</th>
               </tr>
             </thead>
             <tbody>
@@ -233,7 +241,7 @@ type RecordValue = Record<string, unknown>;
                 </tr>
               } @empty {
                 <tr>
-                  <td colspan="9">No Video generations yet. Use Generate to create one.</td>
+                  <td colspan="8">No Video generations yet. Use Generate to create one.</td>
                 </tr>
               }
             </tbody>
@@ -284,6 +292,8 @@ type RecordValue = Record<string, unknown>;
           @for (board of storyboards(); track board['id']) {
             <article class="card">
               <h3>Version {{ board['version'] || '-' }}</h3>
+              <p class="muted">Exact storyboard ID: {{ board['id'] }}</p>
+              <p class="muted">Product: {{ board['product_id'] }}</p>
               <p>{{ board['state'] || 'draft' }} - {{ sceneCount(board) }} scenes</p>
               <p>Readiness: {{ board['ready'] ? 'Ready' : 'Needs review' }}</p>
               <button type="button" (click)="openStoryboard(board)">Open editor</button>
@@ -401,6 +411,7 @@ type RecordValue = Record<string, unknown>;
               <button type="button" (click)="approveSelected()">Approve</button>
               <button type="button" (click)="rejectSelected()">Reject</button>
               <button type="button" (click)="compareSelected()">Compare</button>
+              <button type="button" (click)="loadRecovery()">Recovery</button>
             </div>
           </article>
         </div>
@@ -494,23 +505,7 @@ type RecordValue = Record<string, unknown>;
               </select></label
             ><label
               >Caption text<textarea
-                rows="3"
-                maxlength="10000"
-                aria-label="Caption text"
-                placeholder="Text remains inert domain data"
-              ></textarea>
-            </label>
-          </div>
-          <div class="wizard-grid">
-            <label
-              >Locale<select [(ngModel)]="captionLocale">
-                <option>en-IN</option>
-                <option>hi-IN</option>
-                <option>te-IN</option>
-              </select></label
-            >
-            <label
-              >Caption text<textarea
+                [(ngModel)]="captionText"
                 rows="3"
                 maxlength="10000"
                 aria-label="Caption text"
@@ -519,7 +514,11 @@ type RecordValue = Record<string, unknown>;
             </label>
           </div>
           <div class="button-row">
-            <button type="button" (click)="addCaption()" [disabled]="!selectedVideo()">
+            <button
+              type="button"
+              (click)="addCaption()"
+              [disabled]="!selectedVideo() || !captionText.trim() || !captionLocale"
+            >
               Add track</button
             ><button type="button" (click)="loadCaptions()" [disabled]="!selectedVideo()">
               Refresh tracks
@@ -570,6 +569,11 @@ type RecordValue = Record<string, unknown>;
               {{ state['retryable'] ? 'Yes' : 'No' }}
             </p>
             <p>Eligible actions: {{ actionSummary(state['eligible_actions']) }}</p>
+            @if (canRetryVideo()) {
+              <button type="button" (click)="retryVideo()" [disabled]="retrying()">
+                Retry failed Video
+              </button>
+            }
           </article>
         }
       </section>
@@ -615,17 +619,20 @@ type RecordValue = Record<string, unknown>;
         }
         <p class="muted">No credentials, DSNs, or local filesystem paths are rendered.</p>
       </section>
-    </main>
+    </section>
   `,
   styles: [
     `
       :host {
         display: block;
+        min-width: 0;
         color: #102a43;
         background: #f5f8fa;
         min-height: 100%;
       }
       .video-page {
+        min-width: 0;
+        overflow-wrap: anywhere;
         max-width: 1280px;
         margin: auto;
         padding: clamp(1rem, 3vw, 2.5rem);
@@ -800,6 +807,15 @@ type RecordValue = Record<string, unknown>;
       }
       .table-wrap {
         overflow-x: auto;
+        max-width: 100%;
+        min-width: 0;
+      }
+      .panel,
+      .wizard-grid > *,
+      .diagnostic-grid > *,
+      .review-grid > *,
+      .cards > * {
+        min-width: 0;
       }
       table {
         width: 100%;
@@ -895,6 +911,9 @@ type RecordValue = Record<string, unknown>;
         border: 0;
       }
       @media (max-width: 700px) {
+        .wizard-grid {
+          grid-template-columns: minmax(0, 1fr);
+        }
         .hero,
         .section-heading {
           display: block;
@@ -933,6 +952,7 @@ type RecordValue = Record<string, unknown>;
 })
 export class AIVideoComponent {
   private readonly http = inject(HttpClient);
+  private readonly route = inject(ActivatedRoute);
   private readonly base = `${environment.apiUrl}/ai/video`;
   readonly views = [
     { id: 'overview', label: 'Overview' },
@@ -955,6 +975,7 @@ export class AIVideoComponent {
   storyboardVersion = '';
   audioMode = 'none';
   captionLocale = '';
+  captionText = '';
   search = '';
   readonly step = signal(1);
   readonly queueing = signal(false);
@@ -973,6 +994,7 @@ export class AIVideoComponent {
   readonly captions = signal<RecordValue[]>([]);
   readonly history = signal<RecordValue[]>([]);
   readonly recovery = signal<RecordValue | null>(null);
+  readonly retrying = signal(false);
   readonly comparison = signal<RecordValue | null>(null);
   readonly scriptDraft = signal<RecordValue | null>(null);
   readonly breadcrumbs: BreadcrumbItem[] = [
@@ -984,6 +1006,7 @@ export class AIVideoComponent {
   }
   async load(): Promise<void> {
     this.loading.set(true);
+    this.error.set('');
     try {
       await Promise.all([
         this.loadVideos(),
@@ -1003,7 +1026,17 @@ export class AIVideoComponent {
         this.http.get<RecordValue[]>(`${this.base}/generations`, { withCredentials: true }),
       );
       this.videos.set(Array.isArray(value) ? value : (value['items'] as RecordValue[]) || []);
+      const generation = this.route.snapshot.queryParamMap.get('generation');
+      if (generation) {
+        const exact = this.videos().find((v) => v['id'] === generation);
+        if (exact) this.selectVideo(exact);
+        else {
+          this.selectedVideo.set(null);
+          this.error.set('The requested Video job is unavailable in this owned workspace.');
+        }
+      }
     } catch {
+      this.videos.set([]);
       this.error.set('Video data is unavailable. Check the authenticated API connection.');
     }
   }
@@ -1084,6 +1117,50 @@ export class AIVideoComponent {
       this.recovery.set(null);
     }
   }
+  canRetryVideo(): boolean {
+    const state = this.recovery();
+    return (
+      !!state &&
+      ['failed', 'retry_wait'].includes(String(state['status'])) &&
+      Array.isArray(state['eligible_actions']) &&
+      state['eligible_actions'].includes('retry_generation')
+    );
+  }
+  async retryVideo(): Promise<void> {
+    const video = this.selectedVideo();
+    const state = this.recovery();
+    if (!video || !state || !this.canRetryVideo() || this.retrying()) return;
+    if (
+      !window.confirm('Retry this failed Video generation? Approval is still required for output.')
+    )
+      return;
+    this.retrying.set(true);
+    this.error.set('');
+    this.message.set('');
+    try {
+      const result = await firstValueFrom(
+        this.http.post<RecordValue>(
+          `${this.base}/generations/${video['id']}/recovery`,
+          {
+            action: 'retry_generation',
+            expected_status: state['status'],
+            expected_failure_code: state['failure_code'],
+            idempotency_key: `video-retry:${video['id']}:${state['attempt_count']}`,
+          },
+          { withCredentials: true },
+        ),
+      );
+      this.selectedVideo.set(result);
+      this.message.set('Video retry recorded. Check its current state; no output is approved.');
+      await Promise.all([this.loadVideos(), this.loadRecovery()]);
+    } catch {
+      this.error.set(
+        'Video retry could not be confirmed. Refresh its recovery state before retrying.',
+      );
+    } finally {
+      this.retrying.set(false);
+    }
+  }
   async generateThumbnail(): Promise<void> {
     const video = this.selectedVideo();
     if (!video) return;
@@ -1102,15 +1179,17 @@ export class AIVideoComponent {
   }
   async addCaption(): Promise<void> {
     const video = this.selectedVideo();
-    if (!video || !this.captionLocale) return;
+    if (!video || !this.captionLocale || !this.captionText.trim()) return;
+    this.error.set('');
+    this.message.set('');
     try {
       await firstValueFrom(
         this.http.post(
           `${this.base}/generations/${video['id']}/captions`,
           {
             locale: this.captionLocale,
-            caption_text: 'Reviewable caption cue',
-            timing: [{ start: 0, end: 1, text: 'Reviewable caption cue' }],
+            caption_text: this.captionText.trim(),
+            timing: [{ start: 0, end: 1, text: this.captionText.trim() }],
           },
           { withCredentials: true },
         ),

@@ -4,6 +4,7 @@ from typing import Annotated, Literal, cast
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from vayujit_api.ai.image_models import AIImageOutput
@@ -47,6 +48,21 @@ from vayujit_api.intelligence.website_models import (
 router = APIRouter(prefix="/api/v1/ai/seo", tags=["ai-seo"])
 DatabaseSession = Annotated[Session, Depends(get_session)]
 CurrentUser = Annotated[User, Depends(current_user)]
+
+
+def _commit_metadata(db: Session) -> None:
+    """Expose safe conflicts without leaking database errors or mislabelling invalid scope."""
+    try:
+        db.commit()
+    except IntegrityError as error:
+        db.rollback()
+        if getattr(error.orig, "sqlstate", None) == "23505":
+            raise HTTPException(
+                409, "SEO metadata with this name and locale already exists."
+            ) from error
+        if getattr(error.orig, "sqlstate", None) == "23503":
+            raise HTTPException(422, "SEO metadata context is unavailable.") from error
+        raise
 
 
 @router.post("/analyze", response_model=SEOAnalysisResponse, status_code=201)
@@ -371,7 +387,7 @@ def create_keyword_set(
         updated_at=now,
     )
     db.add(row)
-    db.commit()
+    _commit_metadata(db)
     db.refresh(row)
     record_event(
         db,
@@ -450,7 +466,7 @@ def update_keyword_set(
     row.version += 1
     row.is_default = data.is_default
     row.updated_at = now
-    db.commit()
+    _commit_metadata(db)
     db.refresh(row)
     record_event(
         db,
@@ -589,7 +605,7 @@ def create_tag_set(data: TagSetUpsert, db: DatabaseSession, owner: CurrentUser) 
         updated_at=now,
     )
     db.add(row)
-    db.commit()
+    _commit_metadata(db)
     db.refresh(row)
     record_event(
         db,
@@ -620,7 +636,7 @@ def update_tag_set(
     row.locale = data.locale
     row.tags_json = [{"label": tag, "source": "manual"} for tag in data.tags]
     row.updated_at = datetime.now(UTC)
-    db.commit()
+    _commit_metadata(db)
     db.refresh(row)
     return tag_response(row)
 

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AIService } from './ai.service';
 import { ProductService } from '../products/product.service';
 import type { AIImageBulkPreview } from '@vayujit/shared';
@@ -110,7 +110,11 @@ type BulkStatus = {
           <button class="ai-button" [disabled]="busy()" (click)="preview()">
             {{ busy() ? 'Working...' : 'Review plan' }}
           </button>
-          <button class="ai-button" [disabled]="busy() || !previewData()" (click)="queue()">
+          <button
+            class="ai-button"
+            [disabled]="busy() || !previewData() || !!previewData()?.blockers?.length"
+            (click)="queue()"
+          >
             Queue bulk generation
           </button>
         </div>
@@ -133,45 +137,55 @@ type BulkStatus = {
       @if (status(); as current) {
         <article class="ai-card" aria-live="polite">
           <h2>Bulk operation: {{ current.status }}</h2>
+          <button class="ai-button" [disabled]="busy()" (click)="refreshStatus(current.id)">
+            Refresh operation status
+          </button>
           <progress [value]="current.progress_percentage" max="100">
             {{ current.progress_percentage }}%
           </progress>
           <p>
             {{ current.progress_percentage }}% complete &middot; {{ current.total_outputs }} outputs
           </p>
-          <table class="bulk-table">
-            <caption>
-              Output review queue
-            </caption>
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Channel</th>
-                <th>Operation</th>
-                <th>State</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (item of current.outputs; track item.id) {
+          <div
+            class="ai-table-scroll"
+            tabindex="0"
+            role="region"
+            aria-label="Bulk image output review queue"
+          >
+            <table class="bulk-table ai-table">
+              <caption>
+                Output review queue
+              </caption>
+              <thead>
                 <tr>
-                  <td>{{ item.product_name }}</td>
-                  <td>{{ item.channel }}</td>
-                  <td>{{ item.operation }}</td>
-                  <td>{{ item.status }}</td>
-                  <td>
-                    @if (item.media_id) {
-                      <a [routerLink]="['/ai/images/assets', item.image_output_id]">Review</a>
-                    } @else if (item.retry_eligible) {
-                      <button (click)="retry(item.id)">Retry</button>
-                    } @else {
-                      <span>&mdash;</span>
-                    }
-                  </td>
+                  <th>Product</th>
+                  <th>Channel</th>
+                  <th>Operation</th>
+                  <th>State</th>
+                  <th>Action</th>
                 </tr>
-              }
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                @for (item of current.outputs; track item.id) {
+                  <tr>
+                    <td>{{ item.product_name }}</td>
+                    <td>{{ item.channel }}</td>
+                    <td>{{ item.operation }}</td>
+                    <td>{{ item.status }}</td>
+                    <td>
+                      @if (item.media_id) {
+                        <a [routerLink]="['/ai/images/assets', item.image_output_id]">Review</a>
+                      } @else if (item.retry_eligible) {
+                        <button (click)="retry(item.id)">Retry</button>
+                      } @else {
+                        <span>&mdash;</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
         </article>
       }
     </section>
@@ -182,6 +196,8 @@ type BulkStatus = {
 export class AIImageBulkComponent implements OnInit {
   private readonly productsApi = inject(ProductService);
   private readonly ai = inject(AIService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   readonly products = signal<BulkProduct[]>([]);
   readonly selected = signal<Set<string>>(new Set());
   readonly selectedChannels = signal<Set<string>>(new Set(['amazon', 'flipkart', 'meesho']));
@@ -198,6 +214,18 @@ export class AIImageBulkComponent implements OnInit {
 
   ngOnInit(): void {
     void this.loadProducts();
+    const id = this.route.snapshot.queryParamMap.get('operation');
+    if (id) void this.refreshStatus(id);
+  }
+
+  async refreshStatus(id: string): Promise<void> {
+    this.error.set('');
+    try {
+      this.status.set(await this.ai.imageBulkStatus(id));
+    } catch {
+      this.status.set(null);
+      this.error.set('The selected bulk operation is unavailable. Check the saved operation link.');
+    }
   }
 
   private async loadProducts(): Promise<void> {
@@ -246,11 +274,17 @@ export class AIImageBulkComponent implements OnInit {
     }
   }
   async queue(): Promise<void> {
+    if (this.busy() || !this.previewData() || this.previewData()!.blockers.length) return;
     this.busy.set(true);
     this.error.set('');
     try {
       const result = await this.ai.imageBulkCreate(this.payload());
       this.status.set(result);
+      await this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { operation: result.id },
+        queryParamsHandling: 'merge',
+      });
     } catch {
       this.error.set('The bulk image operation could not be queued.');
     } finally {

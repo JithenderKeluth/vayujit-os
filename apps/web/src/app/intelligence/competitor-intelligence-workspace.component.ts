@@ -56,7 +56,7 @@ import {
         message="Create a research context to review observed competitors and changes."
       />
     }
-    <main class="workspace" aria-labelledby="competitor-title">
+    <section class="workspace" aria-labelledby="competitor-title">
       <app-page-header
         class="page-header"
         headingId="competitor-title"
@@ -313,7 +313,7 @@ import {
           <p role="status">{{ value.status }} · owner-scoped lineage checks</p>
         </section>
       }
-    </main>
+    </section>
   `,
 })
 export class CompetitorIntelligenceWorkspaceComponent implements OnInit {

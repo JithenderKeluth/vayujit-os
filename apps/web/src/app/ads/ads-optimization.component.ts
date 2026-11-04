@@ -13,7 +13,7 @@ type Json = any;
   imports: [CommonModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="optimization-shell" aria-labelledby="optimization-title">
+    <section class="optimization-shell" aria-labelledby="optimization-title">
       <header class="page-header">
         <div>
           <p class="eyebrow">Ads and Marketing Automation</p>
@@ -61,28 +61,35 @@ type Json = any;
             @if (!recommendations.length) {
               <p>No recommendations are available yet.</p>
             }
-            <table>
-              <thead>
-                <tr>
-                  <th>Type</th>
-                  <th>Campaign</th>
-                  <th>Severity</th>
-                  <th>Confidence</th>
-                  <th>Review</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (item of recommendations; track item.id) {
+            <div
+              class="table-scroll"
+              role="region"
+              aria-label="Optimization recommendations table"
+              tabindex="0"
+            >
+              <table>
+                <thead>
                   <tr>
-                    <td>{{ item.type || item.recommendation_type }}</td>
-                    <td>{{ item.campaign_id }}</td>
-                    <td>{{ item.severity }}</td>
-                    <td>{{ item.confidence }}</td>
-                    <td><button (click)="preview(item)">Preview</button></td>
+                    <th scope="col">Type</th>
+                    <th scope="col">Campaign</th>
+                    <th scope="col">Severity</th>
+                    <th scope="col">Confidence</th>
+                    <th scope="col">Review</th>
                   </tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  @for (item of recommendations; track item.id) {
+                    <tr>
+                      <td>{{ item.type || item.recommendation_type }}</td>
+                      <td>{{ item.campaign_id }}</td>
+                      <td>{{ item.severity }}</td>
+                      <td>{{ item.confidence }}</td>
+                      <td><button (click)="preview(item)">Preview</button></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           </section>
         } @else if (section() === 'rules') {
           <section class="panel">
@@ -90,28 +97,35 @@ type Json = any;
             @if (!rules.length) {
               <p>No rules configured.</p>
             }
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Provider</th>
-                  <th>Mode</th>
-                  <th>Version</th>
-                  <th>Enabled</th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (rule of rules; track rule.id) {
+            <div
+              class="table-scroll"
+              role="region"
+              aria-label="Optimization rules table"
+              tabindex="0"
+            >
+              <table>
+                <thead>
                   <tr>
-                    <td>{{ rule.name }}</td>
-                    <td>{{ rule.provider }}</td>
-                    <td>{{ rule.mode }}</td>
-                    <td>{{ rule.version }}</td>
-                    <td>{{ rule.enabled ? 'Yes' : 'No' }}</td>
+                    <th scope="col">Name</th>
+                    <th scope="col">Provider</th>
+                    <th scope="col">Mode</th>
+                    <th scope="col">Version</th>
+                    <th scope="col">Enabled</th>
                   </tr>
-                }
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  @for (rule of rules; track rule.id) {
+                    <tr>
+                      <td>{{ rule.name }}</td>
+                      <td>{{ rule.provider }}</td>
+                      <td>{{ rule.mode }}</td>
+                      <td>{{ rule.version }}</td>
+                      <td>{{ rule.enabled ? 'Yes' : 'No' }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
           </section>
         } @else if (section() === 'anomalies') {
           <section class="panel">
@@ -176,7 +190,7 @@ type Json = any;
           </section>
         </div>
       }
-    </main>
+    </section>
   `,
   styles: [
     `
@@ -185,6 +199,7 @@ type Json = any;
         color: #102a43;
       }
       .optimization-shell {
+        min-width: 0;
         max-width: 1200px;
         margin: 0 auto;
         padding: 2rem;
@@ -236,6 +251,7 @@ type Json = any;
       }
       .cards article,
       .panel {
+        min-width: 0;
         background: white;
         border: 1px solid #d5e1e8;
         border-radius: 0.75rem;
@@ -261,6 +277,10 @@ type Json = any;
         width: 100%;
         border-collapse: collapse;
         margin-top: 1rem;
+      }
+      .table-scroll {
+        max-width: 100%;
+        overflow-x: auto;
       }
       th,
       td {

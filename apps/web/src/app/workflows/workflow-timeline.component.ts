@@ -5,7 +5,7 @@ import type { WorkflowStepAttemptDetails } from '@vayujit/shared';
 @Component({
   selector: 'app-workflow-timeline',
   imports: [RouterLink],
-  template: `<div class="wf-timeline" aria-label="Workflow step timeline">
+  template: `<div class="wf-timeline" role="group" aria-label="Workflow step timeline">
     @for (step of steps(); track step.id) {
       <article>
         <h3>

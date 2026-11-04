@@ -8,14 +8,14 @@ import type { CommerceNextAction } from './commerce-journey.types';
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `@if (action) {
-    <aside class="commerce-next-action" aria-label="Next best action">
+    <section class="commerce-next-action" aria-label="Next best action">
       <div>
         <p class="eyebrow">Next best action</p>
         <h3>{{ action.title }}</h3>
         <p>{{ action.detail }}</p>
       </div>
       <a class="op-button" [routerLink]="action.route">Open workspace</a>
-    </aside>
+    </section>
   }`,
   styles: [
     `

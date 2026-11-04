@@ -17,6 +17,7 @@ import { environment } from '../../environments/environment';
 import { intelligenceErrorMessage } from './intelligence-error';
 import { SupplierJourneyNavComponent } from './supplier-journey-nav.component';
 import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
+import { supplierEvidenceOrigin } from './supplier-evidence-origin';
 
 type Gap = {
   id: string;
@@ -24,17 +25,23 @@ type Gap = {
   classification: string;
   status: string;
   severity: string;
+  reason?: string;
+  freshness?: string;
 };
 type Plan = { version?: number; status: string; task_count?: number };
 type Context = {
   id: string;
   supplier_id: string;
+  supplier_name?: string;
   product_id?: string | null;
+  opportunity_id?: string | null;
+  assessment_version?: number;
   status: string;
   readiness: string;
   summary?: { open_gaps?: number };
   gaps?: Gap[];
   plans?: Plan[];
+  evidence_origin?: string;
 };
 
 @Component({
@@ -54,7 +61,7 @@ type Context = {
     CommerceJourneyContextComponent,
   ],
   template: `
-    <main aria-labelledby="due-diligence-title">
+    <section aria-labelledby="due-diligence-title">
       <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         headingId="due-diligence-title"
@@ -64,17 +71,25 @@ type Context = {
       >
         <a page-header-actions routerLink="/intelligence">Back to Intelligence</a>
       </app-page-header>
-      <app-commerce-journey-context />
+      @if (!opportunityId) {
+        <app-commerce-journey-context />
+      }
       <app-supplier-journey-nav current="verify" />
+      <p role="status" aria-live="polite">{{ assessmentMessage }}</p>
       @if (opportunityId) {
         <section class="context-panel" aria-labelledby="selected-opportunity-title">
           <p class="eyebrow">Selected product context</p>
-          <h2 id="selected-opportunity-title">Verification stays attached to the selected opportunity</h2>
+          <h2 id="selected-opportunity-title">
+            Verification stays attached to the selected opportunity
+          </h2>
           <p>
             Opportunity <code>{{ opportunityId }}</code> is the authoritative scope for this review.
             Supplier contact, RFQs, purchasing, and payments remain disabled.
           </p>
-          <a routerLink="/intelligence/cross-marketplace" [queryParams]="{ opportunity_id: opportunityId, supplier_id: supplierId }">
+          <a
+            routerLink="/intelligence/cross-marketplace"
+            [queryParams]="{ opportunity_id: opportunityId, supplier_id: supplierId }"
+          >
             Return to supplier discovery
           </a>
         </section>
@@ -97,15 +112,28 @@ type Context = {
         </p>
         @if (!loading && !contexts.length) {
           <app-blocked-state
-            [title]="supplierId ? 'No verification context for this supplier' : 'Shortlist suppliers before verification'"
-            [reason]="supplierId ? 'The selected supplier has no owner-scoped due-diligence context yet. Return to supplier discovery and create the canonical verification context.' : 'No supplier is treated as verified until evidence supports that conclusion.'"
+            [title]="
+              supplierId
+                ? 'No verification context for this supplier'
+                : 'Shortlist suppliers before verification'
+            "
+            [reason]="
+              supplierId
+                ? 'The selected supplier has no owner-scoped due-diligence context yet. Return to supplier discovery and create the canonical verification context.'
+                : 'No supplier is treated as verified until evidence supports that conclusion.'
+            "
           />
-          <a routerLink="/intelligence/cross-marketplace#comparison">Compare suppliers</a>
+          <a
+            routerLink="/intelligence/supplier-shortlisting"
+            [queryParams]="{ opportunity_id: opportunityId, supplier_ids: supplierId }"
+            >Review supplier shortlist</a
+          >
         }
         @for (context of contexts; track context.id) {
           <article>
             <p class="eyebrow">Supplier under review</p>
             <h3>{{ supplierLabel() }}</h3>
+            <p role="note">{{ context.evidence_origin }}</p>
             <app-status-badge
               status="VERIFICATION_STATE"
               [label]="semanticStatus(context.status)"
@@ -116,17 +144,47 @@ type Context = {
               Status: {{ semanticStatus(context.status) }} · Readiness:
               {{ semanticStatus(context.readiness) }}
             </p>
-            <p>Open gaps: {{ context.summary?.open_gaps || 0 }}</p>
+            <p>
+              Open gaps:
+              {{
+                isAssessed(context)
+                  ? (context.summary?.open_gaps ?? 'UNKNOWN')
+                  : 'UNKNOWN — not assessed'
+              }}
+            </p>
+            <p>
+              This assessment reviews existing stored evidence only. It does not acquire websites,
+              contact suppliers or verify unsupported claims.
+            </p>
+            <button type="button" (click)="assessEvidence(context)" [disabled]="!!assessingId">
+              {{
+                assessingId === context.id
+                  ? 'Assessing existing evidence...'
+                  : isAssessed(context)
+                    ? 'Reassess existing evidence'
+                    : 'Assess existing evidence'
+              }}
+            </button>
+            @if (isAssessed(context) && opportunityId) {
+              <a
+                routerLink="/intelligence/sourcing-economics"
+                [queryParams]="{ opportunity_id: opportunityId, supplier_id: context.supplier_id }"
+                >Review economics and missing commercial inputs</a
+              >
+              <p>Reviewing economics does not clear verification gaps or approve this supplier.</p>
+            }
             <app-evidence-card
               title="Verification evidence"
               classification="DERIVED"
               [summary]="
-                (context.summary?.open_gaps || 0) +
-                ' authoritative verification gap(s) remain for this supplier.'
+                isAssessed(context)
+                  ? (context.summary?.open_gaps ?? 'UNKNOWN') +
+                    ' recorded verification gap(s); review findings and unknowns.'
+                  : 'Not assessed. Evidence coverage and the number of gaps are UNKNOWN.'
               "
               source="Supplier due-diligence projection"
             />
-            <table>
+            <table tabindex="0">
               <caption>
                 Evidence coverage and verification gaps
               </caption>
@@ -143,7 +201,11 @@ type Context = {
                   <tr>
                     <td>{{ gap.dimension }}</td>
                     <td>{{ gap.classification }}</td>
-                    <td>{{ semanticStatus(gap.status) }} ({{ gap.severity }})</td>
+                    <td>
+                      {{ semanticStatus(gap.status) }} ({{ gap.severity }})
+                      <p>{{ gap.reason }}</p>
+                      <p>Freshness: {{ gap.freshness || 'UNKNOWN' }}</p>
+                    </td>
                     <td>
                       <button
                         type="button"
@@ -222,7 +284,7 @@ type Context = {
           </article>
         }
       </section>
-    </main>
+    </section>
   `,
   styles: [
     `
@@ -250,6 +312,15 @@ type Context = {
         width: 100%;
         overflow-x: auto;
         display: block;
+        container-type: inline-size;
+      }
+      caption {
+        inline-size: 100cqi;
+        white-space: normal;
+        overflow-wrap: anywhere;
+        text-align: left;
+        position: sticky;
+        inset-inline-start: 0;
       }
       button {
         margin: 0.25rem;
@@ -278,8 +349,42 @@ export class SupplierDueDiligenceComponent implements OnInit {
   loading = true;
   error = '';
   reviewedGapId: string | null = null;
-  readonly supplierId = this.route.snapshot.queryParamMap.get('supplier_id') || '';
-  readonly opportunityId = this.route.snapshot.queryParamMap.get('opportunity_id') || '';
+  supplierId = '';
+  opportunityId = '';
+  assessingId = '';
+  assessmentMessage = '';
+
+  isAssessed(context: Context): boolean {
+    return context.readiness !== 'NOT_ASSESSED' && (context.assessment_version ?? 1) > 0;
+  }
+
+  async assessEvidence(context: Context): Promise<void> {
+    if (this.assessingId || !this.contexts.includes(context)) return;
+    this.assessingId = context.id;
+    this.error = '';
+    this.assessmentMessage = 'Assessing existing stored evidence. No external research is running.';
+    this.changeDetector.markForCheck();
+    try {
+      await firstValueFrom(
+        this.http.post(
+          `${environment.apiUrl}/intelligence/supplier-due-diligence/contexts/${context.id}/assess`,
+          {},
+          this.requestOptions,
+        ),
+      );
+      await this.loadContexts();
+      if (this.error) throw new Error('ASSESSMENT_PROJECTION_UNAVAILABLE');
+      this.assessmentMessage =
+        'Assessment saved. Review the findings below; missing evidence is not verification.';
+    } catch {
+      this.error =
+        'The evidence assessment could not be saved. Your supplier context is unchanged. Retry assessment when the API is available.';
+      this.assessmentMessage = 'Assessment failed; the supplier is not newly verified.';
+    } finally {
+      this.assessingId = '';
+      this.changeDetector.markForCheck();
+    }
+  }
 
   semanticStatus(status: string): string {
     const labels: Record<string, string> = {
@@ -301,7 +406,7 @@ export class SupplierDueDiligenceComponent implements OnInit {
       this.supplierId ? item.supplier_id === this.supplierId : true,
     );
     return context?.supplier_id
-      ? `Supplier ${context.supplier_id} selected for verification`
+      ? `${context.supplier_name || 'Supplier ' + context.supplier_id} selected for verification`
       : 'Supplier selected for verification';
   }
   verificationOutcome(context: Context): string {
@@ -316,10 +421,17 @@ export class SupplierDueDiligenceComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    void this.loadContexts();
+    this.route.queryParamMap.subscribe((params) => {
+      this.supplierId = params.get('supplier_id') || '';
+      this.opportunityId = params.get('opportunity_id') || '';
+      this.contexts = [];
+      this.assessmentMessage = '';
+      void this.loadContexts();
+    });
   }
 
   private async loadContexts(): Promise<void> {
+    this.loading = true;
     this.error = '';
     try {
       this.contexts = await firstValueFrom(
@@ -331,6 +443,11 @@ export class SupplierDueDiligenceComponent implements OnInit {
       if (this.supplierId) {
         this.contexts = this.contexts.filter((context) => context.supplier_id === this.supplierId);
       }
+      if (this.opportunityId) {
+        this.contexts = this.contexts.filter(
+          (context) => context.opportunity_id === this.opportunityId,
+        );
+      }
       await Promise.all(
         this.contexts.map(async (context) => {
           const detail = await firstValueFrom(
@@ -341,6 +458,13 @@ export class SupplierDueDiligenceComponent implements OnInit {
           );
           context.gaps = detail.gaps || [];
           context.readiness = detail.readiness;
+          const supplier = await firstValueFrom(
+            this.http.get<Record<string, unknown>>(
+              `${environment.apiUrl}/intelligence/cross-marketplace/suppliers/${context.supplier_id}`,
+              this.requestOptions,
+            ),
+          );
+          context.evidence_origin = supplierEvidenceOrigin(supplier);
           context.plans = await firstValueFrom(
             this.http.get<Plan[]>(
               `${environment.apiUrl}/intelligence/supplier-due-diligence/contexts/${context.id}/plans`,

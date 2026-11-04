@@ -16,7 +16,7 @@ RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir .
 
 RUN useradd --create-home --uid 10001 --shell /usr/sbin/nologin vayujit \
-    && mkdir -p /var/lib/vayujit/media /var/lib/vayujit/backups \
+    && mkdir -p /var/lib/vayujit/media /var/lib/vayujit/backups /var/lib/vayujit/maintenance \
     && chown -R vayujit:vayujit /app /var/lib/vayujit
 USER vayujit
 

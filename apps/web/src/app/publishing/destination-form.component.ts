@@ -30,222 +30,226 @@ import { PublishingService } from './publishing.service';
     @if (error()) {
       <p class="pub-error" role="alert">{{ error() }}</p>
     }
-    <form class="pub-card pub-form" [formGroup]="form" (ngSubmit)="save()">
-      <label
-        >Destination name <input formControlName="name" maxlength="160" />
-        @if (touchedInvalid('name')) {
-          <span class="pub-error">Enter a destination name.</span>
-        }</label
-      ><label
-        >Connector
-        <select formControlName="connector_key">
-          <option value="mock_publisher_v1">Deterministic local mock</option>
-          <option value="wordpress">WordPress</option>
-          <option value="shopify">Shopify</option>
-        </select></label
-      ><label
-        >Brand scope
-        <select formControlName="brand_id">
-          <option value="">All Brands</option>
-          @for (brand of brands(); track brand.id) {
-            <option [value]="brand.id">{{ brand.name }}</option>
+    @if (ready()) {
+      <form class="pub-card pub-form" [formGroup]="form" (ngSubmit)="save()">
+        <label
+          >Destination name <input formControlName="name" maxlength="160" />
+          @if (touchedInvalid('name')) {
+            <span class="pub-error">Enter a destination name.</span>
+          }</label
+        ><label
+          >Connector
+          <select formControlName="connector_key">
+            <option value="mock_publisher_v1">Deterministic local mock</option>
+            <option value="wordpress">WordPress</option>
+            <option value="shopify">Shopify</option>
+          </select></label
+        ><label
+          >Brand scope
+          <select formControlName="brand_id">
+            <option value="">All Brands</option>
+            @for (brand of brands(); track brand.id) {
+              <option [value]="brand.id">{{ brand.name }}</option>
+            }
+          </select></label
+        ><label
+          >Channel name <input formControlName="channel_name" maxlength="100" />
+          @if (touchedInvalid('channel_name')) {
+            <span class="pub-error">Enter a channel name.</span>
+          }</label
+        ><label
+          >Publication prefix
+          <input
+            formControlName="publication_prefix"
+            maxlength="20"
+            aria-describedby="prefix-help"
+          /><span id="prefix-help" class="pub-muted"
+            >1–20 letters, numbers, hyphens, or underscores.</span
+          >
+          @if (touchedInvalid('publication_prefix')) {
+            <span class="pub-error">Use only letters, numbers, hyphens, or underscores.</span>
           }
-        </select></label
-      ><label
-        >Channel name <input formControlName="channel_name" maxlength="100" />
-        @if (touchedInvalid('channel_name')) {
-          <span class="pub-error">Enter a channel name.</span>
-        }</label
-      ><label
-        >Publication prefix
-        <input
-          formControlName="publication_prefix"
-          maxlength="20"
-          aria-describedby="prefix-help"
-        /><span id="prefix-help" class="pub-muted"
-          >1–20 letters, numbers, hyphens, or underscores.</span
-        >
-        @if (touchedInvalid('publication_prefix')) {
-          <span class="pub-error">Use only letters, numbers, hyphens, or underscores.</span>
+        </label>
+        @if (development) {
+          <details class="pub-dev">
+            <summary>Development testing</summary>
+            <p>
+              These controls deliberately simulate connector failures and are hidden in production
+              builds.
+            </p>
+            <label
+              ><input type="checkbox" formControlName="simulate_failure" /> Simulate failure</label
+            ><label
+              >Failure type
+              <select formControlName="failure_type">
+                <option value="retryable">Retryable</option>
+                <option value="non_retryable">Permanent</option>
+              </select></label
+            >
+          </details>
         }
-      </label>
-      @if (development) {
-        <details class="pub-dev">
-          <summary>Development testing</summary>
-          <p>
-            These controls deliberately simulate connector failures and are hidden in production
-            builds.
-          </p>
-          <label
-            ><input type="checkbox" formControlName="simulate_failure" /> Simulate failure</label
-          ><label
-            >Failure type
-            <select formControlName="failure_type">
-              <option value="retryable">Retryable</option>
-              <option value="non_retryable">Permanent</option>
-            </select></label
-          >
-        </details>
-      }
-      @if (form.controls.connector_key.value === 'wordpress') {
-        <fieldset>
-          <legend>WordPress mapping</legend>
-          <label
-            >Post status
-            <select formControlName="post_status">
-              <option value="draft">Draft</option>
-              <option value="publish">Publish</option>
-            </select></label
-          >
-          <section>
-            <label>Search categories <input #categorySearch /></label>
-            <button type="button" (click)="loadCategories(categorySearch.value)">Search</button>
-            <button type="button" (click)="loadCategories(categorySearch.value, true)">
-              Refresh
-            </button>
-            @if (taxonomyBusy()) {
-              <p role="status">Loading categories…</p>
-            }
-            @for (category of categories(); track category.id) {
-              <label
-                ><input
-                  type="checkbox"
-                  [checked]="selectedId('category_ids', category.id)"
-                  (change)="toggleId('category_ids', category.id)"
-                />
-                {{ category.name }}</label
-              >
-            } @empty {
-              <p>No categories found.</p>
-            }
-          </section>
-          <section>
-            <label>Search tags <input #tagSearch /></label>
-            <button type="button" (click)="loadTags(tagSearch.value)">Search</button>
-            <button type="button" (click)="loadTags(tagSearch.value, true)">Refresh</button>
-            @for (tag of tags(); track tag.id) {
-              <label
-                ><input
-                  type="checkbox"
-                  [checked]="selectedId('tag_ids', tag.id)"
-                  (change)="toggleId('tag_ids', tag.id)"
-                />
-                {{ tag.name }}</label
-              >
-            } @empty {
-              <p>No tags found.</p>
-            }
-          </section>
-          <label
-            >Author
-            <select formControlName="author_id">
-              <option value="">Use WordPress default</option>
-              @for (author of authors(); track author.id) {
-                <option [value]="author.id">
-                  {{ author.name }}{{ author.username ? ' · ' + author.username : '' }}
-                </option>
+        @if (form.controls.connector_key.value === 'wordpress') {
+          <fieldset>
+            <legend>WordPress mapping</legend>
+            <label
+              >Post status
+              <select formControlName="post_status">
+                <option value="draft">Draft</option>
+                <option value="publish">Publish</option>
+              </select></label
+            >
+            <section>
+              <label>Search categories <input #categorySearch /></label>
+              <button type="button" (click)="loadCategories(categorySearch.value)">Search</button>
+              <button type="button" (click)="loadCategories(categorySearch.value, true)">
+                Refresh
+              </button>
+              @if (taxonomyBusy()) {
+                <p role="status">Loading categories…</p>
               }
-            </select>
-          </label>
-          <button type="button" (click)="loadAuthors('', true)">Refresh authors</button>
-          <label
-            >Featured-image policy
-            <select formControlName="featured_image_policy">
-              <option value="none">No featured image</option>
-              <option value="optional">Optional image</option>
-              <option value="required">Required image</option>
-            </select>
-          </label>
-          <label
-            >Default media
-            <select formControlName="default_media_id">
-              <option value="">No default media</option>
-              @for (media of mediaItems(); track media.id) {
-                <option [value]="media.id">
-                  {{ media.safe_filename }} · {{ media.width }}×{{ media.height }}
-                </option>
+              @for (category of categories(); track category.id) {
+                <label
+                  ><input
+                    type="checkbox"
+                    [checked]="selectedId('category_ids', category.id)"
+                    (change)="toggleId('category_ids', category.id)"
+                  />
+                  {{ category.name }}</label
+                >
+              } @empty {
+                <p>No categories found.</p>
               }
-            </select>
-          </label>
-          <a routerLink="/settings/publishing/connectors/wordpress"
-            >Configure WordPress credentials</a
-          >
-        </fieldset>
-      }
-      @if (form.controls.connector_key.value === 'shopify') {
-        <fieldset>
-          <legend>Shopify product mapping</legend>
-          <label
-            >Default product status
-            <select formControlName="shopify_status">
-              <option value="draft">Draft</option>
-              <option value="active">Allow explicit activation</option>
-            </select>
-          </label>
-          <label>Default vendor <input formControlName="default_vendor" maxlength="255" /></label>
-          <label
-            >Default product type <input formControlName="default_product_type" maxlength="255"
-          /></label>
-          <label
-            >Default tags
-            <input formControlName="default_tags" placeholder="tag one, tag two" maxlength="2000"
-          /></label>
-          <section>
-            <label>Search collections <input #collectionSearch /></label>
-            <button type="button" (click)="loadShopifyCollections(collectionSearch.value)">
-              Search
-            </button>
-            <button type="button" (click)="loadShopifyCollections(collectionSearch.value, true)">
-              Refresh
-            </button>
-            @for (collection of shopifyCollections(); track collection.id) {
-              <label
-                ><input
-                  type="checkbox"
-                  [checked]="selectedRemoteId('shopify_collection_ids', collection.id)"
-                  (change)="toggleRemoteId('shopify_collection_ids', collection.id)"
-                />
-                {{ collection.name }}</label
-              >
-            } @empty {
-              <p>No collections loaded.</p>
-            }
-          </section>
-          <section>
-            <button type="button" (click)="loadShopifyPublications(true)">
-              Refresh publications
-            </button>
-            @for (publication of shopifyPublications(); track publication.id) {
-              <label
-                ><input
-                  type="checkbox"
-                  [checked]="selectedRemoteId('shopify_publication_ids', publication.id)"
-                  (change)="toggleRemoteId('shopify_publication_ids', publication.id)"
-                />
-                {{ publication.name }}</label
-              >
-            } @empty {
-              <p>Publication discovery may be unavailable; draft creation remains supported.</p>
-            }
-          </section>
-          <label
-            >Media policy
-            <select formControlName="shopify_media_policy">
-              <option value="fail">Fail safely</option>
-              <option value="draft_without_media">Create draft without media</option>
-              <option value="degraded">Create degraded recovery item</option>
-            </select>
-          </label>
-          <p class="pub-muted">Inventory quantities are never written by this destination.</p>
-          <a routerLink="/settings/publishing/connectors/shopify">Configure Shopify credentials</a>
-        </fieldset>
-      }
-      <div class="pub-actions">
-        <button [disabled]="busy() || form.invalid">
-          {{ busy() ? 'Saving…' : 'Save destination' }}</button
-        ><a class="pub-button secondary" routerLink="/publishing/destinations">Cancel</a>
-      </div>
-    </form>
+            </section>
+            <section>
+              <label>Search tags <input #tagSearch /></label>
+              <button type="button" (click)="loadTags(tagSearch.value)">Search</button>
+              <button type="button" (click)="loadTags(tagSearch.value, true)">Refresh</button>
+              @for (tag of tags(); track tag.id) {
+                <label
+                  ><input
+                    type="checkbox"
+                    [checked]="selectedId('tag_ids', tag.id)"
+                    (change)="toggleId('tag_ids', tag.id)"
+                  />
+                  {{ tag.name }}</label
+                >
+              } @empty {
+                <p>No tags found.</p>
+              }
+            </section>
+            <label
+              >Author
+              <select formControlName="author_id">
+                <option value="">Use WordPress default</option>
+                @for (author of authors(); track author.id) {
+                  <option [value]="author.id">
+                    {{ author.name }}{{ author.username ? ' · ' + author.username : '' }}
+                  </option>
+                }
+              </select>
+            </label>
+            <button type="button" (click)="loadAuthors('', true)">Refresh authors</button>
+            <label
+              >Featured-image policy
+              <select formControlName="featured_image_policy">
+                <option value="none">No featured image</option>
+                <option value="optional">Optional image</option>
+                <option value="required">Required image</option>
+              </select>
+            </label>
+            <label
+              >Default media
+              <select formControlName="default_media_id">
+                <option value="">No default media</option>
+                @for (media of mediaItems(); track media.id) {
+                  <option [value]="media.id">
+                    {{ media.safe_filename }} · {{ media.width }}×{{ media.height }}
+                  </option>
+                }
+              </select>
+            </label>
+            <a routerLink="/settings/publishing/connectors/wordpress"
+              >Configure WordPress credentials</a
+            >
+          </fieldset>
+        }
+        @if (form.controls.connector_key.value === 'shopify') {
+          <fieldset>
+            <legend>Shopify product mapping</legend>
+            <label
+              >Default product status
+              <select formControlName="shopify_status">
+                <option value="draft">Draft</option>
+                <option value="active">Allow explicit activation</option>
+              </select>
+            </label>
+            <label>Default vendor <input formControlName="default_vendor" maxlength="255" /></label>
+            <label
+              >Default product type <input formControlName="default_product_type" maxlength="255"
+            /></label>
+            <label
+              >Default tags
+              <input formControlName="default_tags" placeholder="tag one, tag two" maxlength="2000"
+            /></label>
+            <section>
+              <label>Search collections <input #collectionSearch /></label>
+              <button type="button" (click)="loadShopifyCollections(collectionSearch.value)">
+                Search
+              </button>
+              <button type="button" (click)="loadShopifyCollections(collectionSearch.value, true)">
+                Refresh
+              </button>
+              @for (collection of shopifyCollections(); track collection.id) {
+                <label
+                  ><input
+                    type="checkbox"
+                    [checked]="selectedRemoteId('shopify_collection_ids', collection.id)"
+                    (change)="toggleRemoteId('shopify_collection_ids', collection.id)"
+                  />
+                  {{ collection.name }}</label
+                >
+              } @empty {
+                <p>No collections loaded.</p>
+              }
+            </section>
+            <section>
+              <button type="button" (click)="loadShopifyPublications(true)">
+                Refresh publications
+              </button>
+              @for (publication of shopifyPublications(); track publication.id) {
+                <label
+                  ><input
+                    type="checkbox"
+                    [checked]="selectedRemoteId('shopify_publication_ids', publication.id)"
+                    (change)="toggleRemoteId('shopify_publication_ids', publication.id)"
+                  />
+                  {{ publication.name }}</label
+                >
+              } @empty {
+                <p>Publication discovery may be unavailable; draft creation remains supported.</p>
+              }
+            </section>
+            <label
+              >Media policy
+              <select formControlName="shopify_media_policy">
+                <option value="fail">Fail safely</option>
+                <option value="draft_without_media">Create draft without media</option>
+                <option value="degraded">Create degraded recovery item</option>
+              </select>
+            </label>
+            <p class="pub-muted">Inventory quantities are never written by this destination.</p>
+            <a routerLink="/settings/publishing/connectors/shopify"
+              >Configure Shopify credentials</a
+            >
+          </fieldset>
+        }
+        <div class="pub-actions">
+          <button [disabled]="busy() || form.invalid">
+            {{ busy() ? 'Saving…' : 'Save destination' }}</button
+          ><a class="pub-button secondary" routerLink="/publishing/destinations">Cancel</a>
+        </div>
+      </form>
+    }
   </section>`,
   styleUrl: './publishing.css',
 })
@@ -258,6 +262,7 @@ export class DestinationFormComponent implements OnInit {
   private readonly router = inject(Router);
   readonly brands = signal<BrandSummary[]>([]);
   readonly loading = signal(true);
+  readonly ready = signal(false);
   readonly busy = signal(false);
   readonly error = signal('');
   readonly editing = signal(false);
@@ -366,6 +371,7 @@ export class DestinationFormComponent implements OnInit {
       } else if (this.form.controls.connector_key.value === 'shopify') {
         await Promise.all([this.loadShopifyCollections(), this.loadShopifyPublications()]);
       }
+      this.ready.set(true);
     } catch (error) {
       this.error.set(PublishingService.errorMessage(error));
     } finally {
@@ -374,7 +380,7 @@ export class DestinationFormComponent implements OnInit {
   }
   async save() {
     this.form.markAllAsTouched();
-    if (this.form.invalid || this.busy()) return;
+    if (this.form.invalid || this.busy() || !this.ready()) return;
     this.busy.set(true);
     this.error.set('');
     const value = this.form.getRawValue();
@@ -428,7 +434,11 @@ export class DestinationFormComponent implements OnInit {
     };
     try {
       const item = this.editing()
-        ? await this.api.updateDestination(this.id, data)
+        ? await this.api.updateDestination(this.id, {
+            name: data.name,
+            brand_id: data.brand_id,
+            configuration: data.configuration,
+          })
         : await this.api.createDestination(data);
       await this.router.navigate(['/publishing/destinations', item.id]);
     } catch (error) {

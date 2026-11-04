@@ -1,0 +1,240 @@
+{
+  "scope": "AUDIT ONLY; no database or provider operations",
+  "started_at": "2026-10-27T17:46:33.635Z",
+  "checks": [
+    {
+      "name": "qa-node",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "--test",
+        "qa/unit/phase2.test.mjs",
+        "qa/unit/phase3.test.mjs",
+        "qa/unit/phase3a-resolution.test.mjs",
+        "qa/unit/phase3b-resolution.test.mjs",
+        "qa/unit/phase4.test.mjs",
+        "qa/unit/phase4a-resolution.test.mjs",
+        "qa/unit/phase4a.test.mjs",
+        "qa/unit/phase4b.test.mjs",
+        "qa/unit/safety.test.mjs"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 3519,
+      "log": "tmp/seller-experience-audit/qa-node.log"
+    },
+    {
+      "name": "qa-python",
+      "command": [
+        "C:\\Users\\jithe\\Documents\\vayujit-os\\apps\\api\\.venv\\Scripts\\python.exe",
+        "-m",
+        "pytest",
+        "qa/unit",
+        "-q",
+        "-o",
+        "addopts=",
+        "-p",
+        "no:cacheprovider"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 10667,
+      "log": "tmp/seller-experience-audit/qa-python.log"
+    },
+    {
+      "name": "playwright-list-1",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "qa/playwright.config.mjs",
+        "--list",
+        "--reporter=list"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 4216,
+      "log": "tmp/seller-experience-audit/playwright-list-1.log"
+    },
+    {
+      "name": "playwright-list-2",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "qa/playwright.config.mjs",
+        "--list",
+        "--reporter=list"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 1084,
+      "log": "tmp/seller-experience-audit/playwright-list-2.log"
+    },
+    {
+      "name": "playwright-list-3",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "qa/playwright.config.mjs",
+        "--list",
+        "--reporter=list"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 1228,
+      "log": "tmp/seller-experience-audit/playwright-list-3.log"
+    },
+    {
+      "name": "playwright-list-4",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "qa/playwright.config.mjs",
+        "--list",
+        "--reporter=list"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 1184,
+      "log": "tmp/seller-experience-audit/playwright-list-4.log"
+    },
+    {
+      "name": "playwright-list-4B",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "qa/playwright.config.mjs",
+        "--list",
+        "--reporter=list"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 1145,
+      "log": "tmp/seller-experience-audit/playwright-list-4B.log"
+    },
+    {
+      "name": "playwright-list-4C",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config",
+        "qa/playwright.config.mjs",
+        "--list",
+        "--reporter=list"
+      ],
+      "cwd": ".",
+      "exit_code": 0,
+      "elapsed_ms": 1114,
+      "log": "tmp/seller-experience-audit/playwright-list-4C.log"
+    },
+    {
+      "name": "angular",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\jithe\\Documents\\vayujit-os\\node_modules\\@angular\\cli\\bin\\ng.js",
+        "test",
+        "--watch=false"
+      ],
+      "cwd": "apps\\web",
+      "exit_code": 0,
+      "elapsed_ms": 117388,
+      "log": "tmp/seller-experience-audit/angular.log"
+    },
+    {
+      "name": "production-build",
+      "command": [
+        "C:\\Program Files\\nodejs\\node.exe",
+        "C:\\Users\\jithe\\Documents\\vayujit-os\\node_modules\\@angular\\cli\\bin\\ng.js",
+        "build"
+      ],
+      "cwd": "apps\\web",
+      "exit_code": 0,
+      "elapsed_ms": 38811,
+      "log": "tmp/seller-experience-audit/production-build.log"
+    }
+  ],
+  "prerequisites": {
+    "qa_admin_configured": false
+  },
+  "preservation": {
+    "checked": 1276,
+    "changed": [],
+    "added": []
+  },
+  "inventory": {
+    "routes": 155,
+    "pages": 149,
+    "redirects": 6,
+    "api_declarations": 1610,
+    "models": 421,
+    "frontend_specs": 71
+  },
+  "browser_journeys": {
+    "status": "BLOCKED",
+    "reason": "QA_DATABASE_ADMIN_URL is absent; cannot provision a fresh marker-protected PostgreSQL fixture. Never substitute a business/golden URL."
+  },
+  "finished_at": "2026-10-27T17:50:08.781Z",
+  "actual_counts": {
+    "qa_node_passed": 49,
+    "qa_python_passed": 28,
+    "angular_passed": 267,
+    "angular_spec_files": 71,
+    "playwright_discovery": [
+      {
+        "phase": "1",
+        "listed": 8,
+        "executed": 0
+      },
+      {
+        "phase": "2",
+        "listed": 8,
+        "executed": 0
+      },
+      {
+        "phase": "3",
+        "listed": 18,
+        "executed": 0
+      },
+      {
+        "phase": "4",
+        "listed": 44,
+        "executed": 0
+      },
+      {
+        "phase": "4B",
+        "listed": 16,
+        "executed": 0
+      },
+      {
+        "phase": "4C",
+        "listed": 8,
+        "executed": 0
+      }
+    ],
+    "fresh_browser_tests_executed": 0,
+    "fresh_persisted_api_tests_executed": 0,
+    "fresh_axe_scans_executed": 0
+  },
+  "production_build_warning": {
+    "initial_bundle_kb": 517.89,
+    "budget_kb": 500,
+    "present": true
+  },
+  "prerequisite_probe": {
+    "command": "node qa/probe-owned-runtime.mjs",
+    "exit_code": 1,
+    "safe_code": "QA_ADMIN_REQUIRED",
+    "status": "BLOCKED_BEFORE_DATABASE_OR_APPLICATION_START",
+    "raw_output_persisted": false
+  },
+  "classification": "AUDIT AND DESIGN DELIVERED / FRESH PERSISTED EXPLORATION BLOCKED / APPLICATION CERTIFICATION INCOMPLETE"
+}

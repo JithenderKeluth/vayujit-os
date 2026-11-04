@@ -1,7 +1,15 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  OnInit,
+  inject,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { EvidenceCardComponent } from '../shared/evidence-card.component';
 import {
@@ -24,6 +32,7 @@ import type {
 import { BusinessAgentService } from './business-agent.service';
 import { IntelligenceService, type ExternalResearchPolicy } from './intelligence.service';
 import { CommerceJourneyContextComponent } from '../commerce-journey-context.component';
+import { ProductDiscoveryReviewComponent } from './product-discovery-review.component';
 
 const CAPABILITY_LABELS: Record<string, string> = {
   'product_opportunity.create': 'Discover product opportunities',
@@ -65,11 +74,12 @@ const CAPABILITY_LABELS: Record<string, string> = {
     PageHeaderComponent,
     StatusBadgeComponent,
     CommerceJourneyContextComponent,
+    ProductDiscoveryReviewComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: './business-agent-workspace.css',
   template: `
-    <main class="agent-page" aria-labelledby="business-agent-title">
+    <section class="agent-page" aria-labelledby="business-agent-title">
       <app-page-header
         eyebrow="Intelligence / Business Agent"
         title="What are you trying to accomplish?"
@@ -82,6 +92,17 @@ const CAPABILITY_LABELS: Record<string, string> = {
           <a routerLink="/intelligence/sourcing">Supplier intelligence</a>
         </nav>
       </app-page-header>
+      <section class="agent-notice" aria-label="Daily operational guidance">
+        <strong>Running your business today?</strong>
+        <a routerLink="/operations/action-center"
+          >Review evidence-backed operational recommendations</a
+        >
+        · <a routerLink="/marketplaces/orders">Review orders and inventory implications</a> ·
+        <a routerLink="/marketplaces/financials">Review financial projections</a>. Research plans do
+        not synchronize orders or execute these recommendations. Missing, stale or contradictory
+        evidence must be reviewed in the source workflow; consequential changes retain their
+        canonical HUMAN approval.
+      </section>
       <app-commerce-journey-context />
 
       <p class="agent-notice">
@@ -95,10 +116,28 @@ const CAPABILITY_LABELS: Record<string, string> = {
       <details class="technical-details">
         <summary>How this workspace operates</summary>
         <p>
-          Research uses the local deterministic provider. Plans and runs are owner-scoped, durable,
-          and reviewable.
+          Research uses the configured provider and explicit source policies. Plans and runs are
+          owner-scoped, durable, and reviewable.
         </p>
       </details>
+      <section class="agent-notice" aria-labelledby="goal-guide-title">
+        <h2 id="goal-guide-title">How goals become product decisions</h2>
+        <p>
+          Describe the marketplace, category, available budget and constraints you know. Leave
+          unknown facts unknown. A goal organizes product discovery and evidence review; it cannot
+          guarantee best sellers, profit or a supplier.
+        </p>
+        <p>
+          Create goal → review the interpreted constraints → create a plan → run permitted research
+          → review opportunities → compare and make your own selection. Progress counts completed
+          research steps, not business success.
+        </p>
+        <p>
+          Saved goals are historical records. To change a goal, prepare a revised goal; earlier
+          plans, evidence and decisions stay attached to the original.
+        </p>
+        <a routerLink="/intelligence/research">Open saved research</a>
+      </section>
       @if (error()) {
         <app-error-state
           [message]="error()"
@@ -208,12 +247,26 @@ const CAPABILITY_LABELS: Record<string, string> = {
             title="Start your first Business Agent research run"
             message="Tell VAYUJIT what you want to accomplish. It will prepare an evidence-backed plan using the capabilities available to your workspace."
           >
-            <a class="primary-action" href="#goal-title">Create goal</a>
+            <a
+              class="primary-action"
+              [routerLink]="[]"
+              queryParamsHandling="preserve"
+              fragment="goal-title"
+              >Create goal</a
+            >
           </app-empty-state>
         }
         <div class="goal-list">
           @for (goal of activeGoals(); track goal.id) {
             <article class="goal-card" [class.selected]="selectedGoalId === goal.id">
+              <a
+                routerLink="/intelligence/product-opportunities"
+                [queryParams]="{ goal_id: goal.id }"
+                >Review opportunities for this goal</a
+              >
+              <button type="button" class="secondary-action" (click)="revise(goal)">
+                Prepare a revised goal
+              </button>
               <header class="goal-card-header">
                 <div>
                   <p class="eyebrow">Goal</p>
@@ -231,7 +284,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
                   <strong>Marketplace:</strong> {{ goal.structured_goal['marketplace'] }}
                 </p>
               }
-              <div class="constraint-summary" aria-label="Goal details">
+              <div class="constraint-summary" role="group" aria-label="Goal details">
                 <strong>Goal details</strong>
                 <ul>
                   @for (constraint of constraintRows(goal); track constraint.label) {
@@ -442,8 +495,13 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       <div class="next-step-list">
                         <strong>Next steps</strong>
                         <ol>
-                          <li>Review the failed discovery step and its evidence.</li>
-                          <li>Retry discovery after checking the provider response.</li>
+                          <li>
+                            Review the discovery outcomes below and resolve the recorded blocker.
+                          </li>
+                          <li>
+                            Where required, review and explicitly approve permitted sources before
+                            retrying.
+                          </li>
                           <li>Open Product Opportunities when a candidate is available.</li>
                         </ol>
                       </div>
@@ -454,6 +512,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       >
                     </section>
                   }
+                  <app-product-discovery-review [details]="discoveryDetails(run)" />
                   @if (currentStep(run); as current) {
                     <div class="current-step">
                       <strong
@@ -464,8 +523,12 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       >
                       <app-status-badge
                         [status]="current.status"
-                        [label]="statusLabel(current.status)"
-                        [tone]="statusTone(current.status)"
+                        [label]="
+                          awaitingSourceReview(run)
+                            ? 'Awaiting source review'
+                            : statusLabel(current.status)
+                        "
+                        [tone]="awaitingSourceReview(run) ? 'warning' : statusTone(current.status)"
                       />
                       <details class="technical-details compact-details">
                         <summary>Research detail</summary>
@@ -494,12 +557,21 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     </ol>
                   </details>
                   @if (run.failure['message']) {
-                    <div class="callout danger" role="alert">
-                      <strong>Research needs attention</strong>
+                    <div
+                      class="callout"
+                      [class.danger]="!awaitingSourceReview(run)"
+                      [attr.role]="awaitingSourceReview(run) ? 'status' : 'alert'"
+                    >
+                      <strong>{{
+                        awaitingSourceReview(run)
+                          ? 'Source review needed'
+                          : 'Research needs attention'
+                      }}</strong>
                       <p>{{ failureMessage(run) }}</p>
                       <p class="next-step-copy">
-                        Review the live evidence, then retry discovery. Product opportunities will
-                        appear after a canonical product is established.
+                        Review the page outcomes and any source approvals above before retrying.
+                        Product opportunities appear only after fetched evidence establishes a
+                        product.
                       </p>
                       <a
                         class="secondary-action action-link"
@@ -517,7 +589,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     @if (canPause(run)) {
                       <button type="button" (click)="pause(run)">Pause run</button>
                     }
-                    @if (canResume(run)) {
+                    @if (canResume(run) && !awaitingSourceReview(run)) {
                       <button type="button" (click)="resume(run)">
                         {{ run.status === 'PARTIAL' ? 'Resume failed step' : 'Resume run' }}
                       </button>
@@ -530,9 +602,11 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     @if (canRetry(run)) {
                       <button type="button" (click)="retry(run)">
                         {{
-                          run.status === 'PARTIAL'
-                            ? 'Retry failed discovery'
-                            : 'Retry through existing runtime'
+                          awaitingSourceReview(run)
+                            ? 'Continue product discovery'
+                            : run.status === 'PARTIAL'
+                              ? 'Retry product discovery'
+                              : 'Retry through existing runtime'
                         }}
                       </button>
                     }
@@ -594,6 +668,7 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       />
                     </div>
                     <app-evidence-card
+                      [headingLevel]="5"
                       [title]="artifactTitle(brief)"
                       [classification]="artifactClassification(brief)"
                       [summary]="artifactSummary(brief)"
@@ -665,8 +740,13 @@ const CAPABILITY_LABELS: Record<string, string> = {
                       </div>
                     }
                     @if (brief.payload['supplier_intelligence']; as supplier) {
-                      <div class="intelligence-summary" aria-labelledby="supplier-intelligence-{{ goal.id }}">
-                        <h5 id="supplier-intelligence-{{ goal.id }}">Supplier intelligence continuation</h5>
+                      <div
+                        class="intelligence-summary"
+                        aria-labelledby="supplier-intelligence-{{ goal.id }}"
+                      >
+                        <h5 id="supplier-intelligence-{{ goal.id }}">
+                          Supplier intelligence continuation
+                        </h5>
                         <p>
                           Supplier observations remain source-backed and require HUMAN review. They
                           are not supplier certification or procurement authorization.
@@ -818,6 +898,12 @@ const CAPABILITY_LABELS: Record<string, string> = {
                     <small>Created {{ goal.created_at }}</small>
                   </div>
                   <div class="previous-goal-actions">
+                    <a
+                      routerLink="/intelligence/business-agent"
+                      [queryParams]="{ goal_id: goal.id }"
+                      (click)="openSavedGoal(goal)"
+                      >Open saved goal and research</a
+                    >
                     <app-status-badge
                       [status]="goal.status"
                       [label]="statusLabel(goal.status)"
@@ -839,10 +925,13 @@ const CAPABILITY_LABELS: Record<string, string> = {
           </details>
         }
       </section>
-    </main>
+    </section>
   `,
 })
 export class BusinessAgentWorkspaceComponent implements OnInit {
+  private readonly goalRoute = inject(ActivatedRoute);
+  private readonly goalRouter = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly service = inject(BusinessAgentService);
   private readonly intelligence = inject(IntelligenceService);
   readonly goals = signal<BusinessAgentGoal[]>([]);
@@ -864,6 +953,15 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   selectedGoalId = '';
 
   ngOnInit(): void {
+    this.selectedGoalId = this.goalRoute.snapshot.queryParamMap.get('goal_id') || '';
+    this.goalRoute.queryParamMap.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((params) => {
+      const id = params.get('goal_id') || '';
+      if (id !== this.selectedGoalId) {
+        this.selectedGoalId = id;
+        const goal = this.activeGoals()[0];
+        if (goal) void this.hydrateGoal(goal);
+      }
+    });
     void this.refresh();
   }
 
@@ -882,7 +980,11 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
       } catch {
         this.externalPolicy.set(null);
       }
-      await Promise.all(goals.slice(0, 1).map((goal) => this.hydrateGoal(goal)));
+      await Promise.all(this.activeGoals().map((goal) => this.hydrateGoal(goal)));
+      if (this.selectedGoalId && !goals.some((g) => g.id === this.selectedGoalId))
+        this.error.set(
+          'This saved goal is unavailable. Open saved research to choose an accessible goal.',
+        );
     } catch {
       this.error.set('Business Agent data is unavailable. Check the authenticated API connection.');
     } finally {
@@ -892,18 +994,21 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
 
   private async hydrateGoal(goal: BusinessAgentGoal): Promise<void> {
     const [plan, run] = await Promise.allSettled([
-      this.service.latestPlan(goal.id),
-      this.service.latestRun(goal.id),
+      this.service.latestPlan(goal.id, true),
+      this.service.latestRun(goal.id, true),
     ]);
-    if (plan.status === 'fulfilled') {
-      this.plans.update((items) => ({ ...items, [goal.id]: plan.value }));
+    if (plan.status === 'fulfilled' && plan.value) {
+      const value = plan.value;
+      this.plans.update((items) => ({ ...items, [goal.id]: value }));
     }
-    if (run.status === 'fulfilled') {
-      this.runs.update((items) => ({ ...items, [goal.id]: run.value }));
+    if (run.status === 'fulfilled' && run.value) {
+      const value = run.value;
+      this.runs.update((items) => ({ ...items, [goal.id]: value }));
     }
   }
 
   async create(): Promise<void> {
+    if (this.loading()) return;
     const goalText = this.rawGoal.trim();
     this.goalFormMessage.set('');
     this.goalCreatedMessage.set('');
@@ -925,6 +1030,12 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
         ...(this.includeTrendIntelligence ? { include_trend_intelligence: true } : {}),
       });
       this.selectedGoalId = goal.id;
+      await this.goalRouter.navigate([], {
+        relativeTo: this.goalRoute,
+        queryParams: { goal_id: goal.id },
+        queryParamsHandling: 'merge',
+        replaceUrl: true,
+      });
       this.idempotencyKey = `business-goal-${Date.now()}`;
       this.goalCreatedMessage.set(
         'Goal created. Review the goal details, then create its research plan.',
@@ -1054,11 +1165,28 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   }
 
   activeGoals(): BusinessAgentGoal[] {
-    return this.goals().slice(0, 1);
+    return this.selectedGoalId
+      ? this.goals().filter((g) => g.id === this.selectedGoalId)
+      : this.goals().slice(0, 1);
   }
 
   previousGoals(): BusinessAgentGoal[] {
-    return this.goals().slice(1);
+    const ids = new Set(this.activeGoals().map((g) => g.id));
+    return this.goals().filter((g) => !ids.has(g.id));
+  }
+  async openSavedGoal(goal: BusinessAgentGoal): Promise<void> {
+    this.selectedGoalId = goal.id;
+    await this.hydrateGoal(goal);
+  }
+  revise(goal: BusinessAgentGoal): void {
+    this.rawGoal = goal.raw_goal;
+    this.idempotencyKey = 'business-goal-' + crypto.randomUUID();
+    this.goalCreatedMessage.set(
+      'Editing a new goal draft. The original goal and its evidence are unchanged.',
+    );
+    const form = document.querySelector<HTMLDetailsElement>('details.goal-creation');
+    if (form) form.open = true;
+    document.querySelector<HTMLTextAreaElement>('textarea[name=goal]')?.focus();
   }
 
   constraintRows(goal: BusinessAgentGoal): Array<{
@@ -1110,11 +1238,41 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   }
 
   failureMessage(run: BusinessAgentRun): string {
+    const details = this.discoveryDetails(run);
+    if (typeof details['review_guidance'] === 'string') return details['review_guidance'];
+    if (this.awaitingSourceReview(run)) {
+      return 'Product pages are awaiting your source review. Approve only permitted access, then choose Continue product discovery. This is a review boundary, not a provider failure.';
+    }
     const failed = run.steps.find((step) => step.status === 'FAILED');
     if (failed) {
       return `${failed.business_label || this.capabilityLabel(failed.capability_id)} failed: ${this.displayValue(run.failure['message']) || 'the provider did not return enough evidence.'}`;
     }
     return this.displayValue(run.failure['message']) || 'Research did not complete safely.';
+  }
+
+  awaitingSourceReview(run: BusinessAgentRun): boolean {
+    const details = this.discoveryDetails(run);
+    const fetches = details['fetches'];
+    return (
+      Array.isArray(fetches) &&
+      fetches.some((value: unknown) => {
+        if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+        const row = value as Record<string, unknown>;
+        return (
+          row['source_review_eligible'] !== false &&
+          (row['reason_code'] === 'SOURCE_APPROVAL_REQUIRED' ||
+            row['failure'] === 'External source approval is required before fetching.')
+        );
+      })
+    );
+  }
+
+  discoveryDetails(run: BusinessAgentRun): Record<string, unknown> {
+    const result = run.steps.find((step) => step.key === 'opportunity')?.result;
+    const value = result?.['details'] || result?.['research'];
+    return value && typeof value === 'object' && !Array.isArray(value)
+      ? (value as Record<string, unknown>)
+      : {};
   }
 
   businessRunStatus(run: BusinessAgentRun): string {

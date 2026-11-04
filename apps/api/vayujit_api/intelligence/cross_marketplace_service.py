@@ -306,6 +306,8 @@ def _source_inventory(
             "verification_state": str((row.metadata_json or {}).get("verification", "unverified")),
             "confidence_contribution": 0.2 if row.source_type in PROVIDERS else 0.1,
             "external_id": row.external_id,
+            "synthetic": (row.metadata_json or {}).get("fixture") is True
+            or row.status == "local_fixture",
         }
         for row in rows
     ]
@@ -849,7 +851,24 @@ def _public_row(row: CrossMarketplaceSupplier) -> dict[str, Any]:
 
 
 def detail(db: Session, owner: User, canonical_id: uuid.UUID) -> dict[str, Any]:
-    return _public_row(_owned_canonical(db, owner, canonical_id))
+    view = _public_row(_owned_canonical(db, owner, canonical_id))
+    # Preserve fixture provenance even for an older cached canonical view.
+    ids = list(
+        db.scalars(
+            select(CrossMarketplaceSupplierLink.supplier_id).where(
+                CrossMarketplaceSupplierLink.owner_id == owner.id,
+                CrossMarketplaceSupplierLink.canonical_supplier_id == canonical_id,
+            )
+        )
+    )
+    flags = {
+        str(source.id): (source.metadata_json or {}).get("fixture") is True
+        or source.status == "local_fixture"
+        for source in _source_rows(db, owner, ids)
+    }
+    for source in view.get("freshness", {}).get("sources", []):
+        source["synthetic"] = flags.get(str(source.get("source_id")), False)
+    return view
 
 
 def source_inventory(db: Session, owner: User, canonical_id: uuid.UUID) -> list[dict[str, Any]]:

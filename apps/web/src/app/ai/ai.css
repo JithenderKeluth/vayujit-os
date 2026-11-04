@@ -1,5 +1,7 @@
 .ai-page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
   gap: 1rem;
   max-width: 1100px;
 }
@@ -14,11 +16,20 @@
 .ai-header {
   justify-content: space-between;
 }
+.ai-filter-field {
+  display: grid;
+  gap: 0.35rem;
+}
 .ai-card {
   background: #fff;
   border: 1px solid #dce3e8;
   border-radius: 0.75rem;
   padding: 1rem;
+}
+.ai-page code,
+.ai-page pre {
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
 }
 .ai-grid {
   display: grid;
@@ -27,9 +38,11 @@
 }
 .ai-form {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.75rem;
 }
 .ai-form label {
+  min-width: 0;
   display: grid;
   gap: 0.35rem;
   font-weight: 600;
@@ -37,10 +50,24 @@
 .ai-form input,
 .ai-form select,
 .ai-form textarea {
+  min-width: 0;
+  max-width: 100%;
   padding: 0.65rem;
   border: 1px solid #aebbc4;
   border-radius: 0.4rem;
   font: inherit;
+}
+.ai-form select,
+.ai-form textarea,
+.ai-form input:not([type='checkbox']):not([type='radio']) {
+  width: 100%;
+}
+.ai-table-scroll {
+  max-width: 100%;
+  overflow-x: auto;
+}
+.ai-table-scroll .ai-table {
+  display: table;
 }
 .ai-table {
   width: 100%;

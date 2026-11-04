@@ -42,6 +42,7 @@ from vayujit_api.intelligence.business_agent_schemas import (
     RunResponse,
 )
 from vayujit_api.intelligence.business_agent_service import (
+    _candidate_cards,
     create_goal,
     create_plan,
     delete_goal,
@@ -52,6 +53,7 @@ from vayujit_api.intelligence.business_agent_service import (
     revise_plan,
     _trend_enabled,
 )
+from vayujit_api.intelligence.product_research import discovery_review_projection
 
 router = APIRouter(prefix="/api/v1/intelligence/business-agent", tags=["business-agent"])
 DB = Annotated[Session, Depends(get_session)]
@@ -71,6 +73,7 @@ def _run_payload(db: Session, run: BusinessAgentRun, owner: User) -> dict[str, o
         "result": run.result,
         "failure": run.failure,
         "checkpoint": run.checkpoint,
+        "candidates": _candidate_cards(db, owner, run_id=run.id),
         "approvals": [
             {
                 "id": a.id,
@@ -96,7 +99,7 @@ def _run_payload(db: Session, run: BusinessAgentRun, owner: User) -> dict[str, o
                 "capability_id": s.capability_id,
                 "status": s.status,
                 "attempt_count": s.attempt_count,
-                "result": s.result,
+                "result": discovery_review_projection(s.result),
             }
             for s in db.scalars(
                 select(BusinessAgentStep)
@@ -669,8 +672,10 @@ def revise(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
     }
 
 
-@router.get("/goals/{goal_id}/plan", response_model=PlanResponse)
-def get_plan(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
+@router.get("/goals/{goal_id}/plan", response_model=PlanResponse | None)
+def get_plan(
+    goal_id: uuid.UUID, db: DB, owner: Owner, allow_missing: bool = False
+) -> dict[str, object] | None:
     goal = get_goal(db, owner, goal_id)
     value = db.scalar(
         select(BusinessAgentPlan)
@@ -681,6 +686,8 @@ def get_plan(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
         .order_by(BusinessAgentPlan.version.desc())
     )
     if value is None:
+        if allow_missing:
+            return None
         raise HTTPException(404, "Business agent plan not found.")
     return _plan_payload(db, value, owner)
 
@@ -690,8 +697,10 @@ def run_create(goal_id: uuid.UUID, data: RunCreate, db: DB, owner: Owner) -> dic
     return _run_payload(db, start_run(db, owner, get_goal(db, owner, goal_id), data), owner)
 
 
-@router.get("/goals/{goal_id}/runs/latest", response_model=RunResponse)
-def latest_run(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
+@router.get("/goals/{goal_id}/runs/latest", response_model=RunResponse | None)
+def latest_run(
+    goal_id: uuid.UUID, db: DB, owner: Owner, allow_missing: bool = False
+) -> dict[str, object] | None:
     goal = get_goal(db, owner, goal_id)
     value = db.scalar(
         select(BusinessAgentRun)
@@ -702,6 +711,8 @@ def latest_run(goal_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
         .order_by(BusinessAgentRun.updated_at.desc(), BusinessAgentRun.created_at.desc())
     )
     if value is None:
+        if allow_missing:
+            return None
         raise HTTPException(404, "Business agent run not found.")
     return _run_payload(db, value, owner)
 

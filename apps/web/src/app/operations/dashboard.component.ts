@@ -3,7 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import type { BrandSummary, DashboardResponse } from '@vayujit/shared';
 import { BrandService } from '../brands/brand.service';
-import { OperationsService } from './operations.service';
+import { DailyStatus, OperationsService } from './operations.service';
 import {
   EmptyStateComponent,
   ErrorStateComponent,
@@ -57,6 +57,72 @@ import type { CommerceJourney } from '../commerce-journey.types';
       />
     }
     @if (data(); as value) {
+      <section class="goal-panel" aria-labelledby="daily-status-title">
+        <h2 id="daily-status-title">Daily seller status</h2>
+        <p>
+          Installation-wide canonical records, independent of the brand filter. Destinations and
+          recorded accounts are not proof of live marketplace authorization.
+        </p>
+        @if (daily(); as status) {
+          <p role="status">
+            Read at {{ status.loadedAt }}. This is retrieval time, not verification of source
+            freshness.
+          </p>
+          @if (status.unavailable.length) {
+            <p role="alert">
+              Unavailable: {{ status.unavailable.join(', ') }}. A failed read is UNKNOWN, not zero
+              or healthy.
+            </p>
+          }
+          <ul>
+            <li>
+              <a routerLink="/operations/action-center">Review operational evidence</a>:
+              {{
+                status.briefing ? status.briefing.counts.active + ' active issue(s)' : 'UNKNOWN'
+              }}. Scan evidence must be reviewed; no action was executed.
+            </li>
+            <li>
+              <a routerLink="/marketplaces/inventory">Review stock ledger</a>:
+              {{
+                status.inventory === null
+                  ? 'UNKNOWN'
+                  : status.inventory.length + ' inventory record(s)'
+              }}. Product master quantity is not ledger stock.
+            </li>
+            <li>
+              <a routerLink="/marketplaces/orders">Review orders</a>:
+              {{
+                status.orders === null
+                  ? 'UNKNOWN'
+                  : status.orders.length + ' returned record(s), up to the API limit'
+              }}. Synthetic records: {{ syntheticOrders(status) }}.
+            </li>
+            <li>
+              <a routerLink="/marketplaces/accounts">Review marketplace prerequisites</a>:
+              {{
+                status.accounts === null
+                  ? 'UNKNOWN'
+                  : status.accounts.length + ' recorded account(s)'
+              }}. No verified live connection is inferred from configuration.
+            </li>
+            <li>
+              <a routerLink="/marketplaces/financials">Review sales and contribution evidence</a>:
+              {{ status.financial ? status.financial.evidence_status : 'UNKNOWN' }}. Revenue is not
+              profit; missing cost or fee evidence blocks profitability.
+            </li>
+          </ul>
+          @if (status.financial?.synthetic_provider) {
+            <p class="trust-note">
+              Synthetic financial evidence is present. It is not real seller revenue.
+            </p>
+          }
+        } @else {
+          <p>
+            Daily operational evidence is unavailable; review the source workspaces. No healthy or
+            zero state is inferred.
+          </p>
+        }
+      </section>
       @if (isFirstUse(value)) {
         <section class="goal-panel first-use-panel" aria-labelledby="start-title">
           <p class="eyebrow">Start with a goal</p>
@@ -110,7 +176,10 @@ import type { CommerceJourney } from '../commerce-journey.types';
               }
             </div>
           } @else {
-            <p class="op-muted">Nothing needs your attention right now.</p>
+            <p class="op-muted">
+              No publishing or journey alerts in this summary. Review the operational briefing for
+              stock, orders and finance; this does not establish business readiness.
+            </p>
           }
         }
       </section>
@@ -231,33 +300,52 @@ export class DashboardComponent implements OnInit {
   readonly brandOptions = signal<BrandSummary[]>([]);
   readonly loading = signal(true);
   readonly error = signal('');
+  readonly daily = signal<DailyStatus | null>(null);
+  private loadVersion = 0;
   brandId = '';
   ngOnInit(): void {
     void this.init();
   }
   private async init(): Promise<void> {
-    await Promise.all([
-      this.brands.list({ pageSize: 100 }).then((x) => this.brandOptions.set(x.items)),
-      this.brands.loadActive(),
-    ]);
+    try {
+      await Promise.all([
+        this.brands.list({ pageSize: 100 }).then((x) => this.brandOptions.set(x.items)),
+        this.brands.loadActive(),
+      ]);
+    } catch {
+      this.brandOptions.set([]);
+    }
     this.brandId = this.brands.activeBrand()?.id ?? '';
     await this.load();
   }
   async load(): Promise<void> {
+    const version = ++this.loadVersion;
     this.loading.set(true);
     this.error.set('');
+    this.data.set(null);
+    this.daily.set(null);
+    this.activeJourney.set(null);
     try {
-      const [dashboard, journey] = await Promise.all([
+      const [dashboard, journey, daily] = await Promise.all([
         this.api.dashboard(this.brandId),
         this.loadJourney(),
+        typeof this.api.dailyStatus === 'function' ? this.api.dailyStatus() : Promise.resolve(null),
       ]);
+      if (version !== this.loadVersion) return;
       this.data.set(dashboard);
       this.activeJourney.set(journey);
+      this.daily.set(daily);
     } catch {
-      this.error.set('Some operational data could not be loaded.');
+      if (version === this.loadVersion)
+        this.error.set('Some operational data could not be loaded.');
     } finally {
-      this.loading.set(false);
+      if (version === this.loadVersion) this.loading.set(false);
     }
+  }
+  syntheticOrders(value: DailyStatus): string {
+    return value.orders === null
+      ? 'UNKNOWN'
+      : String(value.orders.filter((order) => order.fake_provider === true).length);
   }
   isFirstUse(value: DashboardResponse): boolean {
     const m = value.metrics;
@@ -427,10 +515,11 @@ export class DashboardComponent implements OnInit {
       ...(m.active_destinations > 0
         ? [
             {
-              label: `${m.active_destinations} sales channel${m.active_destinations === 1 ? '' : 's'} connected`,
-              context: 'Your products have configured destinations for the next launch step.',
-              action: 'Review channels',
-              route: '/marketplaces',
+              label: `${m.active_destinations} configured publishing destination${m.active_destinations === 1 ? '' : 's'}`,
+              context:
+                'Configuration only; not a connected seller account, verified authorization or proof of sales.',
+              action: 'Review destinations',
+              route: '/publishing/destinations',
             },
           ]
         : []),

@@ -1,0 +1,508 @@
+{
+  "browser": [
+    {
+      "id": "QA-P3-01",
+      "project": "desktop",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/marketplaces/inventory",
+        "/marketplaces/inventory",
+        "/marketplaces/inventory",
+        "/marketplaces/inventory"
+      ]
+    },
+    {
+      "id": "QA-P3-02",
+      "project": "desktop",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/marketplaces/orders",
+        "/marketplaces/orders",
+        "/marketplaces/orders",
+        "/marketplaces/orders"
+      ]
+    },
+    {
+      "id": "QA-P3-03",
+      "project": "desktop",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials"
+      ]
+    },
+    {
+      "id": "QA-P3-04",
+      "project": "desktop",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/operations/action-center",
+        "/operations/action-center"
+      ]
+    },
+    {
+      "id": "QA-P3-05",
+      "project": "desktop",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials"
+      ]
+    },
+    {
+      "id": "QA-P3-06",
+      "project": "desktop",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/intelligence/due-diligence",
+        "/intelligence/due-diligence",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics"
+      ]
+    },
+    {
+      "id": "QA-P3B-01",
+      "project": "desktop",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/intelligence/business-agent",
+        "/intelligence/business-agent"
+      ]
+    },
+    {
+      "id": "QA-P3B-02",
+      "project": "desktop",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/operations/action-center",
+        "/operations/action-center",
+        "/operations/action-center",
+        "/operations/action-center"
+      ]
+    },
+    {
+      "id": "QA-P3B-03",
+      "project": "desktop",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/intelligence/due-diligence",
+        "/intelligence/due-diligence",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/marketplaces/financials",
+        "/marketplaces/financials"
+      ]
+    },
+    {
+      "id": "QA-P3-01",
+      "project": "mobile",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/marketplaces/inventory",
+        "/marketplaces/inventory",
+        "/marketplaces/inventory",
+        "/marketplaces/inventory"
+      ]
+    },
+    {
+      "id": "QA-P3-02",
+      "project": "mobile",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/marketplaces/orders",
+        "/marketplaces/orders",
+        "/marketplaces/orders",
+        "/marketplaces/orders"
+      ]
+    },
+    {
+      "id": "QA-P3-03",
+      "project": "mobile",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials"
+      ]
+    },
+    {
+      "id": "QA-P3-04",
+      "project": "mobile",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/operations/action-center",
+        "/operations/action-center"
+      ]
+    },
+    {
+      "id": "QA-P3-05",
+      "project": "mobile",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials"
+      ]
+    },
+    {
+      "id": "QA-P3-06",
+      "project": "mobile",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/intelligence/due-diligence",
+        "/intelligence/due-diligence",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics"
+      ]
+    },
+    {
+      "id": "QA-P3B-01",
+      "project": "mobile",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/marketplaces/financials",
+        "/intelligence/business-agent",
+        "/intelligence/business-agent"
+      ]
+    },
+    {
+      "id": "QA-P3B-02",
+      "project": "mobile",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/operations/action-center",
+        "/operations/action-center",
+        "/operations/action-center",
+        "/operations/action-center"
+      ]
+    },
+    {
+      "id": "QA-P3B-03",
+      "project": "mobile",
+      "status": "passed",
+      "routes": [
+        "/login",
+        "/login",
+        "/dashboard",
+        "/intelligence/due-diligence",
+        "/intelligence/due-diligence",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/intelligence/sourcing-economics",
+        "/marketplaces/financials",
+        "/marketplaces/financials"
+      ]
+    }
+  ],
+  "api": [
+    {
+      "id": "test_01_stock_adjustment_replay_stale_and_negative",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_02_reservation_release_consume_and_invalid_transition",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_03_order_cancel_ship_return_and_no_automatic_refund",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_04_concurrent_final_unit_duplicate_delivery_and_multiline_rollback",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_05_conflicting_stock_key_is_not_silently_accepted",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_06_financial_event_rounding_loss_and_reconciliation_oracle",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_07_conflicting_financial_event_is_rejected",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_09_current_financial_snapshot_and_later_refund",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_10_settlement_unknown_mismatch_revision_and_precision",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_11_business_agent_unknowns_loss_and_default_deny",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_12_action_center_persisted_replay_concurrency_and_history",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_13_conflicting_signal_transition_key_rejected",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_15_source_changes_rescan_and_signal_resolution",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_16_fresh_process_database_reconstruction",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_17_canonical_order_synthetic_provenance_and_state_change",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_18_prepare_original_mobile_states_and_operational_browser_data",
+      "status": "PASS",
+      "project": "desktop",
+      "evidence": "tmp/qa-agent/ead549323967be3d/api-results.json"
+    },
+    {
+      "id": "test_01_stock_adjustment_replay_stale_and_negative",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_02_reservation_release_consume_and_invalid_transition",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_03_order_cancel_ship_return_and_no_automatic_refund",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_04_concurrent_final_unit_duplicate_delivery_and_multiline_rollback",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_05_conflicting_stock_key_is_not_silently_accepted",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_06_financial_event_rounding_loss_and_reconciliation_oracle",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_07_conflicting_financial_event_is_rejected",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_09_current_financial_snapshot_and_later_refund",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_10_settlement_unknown_mismatch_revision_and_precision",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_11_business_agent_unknowns_loss_and_default_deny",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_12_action_center_persisted_replay_concurrency_and_history",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_13_conflicting_signal_transition_key_rejected",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_15_source_changes_rescan_and_signal_resolution",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_16_fresh_process_database_reconstruction",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_17_canonical_order_synthetic_provenance_and_state_change",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    },
+    {
+      "id": "test_18_prepare_original_mobile_states_and_operational_browser_data",
+      "status": "PASS",
+      "project": "mobile",
+      "evidence": "tmp/qa-agent/30a6499519b354a2/api-results.json"
+    }
+  ],
+  "gaps": [
+    "Real provider, external publication, payment/refund dispatch, supplier contact and marketplace authorization are intentionally not executed.",
+    "Order creation/lifecycle uses the actual synthetic-provider API; the UI is a read-only projection, not a seller order-entry or refund-dispatch authority.",
+    "Action Center supports local signal acknowledge/snooze/resolve/reopen, not a complete persisted approval/rejection/execution workflow. Its request-action response is not proof of an executed or durably approved action.",
+    "Independent fresh-process database reconstruction is tested; database service outage and publishing-worker restart remain NOT EXECUTED to avoid interacting with unrelated runtime/backup services.",
+    "Browser failures/timeouts and committed-response loss use explicit network interception, not a claim of real infrastructure failure or worker recovery.",
+    "ORM metadata fixtures do not validate the complete migration chain. No migration certification is claimed.",
+    "No applicable GST treatment, real marketplace fee schedule, bank reconciliation or complete net-profit accounting is inferred from hypothetical synthetic evidence.",
+    "Keyboard checks are bounded; screen-reader/assistive-technology certification and comprehensive modal focus-trap testing remain unexecuted."
+  ]
+}

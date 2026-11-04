@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import HTTPException
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -388,22 +388,13 @@ def create_human_decision(
     if provenance != "HUMAN":
         raise HTTPException(403, "Only authenticated human actions may create a HUMAN decision.")
     _opportunity(db, owner, opportunity_id)
-    existing = db.scalar(
-        select(HumanDecision).where(
-            HumanDecision.owner_id == owner.id,
-            HumanDecision.idempotency_key == idempotency_key,
+    # Serialize first submission/replay, including conflicting requests for one key.
+    # The unique constraint remains the durable authority; no external action occurs.
+    if db.get_bind().dialect.name == "postgresql":
+        db.execute(
+            text("SELECT pg_advisory_xact_lock(hashtext(:scope))"),
+            {"scope": f"human-decision:{owner.id}:{idempotency_key}"},
         )
-    )
-    if existing is not None:
-        same = (
-            existing.opportunity_id == opportunity_id
-            and existing.decision_target == target.upper()
-            and existing.decision == decision
-            and existing.supplier_id == supplier_id
-        )
-        if not same:
-            raise HTTPException(409, "Idempotency key is already bound to another decision.")
-        return existing
     recommendation = _resolve_recommendation(
         db,
         owner,
@@ -412,6 +403,30 @@ def create_human_decision(
         recommendation_id=recommendation_id,
         supplier_id=supplier_id,
     )
+
+    def replay_matches(row: HumanDecision) -> bool:
+        return (
+            row.opportunity_id == opportunity_id
+            and row.decision_target == target.upper()
+            and row.decision == decision
+            and row.supplier_id == recommendation.supplier_id
+            and (goal_id is None or row.goal_id == goal_id)
+            and (synthesis_id is None or row.synthesis_id == synthesis_id)
+            and row.reason == reason
+        )
+
+    existing = db.scalar(
+        select(HumanDecision).where(
+            HumanDecision.owner_id == owner.id,
+            HumanDecision.idempotency_key == idempotency_key,
+        )
+    )
+    if existing is not None:
+        if not replay_matches(existing):
+            raise HTTPException(
+                409, "Idempotency key is already bound to another decision."
+            ) from None
+        return existing
     if synthesis_id is not None and recommendation.synthesis_id != synthesis_id:
         raise HTTPException(
             409, "Human decision synthesis does not match the reviewed recommendation."
@@ -506,6 +521,10 @@ def create_human_decision(
         )
         if existing is None:
             raise
+        if not replay_matches(existing):
+            raise HTTPException(
+                409, "Idempotency key is already bound to another decision."
+            ) from None
         return existing
     db.refresh(row)
     return row

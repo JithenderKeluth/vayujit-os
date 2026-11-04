@@ -93,7 +93,7 @@ const ACTIONS = [
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="portfolio-page" aria-labelledby="portfolio-title">
+    <section class="portfolio-page" aria-labelledby="portfolio-title">
       <app-breadcrumbs [items]="breadcrumbs" />
       <header class="page-header">
         <div>
@@ -131,7 +131,12 @@ const ACTIONS = [
               message="Create or load a supplier portfolio before reviewing concentration and resilience."
             />
           } @else {
-            <div class="table-wrap">
+            <div
+              class="table-wrap"
+              tabindex="0"
+              role="region"
+              aria-label="Supplier portfolio summary table"
+            >
               <table>
                 <caption class="sr-only">
                   Supplier portfolio summary
@@ -263,7 +268,12 @@ const ACTIONS = [
             @if (!members().length) {
               <p class="empty-state">No supplier memberships are recorded.</p>
             } @else {
-              <div class="table-wrap">
+              <div
+                class="table-wrap"
+                tabindex="0"
+                role="region"
+                aria-label="Supplier exposure table"
+              >
                 <table>
                   <caption class="sr-only">
                     Supplier exposure
@@ -528,7 +538,12 @@ const ACTIONS = [
             @if (!history().length) {
               <p class="empty-state">No historical assessments are available.</p>
             } @else {
-              <div class="table-wrap">
+              <div
+                class="table-wrap"
+                tabindex="0"
+                role="region"
+                aria-label="Portfolio assessment history table"
+              >
                 <table>
                   <caption class="sr-only">
                     Immutable portfolio assessment history
@@ -666,7 +681,7 @@ const ACTIONS = [
           </section>
         </div>
       }
-    </main>
+    </section>
   `,
   styles: [
     `
@@ -928,7 +943,7 @@ const ACTIONS = [
         font-weight: 700;
       }
       .muted {
-        color: #607d89;
+        color: #455b65;
         font-size: 0.9rem;
       }
       .result-columns {

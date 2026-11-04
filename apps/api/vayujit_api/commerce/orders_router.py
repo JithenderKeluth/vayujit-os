@@ -15,6 +15,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from vayujit_api.audit.service import record_event
+from vayujit_api.commerce.financial_router import _provenance
 from vayujit_api.commerce.models import (
     ChannelSkuMapping,
     InventoryItem,
@@ -28,12 +29,14 @@ from vayujit_api.commerce.models import (
 from vayujit_api.commerce.schemas import (
     FakeOrderEventRequest,
     ReconciliationResponse,
+    UnifiedOrderLineResponse,
     UnifiedOrderResponse,
 )
 from vayujit_api.core.database import get_session
 from vayujit_api.identity.models import User
 from vayujit_api.identity.router import current_user
 from vayujit_api.identity.service import now
+from vayujit_api.products.models import Product
 
 router = APIRouter(prefix="/api/v1/orders", tags=["orders"])
 DatabaseSession = Annotated[Session, Depends(get_session)]
@@ -72,7 +75,9 @@ def _reservation_state(db: Session, user: User, order: MarketplaceOrder) -> str:
     return "none"
 
 
-def _response(db: Session, user: User, order: MarketplaceOrder) -> UnifiedOrderResponse:
+def _response(
+    db: Session, user: User, order: MarketplaceOrder, *, include_lines: bool = False
+) -> UnifiedOrderResponse:
     count = (
         db.scalar(
             select(func.count(MarketplaceOrderItem.id)).where(
@@ -81,6 +86,29 @@ def _response(db: Session, user: User, order: MarketplaceOrder) -> UnifiedOrderR
         )
         or 0
     )
+    provenance = _provenance(db, user, [order])
+    lines: list[UnifiedOrderLineResponse] = []
+    if include_lines:
+        items = db.scalars(
+            select(MarketplaceOrderItem)
+            .where(
+                MarketplaceOrderItem.owner_id == user.id, MarketplaceOrderItem.order_id == order.id
+            )
+            .order_by(MarketplaceOrderItem.id)
+        ).all()
+        owned_product_ids = set(db.scalars(select(Product.id).where(Product.owner_id == user.id)))
+        lines = [
+            UnifiedOrderLineResponse(
+                id=item.id,
+                product_id=item.product_id if item.product_id in owned_product_ids else None,
+                marketplace_sku=item.marketplace_sku,
+                title=item.title_snapshot,
+                quantity=item.quantity,
+                unit_price=str(item.unit_price),
+                total_price=str(item.total_price),
+            )
+            for item in items
+        ]
     return UnifiedOrderResponse(
         id=order.id,
         account_id=order.account_id,
@@ -90,7 +118,10 @@ def _response(db: Session, user: User, order: MarketplaceOrder) -> UnifiedOrderR
         fulfilment_status=order.fulfilment_status,
         reservation_state=_reservation_state(db, user, order),
         line_count=int(count),
-        fake_provider=True,
+        fake_provider=provenance["synthetic_provider"],
+        provenance_status=provenance["provenance_status"],
+        currency=str(order.totals_json["currency"]) if order.totals_json.get("currency") else None,
+        lines=lines,
         ordered_at=order.ordered_at,
     )
 
@@ -268,7 +299,7 @@ def business_agent_insights(db: DatabaseSession, user: Owner) -> ReconciliationR
 
 @router.get("/{order_id}", response_model=UnifiedOrderResponse)
 def get_order(order_id: uuid.UUID, db: DatabaseSession, user: Owner) -> UnifiedOrderResponse:
-    return _response(db, user, _order(db, user, order_id))
+    return _response(db, user, _order(db, user, order_id), include_lines=True)
 
 
 @router.post("/fake/events", response_model=UnifiedOrderResponse, status_code=201)

@@ -7,6 +7,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { JsonPipe } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import type { AIArtifactDetails, ApprovalComparisonVersion } from '@vayujit/shared';
 import { OperationsService } from '../operations/operations.service';
@@ -16,7 +17,7 @@ import { AIService } from './ai.service';
 
 @Component({
   selector: 'app-ai-artifact',
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, JsonPipe],
   template: ` <section class="ai-page">
     <header class="ai-header">
       <div>
@@ -77,7 +78,7 @@ import { AIService } from './ai.service';
               translation quality.
             </p>
           }
-          <div class="ai-compare" aria-label="Artifact version comparison">
+          <div class="ai-compare" role="group" aria-label="Artifact version comparison">
             @for (field of scalarFields; track field[0]) {
               <section [attr.data-state]="scalar(field[1]).state">
                 <h3>{{ field[0] }}</h3>
@@ -135,41 +136,57 @@ import { AIService } from './ai.service';
             <option value="te-IN">te-IN</option>
           </select>
         </label>
-        <button type="button" [disabled]="busy()" (click)="translate(item)">
+        @if (!translationSupported(item)) {
+          <p>
+            Translation requires channel-specific Studio content. This legacy content bundle is not
+            supported by that authority.
+          </p>
+        }
+        <button
+          type="button"
+          [disabled]="busy() || !translationSupported(item)"
+          (click)="translate(item)"
+        >
           Translate exact Artifact
         </button>
       </article>
       <article class="ai-card">
         <p class="ai-status">Status: {{ item.status }}</p>
-        <h2>{{ item.content.product_title }}</h2>
-        <p>
-          <strong>{{ item.content.short_description }}</strong>
-        </p>
-        <p class="ai-content">{{ item.content.long_description }}</p>
-        <h3>Key features</h3>
-        <ul>
-          @for (feature of item.content.key_features; track feature) {
-            <li>{{ feature }}</li>
-          }
-        </ul>
-        <h3>SEO</h3>
-        <p>
-          <strong>{{ item.content.seo_title }}</strong>
-        </p>
-        <p>{{ item.content.seo_description }}</p>
-        <h3>Social caption</h3>
-        <p>{{ item.content.social_caption }}</p>
-        <div class="ai-keywords">
-          @for (keyword of item.content.keywords; track keyword) {
-            <span>{{ keyword }}</span>
-          }
-        </div>
-        <p class="ai-muted">
-          {{ item.content.generation_summary }} - {{ item.template_name }} v{{
-            item.template_version
-          }}
-          - {{ item.provider_key }}
-        </p>
+        @if (!('product_title' in item.content)) {
+          <h2>Channel-specific content</h2>
+          <p>Exact saved fields are shown below. Omitted fields are not established.</p>
+          <pre class="ai-content">{{ item.content | json }}</pre>
+        } @else {
+          <h2>{{ item.content.product_title }}</h2>
+          <p>
+            <strong>{{ item.content.short_description }}</strong>
+          </p>
+          <p class="ai-content">{{ item.content.long_description }}</p>
+          <h3>Key features</h3>
+          <ul>
+            @for (feature of item.content.key_features; track feature) {
+              <li>{{ feature }}</li>
+            }
+          </ul>
+          <h3>SEO</h3>
+          <p>
+            <strong>{{ item.content.seo_title }}</strong>
+          </p>
+          <p>{{ item.content.seo_description }}</p>
+          <h3>Social caption</h3>
+          <p>{{ item.content.social_caption }}</p>
+          <div class="ai-keywords">
+            @for (keyword of item.content.keywords; track keyword) {
+              <span>{{ keyword }}</span>
+            }
+          </div>
+          <p class="ai-muted">
+            {{ item.content.generation_summary }} - {{ item.template_name }} v{{
+              item.template_version
+            }}
+            - {{ item.provider_key }}
+          </p>
+        }
       </article>
       @if (editing()) {
         <article class="ai-card ai-form" aria-labelledby="edit-title">
@@ -282,26 +299,35 @@ export class AIArtifactComponent implements OnInit {
     void this.load();
   }
   beginEdit(item: AIArtifactDetails): void {
-    this.draftTitle = item.content.product_title;
-    this.draftDescription = item.content.long_description;
-    this.draftBullets = item.content.key_features.join('\n');
+    this.draftTitle =
+      item.content.product_title ??
+      (typeof item.content['title'] === 'string' ? item.content['title'] : '');
+    this.draftDescription =
+      item.content.long_description ??
+      (typeof item.content['description'] === 'string' ? item.content['description'] : '');
+    const bullets = item.content.key_features ?? item.content['bullets'];
+    this.draftBullets = Array.isArray(bullets) ? bullets.join('\n') : '';
     this.editing.set(true);
   }
   async saveEdit(): Promise<void> {
     const current = this.artifact();
     if (!current) return;
     const content = { ...current.content };
-    content.product_title = this.draftTitle.trim();
-    content.long_description = this.draftDescription.trim();
-    content.key_features = this.draftBullets
+    const legacy = 'product_title' in content;
+    content[legacy ? 'product_title' : 'title'] = this.draftTitle.trim();
+    content[legacy ? 'long_description' : 'description'] = this.draftDescription.trim();
+    content[legacy ? 'key_features' : 'bullets'] = this.draftBullets
       .split('\n')
       .map((value) => value.trim())
       .filter(Boolean);
     this.busy.set(true);
     this.error.set('');
     try {
-      await this.ai.studioEdit(current.id, content);
+      const revision = await this.ai.studioEdit(current.id, content, current.version_number);
       this.editing.set(false);
+      await this.router.navigate(['/ai/artifacts', revision.id], {
+        queryParamsHandling: 'preserve',
+      });
       await this.load();
     } catch (error) {
       this.error.set(AIService.errorMessage(error));
@@ -357,7 +383,16 @@ export class AIArtifactComponent implements OnInit {
     }
     await this.reviewAndContinue(() => this.ai.reject(this.rightId() || this.id, this.reason));
   }
+  translationSupported(item: AIArtifactDetails): boolean {
+    return item.content_type !== 'product_content';
+  }
   async translate(item: AIArtifactDetails): Promise<void> {
+    if (!this.translationSupported(item)) {
+      this.error.set(
+        'Translation requires channel-specific Studio content; legacy bundles are unsupported.',
+      );
+      return;
+    }
     if (item.locale === this.translationLocale) {
       this.error.set('Translation target locale must differ from the source locale.');
       return;

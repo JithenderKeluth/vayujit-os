@@ -16,6 +16,14 @@
     "packages/shared"
   ],
   "scripts": {
+    "qa:audit": "node qa/audit.mjs",
+    "qa:unit": "node --test qa/unit/*.test.mjs",
+    "qa:smoke": "node qa/run.mjs",
+    "qa:phase2": "node qa/run.mjs --phase2",
+    "qa:phase3": "node qa/run.mjs --phase3",
+    "qa:phase4": "node qa/run.mjs --phase4",
+    "qa:phase4a": "node qa/run.mjs --phase4a",
+    "qa:phase4b": "node qa/run.mjs --phase4b",
     "install:all": "npm install && npm run api:install",
     "api:install": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup-api.ps1",
     "intelligence:worker:once": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/run-intelligence-worker.ps1",
@@ -252,6 +260,7 @@
     "test:certification:migrations": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/test-certification-migrations.ps1"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "concurrently": "9.2.4",
     "electron-builder": "26.15.3",
     "prettier": "3.6.2"

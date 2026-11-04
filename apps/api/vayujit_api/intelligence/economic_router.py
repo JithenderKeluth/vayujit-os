@@ -269,8 +269,8 @@ def calculation_list(db: DB, owner: Owner):
     return {"items": rows}
 
 
-@router.get("/calculations/{calculation_id}")
-def calculation_detail(calculation_id: uuid.UUID, db: DB, owner: Owner):
+@router.get("/calculations/{calculation_id}", response_model=None)
+def calculation_detail(calculation_id: uuid.UUID, db: DB, owner: Owner) -> dict[str, object]:
     row = db.scalar(
         select(EconomicCalculation).where(
             EconomicCalculation.id == calculation_id,
@@ -281,7 +281,19 @@ def calculation_detail(calculation_id: uuid.UUID, db: DB, owner: Owner):
         from fastapi import HTTPException
 
         raise HTTPException(404, "Economic calculation is not available in the owner scope.")
-    return {"calculation": row, "breakdown": list_breakdown(db, owner, row.id)}
+    return {
+        "calculation": row,
+        "breakdown": list_breakdown(db, owner, row.id),
+        # Additive exact read projection: legacy numeric fields are unchanged.
+        # The SQL Numeric values are stringified before JSON's float encoder.
+        "exact_amounts": {
+            "total_included_cost": str(row.total_included_cost),
+            "per_unit_cost": str(row.per_unit_cost) if row.per_unit_cost is not None else None,
+            "target_quantity": (
+                str(row.target_quantity) if row.target_quantity is not None else None
+            ),
+        },
+    }
 
 
 @router.post("/fx/observations", status_code=201)

@@ -1,7 +1,8 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from './auth.service';
+import { authReturnUrl } from './auth-return-url';
 @Component({
   selector: 'app-auth-page',
   imports: [ReactiveFormsModule],
@@ -167,6 +168,7 @@ export class AuthPageComponent {
   readonly auth = inject(AuthService);
   private fb = inject(FormBuilder);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   readonly show = signal(false);
   readonly busy = signal(false);
   readonly setup = signal(location.pathname === '/setup');
@@ -180,7 +182,7 @@ export class AuthPageComponent {
     confirmation: ['', this.setup() ? [Validators.required] : []],
   });
   async submit() {
-    if (this.form.invalid) return;
+    if (this.form.invalid || this.busy()) return;
     this.busy.set(true);
     try {
       const v = this.form.getRawValue();
@@ -196,7 +198,10 @@ export class AuthPageComponent {
           passwordConfirmation: v.confirmation,
         });
       } else await this.auth.login({ email: v.email, password: v.password });
-      await this.router.navigateByUrl('/dashboard');
+      await this.router.navigateByUrl(
+        authReturnUrl(this.route.snapshot.queryParamMap.get('returnUrl')),
+        { replaceUrl: true },
+      );
     } catch {
       // AuthService owns the safe user-facing error state.
     } finally {

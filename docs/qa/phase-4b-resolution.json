@@ -1,0 +1,1034 @@
+{
+  "generated_at": "2026-10-26T17:41:34.921Z",
+  "status": "INITIAL_STOCK_ENTRY_VALIDATED_BOUNDED_LOCAL_SCOPE",
+  "application_certification": "INCOMPLETE",
+  "gates": {
+    "seller_ui_and_persistence": true,
+    "audited_movement_replay_concurrency_and_security": true,
+    "desktop_mobile_accessibility": true,
+    "exposed_stock_help_and_header_contrast": true,
+    "original_phase4_regression": true,
+    "phase3_phase2_phase1_regressions": true,
+    "quality_checks_no_new_failures": true,
+    "current_execution_hashes": true,
+    "original_assertion_change_only_expected_empty_message": true,
+    "canonical_models_unchanged_no_migration": true,
+    "independent_all_target_cleanup": true
+  },
+  "backend": {
+    "counts": {
+      "test_qa_phase4b_opening_stock": 36,
+      "test_qa_phase3a_remediation": 17,
+      "test_qa_phase3b_remediation": 16,
+      "test_pr_sos_06_action_center": 4,
+      "test_pr_sos_04_inventory_orders": 8
+    },
+    "passed": 81,
+    "evidence": "tmp/qa-agent/df731018cff94996/backend-results.xml",
+    "cleanup": {
+      "status": "PASS",
+      "database": "vayujit_qadf731018cff94996_test",
+      "marker_verified": true,
+      "database_absent": true
+    }
+  },
+  "source_hashes": {
+    "apps/api/vayujit_api/commerce/inventory_router.py": "a86319635e9c040cd568e7a044a3992acd1573a06930fac5f1ce28936da70757",
+    "apps/api/vayujit_api/commerce/schemas.py": "b7fe6bece5057fe1cd759ed26fe27ea408be792ae285b99e8efb96cdcbad7e02",
+    "apps/api/vayujit_api/commerce/models.py": "83284b6650ee2e5c82f5f049051e78c7fda846657b7f6aa542d9a09632a47da6",
+    "apps/api/vayujit_api/products/models.py": "b77c1fc22844656e8b3360c1e9f6a0c3d57c6f72f1f813f93bf55e49560d56e9",
+    "apps/api/vayujit_api/catalog/models.py": "1f5c8b9615fcf33da73c751a6f5a6659ad29b06614288ff639d39ff087d778ca",
+    "apps/web/src/app/marketplaces/unified-inventory.component.ts": "3103f0422200f656c58058aed8c43729cdbfa67e266bcfb328a7ca9b38c60997",
+    "apps/web/src/app/marketplaces/marketplace.service.ts": "9efd319ce7140c29291f5682cf50b9bb6f0941080dc50d9ac1d83bee38f92505",
+    "apps/web/src/app/app.routes.ts": "034764877c26d95b0d40b37ad08f56c254679df586749cf1845e037548c9f87c",
+    "qa/tests/phase4.spec.mjs": "f34b3fec212081d08279ac117f9562f7fa84d4c5491085c6bb15f9cdd1aa965b",
+    "apps/web/src/app/ai/ai.css": "a915901551c88b166b1183d6191c8ab8d4aeb141274a792bc8b67563b7d2a2cc",
+    "qa/tests/phase4b.spec.mjs": "004b9456c5a888b5614c0603f41208ba399be2953ff022dd17724d7de6742b8b",
+    "apps/web/src/app/marketplaces/opening-stock.component.ts": "becd0bbf9cda07ca8ed6d655c6973eae0c1b33b815f0166d0a562ccec86b5bbc",
+    "apps/web/src/app/marketplaces/opening-stock.css": "335859d53cb078bd2a209d50726d485c177b60265549178b983bdda0565da8d8",
+    "qa/safety.mjs": "5859ed828531964721bd2c596f82b8d308eb8c9f7b6b78825c5ebf4ee40569a8",
+    "qa/server.mjs": "e9ca0877c0815a64d2b050cade9bb5d43c1e8d6a9252420e8bf3e33f5a4bbf4d",
+    "apps/api/tests/test_qa_phase4b_opening_stock.py": "3a4afc02e447b584a48e67f52b075f5e2893822c08a310f018af80e3b5e7a22b",
+    "qa/fixture_server.py": "85eb7bc1aba2198cf739ad1f7c8c42c77b0306c49bd30c4addfaedc04d0fd999",
+    "apps/web/src/app/marketplaces/opening-stock.component.spec.ts": "e29cb62c257ba8a82df7d443a0fbbc63d2791e1a9597bb74b91dee2ae00f56f6",
+    "apps/web/src/app/marketplaces/opening-stock.service.spec.ts": "210ddb0d86f7914ed5c22e1ff8f125c3af1af5978193db0b408371fd250d2c36"
+  },
+  "baseline_findings": 129,
+  "previously_resolved_historical_records_preserved_separately": 11,
+  "finding_decisions": [
+    {
+      "id": "QA-UX-CURRENCY-DESKTOP",
+      "original_status": "NOT_RETESTED",
+      "status": "NOT_RETESTED",
+      "changed": false
+    },
+    {
+      "id": "QA-UX-CURRENCY-MOBILE",
+      "original_status": "NOT_RETESTED",
+      "status": "NOT_RETESTED",
+      "changed": false
+    },
+    {
+      "id": "QA-P2-UX-ECONOMICS-DESKTOP",
+      "original_status": "NOT_RETESTED",
+      "status": "NOT_RETESTED",
+      "changed": false
+    },
+    {
+      "id": "QA-P2-UX-ECONOMICS-MOBILE",
+      "original_status": "NOT_RETESTED",
+      "status": "NOT_RETESTED",
+      "changed": false
+    },
+    {
+      "id": "QA-P3-GAP-001",
+      "original_status": "BLOCKED",
+      "status": "BLOCKED",
+      "changed": false
+    },
+    {
+      "id": "QA-P3-GAP-002",
+      "original_status": "BLOCKED",
+      "status": "BLOCKED",
+      "changed": false
+    },
+    {
+      "id": "QA-P3-GAP-003",
+      "original_status": "BLOCKED",
+      "status": "PASS",
+      "changed": true
+    },
+    {
+      "id": "QA-P3-A11Y-REVIEW-001",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-UX-PRE-RUN-MODE-001",
+      "original_status": "NOT_RETESTED",
+      "status": "NOT_RETESTED",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-E96F9DFDE280",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-23DF0FDF8B0E",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-E40C2783EE3D",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-44ACD6654124",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-CB04ED4A4EA6",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-3E5F633E4037",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-D7BBEB7BBE2A",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-DC01B46528F7",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-FD6BE146A5F0",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-D9E4382CA736",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-3A8E81633B75",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-A16747D8ABCB",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-6D3829F9EEF4",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-D6DAE6D2EE22",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-A271A0498E89",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-F00D78BBBB9B",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-A1E598DC9852",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-E14F2270CBE9",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-3C9CF969E8F2",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-A2CA3D432552",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-79435C8AA158",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-91E14988E5D5",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-A6D1540C04AA",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-89DAC1CD93F9",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-513CFFA471E1",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-66308571F015",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-FE9BD5EDDAEF",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-2B7FA3EFC0F3",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-6765E73EDC71",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-AF8BF75CA180",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-430F9652F664",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-9ED3FC173084",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-001F12348729",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-5087095AA670",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-5E13BE44E3A4",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-DD250ACC3B69",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-B92F2A83E235",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-8A51650AE106",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-E8DCA3F276C4",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-2E450747C233",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-75F369D37253",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-FFB4A299A7CE",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-2D7E9087CD96",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-5E5F9D8178D6",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-34A8ABF24CC4",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-42FE7B94A7D8",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-ASSERT-C42568577235",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-8E00B31BBCEC",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-5125939B31FA",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-E9B916722E14",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-2E2C527E83C9",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-AA47B13918CB",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-0A3596EDDB06",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-D7DD15FFCE5B",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-0BB638A4CD4C",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-D710A11DAF0F",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-FBA4993C75D8",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-5A35D76B79B9",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-B7376E19BA87",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-C6D5B2B4C7E1",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-76479A8A6DF4",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-78D838E8B612",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-F0BACDB7A3BA",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-F75FFFA4B7D0",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-8950ECCA4CCC",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-4A89BCBB98E6",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-8280F5E3D289",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-1E1BC8507674",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-763F1B4A4390",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-0F52BC939E41",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-C7838FC35B1A",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-26AEEB64E1BD",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-338F8353CBE9",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-9C85044DF29F",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-BCE52D1D245F",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-9A12E729646E",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-601357805E06",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-8C8B1F278405",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-8DC6F8DCDEC2",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-10C33F043B34",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-F35A3F1CCC3B",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-91CF6D09DACC",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-B4F94EEF1625",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-B6A22B4A01D6",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-B80713638977",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-2599632DCD78",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-B04BA9EDFEA5",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-C1475768FD6F",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-5F89506AC241",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-253C0733D8E7",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-4C1A2779E46E",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-ASSERT-B98DFC06C7B1",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-204FB7530B1E",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-ASSERT-FC9019123F6D",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-1BD3E57BFE08",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-528EB4702FE9",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-86986F1B529F",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-B55758865EA3",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-9F962BE094D5",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-FF234C7614B0",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-ASSERT-47F74387E395",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-CE8A889155F0",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-ASSERT-02BB0B433F4A",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-ASSERT-503A9F1D5FF5",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-B1E92B58C67D",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-E00F1DD38EB3",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-API-67A1C8127DF2",
+      "original_status": "NOT_RETESTED",
+      "status": "NOT_RETESTED",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-ASSERT-F8D3F24797EE",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-A1CF7B3F220C",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-7C0BAFB59154",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-ASSERT-700D428F916A",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-UX-STOCK-EMPTY",
+      "original_status": "NOT_RETESTED",
+      "status": "PASS",
+      "changed": true
+    },
+    {
+      "id": "QA-P4-A11Y-CAPTION-CLIPPING",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-UX-OVERFLOW-805927FDFA67",
+      "original_status": "NOT_RETESTED",
+      "status": "NOT_RETESTED",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-UX-OVERFLOW-4A67C5636387",
+      "original_status": "NOT_RETESTED",
+      "status": "NOT_RETESTED",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-UX-RESEARCH-LENGTH",
+      "original_status": "NOT_RETESTED",
+      "status": "NOT_RETESTED",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-53F6D1D5D94D",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-26DC4E2A2543",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4-AXE-C81046A29D13",
+      "original_status": "PASS",
+      "status": "PASS",
+      "changed": false
+    },
+    {
+      "id": "QA-P4A-A11Y-MANUAL-001",
+      "original_status": "BLOCKED",
+      "status": "BLOCKED",
+      "changed": false
+    }
+  ],
+  "resolved": 117,
+  "open": [
+    {
+      "id": "QA-UX-CURRENCY-DESKTOP",
+      "priority": "P2",
+      "type": "USABILITY",
+      "status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-UX-CURRENCY-MOBILE",
+      "priority": "P2",
+      "type": "USABILITY",
+      "status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-P2-UX-ECONOMICS-DESKTOP",
+      "priority": "P2",
+      "type": "USABILITY",
+      "status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-P2-UX-ECONOMICS-MOBILE",
+      "priority": "P2",
+      "type": "USABILITY",
+      "status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-UX-PRE-RUN-MODE-001",
+      "priority": "P3",
+      "type": "USABILITY",
+      "status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-P3-GAP-001",
+      "priority": "P2",
+      "type": "MISSING_FLOW",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "QA-P3-GAP-002",
+      "priority": "P2",
+      "type": "MISSING_FLOW",
+      "status": "BLOCKED"
+    },
+    {
+      "id": "QA-P4-API-67A1C8127DF2",
+      "priority": "P2",
+      "type": "SUSPECTED_DEFECT",
+      "status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-P4-UX-OVERFLOW-805927FDFA67",
+      "priority": "P2",
+      "type": "USABILITY",
+      "status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-P4-UX-OVERFLOW-4A67C5636387",
+      "priority": "P2",
+      "type": "USABILITY",
+      "status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-P4-UX-RESEARCH-LENGTH",
+      "priority": "P2",
+      "type": "USABILITY",
+      "status": "NOT_RETESTED"
+    },
+    {
+      "id": "QA-P4A-A11Y-MANUAL-001",
+      "priority": "P2",
+      "type": "ACCESSIBILITY",
+      "status": "BLOCKED"
+    }
+  ],
+  "scans": 26,
+  "violations": 0,
+  "incomplete_rule_state_occurrences": 1,
+  "independent_cleanup": [
+    {
+      "project": "desktop",
+      "database": "vayujit_qacb6f57399d90f171_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qacb6f57399d90f171_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qa8bdfe17e3d733d33_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa8bdfe17e3d733d33_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "desktop",
+      "database": "vayujit_qa2af5f146287bb2ee_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa2af5f146287bb2ee_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qa12b406043b4f94f2_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa12b406043b4f94f2_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "desktop",
+      "database": "vayujit_qaead549323967be3d_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qaead549323967be3d_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qa30a6499519b354a2_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa30a6499519b354a2_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "desktop",
+      "database": "vayujit_qadd4df12c9c8610d3_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qadd4df12c9c8610d3_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qa0cdab10244f96439_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa0cdab10244f96439_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "desktop",
+      "database": "vayujit_qaa373cbfc14cb7ea6_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qaa373cbfc14cb7ea6_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qa49e7bebb7ccd109c_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa49e7bebb7ccd109c_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    }
+  ]
+}

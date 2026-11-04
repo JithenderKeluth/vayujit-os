@@ -81,11 +81,15 @@
 .dashboard-filter {
   display: grid;
   gap: var(--vj-space-2);
-  min-width: 12rem;
+  width: min(100%, 18rem);
+  min-width: 0;
   color: var(--vj-color-ink-soft);
   font-weight: 650;
 }
 .dashboard-filter select {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
   min-height: 2.5rem;
   padding: 0.5rem 0.7rem;
 }

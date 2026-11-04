@@ -1,0 +1,3571 @@
+{
+  "generated_at": "2026-10-26T18:17:10.611Z",
+  "tested_source_sha256": {
+    "apps/web/src/app/ads/ads-optimization.component.ts": "c14d2a247781b0e9d2a448307db8f4bade410ebe8ad13b847a530a9908318512",
+    "apps/web/src/app/ads/ads-workspace.component.ts": "4cac2f1c535f1cc923f54bbec49d2a1a3e38424b5168dd573dc42920ed9d80d3",
+    "apps/web/src/app/ads/marketing-plan.component.ts": "7ce29234c4d6c91964f5a4b04b9213a35a348334fcfb25c80bca9809ab6089b9",
+    "apps/web/src/app/ai/ai-generate.component.ts": "d12c363a75dc449219108e03e99e066df037f0565d219422ed21d10f423bb3ef",
+    "apps/web/src/app/ai/ai-history.component.ts": "10d91ce28789cf3ac9a0a50c76ce8211e4dc10af9dde76e5ffad171304c10e35",
+    "apps/web/src/app/ai/ai-seo.component.ts": "caec0691a646dc01e307da138a69070b77f339760a9368d55268c987e5978512",
+    "apps/web/src/app/ai/ai-video-bulk.component.ts": "e772d16401faf2ee25b36a6807ec440c76cd25b79439f0439a753268fd593de3",
+    "apps/web/src/app/ai/ai-video.component.ts": "1dca35666c87df5474871046cb0157e201beecd6960a3975b6205d22112a2e01",
+    "apps/web/src/app/intelligence/alibaba-discovery.component.ts": "492968c59e84479f5bedd00d96becab9d71fc46c848fda599478d16bbc833d50",
+    "apps/web/src/app/intelligence/autonomous-research.component.ts": "523393c1dbc4eade3acb1f15e6386c0f5f836dc81dce934a8032b685a5e2ea55",
+    "apps/web/src/app/intelligence/competitor-intelligence-workspace.component.ts": "fd0d79b31a6659f8a3ea00984f78b9f92a17a2a11cc63dfc6e3b1e9199727f2a",
+    "apps/web/src/app/intelligence/external-research-workspace.component.ts": "76077d951dd467d5e68021b1d33745c388d2e267868464ca63317a5aa5bc70e9",
+    "apps/web/src/app/intelligence/global-sources-discovery.component.ts": "cf1dad2e481795fc9f2fc8db6fd25ad4c6b7bb7ce6c77d7a13bc407d0043a67c",
+    "apps/web/src/app/intelligence/indiamart-discovery.component.ts": "874074504b468de5dd374f62d3667de3dfe49718e6a7dd693d54914f2ea40989",
+    "apps/web/src/app/intelligence/intelligence-workspace.component.ts": "f42280a25a3183253c1a4eb0aada4ec4d8d19e391876062eb5c281562028eb1a",
+    "apps/web/src/app/intelligence/product-opportunity-workspace.component.ts": "a16c4e4ff45b83e32fd89b55efb9321df093019d4d0defab84023c9e44405c11",
+    "apps/web/src/app/intelligence/review-intelligence-workspace.component.ts": "861c8948625f843e92e355d4290e05c2b38c37adf908f3a427b1a36835634787",
+    "apps/web/src/app/intelligence/sourcing-economics-workspace.component.ts": "6ee76e1bd94bce8f3052d58f33a822374080dac776b88ce80fc3c2d344e7b621",
+    "apps/web/src/app/intelligence/sourcing-scenarios.component.ts": "3aa3a35d445d21fe42e2ff67c9ff1ddee99bb92b2b1f739758f322139993503a",
+    "apps/web/src/app/intelligence/sourcing-workspace.component.ts": "dc862c8ac64d2a9cb9aaa5b296b6b1daa0ba447dda1be98534f26a25f1ba981f",
+    "apps/web/src/app/intelligence/supplier-due-diligence.component.ts": "5d8432d40d3a4724707d92b7209564fbd8f9cc4d52e2fd593377c046caf0965a",
+    "apps/web/src/app/intelligence/supplier-engagement-workspace.component.ts": "c7cf1def80b4d51279b91089b23791991fa40b946626b2ebca8b6ad88ed20130",
+    "apps/web/src/app/intelligence/supplier-portfolio-workspace.component.ts": "8f951fdf4dbd44352e1ebff1cfbfd0bf02e5235a19b6fa3f9c5f6cb483fbbec5",
+    "apps/web/src/app/intelligence/supplier-shortlisting.component.ts": "d50ae1d9649717abdabfe49c2338445fdc8d8857fc8a8ded1444b8f042a99be0",
+    "apps/web/src/app/intelligence/tradeindia-discovery.component.ts": "8faf4968ae7fe51c2928b941b390b68d58a2f638f88ccd53763a71d5c43ac469",
+    "apps/web/src/app/intelligence/trend-intelligence-workspace.component.ts": "53e413152d590e41cb0013442b5e334a257392b3653d00786cb779f73eb59a9b",
+    "apps/web/src/app/intelligence/website-intelligence.component.ts": "505bd49a3a6e43028b487dc6f4c17be2509f55265a5a9390d8e357c2f054a5ee",
+    "apps/web/src/app/marketplaces/marketplace-video.component.ts": "e1dd195d5c87f86a219c6810764e8ffd33daf597c74589081d23cf8527aa45c3",
+    "apps/web/src/app/marketplaces/meesho-workspace.component.ts": "1739b1da1ae67fa3b6459d6d9df50650a06d0ca69ad3cc348adc2701d15ef087",
+    "apps/web/src/app/publishing/jobs.component.ts": "014030adb575fad46d53bd67d6ffcbdcd733b9a6dee59da5450ac5682a2c2860",
+    "apps/web/src/app/social/social-workspace.component.ts": "8bf12b9a579f914064220ea16a810e3f13816c523ea6334e59a72d9fd8693807",
+    "apps/web/src/styles.css": "2ac5f889e94dc44a5f08469d7a7e7067352de5d0b2c3ae16aa5bf4727e0019d2",
+    "qa/explore.mjs": "339267a216a4462caeeadbe7b686087d2c96ccaa6b15a6d4dee6c57eaafddccf",
+    "qa/tests/phase4.spec.mjs": "f34b3fec212081d08279ac117f9562f7fa84d4c5491085c6bb15f9cdd1aa965b",
+    "apps/web/src/app/ai/ai.css": "a915901551c88b166b1183d6191c8ab8d4aeb141274a792bc8b67563b7d2a2cc",
+    "qa/safety.mjs": "5859ed828531964721bd2c596f82b8d308eb8c9f7b6b78825c5ebf4ee40569a8",
+    "qa/server.mjs": "e9ca0877c0815a64d2b050cade9bb5d43c1e8d6a9252420e8bf3e33f5a4bbf4d"
+  },
+  "phase": "QA_AGENT_PHASE_4C",
+  "status": "PASS_BOUNDED_AUDIT_CHECKS",
+  "executive_summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "full_application_coverage": false
+  },
+  "coverage": {
+    "inventoried_routes": 155,
+    "api_declarations": 1610,
+    "runtime_api_operations": [
+      1629,
+      1629
+    ],
+    "models": 421,
+    "existing_backend_test_files": 391,
+    "existing_angular_spec_files": 71,
+    "historical_tests_rerun": false
+  },
+  "reports": [
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-26T18:14:40.677Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "passed",
+      "executive_summary": {
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-P4C-01",
+          "title": "QA-P4C-01 canonical draft campaign context routes",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 7654,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "surface-screen-71be5c3c30b3",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/0-surface-screen-71be5c3c30b3.png"
+            },
+            {
+              "name": "surface-71be5c3c30b3",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/1-surface-71be5c3c30b3.json"
+            },
+            {
+              "name": "axe-campaign-detail",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/2-axe-campaign-detail.json"
+            },
+            {
+              "name": "surface-screen-d80e30b68d36",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/3-surface-screen-d80e30b68d36.png"
+            },
+            {
+              "name": "surface-d80e30b68d36",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/4-surface-d80e30b68d36.json"
+            },
+            {
+              "name": "axe-campaign--activities-new",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/5-axe-campaign--activities-new.json"
+            },
+            {
+              "name": "surface-screen-cf864924e95d",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/6-surface-screen-cf864924e95d.png"
+            },
+            {
+              "name": "surface-cf864924e95d",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/7-surface-cf864924e95d.json"
+            },
+            {
+              "name": "axe-campaign--dependencies",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/8-axe-campaign--dependencies.json"
+            },
+            {
+              "name": "surface-screen-6bfe689b52cf",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/9-surface-screen-6bfe689b52cf.png"
+            },
+            {
+              "name": "surface-6bfe689b52cf",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/10-surface-6bfe689b52cf.json"
+            },
+            {
+              "name": "axe-campaign--video",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/11-axe-campaign--video.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/12-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-01/13-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb",
+              "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb",
+              "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities/new",
+              "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities/new",
+              "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/dependencies",
+              "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/dependencies",
+              "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video",
+              "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video",
+              "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video",
+              "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/progress",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/conflicts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb"
+              },
+              {
+                "path": "/api/v1/campaigns/recovery",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities/new"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities/new"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities/new"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities/new"
+              },
+              {
+                "path": "/api/v1/campaigns/lookups/product",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities/new"
+              },
+              {
+                "path": "/api/v1/campaigns/lookups/destination",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities/new"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/dependencies"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/dependencies"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/dependencies"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/dependencies"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/dependencies",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/dependencies"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/dependencies"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video/overview",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video/overview",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              },
+              {
+                "path": "/api/v1/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-campaign-detail",
+              "route": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb",
+              "violations": [],
+              "incomplete": [],
+              "passes": 33
+            },
+            {
+              "state": "axe-campaign--activities-new",
+              "route": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/activities/new",
+              "violations": [],
+              "incomplete": [],
+              "passes": 38
+            },
+            {
+              "state": "axe-campaign--dependencies",
+              "route": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/dependencies",
+              "violations": [],
+              "incomplete": [],
+              "passes": 36
+            },
+            {
+              "state": "axe-campaign--video",
+              "route": "/campaigns/00c84c4a-891b-4a2c-bf7b-8469b7ab0eeb/video",
+              "violations": [],
+              "incomplete": [],
+              "passes": 33
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4C-02",
+          "title": "QA-P4C-02 private media persists and remains authenticated",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 2643,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "surface-screen-e6d4232503af",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-02/0-surface-screen-e6d4232503af.png"
+            },
+            {
+              "name": "surface-e6d4232503af",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-02/1-surface-e6d4232503af.json"
+            },
+            {
+              "name": "axe-media-detail",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-02/2-axe-media-detail.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-02/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-02/4-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58",
+              "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58",
+              "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58",
+              "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              },
+              {
+                "path": "/api/v1/media/176ee357-b706-4bb3-8077-5f66a9ebbb58",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              },
+              {
+                "path": "/api/v1/media/176ee357-b706-4bb3-8077-5f66a9ebbb58/preview",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              },
+              {
+                "path": "/api/v1/media/176ee357-b706-4bb3-8077-5f66a9ebbb58",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              },
+              {
+                "path": "/api/v1/media/176ee357-b706-4bb3-8077-5f66a9ebbb58/preview",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-media-detail",
+              "route": "/media/176ee357-b706-4bb3-8077-5f66a9ebbb58",
+              "violations": [],
+              "incomplete": [],
+              "passes": 37
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4C-03",
+          "title": "QA-P4C-03 settings context keyboard and current warning screens",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 19334,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/0-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/1-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-general",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/2-axe-settings-general.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/3-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/4-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-profile",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/5-axe-settings-profile.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/6-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/7-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-appearance",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/8-axe-settings-appearance.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/9-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/10-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-security",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/11-axe-settings-security.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/12-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/13-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-ai",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/14-axe-settings-ai.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/15-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/16-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-publishing",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/17-axe-settings-publishing.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/18-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/19-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-system",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/20-axe-settings-system.json"
+            },
+            {
+              "name": "surface-screen-27466c985fd1",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/21-surface-screen-27466c985fd1.png"
+            },
+            {
+              "name": "surface-27466c985fd1",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/22-surface-27466c985fd1.json"
+            },
+            {
+              "name": "current-warning-dimensions",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/23-current-warning-dimensions.json"
+            },
+            {
+              "name": "axe-warning--marketplaces-accounts",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/24-axe-warning--marketplaces-accounts.json"
+            },
+            {
+              "name": "surface-screen-1d863b9c09d5",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/25-surface-screen-1d863b9c09d5.png"
+            },
+            {
+              "name": "surface-1d863b9c09d5",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/26-surface-1d863b9c09d5.json"
+            },
+            {
+              "name": "current-warning-dimensions",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/27-current-warning-dimensions.json"
+            },
+            {
+              "name": "axe-warning--ai-video",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/28-axe-warning--ai-video.json"
+            },
+            {
+              "name": "surface-screen-8c4f8b0e0cd9",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/29-surface-screen-8c4f8b0e0cd9.png"
+            },
+            {
+              "name": "surface-8c4f8b0e0cd9",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/30-surface-8c4f8b0e0cd9.json"
+            },
+            {
+              "name": "current-warning-dimensions",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/31-current-warning-dimensions.json"
+            },
+            {
+              "name": "axe-warning--intelligence-autonomous",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/32-axe-warning--intelligence-autonomous.json"
+            },
+            {
+              "name": "axe-inventory-full",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/33-axe-inventory-full.json"
+            },
+            {
+              "name": "node-screen-inventory-caption",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/34-node-screen-inventory-caption.png"
+            },
+            {
+              "name": "node-review-inventory-caption",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/35-node-review-inventory-caption.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/36-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-03/37-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/settings/general",
+              "/settings/general",
+              "/settings/profile",
+              "/settings/profile",
+              "/settings/appearance",
+              "/settings/appearance",
+              "/settings/security",
+              "/settings/security",
+              "/settings/ai",
+              "/settings/ai",
+              "/settings/publishing",
+              "/settings/publishing",
+              "/settings/system",
+              "/settings/system",
+              "/marketplaces/accounts",
+              "/marketplaces/accounts",
+              "/ai/video",
+              "/ai/video",
+              "/intelligence/autonomous",
+              "/intelligence/autonomous",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/connectivity/capabilities",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts/27ba51a3-0b08-419f-9171-2db97a91a258/import-jobs",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts/6f77150c-8088-4829-ac9a-c8705ab9006d/import-jobs",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts/6f77150c-8088-4829-ac9a-c8705ab9006d/reconciliation",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts/27ba51a3-0b08-419f-9171-2db97a91a258/reconciliation",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/diagnostics",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/generations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/styles",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/scripts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/presets",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/storyboards",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/intelligence/autonomous/policy",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/intelligence/autonomous/missions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/intelligence/autonomous/overview",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-settings-general",
+              "route": "/settings/general",
+              "violations": [],
+              "incomplete": [],
+              "passes": 38
+            },
+            {
+              "state": "axe-settings-profile",
+              "route": "/settings/profile",
+              "violations": [],
+              "incomplete": [],
+              "passes": 38
+            },
+            {
+              "state": "axe-settings-appearance",
+              "route": "/settings/appearance",
+              "violations": [],
+              "incomplete": [],
+              "passes": 38
+            },
+            {
+              "state": "axe-settings-security",
+              "route": "/settings/security",
+              "violations": [],
+              "incomplete": [],
+              "passes": 38
+            },
+            {
+              "state": "axe-settings-ai",
+              "route": "/settings/ai",
+              "violations": [],
+              "incomplete": [],
+              "passes": 38
+            },
+            {
+              "state": "axe-settings-publishing",
+              "route": "/settings/publishing",
+              "violations": [],
+              "incomplete": [],
+              "passes": 38
+            },
+            {
+              "state": "axe-settings-system",
+              "route": "/settings/system",
+              "violations": [],
+              "incomplete": [],
+              "passes": 35
+            },
+            {
+              "state": "axe-warning--marketplaces-accounts",
+              "route": "/marketplaces/accounts",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "aria-prohibited-attr",
+                  "impact": "serious",
+                  "nodes": [
+                    {
+                      "target": [
+                        "tr:nth-child(1) > td:nth-child(7) > .marketplace-actions[aria-label=\"Read-only imports\"]"
+                      ],
+                      "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(2) > td:nth-child(7) > .marketplace-actions[aria-label=\"Read-only imports\"]"
+                      ],
+                      "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+                    }
+                  ]
+                }
+              ],
+              "passes": 47
+            },
+            {
+              "state": "axe-warning--ai-video",
+              "route": "/ai/video",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "aria-prohibited-attr",
+                  "impact": "serious",
+                  "nodes": [
+                    {
+                      "target": [
+                        "div[aria-label=\"Video status summary\"]"
+                      ],
+                      "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+                    },
+                    {
+                      "target": [
+                        ".quick-actions"
+                      ],
+                      "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+                    }
+                  ]
+                },
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "nodes": [
+                    {
+                      "target": [
+                        ".wizard-grid:nth-child(2) > label:nth-child(2) > textarea"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".wizard-grid:nth-child(3) > label:nth-child(2) > textarea"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "div:nth-child(7) > strong"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it is overlapped by another element"
+                    },
+                    {
+                      "target": [
+                        "div:nth-child(8) > strong"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it partially overlaps other elements"
+                    }
+                  ]
+                }
+              ],
+              "passes": 49
+            },
+            {
+              "state": "axe-warning--intelligence-autonomous",
+              "route": "/intelligence/autonomous",
+              "violations": [],
+              "incomplete": [],
+              "passes": 43
+            },
+            {
+              "state": "axe-inventory-full",
+              "route": "/marketplaces/inventory",
+              "violations": [],
+              "incomplete": [],
+              "passes": 47
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4C-04",
+          "title": "QA-P4C-04 catalog currency and persisted context audit",
+          "project": "desktop",
+          "status": "passed",
+          "duration_ms": 3166,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "surface-screen-56befa062a32",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-04/0-surface-screen-56befa062a32.png"
+            },
+            {
+              "name": "surface-56befa062a32",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-04/1-surface-56befa062a32.json"
+            },
+            {
+              "name": "currency-observation",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-04/2-currency-observation.json"
+            },
+            {
+              "name": "axe-catalog-create",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-04/3-axe-catalog-create.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-04/4-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/8644b989a75faaef/evidence/desktop-QA-P4C-04/5-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff",
+              "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff",
+              "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff",
+              "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff",
+              "/products/new",
+              "/products/new"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff"
+              },
+              {
+                "path": "/api/v1/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff"
+              },
+              {
+                "path": "/api/v1/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/ab7e98ae-52c8-46be-8d2a-4d1684d080ff"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/new"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/new"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/new"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/new"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/new"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-catalog-create",
+              "route": "/products/new",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "nodes": [
+                    {
+                      "target": [
+                        "textarea[formcontrolname=\"short_description\"]"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "textarea[formcontrolname=\"description\"]"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 38
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [],
+      "confirmed_bugs": [],
+      "usability_findings": [],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "api_results": {
+        "tests": [
+          {
+            "id": "test_01_stock_adjustment_replay_stale_and_negative",
+            "status": "PASS"
+          },
+          {
+            "id": "test_02_reservation_release_consume_and_invalid_transition",
+            "status": "PASS"
+          },
+          {
+            "id": "test_03_order_cancel_ship_return_and_no_automatic_refund",
+            "status": "PASS"
+          },
+          {
+            "id": "test_04_concurrent_final_unit_duplicate_delivery_and_multiline_rollback",
+            "status": "PASS"
+          },
+          {
+            "id": "test_05_conflicting_stock_key_is_not_silently_accepted",
+            "status": "PASS"
+          },
+          {
+            "id": "test_06_financial_event_rounding_loss_and_reconciliation_oracle",
+            "status": "PASS"
+          },
+          {
+            "id": "test_07_conflicting_financial_event_is_rejected",
+            "status": "PASS"
+          },
+          {
+            "id": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+            "status": "PASS"
+          },
+          {
+            "id": "test_09_current_financial_snapshot_and_later_refund",
+            "status": "PASS"
+          },
+          {
+            "id": "test_10_settlement_unknown_mismatch_revision_and_precision",
+            "status": "PASS"
+          },
+          {
+            "id": "test_11_business_agent_unknowns_loss_and_default_deny",
+            "status": "PASS"
+          },
+          {
+            "id": "test_12_action_center_persisted_replay_concurrency_and_history",
+            "status": "PASS"
+          },
+          {
+            "id": "test_13_conflicting_signal_transition_key_rejected",
+            "status": "PASS"
+          },
+          {
+            "id": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+            "status": "PASS"
+          },
+          {
+            "id": "test_15_source_changes_rescan_and_signal_resolution",
+            "status": "PASS"
+          },
+          {
+            "id": "test_16_fresh_process_database_reconstruction",
+            "status": "PASS"
+          },
+          {
+            "id": "test_17_canonical_order_synthetic_provenance_and_state_change",
+            "status": "PASS"
+          },
+          {
+            "id": "test_18_prepare_original_mobile_states_and_operational_browser_data",
+            "status": "PASS"
+          }
+        ],
+        "passed": 18,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "process_exit_code": 0
+      },
+      "process_exit_code": 0,
+      "runtime_api_operations": 1629
+    },
+    {
+      "schema_version": 1,
+      "generated_at": "2026-10-26T18:16:46.616Z",
+      "mode": "DISPOSABLE_SYNTHETIC_NO_PROVIDER_CALLS",
+      "status": "passed",
+      "executive_summary": {
+        "passed": 4,
+        "failed": 0,
+        "skipped": 0,
+        "complete_application_coverage": false
+      },
+      "tests": [
+        {
+          "id": "QA-P4C-01",
+          "title": "QA-P4C-01 canonical draft campaign context routes",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 6262,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "surface-screen-71be5c3c30b3",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/0-surface-screen-71be5c3c30b3.png"
+            },
+            {
+              "name": "surface-71be5c3c30b3",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/1-surface-71be5c3c30b3.json"
+            },
+            {
+              "name": "axe-campaign-detail",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/2-axe-campaign-detail.json"
+            },
+            {
+              "name": "surface-screen-d80e30b68d36",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/3-surface-screen-d80e30b68d36.png"
+            },
+            {
+              "name": "surface-d80e30b68d36",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/4-surface-d80e30b68d36.json"
+            },
+            {
+              "name": "axe-campaign--activities-new",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/5-axe-campaign--activities-new.json"
+            },
+            {
+              "name": "surface-screen-cf864924e95d",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/6-surface-screen-cf864924e95d.png"
+            },
+            {
+              "name": "surface-cf864924e95d",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/7-surface-cf864924e95d.json"
+            },
+            {
+              "name": "axe-campaign--dependencies",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/8-axe-campaign--dependencies.json"
+            },
+            {
+              "name": "surface-screen-6bfe689b52cf",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/9-surface-screen-6bfe689b52cf.png"
+            },
+            {
+              "name": "surface-6bfe689b52cf",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/10-surface-6bfe689b52cf.json"
+            },
+            {
+              "name": "axe-campaign--video",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/11-axe-campaign--video.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/12-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-01/13-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4",
+              "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4",
+              "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities/new",
+              "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities/new",
+              "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/dependencies",
+              "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/dependencies",
+              "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video",
+              "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video",
+              "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video",
+              "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/progress",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/conflicts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4"
+              },
+              {
+                "path": "/api/v1/campaigns/recovery",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities/new"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities/new"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities/new"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities/new"
+              },
+              {
+                "path": "/api/v1/campaigns/lookups/destination",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities/new"
+              },
+              {
+                "path": "/api/v1/campaigns/lookups/product",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities/new"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/dependencies"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/dependencies"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/dependencies"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/dependencies"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/dependencies",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/dependencies"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/dependencies"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video/overview",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video/overview",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              },
+              {
+                "path": "/api/v1/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities",
+                "method": "GET",
+                "status": 200,
+                "screen": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-campaign-detail",
+              "route": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4",
+              "violations": [],
+              "incomplete": [],
+              "passes": 31
+            },
+            {
+              "state": "axe-campaign--activities-new",
+              "route": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/activities/new",
+              "violations": [],
+              "incomplete": [],
+              "passes": 36
+            },
+            {
+              "state": "axe-campaign--dependencies",
+              "route": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/dependencies",
+              "violations": [],
+              "incomplete": [],
+              "passes": 34
+            },
+            {
+              "state": "axe-campaign--video",
+              "route": "/campaigns/57560932-d751-4be6-b3bc-dee2157c5aa4/video",
+              "violations": [],
+              "incomplete": [],
+              "passes": 30
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4C-02",
+          "title": "QA-P4C-02 private media persists and remains authenticated",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 2420,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "surface-screen-e6d4232503af",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-02/0-surface-screen-e6d4232503af.png"
+            },
+            {
+              "name": "surface-e6d4232503af",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-02/1-surface-e6d4232503af.json"
+            },
+            {
+              "name": "axe-media-detail",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-02/2-axe-media-detail.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-02/3-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-02/4-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/media/2946c734-cb2d-42a8-be01-66510f2463ed",
+              "/media/2946c734-cb2d-42a8-be01-66510f2463ed",
+              "/media/2946c734-cb2d-42a8-be01-66510f2463ed",
+              "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              },
+              {
+                "path": "/api/v1/media/2946c734-cb2d-42a8-be01-66510f2463ed",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              },
+              {
+                "path": "/api/v1/media/2946c734-cb2d-42a8-be01-66510f2463ed/preview",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              },
+              {
+                "path": "/api/v1/media/2946c734-cb2d-42a8-be01-66510f2463ed",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              },
+              {
+                "path": "/api/v1/media/2946c734-cb2d-42a8-be01-66510f2463ed/preview",
+                "method": "GET",
+                "status": 200,
+                "screen": "/media/2946c734-cb2d-42a8-be01-66510f2463ed"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-media-detail",
+              "route": "/media/2946c734-cb2d-42a8-be01-66510f2463ed",
+              "violations": [],
+              "incomplete": [],
+              "passes": 35
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4C-03",
+          "title": "QA-P4C-03 settings context keyboard and current warning screens",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 17081,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/0-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/1-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-general",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/2-axe-settings-general.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/3-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/4-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-profile",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/5-axe-settings-profile.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/6-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/7-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-appearance",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/8-axe-settings-appearance.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/9-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/10-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-security",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/11-axe-settings-security.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/12-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/13-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-ai",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/14-axe-settings-ai.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/15-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/16-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-publishing",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/17-axe-settings-publishing.json"
+            },
+            {
+              "name": "surface-screen-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/18-surface-screen-979322262158.png"
+            },
+            {
+              "name": "surface-979322262158",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/19-surface-979322262158.json"
+            },
+            {
+              "name": "axe-settings-system",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/20-axe-settings-system.json"
+            },
+            {
+              "name": "surface-screen-27466c985fd1",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/21-surface-screen-27466c985fd1.png"
+            },
+            {
+              "name": "surface-27466c985fd1",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/22-surface-27466c985fd1.json"
+            },
+            {
+              "name": "current-warning-dimensions",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/23-current-warning-dimensions.json"
+            },
+            {
+              "name": "axe-warning--marketplaces-accounts",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/24-axe-warning--marketplaces-accounts.json"
+            },
+            {
+              "name": "surface-screen-1d863b9c09d5",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/25-surface-screen-1d863b9c09d5.png"
+            },
+            {
+              "name": "surface-1d863b9c09d5",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/26-surface-1d863b9c09d5.json"
+            },
+            {
+              "name": "current-warning-dimensions",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/27-current-warning-dimensions.json"
+            },
+            {
+              "name": "axe-warning--ai-video",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/28-axe-warning--ai-video.json"
+            },
+            {
+              "name": "surface-screen-8c4f8b0e0cd9",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/29-surface-screen-8c4f8b0e0cd9.png"
+            },
+            {
+              "name": "surface-8c4f8b0e0cd9",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/30-surface-8c4f8b0e0cd9.json"
+            },
+            {
+              "name": "current-warning-dimensions",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/31-current-warning-dimensions.json"
+            },
+            {
+              "name": "axe-warning--intelligence-autonomous",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/32-axe-warning--intelligence-autonomous.json"
+            },
+            {
+              "name": "axe-inventory-full",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/33-axe-inventory-full.json"
+            },
+            {
+              "name": "node-screen-inventory-caption",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/34-node-screen-inventory-caption.png"
+            },
+            {
+              "name": "node-review-inventory-caption",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/35-node-review-inventory-caption.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/36-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-03/37-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/settings/general",
+              "/settings/general",
+              "/settings/profile",
+              "/settings/profile",
+              "/settings/appearance",
+              "/settings/appearance",
+              "/settings/security",
+              "/settings/security",
+              "/settings/ai",
+              "/settings/ai",
+              "/settings/publishing",
+              "/settings/publishing",
+              "/settings/system",
+              "/settings/system",
+              "/marketplaces/accounts",
+              "/marketplaces/accounts",
+              "/ai/video",
+              "/ai/video",
+              "/intelligence/autonomous",
+              "/intelligence/autonomous",
+              "/marketplaces/inventory",
+              "/marketplaces/inventory"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/general"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/profile"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/appearance"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/security"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/ai"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/publishing"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/ai/templates",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/settings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/settings/sessions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/publishing/destinations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/system/status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/settings/system"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/connectivity/capabilities",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts/593543c8-04af-4e61-8a34-d586a25e9e34/import-jobs",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts/63ab26c6-709c-47ca-8375-c1bbc806aaa2/import-jobs",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts/593543c8-04af-4e61-8a34-d586a25e9e34/reconciliation",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts/63ab26c6-709c-47ca-8375-c1bbc806aaa2/reconciliation",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/accounts"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/diagnostics",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/generations",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/storyboards",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/scripts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/styles",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/ai/video/presets",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/products",
+                "method": "GET",
+                "status": 200,
+                "screen": "/ai/video"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/intelligence/autonomous/policy",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/intelligence/autonomous/missions",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/intelligence/autonomous/overview",
+                "method": "GET",
+                "status": 200,
+                "screen": "/intelligence/autonomous"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory/mappings",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/inventory",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/marketplaces/accounts",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              },
+              {
+                "path": "/api/v1/orders/reconciliation/summary",
+                "method": "GET",
+                "status": 200,
+                "screen": "/marketplaces/inventory"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-settings-general",
+              "route": "/settings/general",
+              "violations": [],
+              "incomplete": [],
+              "passes": 36
+            },
+            {
+              "state": "axe-settings-profile",
+              "route": "/settings/profile",
+              "violations": [],
+              "incomplete": [],
+              "passes": 36
+            },
+            {
+              "state": "axe-settings-appearance",
+              "route": "/settings/appearance",
+              "violations": [],
+              "incomplete": [],
+              "passes": 36
+            },
+            {
+              "state": "axe-settings-security",
+              "route": "/settings/security",
+              "violations": [],
+              "incomplete": [],
+              "passes": 36
+            },
+            {
+              "state": "axe-settings-ai",
+              "route": "/settings/ai",
+              "violations": [],
+              "incomplete": [],
+              "passes": 36
+            },
+            {
+              "state": "axe-settings-publishing",
+              "route": "/settings/publishing",
+              "violations": [],
+              "incomplete": [],
+              "passes": 36
+            },
+            {
+              "state": "axe-settings-system",
+              "route": "/settings/system",
+              "violations": [],
+              "incomplete": [],
+              "passes": 32
+            },
+            {
+              "state": "axe-warning--marketplaces-accounts",
+              "route": "/marketplaces/accounts",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "aria-prohibited-attr",
+                  "impact": "serious",
+                  "nodes": [
+                    {
+                      "target": [
+                        "tr:nth-child(1) > td:nth-child(7) > .marketplace-actions[aria-label=\"Read-only imports\"]"
+                      ],
+                      "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+                    },
+                    {
+                      "target": [
+                        "tr:nth-child(2) > td:nth-child(7) > .marketplace-actions[aria-label=\"Read-only imports\"]"
+                      ],
+                      "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+                    }
+                  ]
+                }
+              ],
+              "passes": 46
+            },
+            {
+              "state": "axe-warning--ai-video",
+              "route": "/ai/video",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "aria-prohibited-attr",
+                  "impact": "serious",
+                  "nodes": [
+                    {
+                      "target": [
+                        "div[aria-label=\"Video status summary\"]"
+                      ],
+                      "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+                    },
+                    {
+                      "target": [
+                        ".quick-actions"
+                      ],
+                      "remediation": "Fix all of the following:\n  aria-label attribute is not well supported on a div with no valid role attribute."
+                    }
+                  ]
+                },
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "nodes": [
+                    {
+                      "target": [
+                        "td"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".wizard-grid:nth-child(2) > label:nth-child(2) > textarea"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        ".wizard-grid:nth-child(3) > label:nth-child(2) > textarea"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "#usage > .metrics > .metric:nth-child(2) > strong"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "#usage > .metrics > .metric:nth-child(4) > strong"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "div:nth-child(7) > strong"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 48
+            },
+            {
+              "state": "axe-warning--intelligence-autonomous",
+              "route": "/intelligence/autonomous",
+              "violations": [],
+              "incomplete": [],
+              "passes": 41
+            },
+            {
+              "state": "axe-inventory-full",
+              "route": "/marketplaces/inventory",
+              "violations": [],
+              "incomplete": [],
+              "passes": 46
+            }
+          ],
+          "usability": []
+        },
+        {
+          "id": "QA-P4C-04",
+          "title": "QA-P4C-04 catalog currency and persisted context audit",
+          "project": "mobile",
+          "status": "passed",
+          "duration_ms": 3353,
+          "steps": [],
+          "error": [],
+          "evidence": [
+            {
+              "name": "surface-screen-56befa062a32",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-04/0-surface-screen-56befa062a32.png"
+            },
+            {
+              "name": "surface-56befa062a32",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-04/1-surface-56befa062a32.json"
+            },
+            {
+              "name": "currency-observation",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-04/2-currency-observation.json"
+            },
+            {
+              "name": "axe-catalog-create",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-04/3-axe-catalog-create.json"
+            },
+            {
+              "name": "network-and-console",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-04/4-network-and-console.json"
+            },
+            {
+              "name": "final-screen",
+              "path": "tmp/qa-agent/c84e3310c5656b03/evidence/mobile-QA-P4C-04/5-final-screen.png"
+            }
+          ],
+          "signals": {
+            "visited_routes": [
+              "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed",
+              "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed",
+              "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed",
+              "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed",
+              "/products/new",
+              "/products/new"
+            ],
+            "http_errors": [],
+            "expected_http_errors": [],
+            "denied_requests": [],
+            "console_errors": [],
+            "page_errors": [],
+            "failed_requests": [],
+            "api_operations": [
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed"
+              },
+              {
+                "path": "/api/v1/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed"
+              },
+              {
+                "path": "/api/v1/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/5788481a-5d1a-4a90-98e3-5b980e2b4bed"
+              },
+              {
+                "path": "/api/v1/auth/setup-status",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/new"
+              },
+              {
+                "path": "/api/v1/auth/me",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/new"
+              },
+              {
+                "path": "/api/v1/brands/active",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/new"
+              },
+              {
+                "path": "/api/v1/system/maintenance",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/new"
+              },
+              {
+                "path": "/api/v1/brands",
+                "method": "GET",
+                "status": 200,
+                "screen": "/products/new"
+              }
+            ]
+          },
+          "axe": [
+            {
+              "state": "axe-catalog-create",
+              "route": "/products/new",
+              "violations": [],
+              "incomplete": [
+                {
+                  "id": "color-contrast",
+                  "impact": "serious",
+                  "nodes": [
+                    {
+                      "target": [
+                        "textarea[formcontrolname=\"short_description\"]"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    },
+                    {
+                      "target": [
+                        "textarea[formcontrolname=\"description\"]"
+                      ],
+                      "remediation": "Fix any of the following:\n  Element's background color could not be determined because it's partially obscured by another element"
+                    }
+                  ]
+                }
+              ],
+              "passes": 36
+            }
+          ],
+          "usability": []
+        }
+      ],
+      "findings": [],
+      "confirmed_bugs": [],
+      "usability_findings": [],
+      "missing_flows": [
+        "Full product discovery → HUMAN selection → supplier → due diligence → economics",
+        "Inventory/orders/settlements deterministic calculation matrix",
+        "Media/private preview and marketplace authorization browser matrix"
+      ],
+      "blocked_tests": [
+        "Real-provider and external execution intentionally forbidden",
+        "Cross-installation foreign-ID and full migration certification not in initial smoke suite"
+      ],
+      "limitations": [
+        "Existing tests inventoried, not rerun by this report.",
+        "Axe only covers scanned states and does not establish WCAG conformance.",
+        "ORM schema fixtures do not certify the migration chain."
+      ],
+      "api_results": {
+        "tests": [
+          {
+            "id": "test_01_stock_adjustment_replay_stale_and_negative",
+            "status": "PASS"
+          },
+          {
+            "id": "test_02_reservation_release_consume_and_invalid_transition",
+            "status": "PASS"
+          },
+          {
+            "id": "test_03_order_cancel_ship_return_and_no_automatic_refund",
+            "status": "PASS"
+          },
+          {
+            "id": "test_04_concurrent_final_unit_duplicate_delivery_and_multiline_rollback",
+            "status": "PASS"
+          },
+          {
+            "id": "test_05_conflicting_stock_key_is_not_silently_accepted",
+            "status": "PASS"
+          },
+          {
+            "id": "test_06_financial_event_rounding_loss_and_reconciliation_oracle",
+            "status": "PASS"
+          },
+          {
+            "id": "test_07_conflicting_financial_event_is_rejected",
+            "status": "PASS"
+          },
+          {
+            "id": "test_08_unknown_cost_revision_does_not_resurrect_old_known_cost",
+            "status": "PASS"
+          },
+          {
+            "id": "test_09_current_financial_snapshot_and_later_refund",
+            "status": "PASS"
+          },
+          {
+            "id": "test_10_settlement_unknown_mismatch_revision_and_precision",
+            "status": "PASS"
+          },
+          {
+            "id": "test_11_business_agent_unknowns_loss_and_default_deny",
+            "status": "PASS"
+          },
+          {
+            "id": "test_12_action_center_persisted_replay_concurrency_and_history",
+            "status": "PASS"
+          },
+          {
+            "id": "test_13_conflicting_signal_transition_key_rejected",
+            "status": "PASS"
+          },
+          {
+            "id": "test_14_human_impersonation_external_action_and_unauthorized_resources",
+            "status": "PASS"
+          },
+          {
+            "id": "test_15_source_changes_rescan_and_signal_resolution",
+            "status": "PASS"
+          },
+          {
+            "id": "test_16_fresh_process_database_reconstruction",
+            "status": "PASS"
+          },
+          {
+            "id": "test_17_canonical_order_synthetic_provenance_and_state_change",
+            "status": "PASS"
+          },
+          {
+            "id": "test_18_prepare_original_mobile_states_and_operational_browser_data",
+            "status": "PASS"
+          }
+        ],
+        "passed": 18,
+        "failed": 0,
+        "errors": 0,
+        "skipped": 0,
+        "process_exit_code": 0
+      },
+      "process_exit_code": 0,
+      "runtime_api_operations": 1629
+    }
+  ],
+  "cleanup": [
+    {
+      "project": "desktop",
+      "database": "vayujit_qa8644b989a75faaef_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qa8644b989a75faaef_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    },
+    {
+      "project": "mobile",
+      "database": "vayujit_qac84e3310c5656b03_test",
+      "status": "PASS",
+      "child_exit": 0,
+      "proof": {
+        "status": "PASS",
+        "database": "vayujit_qac84e3310c5656b03_test",
+        "marker_verified": true,
+        "database_absent": true
+      }
+    }
+  ],
+  "findings": [],
+  "confirmed_bugs": [],
+  "usability_findings": [],
+  "next_phase": "Risk-first persisted seller journey, financial oracle and foreign-ID matrices; no autonomous production fixes.",
+  "full_application_certification": "INCOMPLETE"
+}

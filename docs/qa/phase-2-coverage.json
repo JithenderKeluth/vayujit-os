@@ -1,0 +1,1271 @@
+{
+  "phase1": [
+    {
+      "route": "/intelligence/sourcing-economics",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/supplier-engagement",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/trends",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/trends/:contextId",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/business-agent",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-04",
+          "project": "desktop",
+          "status": "failed"
+        },
+        {
+          "id": "QA-SMOKE-04",
+          "project": "mobile",
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "route": "/intelligence/sourcing-scenarios",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/reviews",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/competitors",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/product-opportunities",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/product-opportunities/:opportunityId",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/",
+      "kind": "REDIRECT",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/setup",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-01",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-01",
+          "project": "mobile",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "route": "/login",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-02",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-04",
+          "project": "desktop",
+          "status": "failed"
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "project": "mobile",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "project": "mobile",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-04",
+          "project": "mobile",
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "route": "/ads",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/create",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/calendar",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/accounts/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/campaigns/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/accounts",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/campaigns",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/analytics",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/recovery",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/settings",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/marketing",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/optimization",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/recommendations",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/optimization-rules",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/anomalies",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/experiments",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/optimization-history",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ads/comparison",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/dashboard",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-01",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-04",
+          "project": "desktop",
+          "status": "failed"
+        },
+        {
+          "id": "QA-SMOKE-01",
+          "project": "mobile",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "project": "mobile",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "project": "mobile",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-04",
+          "project": "mobile",
+          "status": "failed"
+        }
+      ]
+    },
+    {
+      "route": "/operations/action-center",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-03",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "project": "mobile",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "route": "/operations/launch-readiness",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-03",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "project": "mobile",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "route": "/intelligence/sourcing",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/alibaba",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/indiamart",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/tradeindia",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/global-sources",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/websites",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/external",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/autonomous",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/due-diligence",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/campaigns",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/campaigns/new",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/campaigns/:id/video/:activityId",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/campaigns/:id/video",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/campaigns/:id/activities/new",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/campaigns/:id/dependencies",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/campaigns/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/calendar",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/social",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/social/compose",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/social/channel",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/social/accounts",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/social/analytics",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/social/posts/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/social/recovery",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/social/settings",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/overview",
+      "kind": "REDIRECT",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/video",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/flipkart",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/listings/:id/flipkart",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/meesho",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/listings/:id/meesho",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/amazon",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/listings/:id/amazon",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/accounts",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/listings",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/inventory",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/orders",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/settlements",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/analytics",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/marketplaces/financials",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/brands",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/brands/new",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-02",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "project": "mobile",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "route": "/brands/:id/edit",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/brands/:id",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-02",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "project": "mobile",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "route": "/products",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/catalog",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-02",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "project": "mobile",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "project": "mobile",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "route": "/catalog/:id",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-02",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "project": "mobile",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-03",
+          "project": "mobile",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "route": "/products/new",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-02",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "project": "mobile",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "route": "/products/:id/edit",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-02",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "project": "mobile",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "route": "/products/:id/channels",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/products/:id/media",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/products/:id",
+      "kind": "PAGE",
+      "status": "VISITED_NOT_COMPLETE_FEATURE_COVERAGE",
+      "tests": [
+        {
+          "id": "QA-SMOKE-02",
+          "project": "desktop",
+          "status": "passed"
+        },
+        {
+          "id": "QA-SMOKE-02",
+          "project": "mobile",
+          "status": "passed"
+        }
+      ]
+    },
+    {
+      "route": "/ai",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/generate",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/studio",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/images/assets/:outputId",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/video/bulk",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/video",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/images/bulk",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/images",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/studio/seo",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/studio/bulk",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/studio/artifacts/:id/compare",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/artifacts/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/history",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/brand-voices",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/presets",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/ai/usage",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/settings/ai/providers",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/settings/ai/providers/openai-compatible",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/settings/publishing/connectors",
+      "kind": "REDIRECT",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/settings/publishing/connectors/wordpress",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/settings/publishing/connectors/shopify",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/destinations/shopify",
+      "kind": "REDIRECT",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/destinations/wordpress",
+      "kind": "REDIRECT",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/media",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/media/upload",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/media/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/destinations",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/destinations/new",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/destinations/:id/edit",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/destinations/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/new",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/executions",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/executions/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/schedules",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/schedules/new",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/schedules/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/jobs",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/publishing/jobs/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/workers",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/workers/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/workflows",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/workflows/new",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/workflows/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/approvals",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/approvals/:id",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/jobs",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/providers",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/storage",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/security",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/releases",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/configuration",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/health",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/recovery",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/backups",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/operations/audit",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/execution-history",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/settings/providers",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/settings",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/settings/:section",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/supplier-shortlisting",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/supplier-portfolios/:portfolioId",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/supplier-portfolios",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/intelligence/cross-marketplace",
+      "kind": "PAGE",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    },
+    {
+      "route": "/**",
+      "kind": "REDIRECT",
+      "status": "NOT_EXECUTED",
+      "tests": []
+    }
+  ],
+  "phase2_routes": [
+    "/login",
+    "/dashboard",
+    "/intelligence/cross-marketplace",
+    "/intelligence/due-diligence",
+    "/intelligence/sourcing-economics",
+    "/products/4f905437-1f90-413a-b8bb-39a18ef41ec3/edit",
+    "/products/4f905437-1f90-413a-b8bb-39a18ef41ec3",
+    "/products/b0120190-02e4-494f-bc95-f9f94ba043b6/edit",
+    "/products/b0120190-02e4-494f-bc95-f9f94ba043b6"
+  ],
+  "api_scenarios": [
+    {
+      "id": "test_01_selection_supplier_due_diligence_decision",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_02_fractional_rounding_and_capital",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_03_positive_negative_and_zero_margin",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_04_missing_invalid_currency_and_tax_unknown",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_05_idempotency_history_and_reload",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_06_changed_readiness_does_not_silently_accept_old_cost",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_07_independent_database_reconstruction",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_08_human_controls_and_business_decision_history",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_09_explicit_tax_rate_arithmetic_and_unknown_basis",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_10_capital_shortfall_is_not_zero",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_11_prepare_current_browser_review_after_fixture_changes",
+      "status": "PASS",
+      "project": "desktop"
+    },
+    {
+      "id": "test_01_selection_supplier_due_diligence_decision",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_02_fractional_rounding_and_capital",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_03_positive_negative_and_zero_margin",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_04_missing_invalid_currency_and_tax_unknown",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_05_idempotency_history_and_reload",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_06_changed_readiness_does_not_silently_accept_old_cost",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_07_independent_database_reconstruction",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_08_human_controls_and_business_decision_history",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_09_explicit_tax_rate_arithmetic_and_unknown_basis",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_10_capital_shortfall_is_not_zero",
+      "status": "PASS",
+      "project": "mobile"
+    },
+    {
+      "id": "test_11_prepare_current_browser_review_after_fixture_changes",
+      "status": "PASS",
+      "project": "mobile"
+    }
+  ],
+  "gaps": [
+    "Manual synthetic ProductOpportunity candidates are authored through the canonical API; real product web discovery is NOT executed or claimed.",
+    "Supplier LOCAL_FIXTURE evidence is synthetic/unverified, not live supplier proof. Switching suppliers/multiple-supplier comparisons remain unexecuted.",
+    "GST and marketplace fee schedules are not inferred. Explicit hypothetical fee arithmetic and unknown tax exclusions are tested; jurisdictional tax certification is not claimed.",
+    "Metadata-created disposable schemas retain the Phase 1 migration limitation; no migration PASS is claimed.",
+    "Full order/refund/settlement net-profit lifecycle and cross-installation isolation remain Phase 3 gaps."
+  ]
+}

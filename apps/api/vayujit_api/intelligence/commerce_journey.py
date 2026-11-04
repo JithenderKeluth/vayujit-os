@@ -23,7 +23,7 @@ from vayujit_api.intelligence.product_opportunity_models import (
     ProductOpportunity,
     ProductOpportunityAssessment,
 )
-from vayujit_api.intelligence.product_opportunity_scoring_models import ProductOpportunityDecision
+from vayujit_api.intelligence.product_opportunity_scoring_service import current_product_selection
 from vayujit_api.intelligence.scenario_models import (
     SourcingScenario,
     SourcingScenarioContext,
@@ -179,24 +179,14 @@ def project_journey(
         pass
     if not scoped_product_ids:
         scoped_product_ids = {empty_id}
-    product_selection_query = (
-        select(func.count())
-        .select_from(ProductOpportunityDecision)
-        .where(
-            ProductOpportunityDecision.owner_id == owner.id,
-            ProductOpportunityDecision.action == "shortlist",
-            ProductOpportunityDecision.opportunity_id.in_(scoped_ids),
-        )
-    )
-    product_selections = int(db.scalar(product_selection_query) or 0)
-    latest_product_selection = db.scalar(
-        select(ProductOpportunityDecision)
-        .where(
-            ProductOpportunityDecision.owner_id == owner.id,
-            ProductOpportunityDecision.action == "shortlist",
-            ProductOpportunityDecision.opportunity_id.in_(scoped_ids),
-        )
-        .order_by(ProductOpportunityDecision.created_at.desc())
+    selections = [
+        decision
+        for identifier in scoped_ids
+        if (decision := current_product_selection(db, owner, identifier)) is not None
+    ]
+    product_selections = len(selections)
+    latest_product_selection = max(
+        selections, key=lambda row: (row.created_at, str(row.id)), default=None
     )
     downstream_ids = (
         {latest_product_selection.opportunity_id}

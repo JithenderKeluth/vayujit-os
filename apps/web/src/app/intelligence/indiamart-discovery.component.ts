@@ -16,7 +16,7 @@ import {
   imports: [DatePipe, FormsModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="workspace" aria-labelledby="indiamart-title">
+    <section class="workspace" aria-labelledby="indiamart-title">
       <header class="page-header">
         <div>
           <p class="eyebrow">Intelligence / Supplier discovery</p>
@@ -163,7 +163,7 @@ import {
           </div>
         </section>
       }
-    </main>
+    </section>
   `,
   styles: [
     `
@@ -241,7 +241,7 @@ import {
         color: #a61b1b;
       }
       .empty {
-        color: #627d98;
+        color: #486581;
       }
       .table-wrap {
         overflow-x: auto;

@@ -101,7 +101,8 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
-summary:focus-visible {
+summary:focus-visible,
+[tabindex="0"]:focus-visible {
   outline: 3px solid var(--vj-focus);
   outline-offset: 3px;
 }

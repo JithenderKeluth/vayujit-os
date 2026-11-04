@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 
 type ImageDetail = {
   id: string;
+  job_id: string;
   media_id: string | null;
   parent_media_id: string | null;
   source_media_ids: string[];
@@ -55,16 +56,26 @@ type Comparison = { mode: string };
         <article class="ai-card review-grid">
           <div>
             <h2>Generated image</h2>
+            @if (image.media_id) {
+              <img
+                [src]="previewUrl(image.media_id)"
+                alt="Generated output for exact-version HUMAN review"
+                style="max-width:100%;height:auto"
+              />
+            } @else {
+              <p>No processed image is available yet. Do not approve an unseen output.</p>
+            }
             <p>
               Status: <strong>{{ image.status }}</strong>
             </p>
             <p>Operation: {{ image.operation }} - Channel: {{ image.channel }}</p>
             <p>
-              Dimensions: {{ image.actual_width || image.requested_width }} x
-              {{ image.actual_height || image.requested_height }}
+              Actual dimensions: {{ image.actual_width ?? 'UNKNOWN' }} x
+              {{ image.actual_height ?? 'UNKNOWN' }}
             </p>
             <p>
-              MIME: {{ image.mime_type || 'pending' }} - Size: {{ image.size_bytes || 0 }} bytes
+              MIME: {{ image.mime_type || 'UNKNOWN' }} - Size:
+              {{ image.size_bytes ?? 'UNKNOWN' }} bytes
             </p>
             <p>
               Checksum: <code>{{ image.checksum_sha256 || 'pending' }}</code>
@@ -85,7 +96,7 @@ type Comparison = { mode: string };
         <article class="ai-card actions">
           <button
             class="ai-button"
-            [disabled]="busy() || image.status === 'approved'"
+            [disabled]="busy() || !image.media_id || image.status === 'approved'"
             (click)="approve()"
           >
             Approve exact output
@@ -97,7 +108,24 @@ type Comparison = { mode: string };
           >
             Reject with feedback
           </button>
-          <button class="ai-button" [disabled]="busy()" (click)="regenerate()">Regenerate</button>
+          <button class="ai-button" [disabled]="busy() || !image.media_id" (click)="regenerate()">
+            Regenerate
+          </button>
+          <button class="ai-button" [disabled]="busy()" (click)="refreshOutput()">
+            Refresh exact output
+          </button>
+          @if (recovery(); as state) {
+            <p role="status">
+              Job {{ image.job_id }}: {{ state.status }} — {{ state.safe_error_message }}
+            </p>
+            <button
+              class="ai-button"
+              [disabled]="busy() || state.status !== 'failed' || !state.retryable"
+              (click)="retryOutput()"
+            >
+              Retry exact image job
+            </button>
+          }
         </article>
         <article class="ai-card">
           <h2>Readiness and classification</h2>
@@ -129,12 +157,45 @@ type Comparison = { mode: string };
 export class AIImageReviewComponent {
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly base = `${environment.apiUrl}/ai/images`;
   readonly detail = signal<ImageDetail | null>(null);
   readonly error = signal('');
   readonly busy = signal(false);
   readonly comparison = signal<Comparison | null>(null);
   readonly history = signal<Array<unknown>>([]);
+  readonly recovery = signal<{
+    status: string;
+    retryable: boolean;
+    safe_error_message: string | null;
+  } | null>(null);
+  refreshOutput(): void {
+    void this.load();
+  }
+  async retryOutput(): Promise<void> {
+    const image = this.detail(),
+      recovery = this.recovery();
+    if (!image?.job_id || this.busy() || recovery?.status !== 'failed' || !recovery.retryable)
+      return;
+    this.busy.set(true);
+    try {
+      await firstValueFrom(
+        this.http.post(
+          `${environment.apiUrl}/ai/studio/recovery/actions`,
+          { action: 'retry_generation', job_id: image.job_id },
+          { withCredentials: true },
+        ),
+      );
+      await this.load();
+    } catch {
+      this.error.set('The exact image job retry was rejected safely. Refresh current status.');
+    } finally {
+      this.busy.set(false);
+    }
+  }
+  previewUrl(id: string): string {
+    return `${environment.apiUrl}/media/${encodeURIComponent(id)}/preview`;
+  }
 
   constructor() {
     void this.load();
@@ -152,6 +213,23 @@ export class AIImageReviewComponent {
           this.http.get<ImageDetail>(`${this.base}/outputs/${id}`, { withCredentials: true }),
         ),
       );
+      const image = this.detail();
+      this.recovery.set(null);
+      if (image?.job_id && image.status === 'failed') {
+        this.recovery.set(
+          await firstValueFrom(
+            this.http.post<{
+              status: string;
+              retryable: boolean;
+              safe_error_message: string | null;
+            }>(
+              `${environment.apiUrl}/ai/studio/recovery/actions`,
+              { action: 'review_failure', job_id: image.job_id },
+              { withCredentials: true },
+            ),
+          ),
+        );
+      }
     } catch {
       this.error.set('The image review details are unavailable.');
     }
@@ -162,18 +240,19 @@ export class AIImageReviewComponent {
     if (!image) return;
     this.busy.set(true);
     try {
-      this.detail.set(
-        await firstValueFrom(
-          this.http.post<ImageDetail>(
-            `${this.base}/outputs/${image.id}/${path}`,
-            {
-              feedback: path === 'reject' ? 'Review feedback required.' : undefined,
-              category: path === 'reject' ? 'image_quality' : undefined,
-            },
-            { withCredentials: true },
-          ),
+      await firstValueFrom(
+        this.http.post<unknown>(
+          `${this.base}/outputs/${image.id}/${path}`,
+          {
+            feedback: path === 'reject' ? 'Review feedback required.' : undefined,
+            category: path === 'reject' ? 'image_quality' : undefined,
+          },
+          { withCredentials: true },
         ),
       );
+      // Decision responses are output summaries, not the rich review projection.
+      // Reload the exact output instead of rendering missing lineage/readiness fields.
+      await this.load();
     } catch {
       this.error.set('The image decision could not be saved safely.');
     } finally {
@@ -225,8 +304,8 @@ export class AIImageReviewComponent {
     if (!image) return;
     this.busy.set(true);
     try {
-      await firstValueFrom(
-        this.http.post(
+      const result = await firstValueFrom(
+        this.http.post<{ outputs: Array<{ id: string }> }>(
           `${this.base}/outputs/${image.id}/regenerate`,
           {
             reason: 'rejected_feedback',
@@ -236,6 +315,10 @@ export class AIImageReviewComponent {
           { withCredentials: true },
         ),
       );
+      const next = result.outputs[0];
+      if (!next) throw new Error('No queued output identity');
+      await this.router.navigate(['/ai/images/assets', next.id]);
+      await this.load();
     } catch {
       this.error.set('The regeneration request could not be queued safely.');
     } finally {

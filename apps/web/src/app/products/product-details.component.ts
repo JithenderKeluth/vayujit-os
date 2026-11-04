@@ -23,7 +23,10 @@ import { ProductService } from './product.service';
     StatusBadgeComponent,
   ],
   template: `
-    <main class="page narrow">
+    <section class="page narrow" aria-labelledby="product-context-heading">
+      @if (loading() || error()) {
+        <h1 id="product-context-heading">Product details</h1>
+      }
       @if (loading()) {
         <app-loading-state message="Loading product context..." />
       } @else if (error()) {
@@ -38,6 +41,7 @@ import { ProductService } from './product.service';
         <app-page-header
           eyebrow="Product context"
           [title]="product()!.name"
+          headingId="product-context-heading"
           [description]="
             product()!.short_description ||
             'Prepare this product for governed commerce and creation workflows.'
@@ -45,7 +49,9 @@ import { ProductService } from './product.service';
         >
           <div page-header-actions>
             <a class="button" routerLink="/products">Back</a>
-            <a class="button primary" [routerLink]="['/catalog', product()!.id]">Open catalog workspace</a>
+            <a class="button primary" [routerLink]="['/catalog', product()!.id]"
+              >Open catalog workspace</a
+            >
             <a class="button" [routerLink]="['/products', product()!.id, 'edit']">Edit</a>
           </div>
         </app-page-header>
@@ -135,7 +141,7 @@ import { ProductService } from './product.service';
                 <dd>{{ product()!.inventory_tracking_enabled ? 'Enabled' : 'Disabled' }}</dd>
               </div>
               <div>
-                <dt>Quantity</dt>
+                <dt>Product master quantity (not stock ledger)</dt>
                 <dd>{{ product()!.inventory_quantity }}</dd>
               </div>
               <div>
@@ -190,7 +196,7 @@ import { ProductService } from './product.service';
           }
         </section>
       }
-    </main>
+    </section>
   `,
   styleUrl: './products.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

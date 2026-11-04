@@ -40,6 +40,7 @@ from vayujit_api.ads.schemas import (
     AdsCampaignCreate,
     AdsConversionCreate,
     AdsCreativeCreate,
+    AdsCreativeReadiness,
     AdsRecoveryRequest,
 )
 from vayujit_api.ads.service import (
@@ -338,8 +339,27 @@ def audience_validate(audience_id: uuid.UUID, db: DB, owner: Owner) -> dict[str,
 
 
 @router.post("/creatives/readiness")
-def creative_readiness_route(data: AdsCreativeCreate, db: DB, owner: Owner) -> dict[str, object]:
-    return creative_readiness(db, owner, data)
+def creative_readiness_route(data: AdsCreativeReadiness, db: DB, owner: Owner) -> dict[str, object]:
+    prospective = None
+    if data.campaign_id.int == 0:
+        if data.account_id is None:
+            raise HTTPException(422, "Select an owned Ads account for prospective readiness.")
+        account = require_account(db, owner, data.account_id)
+        if not account.validated or not account.enabled:
+            raise HTTPException(422, "Ads account must be validated and enabled.")
+        prospective = AdCampaign(
+            id=data.campaign_id,
+            owner_id=owner.id,
+            account_id=account.id,
+            provider=account.provider,
+            product_id=data.product_id,
+            objective=data.objective,
+        )
+    elif data.account_id is not None:
+        if _campaign(db, owner, data.campaign_id).account_id != data.account_id:
+            raise HTTPException(409, "Creative account does not match the campaign.")
+    result = creative_readiness(db, owner, data, prospective)
+    return {**result, "prospective": prospective is not None, "approval_granted": False}
 
 
 @router.post("/campaigns/preview")
@@ -365,7 +385,13 @@ def campaign_confirm(payload: dict[str, Any], db: DB, owner: Owner) -> dict[str,
     if not payload.get("confirm"):
         raise HTTPException(422, "Explicit confirmation is required before an Ads mutation.")
     data = AdsCampaignCreate.model_validate(payload.get("campaign", payload))
-    value = create_campaign(db, owner, data, str(payload.get("preview_fingerprint") or ""))
+    value = create_campaign(
+        db,
+        owner,
+        data,
+        str(payload.get("preview_fingerprint") or ""),
+        commit=False,
+    )
     job = queue_job(
         db,
         owner,
@@ -376,7 +402,9 @@ def campaign_confirm(payload: dict[str, Any], db: DB, owner: Owner) -> dict[str,
             "campaign_id": str(value.id),
             "budget": payload.get("campaign", payload).get("budget", {}),
         },
+        commit=False,
     )
+    db.commit()
     return {
         "campaign": campaign_response(
             value,
@@ -743,7 +771,9 @@ def recovery_projection(db: DB, owner: Owner) -> list[dict[str, object]]:
             .order_by(AdFailureRecord.created_at.desc())
         )
     )
-    latest = {record.code: record for record in records}
+    latest: dict[str, AdFailureRecord] = {}
+    for observed_record in records:
+        latest.setdefault(observed_record.code, observed_record)
     projection: list[dict[str, object]] = []
     for code, spec in ADS_FAILURE_TAXONOMY.items():
         record = latest.get(code)
@@ -784,6 +814,7 @@ def recovery(data: AdsRecoveryRequest, db: DB, owner: Owner) -> dict[str, object
         )
     )
     if existing is not None:
+        _check_recovery_replay(existing, data)
         return {**existing.result_json, "idempotent_reuse": True, "recovery_id": existing.id}
 
     campaign: AdCampaign | None = None
@@ -811,6 +842,24 @@ def recovery(data: AdsRecoveryRequest, db: DB, owner: Owner) -> dict[str, object
             raise HTTPException(404, "Ads creative not found.")
         campaign = _campaign(db, owner, creative.campaign_id)
 
+    # Hold the same owned campaign lock until both the queued job and recovery
+    # record commit. Re-read replay state after waiting for a concurrent caller.
+    campaign = db.scalar(
+        select(AdCampaign)
+        .where(AdCampaign.id == campaign.id, AdCampaign.owner_id == owner.id)
+        .with_for_update()
+    )
+    if campaign is None:
+        raise HTTPException(404, "Ads campaign not found.")
+    existing = db.scalar(
+        select(AdRecoveryRecord).where(
+            AdRecoveryRecord.owner_id == owner.id, AdRecoveryRecord.idempotency_key == key
+        )
+    )
+    if existing is not None:
+        _check_recovery_replay(existing, data)
+        return {**existing.result_json, "idempotent_reuse": True, "recovery_id": existing.id}
+
     status = "accepted"
     job_id: uuid.UUID | None = None
     if data.action == "reconcile" and campaign is not None:
@@ -832,11 +881,15 @@ def recovery(data: AdsRecoveryRequest, db: DB, owner: Owner) -> dict[str, object
                 .where(
                     AdJob.owner_id == owner.id,
                     AdJob.entity_id == data.entity_id,
-                    AdJob.status.in_(["failed", "retry_wait"]),
+                    AdJob.entity_type == data.entity_type,
                 )
                 .order_by(AdJob.created_at.desc())
             )
-            operation = prior.operation if prior else "create_campaign"
+            if prior is None or prior.status not in {"failed", "retry_wait"}:
+                raise HTTPException(409, "Ads recovery state changed; refresh before retrying.")
+            if data.failure_code and prior.failure_code != data.failure_code:
+                raise HTTPException(409, "Ads recovery failure changed; refresh before retrying.")
+            operation = prior.operation
         job = queue_job(
             db,
             owner,
@@ -846,6 +899,7 @@ def recovery(data: AdsRecoveryRequest, db: DB, owner: Owner) -> dict[str, object
             {"recovery_key": key, "action": data.action},
             entity_type=data.entity_type,
             entity_id=data.entity_id,
+            commit=False,
         )
         job_id = job.id
         status = "queued"
@@ -895,8 +949,19 @@ def recovery(data: AdsRecoveryRequest, db: DB, owner: Owner) -> dict[str, object
         )
         if existing is None:
             raise
+        _check_recovery_replay(existing, data)
         return {**existing.result_json, "recovery_id": existing.id, "idempotent_reuse": True}
     return {**result, "recovery_id": record.id, "idempotent_reuse": False}
+
+
+def _check_recovery_replay(existing: AdRecoveryRecord, data: AdsRecoveryRequest) -> None:
+    if (
+        existing.action != data.action
+        or existing.entity_type != data.entity_type
+        or existing.entity_id != data.entity_id
+        or existing.result_json.get("failure_code") != data.failure_code
+    ):
+        raise HTTPException(409, "Ads recovery key belongs to a different intention.")
 
 
 @router.get("/product-channel/{product_id}")
@@ -1329,9 +1394,7 @@ def group_create(
         )
         if audience is None or audience.validation_status != "valid":
             raise HTTPException(422, "Validate the exact Ads audience before using it.")
-        provider_status = cast(dict[str, object], audience.provider_compatibility_json).get(
-            campaign.provider
-        )
+        provider_status = audience.provider_compatibility_json.get(campaign.provider)
         if not isinstance(provider_status, dict) or provider_status.get("status") != "valid":
             raise HTTPException(422, "The Ads audience is not compatible with this provider.")
     if value is None:

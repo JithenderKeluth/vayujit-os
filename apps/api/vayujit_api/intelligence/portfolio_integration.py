@@ -102,6 +102,20 @@ def portfolio_product_channel(
     db: Session, owner: User, portfolio: SupplierPortfolioContext
 ) -> dict[str, Any]:
     """Project portfolio lineage into the shared Product Channel contract."""
+    # Both /events and /product-channel emit the same immutable audit projection.
+    # Serialize only this owned portfolio before reading its idempotency keys.
+    locked = db.scalar(
+        select(SupplierPortfolioContext)
+        .where(
+            SupplierPortfolioContext.id == portfolio.id,
+            SupplierPortfolioContext.owner_id == owner.id,
+        )
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if locked is None:
+        raise HTTPException(404, "Supplier portfolio not found.")
+    portfolio = locked
     assessment = _assessment(db, owner, portfolio)
     score = (
         db.scalar(

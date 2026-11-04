@@ -1,0 +1,201 @@
+{
+    "scope":  "non-Docker synthetic child startup/report tests only",
+    "powershell_version":  "5.1.26100.9711",
+    "status":  "PASS",
+    "tests":  [
+                  {
+                      "name":  "invalid child script path is diagnosed before script startup",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "real child parse failure retains safe source location error identifier and exit",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "real argument binding failure is diagnosed before body execution",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "process-scoped restricted policy is diagnosed without changing machine or user policy",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "missing executable dependency retains safe command classification",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "missing module diagnostic excludes module paths and import text",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "missing child executable is distinguished from a nonzero launched process",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "genuine nonzero exit without a report remains failed with captured-stderr metadata",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "zero exit plus warning is not a native failure but cannot pass without a child report",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "actual backup startup writes a structured import failure before Docker preflight",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "unmodified repository backup entry point reports missing disposable config before any Docker or age invocation",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "initializer failure now reaches a safe startup boundary token",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "unwritable child report produces parent diagnostic without raw filesystem error",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "valid structured failure report wins over process zero exit",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "synthetic successful child-report contract propagates without upgrading physical independence",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "unknown private keys credentials connection URLs tokens and customer text are entirely omitted",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "persistent parent diagnostic revalidates every field rather than trusting supplied text",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "unwritable parent diagnostic destination fails with a fixed safe error",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "Windows argument quoting Unicode script path and argument trailing slash and explicit working directory survive the real child launch",
+                      "status":  "PASS"
+                  },
+                  {
+                      "name":  "safe diagnostic remains outside the removed disposable profile",
+                      "status":  "PASS"
+                  }
+              ],
+    "passed":  20,
+    "failed":  0,
+    "skipped":  0,
+    "cleanup":  "PASS",
+    "examples":  {
+                     "parse":  {
+                                   "schema_version":  1,
+                                   "classification":  "script_parse_failed",
+                                   "safe_stderr_summary":  "PowerShell could not parse the child script; only a safe error identifier and source line are retained.",
+                                   "powershell_error_id":  "IfStatementMissingCondition",
+                                   "source_line":  1,
+                                   "source_location":  "backup_child_script_or_powershell_startup",
+                                   "process_exit_code":  1,
+                                   "launch_succeeded":  true,
+                                   "script_started_token_observed":  false,
+                                   "stderr_captured":  true,
+                                   "stdout_captured":  false,
+                                   "engine":  "WindowsPowerShell",
+                                   "invocation":  "NoProfile_NonInteractive_File",
+                                   "working_directory":  "repository_root",
+                                   "report_path_contract":  "marked_disposable_profile/backup-rehearsal.json",
+                                   "raw_output_persisted":  false,
+                                   "diagnostic_is_not_backup_certification":  true
+                               },
+                     "policy":  {
+                                    "schema_version":  1,
+                                    "classification":  "execution_policy_rejected",
+                                    "safe_stderr_summary":  "PowerShell reported an execution-policy or script authorization failure.",
+                                    "powershell_error_id":  "UnauthorizedAccess",
+                                    "source_line":  null,
+                                    "source_location":  "backup_child_script_or_powershell_startup",
+                                    "process_exit_code":  1,
+                                    "launch_succeeded":  true,
+                                    "script_started_token_observed":  false,
+                                    "stderr_captured":  true,
+                                    "stdout_captured":  false,
+                                    "engine":  "WindowsPowerShell",
+                                    "invocation":  "NoProfile_NonInteractive_File",
+                                    "working_directory":  "repository_root",
+                                    "report_path_contract":  "marked_disposable_profile/backup-rehearsal.json",
+                                    "raw_output_persisted":  false,
+                                    "diagnostic_is_not_backup_certification":  true
+                                },
+                     "repository_preflight":  {
+                                                  "status":  "FAIL",
+                                                  "backup_id":  "7da2547780",
+                                                  "failure_code":  "backup_preflight_failed",
+                                                  "failure_operation":  "backup preflight",
+                                                  "native_exit_code":  null,
+                                                  "docker_exit_code":  null,
+                                                  "cleanup_failure":  null,
+                                                  "destination_independence":  "UNVERIFIED",
+                                                  "recovery_hint":  "Review the recorded stage code and service health. No partial backup was certified.",
+                                                  "subprocess_exit_code":  1,
+                                                  "child_report_status":  "FAIL"
+                                              },
+                     "unwritable_child_report":  {
+                                                     "schema_version":  1,
+                                                     "classification":  "report_write_failed",
+                                                     "safe_stderr_summary":  "The child reported that structured evidence could not be written.",
+                                                     "powershell_error_id":  null,
+                                                     "source_line":  null,
+                                                     "source_location":  "backup_child_script_or_powershell_startup",
+                                                     "process_exit_code":  1,
+                                                     "launch_succeeded":  true,
+                                                     "script_started_token_observed":  false,
+                                                     "stderr_captured":  false,
+                                                     "stdout_captured":  true,
+                                                     "engine":  "WindowsPowerShell",
+                                                     "invocation":  "NoProfile_NonInteractive_File",
+                                                     "working_directory":  "repository_root",
+                                                     "report_path_contract":  "marked_disposable_profile/backup-rehearsal.json",
+                                                     "raw_output_persisted":  false,
+                                                     "diagnostic_is_not_backup_certification":  true
+                                                 },
+                     "binding":  {
+                                     "schema_version":  1,
+                                     "classification":  "argument_binding_failed",
+                                     "safe_stderr_summary":  "PowerShell rejected child arguments before normal script execution.",
+                                     "powershell_error_id":  "NamedParameterNotFound",
+                                     "source_line":  null,
+                                     "source_location":  "backup_child_script_or_powershell_startup",
+                                     "process_exit_code":  1,
+                                     "launch_succeeded":  true,
+                                     "script_started_token_observed":  false,
+                                     "stderr_captured":  true,
+                                     "stdout_captured":  false,
+                                     "engine":  "WindowsPowerShell",
+                                     "invocation":  "NoProfile_NonInteractive_File",
+                                     "working_directory":  "repository_root",
+                                     "report_path_contract":  "marked_disposable_profile/backup-rehearsal.json",
+                                     "raw_output_persisted":  false,
+                                     "diagnostic_is_not_backup_certification":  true
+                                 },
+                     "missing_report_nonzero":  {
+                                                    "schema_version":  1,
+                                                    "classification":  "nonzero_exit_unclassified",
+                                                    "safe_stderr_summary":  "The child exited unsuccessfully; stderr was captured but has no recognized safe signature.",
+                                                    "powershell_error_id":  null,
+                                                    "source_line":  null,
+                                                    "source_location":  "backup_child_script_or_powershell_startup",
+                                                    "process_exit_code":  29,
+                                                    "launch_succeeded":  true,
+                                                    "script_started_token_observed":  false,
+                                                    "stderr_captured":  true,
+                                                    "stdout_captured":  false,
+                                                    "engine":  "WindowsPowerShell",
+                                                    "invocation":  "NoProfile_NonInteractive_File",
+                                                    "working_directory":  "repository_root",
+                                                    "report_path_contract":  "marked_disposable_profile/backup-rehearsal.json",
+                                                    "raw_output_persisted":  false,
+                                                    "diagnostic_is_not_backup_certification":  true
+                                                }
+                 }
+}

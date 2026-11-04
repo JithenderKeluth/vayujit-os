@@ -2,9 +2,12 @@ import { Routes } from '@angular/router';
 
 import { AuthPageComponent } from './auth/auth-page.component';
 import { authGuard, guestGuard } from './auth/auth.guards';
-import { AdsWorkspaceComponent } from './ads/ads-workspace.component';
-import { AdsOptimizationComponent } from './ads/ads-optimization.component';
-import { MarketingPlanComponent } from './ads/marketing-plan.component';
+const adsWorkspace = () =>
+  import('./ads/ads-workspace.component').then((m) => m.AdsWorkspaceComponent);
+const adsOptimization = () =>
+  import('./ads/ads-optimization.component').then((m) => m.AdsOptimizationComponent);
+const marketingPlan = () =>
+  import('./ads/marketing-plan.component').then((m) => m.MarketingPlanComponent);
 
 export const routes: Routes = [
   {
@@ -38,6 +41,12 @@ export const routes: Routes = [
       import('./intelligence/trend-intelligence-workspace.component').then(
         (m) => m.TrendIntelligenceWorkspaceComponent,
       ),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'intelligence/research',
+    loadComponent: () =>
+      import('./intelligence/seller-research.component').then((m) => m.SellerResearchComponent),
     canActivate: [authGuard],
   },
   {
@@ -93,92 +102,92 @@ export const routes: Routes = [
   { path: 'login', component: AuthPageComponent, canActivate: [guestGuard] },
   {
     path: 'ads',
-    component: AdsWorkspaceComponent,
+    loadComponent: adsWorkspace,
     canActivate: [authGuard],
   },
   {
     path: 'ads/create',
-    component: AdsWorkspaceComponent,
+    loadComponent: adsWorkspace,
     canActivate: [authGuard],
   },
   {
     path: 'ads/calendar',
-    component: AdsWorkspaceComponent,
+    loadComponent: adsWorkspace,
     canActivate: [authGuard],
   },
   {
     path: 'ads/accounts/:id',
-    component: AdsWorkspaceComponent,
+    loadComponent: adsWorkspace,
     canActivate: [authGuard],
   },
   {
     path: 'ads/campaigns/:id',
-    component: AdsWorkspaceComponent,
+    loadComponent: adsWorkspace,
     canActivate: [authGuard],
   },
   {
     path: 'ads/accounts',
-    component: AdsWorkspaceComponent,
+    loadComponent: adsWorkspace,
     canActivate: [authGuard],
   },
   {
     path: 'ads/campaigns',
-    component: AdsWorkspaceComponent,
+    loadComponent: adsWorkspace,
     canActivate: [authGuard],
   },
   {
     path: 'ads/analytics',
-    component: AdsWorkspaceComponent,
+    loadComponent: adsWorkspace,
     canActivate: [authGuard],
   },
   {
     path: 'ads/recovery',
-    component: AdsWorkspaceComponent,
+    loadComponent: adsWorkspace,
     canActivate: [authGuard],
   },
   {
     path: 'ads/settings',
-    component: AdsWorkspaceComponent,
+    loadComponent: adsWorkspace,
     canActivate: [authGuard],
   },
   {
     path: 'ads/marketing',
-    component: MarketingPlanComponent,
+    loadComponent: marketingPlan,
     canActivate: [authGuard],
   },
   {
     path: 'ads/optimization',
-    component: AdsOptimizationComponent,
+    loadComponent: adsOptimization,
     canActivate: [authGuard],
   },
   {
     path: 'ads/recommendations',
-    component: AdsOptimizationComponent,
+    loadComponent: adsOptimization,
     canActivate: [authGuard],
   },
   {
     path: 'ads/optimization-rules',
-    component: AdsOptimizationComponent,
+    loadComponent: adsOptimization,
     canActivate: [authGuard],
   },
   {
     path: 'ads/anomalies',
-    component: AdsOptimizationComponent,
+    loadComponent: adsOptimization,
     canActivate: [authGuard],
   },
   {
     path: 'ads/experiments',
-    component: AdsOptimizationComponent,
+    loadComponent: adsOptimization,
     canActivate: [authGuard],
   },
   {
     path: 'ads/optimization-history',
-    component: AdsOptimizationComponent,
+    loadComponent: adsOptimization,
     canActivate: [authGuard],
   },
   {
     path: 'ads/comparison',
-    component: AdsOptimizationComponent,
+    loadComponent: adsOptimization,
     canActivate: [authGuard],
   },
   {
@@ -443,19 +452,21 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'marketplaces/inventory/opening',
+    loadComponent: () =>
+      import('./marketplaces/opening-stock.component').then((m) => m.OpeningStockComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'marketplaces/inventory',
     loadComponent: () =>
-      import('./marketplaces/unified-inventory.component').then(
-        (m) => m.UnifiedInventoryComponent,
-      ),
+      import('./marketplaces/unified-inventory.component').then((m) => m.UnifiedInventoryComponent),
     canActivate: [authGuard],
   },
   {
     path: 'marketplaces/orders',
     loadComponent: () =>
-      import('./marketplaces/unified-orders.component').then(
-        (m) => m.UnifiedOrdersComponent,
-      ),
+      import('./marketplaces/unified-orders.component').then((m) => m.UnifiedOrdersComponent),
     canActivate: [authGuard],
   },
   {

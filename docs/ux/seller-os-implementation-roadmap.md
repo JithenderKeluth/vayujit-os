@@ -479,3 +479,54 @@ FIRST-SELLER PREPARATION / NO LIVE DEPLOYMENT)**. External provider and
 marketplace authorization, public deployment, TLS/DNS, secret-manager inputs,
 and off-host backup remain separate HUMAN-controlled release gates. Evidence is
 recorded in [`../seller-os/pr-sos-09-validation.md`](../seller-os/pr-sos-09-validation.md).
+
+### PC-first live business operation package (2026-10-15)
+
+Prepared a dedicated Windows Docker Desktop/WSL2 profile for the first VAYUJIT
+seller: production web/API/worker/PostgreSQL/nginx, loopback-only binding,
+internal no-egress network, unique persistent volumes and generated secrets,
+real owner onboarding without fixtures, guarded migrations, and encrypted
+database/media backup with isolated restore verification. Startup, shutdown,
+health, backup, scheduled-task registration, security, and VPS migration
+instructions are documented under `docs/seller-os/pc-first-*`.
+
+The persistent owner database was intentionally not created or activated. The
+disposable production-image runtime passed 17/17 deployment, security, and
+persistence checks; authenticated Chrome passed 25/25 checks across sign-in,
+dashboard, product list/detail/editor, and catalog detail. Six axe scans had
+zero violations (one serious color-contrast probe remained incomplete on two
+textareas); five dashboard widths had no horizontal overflow. Compose
+stop/start preserved owner/catalog/cost/stock/media records, the worker became
+healthy, only loopback proxy access was published, and the proxy egress probe
+was denied. Evidence is recorded in
+[`../seller-os/pc-first-disposable-certification.json`](../seller-os/pc-first-disposable-certification.json)
+and screenshots under `docs/seller-os/artifacts/`.
+
+The permanent backup path and a marker-protected disposable backup/restore
+rehearsal are implemented. The disposable mode creates canonical owner,
+product, inventory, finance, media, and audit fixtures using the application,
+encrypts database/media artifacts with `age`, rejects wrong keys and corrupted
+ciphertext, restores into a separately marked no-network PostgreSQL target,
+restores media independently, compares canonical rows/decimal precision, and
+checks that the source was unchanged. Backup destination is configurable and
+writable-path tested; same-volume paths are rejected where host-addressable.
+Physical independence now compares the Docker PostgreSQL/media volume backing
+storage to the destination, and deliberately remains `UNVERIFIED` if the
+Docker Desktop WSL backing VHDX cannot be identified unambiguously.
+
+The encrypted rehearsal could not be executed in the current shell: Docker,
+`age`, `age-keygen`, Python, and Node are unavailable; WSL enumeration returns
+`E_ACCESSDENIED`; and physical-disk inspection is denied by the sandbox. The
+PowerShell scripts parse successfully, but this is not backup/restore test
+evidence. The existing randomized runtime PASS does not satisfy the backup
+gate. Do not initialize or activate the permanent owner database until the
+owner runs the optional disposable rehearsal with approved age tooling and an
+independent physical destination, and the report proves both
+`backup_restore.status = PASS` and
+`destination_independence = VERIFIED_DIFFERENT_PHYSICAL_DISK`. Daily Task
+Scheduler registration and Docker Desktop/Windows-reboot recovery remain
+HUMAN-controlled/unwitnessed; no task was registered and the unrelated running
+PostgreSQL service was not interrupted. Therefore retain
+**PC-FIRST DEPLOYMENT — IMPLEMENTED / CERTIFICATION PENDING**. Existing
+frontend lint warnings and the initial-bundle budget overage remain recorded;
+PR-SOS-09's earlier local certification is unchanged.

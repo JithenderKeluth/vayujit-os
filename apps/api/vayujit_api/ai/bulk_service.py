@@ -427,6 +427,9 @@ def _output_response(db: Session, output: AIStudioBulkOutput) -> StudioBulkOutpu
 
 
 def status_response(db: Session, operation: AIStudioBulkOperation) -> StudioBulkStatusResponse:
+    # Polling also updates the projection: serialize parent before children,
+    # in the same order as retry/cancel, rather than deadlocking on sibling rows.
+    db.refresh(operation, with_for_update=True)
     outputs = _sync_operation(db, operation)
     db.commit()
     counts = cast(dict[str, int], dict(operation.completion_summary_json or {}))
@@ -471,6 +474,7 @@ def retry_outputs(
     operation: AIStudioBulkOperation,
     output_ids: list[uuid.UUID],
 ) -> tuple[int, int]:
+    db.refresh(operation, with_for_update=True)
     _sync_operation(db, operation)
     selected = set(output_ids)
     rows = list(
@@ -532,6 +536,7 @@ def cancel_outputs(
     operation: AIStudioBulkOperation,
     output_ids: list[uuid.UUID],
 ) -> int:
+    db.refresh(operation, with_for_update=True)
     selected = set(output_ids)
     rows = list(
         db.scalars(

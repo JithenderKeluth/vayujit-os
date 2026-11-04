@@ -14,7 +14,7 @@ type Section = { id: string; label: string };
   imports: [RouterLink, FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="external-page" aria-labelledby="external-title">
+    <section class="external-page" aria-labelledby="external-title">
       <header class="page-header">
         <div>
           <p class="eyebrow">Controlled external research</p>
@@ -56,7 +56,7 @@ type Section = { id: string; label: string };
           </div>
           <button type="button" (click)="load()" [disabled]="loading()">Refresh</button>
         </div>
-        <div class="status-grid" aria-label="External research status">
+        <div class="status-grid" role="group" aria-label="External research status">
           <article class="status-card">
             <span>Provider</span><strong>{{ text(policy(), 'provider', 'Not configured') }}</strong>
           </article>
@@ -97,7 +97,7 @@ type Section = { id: string; label: string };
             ><strong>{{ alerts().length }} / {{ recoveries().length }}</strong>
           </article>
         </div>
-        <div class="callout" aria-label="Live provider boundary">
+        <div class="callout" role="group" aria-label="Live provider boundary">
           <strong>LIVE SEARCH - NOT VALIDATED</strong>
           <strong>LIVE FETCH - NOT VALIDATED</strong>
           <span
@@ -111,7 +111,12 @@ type Section = { id: string; label: string };
         <p class="eyebrow">Providers</p>
         <h2 id="providers-title">Provider registry</h2>
         <p class="hint">Provider enablement is controlled by deployment configuration.</p>
-        <div class="table-wrap">
+        <div
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-label="Configured external provider status"
+        >
           <table>
             <caption>
               Configured external provider status
@@ -142,7 +147,7 @@ type Section = { id: string; label: string };
             </tbody>
           </table>
         </div>
-        <div class="badge-row" aria-label="Supported provider statuses">
+        <div class="badge-row" role="group" aria-label="Supported provider statuses">
           @for (state of providerStates; track state) {
             <span class="badge">{{ state }}</span>
           }
@@ -207,7 +212,12 @@ type Section = { id: string; label: string };
             No searches yet. Start a bounded local-fixture search from Autonomous Research.
           </p>
         }
-        <div class="table-wrap">
+        <div
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-label="Owner-scoped search requests"
+        >
           <table>
             <caption>
               Owner-scoped search requests
@@ -240,7 +250,12 @@ type Section = { id: string; label: string };
         @if (!results().length) {
           <p class="empty">No search results. Discovery snippets remain DISCOVERY ONLY.</p>
         }
-        <div class="table-wrap">
+        <div
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-label="Search result discovery snippets table"
+        >
           <table aria-labelledby="search-results-title">
             <caption>
               Discovery-only search results
@@ -286,7 +301,12 @@ type Section = { id: string; label: string };
         @if (!fetches().length) {
           <p class="empty">No fetch history yet. Only approved, bounded URLs can be fetched.</p>
         }
-        <div class="table-wrap">
+        <div
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-label="Owner-scoped approved fetches table"
+        >
           <table>
             <caption>
               Owner-scoped approved fetches
@@ -340,7 +360,12 @@ type Section = { id: string; label: string };
         @if (!evidence().length) {
           <p class="empty">No external Evidence yet. Discovery snippets remain DISCOVERY ONLY.</p>
         }
-        <div class="table-wrap">
+        <div
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-label="Verified and historical external evidence table"
+        >
           <table>
             <caption>
               Verified and historical external evidence
@@ -375,7 +400,7 @@ type Section = { id: string; label: string };
             </tbody>
           </table>
         </div>
-        <div class="badge-row" aria-label="Evidence labels">
+        <div class="badge-row" role="group" aria-label="Evidence labels">
           @for (state of evidenceStates; track state) {
             <span class="badge">{{ state }}</span>
           }
@@ -427,7 +452,12 @@ type Section = { id: string; label: string };
         @if (!changes().length) {
           <p class="empty">No changes recorded.</p>
         }
-        <div class="table-wrap">
+        <div
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-label="Server-derived change and materiality decisions table"
+        >
           <table>
             <caption>
               Server-derived change and materiality decisions
@@ -509,7 +539,7 @@ type Section = { id: string; label: string };
           Searches, fetches, domains, results, response bytes, elapsed time, retries, provider
           requests, window, remaining, and retry-after are server-enforced.
         </p>
-        <div class="badge-row" aria-label="Server-advertised recovery actions">
+        <div class="badge-row" role="group" aria-label="Server-advertised recovery actions">
           @for (action of recoveryActions(); track action) {
             <span class="badge">{{ action }}</span>
           }
@@ -598,7 +628,7 @@ type Section = { id: string; label: string };
             </article>
           </div>
         }
-        <div class="badge-row" aria-label="Product Channel safe actions">
+        <div class="badge-row" role="group" aria-label="Product Channel safe actions">
           @for (action of productActions; track action) {
             <span class="badge">{{ action }}</span>
           }
@@ -611,7 +641,12 @@ type Section = { id: string; label: string };
         @if (!calendar().length) {
           <p class="empty">No scheduled refresh, aging, expiry, or opportunity events.</p>
         }
-        <div class="table-wrap">
+        <div
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-label="Informational external research calendar"
+        >
           <table>
             <caption>
               Informational external research calendar
@@ -663,7 +698,12 @@ type Section = { id: string; label: string };
         @if (!tables().length) {
           <p class="empty">Storage inventory unavailable.</p>
         }
-        <div class="table-wrap">
+        <div
+          class="table-wrap"
+          tabindex="0"
+          role="region"
+          aria-labelledby="storage-inventory-title"
+        >
           <table aria-labelledby="storage-inventory-title">
             <caption>
               Owner-scoped external tables
@@ -694,7 +734,7 @@ type Section = { id: string; label: string };
         </p>
         <a routerLink="/operations" class="secondary-button">View Operations Control Center</a>
       </section>
-    </main>
+    </section>
   `,
   styles: `
     :host {

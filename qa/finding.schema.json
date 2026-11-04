@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VAYUJIT QA finding",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "feature",
+    "route",
+    "type",
+    "severity",
+    "priority",
+    "expected",
+    "actual",
+    "reproduction_steps",
+    "evidence",
+    "confidence",
+    "suggested_fix",
+    "retest_status"
+  ],
+  "properties": {
+    "area": { "type": "string" },
+    "journey": { "type": "string" },
+    "business_impact": { "type": "string" },
+    "id": { "type": "string", "pattern": "^QA-[A-Z0-9-]+$" },
+    "feature": { "type": "string" },
+    "route": { "type": "string" },
+    "type": {
+      "enum": [
+        "FUNCTIONAL",
+        "SECURITY",
+        "ACCESSIBILITY",
+        "CALCULATION",
+        "PERSISTENCE",
+        "USABILITY",
+        "MISSING_FLOW",
+        "ENVIRONMENT",
+        "SUSPECTED_DEFECT"
+      ]
+    },
+    "severity": { "enum": ["CRITICAL", "MAJOR", "MODERATE", "MINOR", "INFO"] },
+    "priority": { "enum": ["P0", "P1", "P2", "P3"] },
+    "expected": { "type": "string" },
+    "actual": { "type": "string" },
+    "reproduction_steps": { "type": "array", "items": { "type": "string" } },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "path"],
+        "properties": { "name": { "type": "string" }, "path": { "type": "string" } },
+        "additionalProperties": false
+      }
+    },
+    "confidence": { "enum": ["CONFIRMED", "SUSPECTED", "RECOMMENDATION"] },
+    "suggested_fix": { "type": "string" },
+    "retest_status": { "enum": ["NOT_RETESTED", "PASS", "FAIL", "BLOCKED"] }
+  }
+}

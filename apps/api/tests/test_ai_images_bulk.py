@@ -6,6 +6,7 @@ import pytest
 import test_ai_integration
 from sqlalchemy import func, select
 from test_ai_integration import ORIGIN, setup_context
+from test_ai_integration import client as client
 
 from vayujit_api.ai.bulk_models import AIStudioBulkOperation, AIStudioBulkOutput
 from vayujit_api.ai.image_models import AIImageOutput

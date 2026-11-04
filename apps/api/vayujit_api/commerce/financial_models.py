@@ -2,8 +2,9 @@
 
 These tables are an additive projection over the canonical marketplace order,
 fee, refund and settlement authorities.  Financial events are immutable input
-facts; calculations are versioned snapshots and never overwrite the source
-lineage.
+facts; calculations are mutable working projections keyed by calculation version
+and scope, not immutable revision history or an accounting ledger. Recalculation
+does not overwrite source event records, but can replace snapshot metrics/lineage.
 """
 
 import uuid

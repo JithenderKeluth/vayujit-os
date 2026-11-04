@@ -191,7 +191,7 @@ interface Diagnostics {
 
       <section class="marketplace-card" aria-labelledby="overview-heading">
         <h2 id="overview-heading">Overview</h2>
-        <div class="marketplace-stats">
+        <dl class="marketplace-stats">
           <div>
             <dt>Configured accounts</dt>
             <dd>{{ accounts().length }}</dd>
@@ -224,8 +224,8 @@ interface Diagnostics {
             <dt>Recent history</dt>
             <dd>{{ history().length }}</dd>
           </div>
-        </div>
-        <div class="marketplace-table">
+        </dl>
+        <div class="marketplace-table" tabindex="0" role="region" aria-label="Marketplace breakdown">
           <table>
             <caption>
               Marketplace breakdown
@@ -409,7 +409,7 @@ interface Diagnostics {
           />
         }
         @if (mappings().length) {
-          <div class="marketplace-table">
+          <div class="marketplace-table" tabindex="0" role="region" aria-label="Exact local-to-remote Video mappings">
             <table>
               <caption>
                 Exact local-to-remote Video mappings
@@ -465,7 +465,7 @@ interface Diagnostics {
           />
         }
         @if (jobs().length) {
-          <div class="marketplace-table">
+          <div class="marketplace-table" tabindex="0" role="region" aria-label="Durable Video operations">
             <table>
               <caption>
                 Durable Video operations
@@ -532,7 +532,7 @@ interface Diagnostics {
           />
         }
         @if (history().length) {
-          <div class="marketplace-table">
+          <div class="marketplace-table" tabindex="0" role="region" aria-label="Safe chronological Marketplace Video history">
             <table>
               <caption>
                 Safe chronological Marketplace Video history
@@ -563,7 +563,7 @@ interface Diagnostics {
       <section class="marketplace-card" aria-labelledby="diagnostics-heading">
         <h2 id="diagnostics-heading">Diagnostics</h2>
         @if (diagnostics(); as diag) {
-          <div class="marketplace-stats">
+          <dl class="marketplace-stats">
             <div>
               <dt>Connector ruleset</dt>
               <dd>{{ diag.ruleset }}</dd>
@@ -588,7 +588,7 @@ interface Diagnostics {
               <dt>Reconciliation needed</dt>
               <dd>{{ diag.reconciliation_lag }}</dd>
             </div>
-          </div>
+          </dl>
         }
         <p class="field-help">Credentials and sensitive connector URLs are never shown.</p>
       </section>

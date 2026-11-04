@@ -479,7 +479,11 @@ def artifact_details(db: Session, owner_id: uuid.UUID, artifact_id: uuid.UUID) -
         content_type=artifact.content_type,
         locale=artifact.locale,
         status=artifact.status,
-        content=ProductContent.model_validate(artifact.content_json),
+        content=(
+            ProductContent.model_validate(artifact.content_json)
+            if "product_title" in artifact.content_json
+            else artifact.content_json
+        ),
         validation_result=artifact.validation_result,
         provider_metadata=artifact.provider_metadata,
         approved_at=artifact.approved_at,

@@ -185,7 +185,8 @@ def test_jsonld_product_array_type_establishes_product_evidence() -> None:
 
 def test_live_product_queries_are_product_only_and_bounded() -> None:
     queries = _live_product_queries("reusable insulated food container")
-    assert len(queries) == 2
+    assert len(queries) == 3
+    assert queries[2][1] == "BOUNDED_PRODUCT_PAGE_RECOVERY"
     assert queries[0][1] == "PRIMARY_PRODUCT_QUERY"
     assert queries[1][1] == "REFINEMENT_AFTER_NO_PRODUCT_EVIDENCE"
     assert all('"' not in query for query, _reason in queries)
@@ -259,7 +260,7 @@ def test_category_constraint_accepts_observed_product_discriminator() -> None:
     assert "name" in fields
 
 
-def test_category_generates_bounded_concrete_hypotheses_from_authority() -> None:
+def test_unsupported_category_uses_category_scope_not_relabelled_fixture_products() -> None:
     hypotheses = _live_hypotheses(
         (
             "I have INR 300000 and want to start selling on Amazon India. "
@@ -268,14 +269,25 @@ def test_category_generates_bounded_concrete_hypotheses_from_authority() -> None
         {"category": "kids", "marketplace": "AMAZON_IN", "currency": "INR", "capital": 300000},
     )
     assert 1 <= len(hypotheses) <= 3
-    assert all(item["product_concept"] != "kids products" for item in hypotheses)
-    assert all(len(str(item["product_concept"]).split()) >= 3 for item in hypotheses)
+    assert len(hypotheses) == 1
+    assert hypotheses[0]["product_concept"] == "kids"
     assert all(item["category"] == "Kids" for item in hypotheses)
     assert all(
-        item["profile"]["candidate_provenance"]["method"]
-        == "CANONICAL_CANDIDATE_AUTHORITY_PROJECTION"
+        item["profile"]["candidate_provenance"]["method"] == "CATEGORY_LED_DISCOVERY"
         for item in hypotheses
     )
+
+
+def test_fitness_scope_never_contains_household_fixture_products() -> None:
+    hypotheses = _live_hypotheses(
+        "Find 3 products in the sports and outdoor fitness category.",
+        {"category": "sports and outdoor fitness"},
+    )
+    assert len(hypotheses) == 1
+    assert hypotheses[0]["product_concept"] == "sports and outdoor fitness"
+    assert "container" not in str(hypotheses).casefold()
+    assert "wardrobe" not in str(hypotheses).casefold()
+    assert "LOCAL_DETERMINISTIC_RESEARCH_FIXTURE" not in str(hypotheses)
 
 
 def test_category_queries_are_product_specific_not_generic_category_searches() -> None:

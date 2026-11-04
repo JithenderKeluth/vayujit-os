@@ -35,6 +35,7 @@ from vayujit_api.intelligence.product_opportunity_scoring_models import ProductO
 from vayujit_api.intelligence.product_opportunity_unit_economics_models import (
     ProductOpportunityUnitEconomics,
 )
+from vayujit_api.intelligence.product_opportunity_unit_economics_service import landed_lineage_issue
 from vayujit_api.intelligence.shortlisting_models import SupplierShortlistDecision
 
 
@@ -543,6 +544,29 @@ def _assemble(
             _item("LANDED_COST_WARNING", str(row), severity="MEDIUM", category="landed_cost")
             for row in landed.warnings or []
         )
+    unit_issue = None
+    if unit is not None:
+        unit_landed = db.scalar(
+            select(EconomicCalculation).where(
+                EconomicCalculation.id == unit.landed_cost_calculation_id,
+                EconomicCalculation.owner_id == owner.id,
+            )
+        )
+        unit_issue = (
+            landed_lineage_issue(db, owner, unit_landed, commercial)
+            if unit_landed
+            else "LANDED_COST_LINEAGE_UNKNOWN"
+        )
+        if unit_issue:
+            blockers.append(
+                _item(
+                    "ECONOMIC_INPUTS_STALE",
+                    "Acquisition inputs changed or require review. "
+                    "Recalculate landed cost and unit economics before relying on this decision.",
+                    status=unit_issue,
+                )
+            )
+    unit_status = "STALE" if unit_issue else unit.status if unit else "UNKNOWN"
     if unit is None:
         if target in {"COMMERCIAL_ASSESSMENT", "LAUNCH_DECISION"}:
             blockers.append(
@@ -552,12 +576,12 @@ def _assemble(
                 )
             )
     else:
-        if unit.status != "READY" and target in {"COMMERCIAL_ASSESSMENT", "LAUNCH_DECISION"}:
+        if unit_status != "READY" and target in {"COMMERCIAL_ASSESSMENT", "LAUNCH_DECISION"}:
             blockers.append(
                 _item(
                     "UNIT_ECONOMICS_REQUIRED",
                     "The linked unit-economics calculation is not ready.",
-                    status=unit.status,
+                    status=unit_status,
                 )
             )
         if unit.capital_fit_status == "DOES_NOT_FIT":
@@ -568,7 +592,7 @@ def _assemble(
                     status=unit.capital_fit_status,
                 )
             )
-        elif unit.capital_fit_status == "FITS":
+        elif unit.capital_fit_status == "FITS" and not unit_issue:
             warnings.append(
                 _item(
                     "CAPITAL_FITS_NOT_RECOMMENDATION",
@@ -655,7 +679,7 @@ def _assemble(
         },
         "unit_economics": {
             "trust": "DERIVED" if unit else "UNKNOWN",
-            "status": unit.status if unit else "UNKNOWN",
+            "status": unit_status,
         },
         "demand": demand,
     }
@@ -676,10 +700,11 @@ def _assemble(
         "demand": demand,
         "economics": {
             "landed_cost_status": landed.status if landed else "MISSING",
-            "unit_economics_status": unit.status if unit else "MISSING",
+            "unit_economics_status": unit_status if unit else "MISSING",
             "capital_fit": unit.capital_fit_status if unit else "UNKNOWN",
             "positive_contribution": bool(
                 unit
+                and not unit_issue
                 and unit.per_unit_contribution is not None
                 and float(str(unit.per_unit_contribution)) > 0
             ),

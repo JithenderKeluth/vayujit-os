@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { BreadcrumbsComponent } from '../shared/breadcrumbs.component';
 import { CommerceJourneyNavComponent } from '../shared/commerce-journey-nav.component';
 import { BusinessEntitySelectorsComponent } from '../shared/business-entity-selectors.component';
@@ -88,10 +88,22 @@ import { AIService } from './ai.service';
         {{ busy() ? 'Generating...' : 'Generate deterministic draft' }}
       </button>
       @if (generation()) {
-        <p class="ai-success">
-          {{ generation()!.completed_outputs }} / {{ generation()!.total_outputs }} outputs
-          completed. Context {{ generation()!.context_fingerprint.slice(0, 12) }}&middot;
+        <p role="status">
+          Generation status: {{ generation()!.status }}. {{ generation()!.completed_outputs }} /
+          {{ generation()!.total_outputs }} outputs completed. Context
+          {{ generation()!.context_fingerprint.slice(0, 12) }}&middot;
         </p>
+        @if (generation()!.failure_category) {
+          <p class="ai-error">{{ generation()!.failure_category }}</p>
+        }
+        <button class="ai-button" [disabled]="busy()" (click)="loadArtifacts()">
+          Refresh generation status
+        </button>
+        @if (generation()!.status === 'failed') {
+          <button class="ai-button" [disabled]="busy()" (click)="retryGeneration()">
+            Retry failed content
+          </button>
+        }
       }
     </article>
     <article class="ai-card" id="artifacts">
@@ -152,6 +164,8 @@ import { AIService } from './ai.service';
 })
 export class AIStudioComponent {
   private readonly ai = inject(AIService);
+  private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   readonly productId = signal('');
   readonly instructions = signal('');
   readonly busy = signal(false);
@@ -173,6 +187,36 @@ export class AIStudioComponent {
     { label: 'Products', url: '/products' },
     { label: 'Content Studio' },
   ];
+  constructor() {
+    const id = this.route.snapshot.queryParamMap.get('generation');
+    if (id) void this.restoreGeneration(id);
+  }
+  private async restoreGeneration(id: string): Promise<void> {
+    try {
+      const generation = await this.ai.studioGeneration(id);
+      this.generation.set(generation);
+      this.productId.set(generation.product_ids[0] ?? '');
+      await this.loadArtifacts();
+    } catch (error) {
+      this.error.set(AIService.errorMessage(error));
+    }
+  }
+  async retryGeneration(): Promise<void> {
+    const current = this.generation();
+    if (!current || this.busy()) return;
+    this.busy.set(true);
+    this.error.set('');
+    try {
+      for (const output of current.outputs.filter((output) => output.status === 'failed')) {
+        await this.ai.studioRetry(current.id, output.job_id ?? undefined);
+      }
+      await this.loadArtifacts();
+    } catch (error) {
+      this.error.set(AIService.errorMessage(error));
+    } finally {
+      this.busy.set(false);
+    }
+  }
   setChannels(event: Event): void {
     const target = event.target;
     if (target instanceof HTMLSelectElement) {
@@ -190,6 +234,7 @@ export class AIStudioComponent {
     }
   }
   async generate(): Promise<void> {
+    if (this.busy() || !this.productId()) return;
     this.busy.set(true);
     this.error.set('');
     try {
@@ -202,6 +247,11 @@ export class AIStudioComponent {
           idempotency_key: `studio:${this.productId()}:${Date.now()}`,
         }),
       );
+      await this.router.navigate([], {
+        relativeTo: this.route,
+        queryParams: { generation: this.generation()!.id },
+        queryParamsHandling: 'merge',
+      });
       await this.loadArtifacts();
     } catch (error) {
       this.error.set(AIService.errorMessage(error));
@@ -211,6 +261,8 @@ export class AIStudioComponent {
   }
   async loadArtifacts(): Promise<void> {
     try {
+      const current = this.generation();
+      if (current) this.generation.set(await this.ai.studioGeneration(current.id));
       this.artifacts.set(await this.ai.studioArtifacts({ product_id: this.productId() }));
     } catch (error) {
       this.error.set(AIService.errorMessage(error));

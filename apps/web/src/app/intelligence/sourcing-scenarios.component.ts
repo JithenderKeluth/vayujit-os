@@ -60,7 +60,7 @@ interface AllocationInput {
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main>
+    <section class="sourcing-scenarios-page">
       <app-breadcrumbs [items]="breadcrumbs" />
       <app-page-header
         title="Sourcing Scenarios"
@@ -426,11 +426,11 @@ interface AllocationInput {
           }
         </section>
       }
-    </main>
+    </section>
   `,
   styles: [
     `
-      main {
+      .sourcing-scenarios-page {
         max-width: 1200px;
         margin: auto;
         padding: 1rem;

@@ -159,6 +159,9 @@ class MarketingPlanCreate(BaseModel):
             raise ValueError("Marketing Plan channels must be unique.")
         if self.end_at and self.start_at and self.end_at <= self.start_at:
             raise ValueError("The Marketing Plan end must be after its start.")
+        errors = _budget_errors(self.budget_envelope)
+        if errors:
+            raise ValueError("Invalid Marketing Plan budget: " + ", ".join(errors))
         return self
 
 
