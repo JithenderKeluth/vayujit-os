@@ -1,0 +1,28 @@
+{
+  "status": "PASS",
+  "target_package": "WP7B-R5",
+  "documentation_edition": "0.9.1",
+  "changed_sections": [
+    "Page by page reference/P032 Campaign detail",
+    "Shared controls and field reference/reschedule dialog",
+    "Edition evidence and maintenance/"
+  ],
+  "changed_fields": [
+    "reschedule-dialog-F001",
+    "reschedule-dialog-F002",
+    "reschedule-dialog-F003",
+    "reschedule-dialog-F004",
+    "reschedule-dialog-F005"
+  ],
+  "unexpected_sections": [],
+  "unexpected_fields": [],
+  "screenshots_replaced": [],
+  "screenshots_preserved": 19,
+  "inventory_unchanged": true,
+  "word_regenerated": true,
+  "fresh_screenshots": 0,
+  "application_tests_executed": 0,
+  "current_ui_verification": "NOT VERIFIED",
+  "visual_layout_verification": "NOT VERIFIED",
+  "previous_word_unchanged": true
+}

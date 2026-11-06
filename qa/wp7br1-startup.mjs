@@ -1,0 +1,2 @@
+export const startupPolicy=workPackage=>workPackage==='WP7BR1'?{deadlineMs:300000,probeMs:10000}:{deadlineMs:null,probeMs:1000};
+export function safeStartupDiagnostic(text){return{raw_output_persisted:false,asgi_error:/Exception in ASGI application/.test(text),lifespan_failure:/Application startup failed/.test(text),exception_types:['TypeError','AttributeError','RuntimeError','IntegrityError','UnsafeTestDatabaseError','GuardDenied'].filter(n=>new RegExp('(?:error_type["\\s:]+|\\b)'+n+'(?:["\\s:]|$)').test(text))};}

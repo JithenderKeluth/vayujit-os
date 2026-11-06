@@ -1,6 +1,6 @@
 param(
   [ValidateSet('Pause','Resume')][string]$Action='Pause',
-  [ValidateSet('wp7a6','wp7a7')][string]$Package='wp7a6'
+  [ValidateSet('wp7a6','wp7a7','wp7b','wp7br1')][string]$Package='wp7a6'
 )
 $ErrorActionPreference='Stop'
 $repo=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path

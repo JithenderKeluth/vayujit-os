@@ -1,0 +1,34 @@
+{
+  "edition": "0.9.1",
+  "generated_at": "2026-11-06T17:41:05.121Z",
+  "chapters": 20,
+  "page_families": 104,
+  "page_routes": 150,
+  "redirects": 6,
+  "route_entries": 156,
+  "field_entries": 693,
+  "manually_reviewed_semantic_overrides": 26,
+  "screenshot_files": 19,
+  "families_with_screenshots": 15,
+  "fresh_current_ui_pages": 0,
+  "worked_journeys": 6,
+  "prompts": 24,
+  "route_inventory_coverage": {
+    "numerator": 156,
+    "denominator": 156,
+    "percent": 100,
+    "meaning": "Source-declared route representation only, not functional/current UI coverage"
+  },
+  "fresh_ui_coverage": {
+    "numerator": 0,
+    "denominator": 150,
+    "percent": 0
+  },
+  "render_status": "BLOCKED",
+  "completeness": "REFERENCE_EDITION_WITH_EXPLICIT_GAPS",
+  "page_count": null,
+  "word_open_verified": false,
+  "visual_review": "NOT_VERIFIED",
+  "structured_checks_passed": 17,
+  "structured_checks_failed": 0
+}

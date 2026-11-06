@@ -149,8 +149,17 @@ const CAPABILITY_LABELS: Record<string, string> = {
         <app-loading-state message="Loading Business Agent workspace..." />
       }
 
-      <details class="goal-creation" [open]="!goals().length">
-        <summary class="goal-creation-summary">
+      <details
+        class="goal-creation"
+        [open]="goalCreationOpen()"
+        (toggle)="syncGoalDisclosure($event)"
+        (focusin)="rememberGoalInteraction()"
+      >
+        <summary
+          class="goal-creation-summary"
+          [attr.aria-expanded]="goalCreationOpen()"
+          (click)="rememberGoalInteraction()"
+        >
           {{ goals().length ? 'Start another research goal' : 'Start with a business outcome' }}
         </summary>
         <div class="section-heading">
@@ -935,6 +944,16 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
   private readonly service = inject(BusinessAgentService);
   private readonly intelligence = inject(IntelligenceService);
   readonly goals = signal<BusinessAgentGoal[]>([]);
+  readonly goalCreationOpen = signal(false);
+  private goalCreationInteracted = false;
+
+  rememberGoalInteraction(): void {
+    this.goalCreationInteracted = true;
+  }
+
+  syncGoalDisclosure(event: Event): void {
+    if (event.target instanceof HTMLDetailsElement) this.goalCreationOpen.set(event.target.open);
+  }
   readonly capabilities = signal<BusinessAgentCapability[]>([]);
   readonly externalPolicy = signal<ExternalResearchPolicy | null>(null);
   readonly plans = signal<Record<string, BusinessAgentPlan>>({});
@@ -974,6 +993,9 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
         this.service.capabilities(),
       ]);
       this.goals.set(goals);
+      // Decide the initial default only after loading; never close a draft or
+      // reverse the seller's native disclosure interaction during refresh.
+      if (!this.goalCreationInteracted) this.goalCreationOpen.set(goals.length === 0);
       this.capabilities.set(capabilities);
       try {
         this.externalPolicy.set(await this.intelligence.externalPolicy());
@@ -1179,6 +1201,8 @@ export class BusinessAgentWorkspaceComponent implements OnInit {
     await this.hydrateGoal(goal);
   }
   revise(goal: BusinessAgentGoal): void {
+    this.rememberGoalInteraction();
+    this.goalCreationOpen.set(true);
     this.rawGoal = goal.raw_goal;
     this.idempotencyKey = 'business-goal-' + crypto.randomUUID();
     this.goalCreatedMessage.set(

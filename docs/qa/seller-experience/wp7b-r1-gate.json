@@ -1,0 +1,125 @@
+{
+  "package": "WP7B-R1",
+  "date": "2026-11-05",
+  "timezone": "Asia/Calcutta",
+  "overall_wp7b_status": "INCOMPLETE",
+  "whole_application_certification": "INCOMPLETE",
+  "launch_authorized": false,
+  "gates": {
+    "A_application_behavior": {
+      "status": "PASS",
+      "scope": "Demonstrated R1 defects and affected local synthetic workflows, not whole-application or live-provider certification",
+      "original_four_failures": [
+        {"id": "B-GOALS", "original_context": "chrome-1440", "resolution": "PASS", "root_cause": "Asynchronous saved-goals response controlled native disclosure visibility and focus"},
+        {"id": "B-GOALS", "original_context": "chrome-390", "resolution": "PASS", "root_cause": "Same disclosure state race"},
+        {"id": "B-GOALS", "original_context": "msedge-1440", "resolution": "PASS", "root_cause": "Same disclosure state race"},
+        {"id": "B-DIALOG", "original_context": "chrome-1440", "resolution": "PASS", "root_cause": "Concurrent overview/anomaly detection inserts the same unique fingerprint"}
+      ],
+      "original_focused_assertions": {"passed": 52, "failed": 0, "evidence_run": "428ad971b5ba262d"},
+      "final_affected_assertions": {"passed": 32, "failed": 0, "evidence_run": "57e1c0c8d2d30df9"},
+      "backend_concurrent_identity_and_unknown_regressions": "PASS",
+      "no_new_unresolved_demonstrated_P0_P1": true
+    },
+    "B_manual_accessibility": {
+      "status": "INCOMPLETE",
+      "screen_reader": {
+        "tool": "Windows Narrator",
+        "executable_version": "10.0.26100.8972 (WinBuild.160101.0800)",
+        "browser": "Chrome 156.0.8078.76",
+        "actually_launched": true,
+        "human_audibility_report": "QA window restored; Narrator audible",
+        "required_semantic_speech_matrix": "NOT VERIFIED",
+        "actual_control_speech_transcript_obtained": false,
+        "dom_or_axe_used_as_speech_proof": false
+      },
+      "native_zoom": {
+        "settings_actually_observed_percent": [100, 200, 400],
+        "set_by_CSS_or_CDP_page_scale": false,
+        "evidence_run": "e383423462181a8e",
+        "post_fix_complete_interaction_review": "NOT VERIFIED",
+        "limitation": "Some native-zoom Playwright PNGs are blank crops; native desktop observations and viewport/DPR metrics are separate. Desktop input stopped when URL confidence protection ended Computer Use."
+      },
+      "contrast": {
+        "final_run": "57e1c0c8d2d30df9",
+        "text_samples": {"PASS": 138, "NOT_VERIFIED": 18, "FAIL": 0},
+        "focus_samples": {"PASS": 18, "NOT_VERIFIED": 126, "FAIL": 0, "rows_without_focus_measurement": 12},
+        "repaired_focus_rgb": [7, 84, 98],
+        "verified_adjacent_rgb": [255, 255, 255],
+        "measured_ratio": 8.559089262681107,
+        "required_non_text_ratio": 3,
+        "all_historical_manual_targets_complete": false,
+        "campaign_reschedule_target": "BLOCKED: current canonical draft checkpoint fixture is not eligible; no authority was bypassed",
+        "transition_state_manual_review": "NOT VERIFIED"
+      },
+      "remaining": [
+        "Actual witnessed names, roles, states, validation/errors, loading/status, approval and dialog speech",
+        "Complete post-fix native zoom form/dialog/navigation traversal",
+        "Unsampled, oversized or occluded historical contrast targets and inactive focus/non-text boundaries",
+        "Eligible canonical Campaign fixture for reschedule-panel manual contrast",
+        "Target-size/spacing and legitimate inline exceptions"
+      ]
+    }
+  },
+  "tests": {
+    "full_angular_passed": 442,
+    "full_node_qa_passed": 138,
+    "full_python_qa_passed": 163,
+    "persisted_backend": {"passed": 36, "failed": 0, "errors": 0, "skipped": 0, "new_regressions": 4, "adjacent_regressions": 32, "run": "c32ab8336d214ed0"},
+    "browser_runs_not_additive_unique_coverage": [
+      {"run": "67c081611ec1c006", "stage": "pre-fix Ads reproduction", "passed": 2, "failed": 1},
+      {"run": "cd102dd32f92bcc3", "stage": "pre-fix delayed-goals reproduction", "passed": 1, "failed": 1},
+      {"run": "27c1eddaf9ab91c5", "stage": "cold-start readiness timeout", "browser": "NOT EXECUTED", "cleanup": "PASS"},
+      {"run": "e383423462181a8e", "stage": "native and initial replay", "passed": 60, "failed": 8},
+      {"run": "9a6fad143ff9e2c5", "stage": "expanded replay", "passed": 94, "failed": 10},
+      {"run": "5bd3f03205fd40bd", "stage": "settled text; supplemental focus failures retained", "passed": 28, "failed": 0, "supplemental_focus_failures": 8},
+      {"run": "428ad971b5ba262d", "stage": "Marketplace focus repair; goal focus failures retained", "passed": 80, "failed": 0, "supplemental_focus_failures": 2},
+      {"run": "57e1c0c8d2d30df9", "stage": "final strengthened affected checks", "passed": 32, "failed": 0, "supplemental_focus_failures": 0}
+    ],
+    "final_axe": {"scans": 32, "violations": 0, "incomplete_rule_occurrences": 28, "full_WCAG_conformance_claimed": false},
+    "quality": {"checks": 15, "status": "PASS", "evidence": "tmp/qa-wp7br1/quality.json", "historical_initial_formatter_failure_retained": "tmp/qa-wp7br1/quality-20261104T233513162Z.json", "black_scope": "Canonical API config; changed Ads function ranges, not whole-repository formatting", "mypy_scope": "Strict: Ads router/service/optimization, R1 diagnostics and regression test", "repository_wide_cleanliness_claimed": false},
+    "browser_versions": {"chrome": "156.0.8078.76", "edge": "156.0.4314.58"},
+    "viewports": [[1440, 900], [390, 900]],
+    "responsive_dialog_at_320": {"PASS_contexts": 4, "left": 16, "right": 304, "client_width": 288, "scroll_width": 288, "native_zoom": false}
+  },
+  "isolation": {
+    "authorization": "Fresh owner-approved WP7B-R1 only",
+    "container": "vayujit-qa-postgres",
+    "container_id": "a06480a4e71135da13f225685c8809b0d30255cf53209d93bb0123097b1fec23",
+    "instance_id": "389b97d2-a4cd-4d9b-972e-6bb2bf5785eb",
+    "endpoint": "127.0.0.1:55432",
+    "role": "vayujit_qa_admin",
+    "database_scope": "vayujit_qa<16-hex>_test",
+    "task_owned_databases_independently_absent": 9,
+    "signed_lifecycle_states": "All DROPPED",
+    "forced_cleanup_or_recovery": false,
+    "original_WP7B_files_unchanged": 8,
+    "original_WP7A7_provenance_files_unchanged": true,
+    "trace_integrity_checked": 23,
+    "protected_secret_matches": 0,
+    "evidence": "tmp/qa-wp7br1/final-audit.json",
+    "docker_structural_identity_unchanged": true,
+    "historical_runtime_timestamps": "UNATTRIBUTED; not repaired or treated as data-loss proof"
+  },
+  "normal_development_restoration": {
+    "status": "PASS",
+    "record_token": "79d6bd68adfd407f",
+    "original_owner_executable_repository_CWD_checks": "PASS",
+    "pre_resume_read_only_pending_startup_waits": 0,
+    "post_resume_read_only_pending_startup_waits": 0,
+    "frontend_HTTP": 200,
+    "API_health_HTTP": 200,
+    "API_liveness_HTTP": 200,
+    "API_readiness_HTTP": 200,
+    "health_response_identity_verified": true,
+    "evidence": "tmp/qa-wp7br1/process-restoration.json",
+    "reader_cleanup_limitation": "Narrator process started for this task remains active; owner may close it manually after native input protection stopped automation"
+  },
+  "provenance": {
+    "WP7A_denominator": "48 prioritized entries: 41 inherited plus 7 targeted; not all 156 routes or operations",
+    "L17": "Explicit owner approval of narrower offline contract retained; provider expiry remains UNVERIFIED",
+    "historical_WP7B_results_rewritten": false
+  },
+  "carry_forward": ["Historical Ads 502", "Unattributed PostgreSQL timestamp discrepancy", "Manual accessibility gaps and axe incompletes", "Historical schema/index/typing/lint and bundle debt", "Financial projection/history/reconciliation limitations", "Uncertified live providers", "Parked PC-first backup/restore"],
+  "restrictions": {"permanent_or_golden_migrations_or_data_writes_issued": false, "live_provider_calls": false, "external_commercial_actions": false, "new_branch_commit_push": false, "WP7C_or_WP8_started": false, "backup_certification_resumed": false},
+  "next_action": "Owner review and completion of the existing R1 manual evidence gaps; do not proceed automatically to WP7C"
+}

@@ -8,11 +8,11 @@ export async function start(browser, session, viewport, label) {
   const directory = path.join(session.folder, label);
   await fs.mkdir(directory, {recursive:true});
   const context = await browser.newContext({baseURL:session.origin,viewport, serviceWorkers:'block',
-    isMobile:label === 'mobile' || /^wp7a[4567]-(chrome|msedge)-390$/.test(label), hasTouch:label === 'mobile' || /^wp7a[4567]-(chrome|msedge)-390$/.test(label)});
+    isMobile:label === 'mobile' || /^wp7(?:a[4567]|br1|b)-(chrome|msedge)-390$/.test(label), hasTouch:label === 'mobile' || /^wp7(?:a[4567]|br1|b)-(chrome|msedge)-390$/.test(label)});
   const signals = {console_errors:[],page_errors:[],network:[],failed_requests:[],denied_requests:[]};
   await context.route('**/*', async route => {
     const r = route.request();
-    if (!allowRequest(r.url(),r.method(),session.origin,['WP6','WP6A','WP6B','WP7A','WP7A2', 'WP7A3', 'WP7A4', 'WP7A5', 'WP7A6', 'WP7A7'].includes(session.qa_phase) ? session.qa_phase : '4')) {
+    if (!allowRequest(r.url(),r.method(),session.origin,/^wp7b(?:r1)?-/.test(label) && session.qa_phase==='WP7A7' ? 'WP7B' : ['WP6','WP6A','WP6B','WP7A','WP7A2', 'WP7A3', 'WP7A4', 'WP7A5', 'WP7A6', 'WP7A7'].includes(session.qa_phase) ? session.qa_phase : '4')) {
       signals.denied_requests.push({method:r.method(),path:new URL(r.url()).pathname});
       await route.abort('blockedbyclient');
     } else await route.continue();

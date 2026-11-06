@@ -10,6 +10,10 @@
   min-width: 0;
   max-width: 100%;
 }
+.goal-creation > summary:focus-visible,
+.goal-form :focus-visible {
+  outline-color: var(--vj-color-brand-strong);
+}
 .workspace-nav {
   display: flex;
   flex-wrap: wrap;

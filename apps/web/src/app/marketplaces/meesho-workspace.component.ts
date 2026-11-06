@@ -312,7 +312,7 @@ interface PriceDraft {
               {{ listing.marketplace_sku }} - Artifact
               {{ listing.content_artifact_id || 'not attached' }}
             </p>
-            <div class="workspace-tabs inner-tabs" aria-label="Listing editor sections">
+            <div class="workspace-tabs inner-tabs" role="group" aria-label="Listing editor sections">
               @for (tab of editorTabs; track tab) {
                 <button
                   type="button"

@@ -20,6 +20,25 @@ describe('MeeshoWorkspaceComponent', () => {
   function createComponent() {
     return TestBed.createComponent(MeeshoWorkspaceComponent).componentInstance;
   }
+  it('exposes listing-editor controls as a named group, not an unnamed generic container', async () => {
+    const fixture = TestBed.createComponent(MeeshoWorkspaceComponent);
+    vi.spyOn(fixture.componentInstance, 'ngOnInit').mockImplementation(() => undefined);
+    fixture.componentInstance.activeListing.set({
+      id: 'l',
+      title: 'Synthetic draft',
+      marketplace_sku: 'QA7',
+      status: 'draft',
+      publication_state: 'draft',
+      remote_listing_id: null,
+    });
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(
+      (fixture.nativeElement as HTMLElement)
+        .querySelector('[aria-label="Listing editor sections"]')
+        ?.getAttribute('role'),
+    ).toBe('group');
+  });
   it('preserves exact listing account/product context for local preparation', () => {
     const component = createComponent();
     vi.spyOn(component, 'loadListingData').mockResolvedValue();

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testcase name="compact source covers 45 coherent tasks without exhaustive route catalogue" time="0.000803" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-compact.mjs"/>
+	<testcase name="explicit layout stays conservatively inside requested page budget" time="0.000122" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-compact.mjs"/>
+	<testcase name="all nineteen screenshots retain reviewed bytes and truthful provenance" time="0.011409" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-compact.mjs"/>
+	<testcase name="contents links resolve to every task exactly once" time="0.000946" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-compact.mjs"/>
+	<testcase name="detailed handbook and its unified sources remain byte-identical" time="0.008073" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-compact.mjs"/>
+	<testcase name="source labels preserve optional reason and separate authorization" time="0.000861" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-compact.mjs"/>
+	<!-- tests 6 -->
+	<!-- suites 0 -->
+	<!-- pass 6 -->
+	<!-- fail 0 -->
+	<!-- cancelled 0 -->
+	<!-- skipped 0 -->
+	<!-- todo 0 -->
+	<!-- duration_ms 122.1649 -->
+</testsuites>

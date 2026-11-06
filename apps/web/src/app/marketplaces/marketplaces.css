@@ -108,7 +108,8 @@
 .marketplace-page button:focus-visible,
 .marketplace-page input:focus-visible,
 .marketplace-page select:focus-visible {
-  outline: 3px solid #e49b28;
+  /* These controls sit on light surfaces; the old gold ring was only 2.33:1 on white. */
+  outline: 3px solid var(--vj-color-brand-strong);
   outline-offset: 2px;
 }
 .marketplace-table {

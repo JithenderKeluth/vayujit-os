@@ -4,6 +4,7 @@ import { wp7a4Path } from './wp7a4-safety.mjs';
 import { wp7a5Path } from './wp7a5-safety.mjs';
 import { wp7a6Path } from './wp7a6-safety.mjs';
 import { wp7a7Path } from './wp7a7-safety.mjs';
+import { wp7bPreviewPath } from './wp7b-safety.mjs';
 import { wp7a2Path } from './wp7a2-safety.mjs';
 export const allowedMutations = [
   /^\/api\/v1\/auth\/(setup-owner|login|logout)$/,
@@ -139,6 +140,7 @@ export function safeJourneyContextPayload(path, payload) {
 export function allowRequest(url, method, origin, phase = '1') {
   const parsed = new URL(url);
   if (parsed.origin !== origin) return false;
+  if (phase === 'WP7B') return wp7bPreviewPath(parsed.pathname, method) || allowRequest(url, method, origin, 'WP7A7');
   if (phase === 'WP7A7') return wp7a7Path(parsed.pathname, method) || allowRequest(url, method, origin, 'WP7A6');
   if (phase === 'WP7A6') return wp7a6Path(parsed.pathname, method) || allowRequest(url, method, origin, 'WP7A5');
   if (phase === 'WP7A5') return wp7a5Path(parsed.pathname, method) || allowRequest(url, method, origin, 'WP7A4');

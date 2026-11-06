@@ -211,6 +211,64 @@ describe('BusinessAgentWorkspaceComponent', () => {
     return fixture;
   }
 
+  it('keeps a focused goal draft open when asynchronously loaded goals arrive', async () => {
+    const fixture = await create();
+    const component = fixture.componentInstance;
+    component.goals.set([]);
+    fixture.detectChanges();
+    const disclosure = (fixture.nativeElement as HTMLElement).querySelector(
+      'details.goal-creation',
+    ) as HTMLDetailsElement;
+    disclosure.open = true;
+    disclosure.dispatchEvent(new Event('toggle'));
+    let release!: (value: BusinessAgentGoal[]) => void;
+    service.goals.mockReturnValueOnce(
+      new Promise<BusinessAgentGoal[]>((resolve) => {
+        release = resolve;
+      }),
+    );
+    const loading = component.refresh();
+    const input = (fixture.nativeElement as HTMLElement).querySelector(
+      'textarea[name=goal]',
+    ) as HTMLTextAreaElement;
+    input.focus();
+    input.value = 'A draft must not disappear';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    release([goal]);
+    await loading;
+    fixture.detectChanges();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector<HTMLDetailsElement>(
+        'details.goal-creation',
+      )?.open,
+    ).toBe(true);
+    expect(document.activeElement).toBe(input);
+    expect(component.rawGoal).toBe('A draft must not disappear');
+  });
+
+  it('preserves seller disclosure choice on refresh and exposes its expanded state', async () => {
+    const fixture = await create();
+    const component = fixture.componentInstance;
+    const disclosure = (fixture.nativeElement as HTMLElement).querySelector(
+      'details.goal-creation',
+    ) as HTMLDetailsElement;
+    const summary = disclosure.querySelector(':scope > summary') as HTMLElement;
+    expect(disclosure.open).toBe(false);
+    expect(summary.getAttribute('aria-expanded')).toBe('false');
+    component.rememberGoalInteraction();
+    service.goals.mockResolvedValueOnce([]);
+    await component.refresh();
+    fixture.detectChanges();
+    expect(disclosure.open).toBe(false);
+    disclosure.open = true;
+    disclosure.dispatchEvent(new Event('toggle'));
+    fixture.detectChanges();
+    expect(summary.getAttribute('aria-expanded')).toBe('true');
+    component.revise(goal);
+    fixture.detectChanges();
+    expect(disclosure.open).toBe(true);
+  });
+
   it('renders goal-first creation with only supported research options', async () => {
     const fixture = await create();
     const element = fixture.nativeElement as HTMLElement;

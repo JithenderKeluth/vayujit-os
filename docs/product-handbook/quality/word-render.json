@@ -1,0 +1,20 @@
+﻿{
+    "engine":  "Microsoft Word native fallback",
+    "status":  "BLOCKED",
+    "stage":  "open_document",
+    "existing_user_documents_touched":  false,
+    "opened":  false,
+    "toc_updated":  false,
+    "page_count":  null,
+    "word_version":  "16.0",
+    "pdf_exported":  false,
+    "application_operations":  0,
+    "database_operations":  0,
+    "cleanup_failures":  [
+
+                         ],
+    "failure_type":  "MethodInvocationException",
+    "failure_id":  "COMException",
+    "raw_error_persisted":  false,
+    "safe_code":  "WORD_NATIVE_RENDER_UNAVAILABLE"
+}

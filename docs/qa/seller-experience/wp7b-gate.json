@@ -1,0 +1,1043 @@
+{
+  "package": "WP7B",
+  "assessed_at": "2026-11-04T17:14:31.228Z",
+  "status": "INCOMPLETE",
+  "application_certification": "INCOMPLETE",
+  "live_provider_certification": false,
+  "launch_authorized": false,
+  "wp7a_result_modified": false,
+  "provenance": {
+    "package": "WP7B",
+    "historical_wp7a_gate": "PASS",
+    "exact_48_reconciliation": true,
+    "inherited_41_match": true,
+    "seven_original_texts_preserved": true,
+    "original_assertion_keys_preserved": true,
+    "earlier_44_evidence_files_unchanged": true,
+    "ads": {
+      "stable_id": "L-17",
+      "original_acceptance": "Local fake content/image creative preview, missing/expired/disabled authorization, stale references and HUMAN confirmation; never remote execution.",
+      "explicit_approval_recorded": true,
+      "owner_reply": "Approve this explicit scope clarification",
+      "contract_disposition": "Approved narrower offline interpretation; not an unqualified pass of provider authorization expiry",
+      "live_provider_expiry": "UNVERIFIED"
+    },
+    "denominator_scope": "48 prioritized remaining WP7A entries, not all 156 application route leaves or all operations; preceding 124 route-review caveats are not upgraded",
+    "existing_result_modified": false,
+    "approval_evidence_review": "The actual owner reply in the conversation approves the explicit scope clarification; artifact claims alone are not treated as authority",
+    "manifest": {
+      "docs/qa/seller-experience/wp7a7-gate.json": "84e2ec38027690836a432cf87d63a989ac6373a108635a2c149c08ec6cb18fc1",
+      "docs/qa/seller-experience/wp7a7-coverage-ledger.json": "7e5fbb61ca6b45756229072f3cea918f081ad21e298d7cda5b9c9c8b35b4cd6f",
+      "docs/qa/seller-experience/wp7a7-closure-plan.md": "ec4f8d0f0e8379c3c2993f0094d8a81d15274879cda6a67876d8a5aeb565e899",
+      "docs/qa/seller-experience/wp7a7-closure-report.md": "6305ea8d277b9c34d5839bd6cb4a24afb3d06d1b39b6ed293209958ea1ff2461",
+      "docs/qa/seller-experience/wp7a7-browser-evidence.md": "ca503f6b61bbfc3af5cb5ae76c7c6933ffbafb4133dad2626c8478933c41855e"
+    }
+  },
+  "fixes": [
+    {
+      "id": "WP7B-GROUP-001",
+      "severity": "P2",
+      "status": "RESOLVED AND RETESTED",
+      "files": [
+        "apps/web/src/app/marketplaces/marketplace-accounts.component.ts",
+        "apps/web/src/app/marketplaces/marketplace-accounts.component.spec.ts"
+      ]
+    },
+    {
+      "id": "WP7B-GROUP-002",
+      "severity": "P2",
+      "status": "RESOLVED AND RETESTED",
+      "files": [
+        "apps/web/src/app/marketplaces/meesho-workspace.component.ts",
+        "apps/web/src/app/marketplaces/meesho-workspace.component.spec.ts"
+      ]
+    },
+    {
+      "id": "WP7B-MODAL-001",
+      "severity": "P1",
+      "keyboard_fix_status": "RESOLVED AND RETESTED IN FOUR CONTEXTS",
+      "availability_failure_separate": true,
+      "files": [
+        "apps/web/src/app/ads/ads-optimization.component.ts",
+        "apps/web/src/app/ads/ads-optimization.component.spec.ts"
+      ]
+    }
+  ],
+  "browser": {
+    "broad": {
+      "token": "66af017c1429b89e",
+      "passed": 81,
+      "failed": 11,
+      "attempted": 92,
+      "scans": 92,
+      "violation_rule_contexts": 0,
+      "incomplete_rule_contexts": 60,
+      "incomplete_repeated_nodes": 882
+    },
+    "focused": {
+      "token": "071d1158209292db",
+      "passed": 48,
+      "failed": 4,
+      "attempted": 52,
+      "scans": 52,
+      "violation_rule_contexts": 0,
+      "incomplete_rule_contexts": 33,
+      "incomplete_repeated_nodes": 331,
+      "source_unchanged": true,
+      "checks": [
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-LOGIN",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/dashboard",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\001-B-LOGIN-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-NAV",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/dashboard",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\002-B-NAV-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-GOALS",
+          "status": "FAIL",
+          "reason": "expect(locator).toBeVisible() failed",
+          "failure_operation": "keyboard reach goal textarea",
+          "route": "/intelligence/business-agent",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\003-B-GOALS-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-CATALOG",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\004-B-CATALOG-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-SPACE",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\005-B-SPACE-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-CATALOG-ERROR",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\006-B-CATALOG-ERROR-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-MARKETPLACE",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/accounts",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\007-B-MARKETPLACE-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-IMPORT-GROUP",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/accounts",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\008-B-IMPORT-GROUP-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-MEESHO",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/listings/7ad066e0-964e-48ef-af0d-15de657baf17/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\009-B-MEESHO-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-EDITOR-GROUP",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/listings/7ad066e0-964e-48ef-af0d-15de657baf17/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\010-B-EDITOR-GROUP-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-DIALOG",
+          "status": "FAIL",
+          "reason": "UNEXPECTED_API_5XX",
+          "route": "/ads/recommendations",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\011-B-DIALOG-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-REFLOW",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/dashboard",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\012-B-REFLOW-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-1440",
+          "id": "B-320-REFLOW",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\013-B-320-REFLOW-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-LOGIN",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\001-B-LOGIN-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-NAV",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/dashboard",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\002-B-NAV-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-GOALS",
+          "status": "FAIL",
+          "reason": "expect(locator).toBeVisible() failed",
+          "failure_operation": "keyboard reach goal textarea",
+          "route": "/intelligence/business-agent",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\003-B-GOALS-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-CATALOG",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\004-B-CATALOG-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-SPACE",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\005-B-SPACE-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-CATALOG-ERROR",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\006-B-CATALOG-ERROR-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-MARKETPLACE",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/accounts",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\007-B-MARKETPLACE-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-IMPORT-GROUP",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/accounts",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\008-B-IMPORT-GROUP-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-MEESHO",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/listings/7ad066e0-964e-48ef-af0d-15de657baf17/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\009-B-MEESHO-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-EDITOR-GROUP",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/listings/7ad066e0-964e-48ef-af0d-15de657baf17/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\010-B-EDITOR-GROUP-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-DIALOG",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/ads/recommendations",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\011-B-DIALOG-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-REFLOW",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/dashboard",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\012-B-REFLOW-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "id": "B-320-REFLOW",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\013-B-320-REFLOW-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-chrome-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-LOGIN",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\001-B-LOGIN-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-NAV",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/dashboard",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\002-B-NAV-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-GOALS",
+          "status": "FAIL",
+          "reason": "expect(locator).toBeVisible() failed",
+          "failure_operation": "keyboard reach goal textarea",
+          "route": "/intelligence/business-agent",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\003-B-GOALS-FAIL.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-CATALOG",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\004-B-CATALOG-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-SPACE",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\005-B-SPACE-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-CATALOG-ERROR",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\006-B-CATALOG-ERROR-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-MARKETPLACE",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/accounts",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\007-B-MARKETPLACE-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-IMPORT-GROUP",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/accounts",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\008-B-IMPORT-GROUP-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-MEESHO",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/listings/7ad066e0-964e-48ef-af0d-15de657baf17/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\009-B-MEESHO-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-EDITOR-GROUP",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/listings/7ad066e0-964e-48ef-af0d-15de657baf17/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\010-B-EDITOR-GROUP-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-DIALOG",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/ads/recommendations",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\011-B-DIALOG-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-REFLOW",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/dashboard",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\012-B-REFLOW-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "id": "B-320-REFLOW",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\013-B-320-REFLOW-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-1440\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-LOGIN",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\001-B-LOGIN-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-NAV",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/dashboard",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\002-B-NAV-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-GOALS",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/intelligence/business-agent",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\003-B-GOALS-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-CATALOG",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\004-B-CATALOG-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-SPACE",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\005-B-SPACE-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-CATALOG-ERROR",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\006-B-CATALOG-ERROR-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-MARKETPLACE",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/accounts",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\007-B-MARKETPLACE-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-IMPORT-GROUP",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/accounts",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\008-B-IMPORT-GROUP-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-MEESHO",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/listings/7ad066e0-964e-48ef-af0d-15de657baf17/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\009-B-MEESHO-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-EDITOR-GROUP",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/marketplaces/listings/7ad066e0-964e-48ef-af0d-15de657baf17/meesho",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\010-B-EDITOR-GROUP-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-DIALOG",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/ads/recommendations",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\011-B-DIALOG-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-REFLOW",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/dashboard",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\012-B-REFLOW-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "id": "B-320-REFLOW",
+          "status": "PASS",
+          "reason": "Bounded keyboard/visual assertions passed",
+          "route": "/catalog/9d291ff5-00b4-4809-a741-641e24691d85",
+          "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\013-B-320-REFLOW-PASS.png",
+          "trace": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\071d1158209292db\\wp7b-msedge-390\\trace.zip"
+        }
+      ],
+      "dialog_keyboard_verified": [
+        {
+          "context": "wp7b-chrome-1440",
+          "entry": true,
+          "tab": true,
+          "shift_tab": true,
+          "space_close": true,
+          "escape": true,
+          "restoration": true
+        },
+        {
+          "context": "wp7b-chrome-390",
+          "entry": true,
+          "tab": true,
+          "shift_tab": true,
+          "space_close": true,
+          "escape": true,
+          "restoration": true
+        },
+        {
+          "context": "wp7b-msedge-1440",
+          "entry": true,
+          "tab": true,
+          "shift_tab": true,
+          "space_close": true,
+          "escape": true,
+          "restoration": true
+        },
+        {
+          "context": "wp7b-msedge-390",
+          "entry": true,
+          "tab": true,
+          "shift_tab": true,
+          "space_close": true,
+          "escape": true,
+          "restoration": true
+        }
+      ]
+    },
+    "versions": {
+      "chrome": "156.0.8078.76",
+      "msedge": "156.0.4314.58"
+    },
+    "not_comprehensive_journey_certification": true
+  },
+  "quality": {
+    "package": "WP7B",
+    "started_at": "2026-11-04T16:54:52.534Z",
+    "raw_output_persisted": false,
+    "checks": [
+      {
+        "id": "node",
+        "command": "npm.cmd run qa:unit",
+        "exit_code": 0,
+        "status": "PASS",
+        "passed": 131
+      },
+      {
+        "id": "python",
+        "command": "apps/api/.venv/Scripts/python.exe -m pytest qa/unit -q",
+        "exit_code": 0,
+        "status": "PASS",
+        "passed": 161
+      },
+      {
+        "id": "angular",
+        "command": "npm.cmd run test --workspace @vayujit/web",
+        "exit_code": 0,
+        "status": "PASS",
+        "passed": 440
+      },
+      {
+        "id": "lint",
+        "command": "npx.cmd eslint apps/web/src/app/marketplaces/marketplace-accounts.component.ts apps/web/src/app/marketplaces/meesho-workspace.component.ts apps/web/src/app/ads/ads-optimization.component.ts",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "lint_specs",
+        "command": "npx.cmd eslint apps/web/src/app/marketplaces/marketplace-accounts.component.spec.ts apps/web/src/app/marketplaces/meesho-workspace.component.spec.ts apps/web/src/app/ads/ads-optimization.component.spec.ts",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "lint_web",
+        "command": "npm.cmd run lint --workspace @vayujit/web",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "types_spec",
+        "command": "npx.cmd tsc -p apps/web/tsconfig.spec.json --noEmit",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "ruff_ads",
+        "command": "apps/api/.venv/Scripts/ruff.exe check apps/api/vayujit_api/ads/router.py apps/api/vayujit_api/ads/service.py",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "black_ads",
+        "command": "apps/api/.venv/Scripts/black.exe --check apps/api/vayujit_api/ads/router.py apps/api/vayujit_api/ads/service.py",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "compile_ads",
+        "command": "apps/api/.venv/Scripts/python.exe -m compileall -q apps/api/vayujit_api/ads",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "types",
+        "command": "npx.cmd tsc -p apps/web/tsconfig.app.json --noEmit",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "mypy_ads",
+        "command": "apps/api/.venv/Scripts/mypy.exe --strict --config-file apps/api/pyproject.toml apps/api/vayujit_api/ads/router.py apps/api/vayujit_api/ads/service.py",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "build",
+        "command": "npm.cmd run build --workspace @vayujit/web",
+        "exit_code": 0,
+        "status": "PASS"
+      },
+      {
+        "id": "diff",
+        "command": "git -c safe.directory=C:/Users/jithe/Documents/vayujit-os diff --check",
+        "exit_code": 0,
+        "status": "PASS"
+      }
+    ],
+    "completed_at": "2026-11-04T16:57:56.925Z"
+  },
+  "backend": {
+    "token": "a5406c54d0d643ea",
+    "tests": 32,
+    "passed": 32,
+    "failed": 0,
+    "errors": 0,
+    "skipped": 0,
+    "evidence": "tmp/qa-wp7b-backend/a5406c54d0d643ea/backend-results.xml"
+  },
+  "accessibility_inventory": {
+    "input_files": 2525,
+    "observation_keys": 3169,
+    "unreadable": 0,
+    "not_unique_defect_count": true,
+    "underlying_cause_deduplication_complete": false,
+    "reviewed_file": "tmp/qa-wp7b/accessibility-observations-reviewed.json"
+  },
+  "native_keyboard": "BLOCKED: capture crop outside captured monitor, retry exhausted; no native key input sent",
+  "screen_reader": "NOT VERIFIED: Narrator installed, actual speech not observable/witnessed",
+  "browser_zoom": "NOT VERIFIED",
+  "non_text_contrast_and_target_exceptions": "NOT VERIFIED for all required controls",
+  "historical_exact_contrast_targets": "NOT ALL RETESTED",
+  "ads": {
+    "historical_502": "UNRESOLVED AND REQUIRING FURTHER INVESTIGATION; not reproduced in bounded current monitoring; current 200s are not proof of a fix",
+    "observed_requests": [
+      {
+        "run": "66af017c1429b89e",
+        "context": "wp7b-chrome-1440",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/anomalies",
+        "status": 500
+      },
+      {
+        "run": "66af017c1429b89e",
+        "context": "wp7b-chrome-1440",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/comparison",
+        "status": 200
+      },
+      {
+        "run": "66af017c1429b89e",
+        "context": "wp7b-chrome-390",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/anomalies",
+        "status": 200
+      },
+      {
+        "run": "66af017c1429b89e",
+        "context": "wp7b-chrome-390",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/comparison",
+        "status": 200
+      },
+      {
+        "run": "66af017c1429b89e",
+        "context": "wp7b-msedge-1440",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/anomalies",
+        "status": 200
+      },
+      {
+        "run": "66af017c1429b89e",
+        "context": "wp7b-msedge-1440",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/comparison",
+        "status": 200
+      },
+      {
+        "run": "66af017c1429b89e",
+        "context": "wp7b-msedge-390",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/anomalies",
+        "status": 200
+      },
+      {
+        "run": "66af017c1429b89e",
+        "context": "wp7b-msedge-390",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/comparison",
+        "status": 200
+      },
+      {
+        "run": "071d1158209292db",
+        "context": "wp7b-chrome-1440",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/anomalies",
+        "status": 500
+      },
+      {
+        "run": "071d1158209292db",
+        "context": "wp7b-chrome-1440",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/comparison",
+        "status": 200
+      },
+      {
+        "run": "071d1158209292db",
+        "context": "wp7b-chrome-1440",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/anomalies",
+        "status": 200
+      },
+      {
+        "run": "071d1158209292db",
+        "context": "wp7b-chrome-1440",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/comparison",
+        "status": 200
+      },
+      {
+        "run": "071d1158209292db",
+        "context": "wp7b-chrome-390",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/anomalies",
+        "status": 200
+      },
+      {
+        "run": "071d1158209292db",
+        "context": "wp7b-chrome-390",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/comparison",
+        "status": 200
+      },
+      {
+        "run": "071d1158209292db",
+        "context": "wp7b-msedge-1440",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/anomalies",
+        "status": 200
+      },
+      {
+        "run": "071d1158209292db",
+        "context": "wp7b-msedge-1440",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/comparison",
+        "status": 200
+      },
+      {
+        "run": "071d1158209292db",
+        "context": "wp7b-msedge-390",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/anomalies",
+        "status": 200
+      },
+      {
+        "run": "071d1158209292db",
+        "context": "wp7b-msedge-390",
+        "screen": "/ads/recommendations",
+        "method": "GET",
+        "path": "/api/v1/ads/comparison",
+        "status": 200
+      }
+    ],
+    "new_anomaly_500_open": true,
+    "raw_error_persisted": false
+  },
+  "app_restoration": {
+    "database_operation": false,
+    "api_pid": 15428,
+    "frontend_launcher_pid": 38416,
+    "frontend_index_http_200": true,
+    "original_failed_pause_record_preserved": true,
+    "api_live_http_200": true,
+    "package": "WP7B",
+    "api_process_untouched": true,
+    "frontend_start_requested": true
+  },
+  "audit": {
+    "package": "WP7B",
+    "read_only": true,
+    "database_cleanup": "PASS",
+    "databases": [
+      {
+        "token": "071d1158209292db",
+        "signed_state": "DROPPED",
+        "absent": true
+      },
+      {
+        "token": "18d8b8babb5e0ce6",
+        "signed_state": "DROPPED",
+        "absent": true
+      },
+      {
+        "token": "2bc4bae4e816c53c",
+        "signed_state": "DROPPED",
+        "absent": true
+      },
+      {
+        "token": "66af017c1429b89e",
+        "signed_state": "DROPPED",
+        "absent": true
+      },
+      {
+        "token": "91dc073e86877e97",
+        "signed_state": "DROPPED",
+        "absent": true
+      },
+      {
+        "token": "a5406c54d0d643ea",
+        "signed_state": "DROPPED",
+        "absent": true
+      },
+      {
+        "token": "a8f3f5783190da0e",
+        "signed_state": "DROPPED",
+        "absent": true
+      },
+      {
+        "token": "d9091502f0e3ac07",
+        "signed_state": "DROPPED",
+        "absent": true
+      }
+    ],
+    "traces": [
+      {
+        "file": "tmp/qa-seller-browser/071d1158209292db/wp7b-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/071d1158209292db/wp7b-chrome-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/071d1158209292db/wp7b-msedge-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/071d1158209292db/wp7b-msedge-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/18d8b8babb5e0ce6/wp7b-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/2bc4bae4e816c53c/wp7b-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/66af017c1429b89e/wp7b-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/66af017c1429b89e/wp7b-chrome-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/66af017c1429b89e/wp7b-msedge-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/66af017c1429b89e/wp7b-msedge-390/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/91dc073e86877e97/wp7b-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/a8f3f5783190da0e/wp7b-chrome-1440/trace.zip",
+        "crc": "PASS"
+      },
+      {
+        "file": "tmp/qa-seller-browser/d9091502f0e3ac07/wp7b-chrome-1440/trace.zip",
+        "crc": "PASS"
+      }
+    ],
+    "text_files_scanned": 394,
+    "protected_secret_matches": 0,
+    "wp7a7_sources_unchanged": true,
+    "docker_preservation": {
+      "status": "HISTORICAL_BASELINE_CHANGED",
+      "strict_original_check": "FAIL",
+      "original_containers_inspected": 10,
+      "differences": [
+        {
+          "container": "/infrastructure-postgres-1",
+          "changed_fields": [
+            "started",
+            "finished"
+          ],
+          "runtime_only": true
+        }
+      ],
+      "collections": {
+        "network": {
+          "missing": 0,
+          "added": 0
+        },
+        "volume": {
+          "missing": 0,
+          "added": 0
+        }
+      },
+      "structural_identity_unchanged": true,
+      "cause": "UNATTRIBUTED; no unrelated Docker resource is changed to restore an old runtime state"
+    },
+    "historical_docker_events": {
+      "retained_event_count": 72,
+      "actions": [
+        "exec_create",
+        "exec_die",
+        "exec_start"
+      ],
+      "command_arguments_persisted": false,
+      "redaction_self_checks_passed": 3,
+      "attribution": "UNATTRIBUTED; retained events do not identify an authorized actor"
+    },
+    "permanent_database_accessed": false
+  },
+  "required_next": [
+    "Complete actual screen-reader speech checks with a compatible Windows reader/browser and retain human observations.",
+    "Complete native keyboard/actual zoom and remaining exact historical contrast/non-text/target checks.",
+    "Resolve or safely attribute the new Ads anomaly 500; preserve the dialog recovery evidence independently.",
+    "Triage any remaining focused browser failures without weakening assertions.",
+    "Review residual risk register and explicitly retain provider, financial-history and independent-backup launch gates."
+  ],
+  "stopped_before": [
+    "WP7C",
+    "WP8"
+  ],
+  "backup_certification": "PARKED / NO SUCCESS CLAIM",
+  "permanent_database_operations": false,
+  "real_provider_calls": false,
+  "commits": false,
+  "pushes": false
+}

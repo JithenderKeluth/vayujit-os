@@ -7,6 +7,7 @@ import { wp7a4Path, safeWp7a4Payload } from './wp7a4-safety.mjs';
 import { wp7a5Path, safeWp7a5Payload } from './wp7a5-safety.mjs';
 import { wp7a6Path, safeWp7a6Payload } from './wp7a6-safety.mjs';
 import { wp7a7Path, safeWp7a7Payload } from './wp7a7-safety.mjs';
+import { wp7bPreviewPath, safeWp7bPreview } from './wp7b-safety.mjs';
 import { wp7a2Path, safeWp7a2Payload } from './wp7a2-safety.mjs';
 import {
   allowRequest,
@@ -27,6 +28,7 @@ export function proxyFailureDiagnostic(error) {
 // Serve the actual production Angular build; proxy only to this run's API.
 export async function serve(port, apiPort, phase = '1', control = null) {
   const seventh = phase === 'WP7A7';
+  const assessment = seventh && ['WP7B','WP7BR1'].includes(process.env.QA_WORK_PACKAGE);
   const sixth = seventh || phase === 'WP7A6';
   const fifth = sixth || phase === 'WP7A5';
   const fourth = fifth || phase === 'WP7A4';
@@ -50,7 +52,7 @@ export async function serve(port, apiPort, phase = '1', control = null) {
   const server = http.createServer(async (req, res) => {
     try {
       const url = new URL(req.url, origin);
-      if (!allowRequest(url.href, req.method, origin, seventh ? 'WP7A7' : sixth ? 'WP7A6' : fifth ? 'WP7A5' : fourth ? 'WP7A4' : third ? 'WP7A3' : extended ? 'WP7A2' : phase)) {
+      if (!allowRequest(url.href, req.method, origin, assessment ? 'WP7B' : seventh ? 'WP7A7' : sixth ? 'WP7A6' : fifth ? 'WP7A5' : fourth ? 'WP7A4' : third ? 'WP7A3' : extended ? 'WP7A2' : phase)) {
         res.writeHead(403).end();
         return;
       }
@@ -87,7 +89,7 @@ export async function serve(port, apiPort, phase = '1', control = null) {
       ) {
         let buffered;
         if (
-          ((seventh && wp7a7Path(url.pathname,req.method)) || (sixth && wp7a6Path(url.pathname,req.method)) || (fifth && wp7a5Path(url.pathname,req.method)) || (fourth && wp7a4Path(url.pathname,req.method)) || (third && wp7a3Path(url.pathname,req.method)) || (extended && wp7a2Path(url.pathname,req.method)) || (phase === 'WP7A' && (wp7aPath(url.pathname, req.method) || url.pathname.endsWith('/runs'))) || url.pathname === '/api/v1/intelligence/suppliers/research' ||
+          ((assessment && wp7bPreviewPath(url.pathname,req.method)) || (seventh && wp7a7Path(url.pathname,req.method)) || (sixth && wp7a6Path(url.pathname,req.method)) || (fifth && wp7a5Path(url.pathname,req.method)) || (fourth && wp7a4Path(url.pathname,req.method)) || (third && wp7a3Path(url.pathname,req.method)) || (extended && wp7a2Path(url.pathname,req.method)) || (phase === 'WP7A' && (wp7aPath(url.pathname, req.method) || url.pathname.endsWith('/runs'))) || url.pathname === '/api/v1/intelligence/suppliers/research' ||
             /^\/api\/v1\/intelligence\/business-agent\/goals\/[a-f0-9-]+\/runs$/.test(
               url.pathname,
             ) ||
@@ -108,7 +110,7 @@ export async function serve(port, apiPort, phase = '1', control = null) {
           }
           buffered = Buffer.concat(chunks);
           const payload = buffered.length ? JSON.parse(buffered.toString()) : {};
-          const safe = seventh && wp7a7Path(url.pathname,req.method) ? safeWp7a7Payload(url.pathname,payload) : sixth && wp7a6Path(url.pathname,req.method) ? safeWp7a6Payload(url.pathname,payload) : fifth && wp7a5Path(url.pathname,req.method) ? safeWp7a5Payload(url.pathname,payload) : fourth && wp7a4Path(url.pathname,req.method) ? safeWp7a4Payload(url.pathname,payload) : third && wp7a3Path(url.pathname,req.method) ? safeWp7a3Payload(url.pathname,payload) : extended && wp7a2Path(url.pathname,req.method) ? safeWp7a2Payload(url.pathname,payload) : phase === 'WP7A' && (wp7aPath(url.pathname,req.method) || url.pathname.endsWith('/runs'))
+          const safe = assessment && wp7bPreviewPath(url.pathname,req.method) ? safeWp7bPreview(payload) : seventh && wp7a7Path(url.pathname,req.method) ? safeWp7a7Payload(url.pathname,payload) : sixth && wp7a6Path(url.pathname,req.method) ? safeWp7a6Payload(url.pathname,payload) : fifth && wp7a5Path(url.pathname,req.method) ? safeWp7a5Payload(url.pathname,payload) : fourth && wp7a4Path(url.pathname,req.method) ? safeWp7a4Payload(url.pathname,payload) : third && wp7a3Path(url.pathname,req.method) ? safeWp7a3Payload(url.pathname,payload) : extended && wp7a2Path(url.pathname,req.method) ? safeWp7a2Payload(url.pathname,payload) : phase === 'WP7A' && (wp7aPath(url.pathname,req.method) || url.pathname.endsWith('/runs'))
             ? safeWp7aPayload(url.pathname,payload)
             : ['WP6A','WP7A'].includes(phase) && wp6aPreparationPath(url.pathname,req.method)
             ? safeWp6aPayload(url.pathname,payload)

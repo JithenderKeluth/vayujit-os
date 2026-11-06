@@ -1,0 +1,15 @@
+﻿{
+    "status":  "STRUCTURAL_PASS_RENDER_PENDING",
+    "xml_errors":  0,
+    "designed_page_sections":  67,
+    "landscape_screenshot_sections":  19,
+    "embedded_images":  19,
+    "images_missing_alt":  0,
+    "image_hash_mismatches":  0,
+    "internal_navigation_links":  45,
+    "broken_links":  0,
+    "external_relationships":  0,
+    "actual_page_count":  null,
+    "word_open_verified":  false,
+    "visual_layout_verified":  false
+}

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<testsuites>
+	<testcase name="source route census reconciles pages and redirects" time="0.001155" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-handbook.mjs"/>
+	<testcase name="all 104 page families retain A through M references" time="0.006854" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-handbook.mjs"/>
+	<testcase name="all declared fields have stable unique reference records" time="0.000790" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-handbook.mjs"/>
+	<testcase name="manually reviewed field overrides resolve source IDs" time="0.000362" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-handbook.mjs"/>
+	<testcase name="prompt library has twenty four complete task records" time="0.000215" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-handbook.mjs"/>
+	<testcase name="six journeys retain prerequisites limitations and safe boundaries" time="0.000149" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-handbook.mjs"/>
+	<testcase name="screenshots are genuine reviewed historical copies not live claims" time="0.020654" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-handbook.mjs"/>
+	<testcase name="figures numbered in actual document order" time="0.000603" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-handbook.mjs"/>
+	<testcase name="draft edition does not invent current UI or final certification" time="0.004036" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-handbook.mjs"/>
+	<testcase name="R5 field clarification matches source and preserves confirmation boundary" time="0.001451" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-handbook.mjs"/>
+	<testcase name="maintenance changelog preserves both editions" time="0.000654" classname="test" file="C:\Users\jithe\Documents\vayujit-os\docs\product-handbook\tools\test-handbook.mjs"/>
+	<!-- tests 11 -->
+	<!-- suites 0 -->
+	<!-- pass 11 -->
+	<!-- fail 0 -->
+	<!-- cancelled 0 -->
+	<!-- skipped 0 -->
+	<!-- todo 0 -->
+	<!-- duration_ms 148.0797 -->
+</testsuites>

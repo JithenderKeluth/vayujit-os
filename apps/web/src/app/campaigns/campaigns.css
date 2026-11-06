@@ -73,6 +73,7 @@ progress {
   width: 100%;
 }
 .reschedule-panel {
+  --vj-focus: var(--vj-color-brand-strong);
   margin-top: 1rem;
   padding: 1rem;
   border: 2px solid color-mix(in srgb, currentColor 25%, transparent);

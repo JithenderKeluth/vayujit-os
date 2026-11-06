@@ -1,6 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-redundant-type-constituents */
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  OnInit,
+  ViewChild,
+  inject,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
@@ -181,12 +190,12 @@ type Json = any;
       @if (previewItem()) {
         <div class="modal-backdrop">
           <section class="modal" role="dialog" aria-modal="true" aria-labelledby="preview-title">
-            <h2 id="preview-title">Preview optimization</h2>
+            <h2 #previewHeading id="preview-title" tabindex="-1">Preview optimization</h2>
             <pre>{{ previewItem() | json }}</pre>
             <p>
               Preview is non-mutating. Confirmation is required and stale fingerprints are rejected.
             </p>
-            <button (click)="closePreview()">Close</button>
+            <button #previewClose (click)="closePreview()">Close</button>
           </section>
         </div>
       }
@@ -203,6 +212,9 @@ type Json = any;
         max-width: 1200px;
         margin: 0 auto;
         padding: 2rem;
+      }
+      .optimization-shell :focus-visible {
+        outline-color: var(--vj-color-brand-strong);
       }
       .page-header {
         display: flex;
@@ -290,6 +302,7 @@ type Json = any;
       }
       pre {
         white-space: pre-wrap;
+        overflow-wrap: anywhere;
         background: #f6f9fa;
         padding: 1rem;
         border-radius: 0.4rem;
@@ -304,7 +317,10 @@ type Json = any;
       }
       .modal {
         background: white;
-        max-width: 700px;
+        box-sizing: border-box;
+        min-width: 0;
+        width: min(100%, 700px);
+        overflow-wrap: anywhere;
         max-height: 85vh;
         overflow: auto;
         padding: 1.5rem;
@@ -320,6 +336,28 @@ type Json = any;
   ],
 })
 export class AdsOptimizationComponent implements OnInit {
+  private readonly document = inject(DOCUMENT);
+  private previewTrigger: HTMLElement | null = null;
+  private previewCloseElement: HTMLButtonElement | null = null;
+  @ViewChild('previewHeading') set previewHeading(value: ElementRef<HTMLElement> | undefined) {
+    // Start at the title so long preview content is not scrolled past on entry.
+    value?.nativeElement.focus();
+  }
+  @ViewChild('previewClose') set previewClose(value: ElementRef<HTMLButtonElement> | undefined) {
+    this.previewCloseElement = value?.nativeElement ?? null;
+  }
+  @HostListener('document:keydown', ['$event'])
+  onPreviewKeydown(event: KeyboardEvent): void {
+    if (!this.previewItem()) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.closePreview();
+    } else if (event.key === 'Tab') {
+      // Close is this read-only dialog's sole tabbable control, in both directions.
+      event.preventDefault();
+      this.previewCloseElement?.focus();
+    }
+  }
   private readonly http = inject(HttpClient);
   private readonly route = inject(ActivatedRoute);
   readonly loading = signal(true);
@@ -413,6 +451,8 @@ export class AdsOptimizationComponent implements OnInit {
     }
   }
   async preview(item: Json) {
+    const trigger = this.document.activeElement;
+    this.previewTrigger = trigger instanceof HTMLElement ? trigger : null;
     try {
       this.previewItem.set(
         await firstValueFrom(
@@ -425,5 +465,7 @@ export class AdsOptimizationComponent implements OnInit {
   }
   closePreview() {
     this.previewItem.set(null);
+    if (this.previewTrigger?.isConnected) this.previewTrigger.focus();
+    this.previewTrigger = null;
   }
 }
