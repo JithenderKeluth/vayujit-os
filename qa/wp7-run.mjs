@@ -4,6 +4,8 @@ import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { browserDiagnostic } from './wp7a7-diagnostic.mjs';
 const choices = {
+  wp7br1: ['WP7A7', 'qa/wp7b-browser.mjs'],
+  wp7b: ['WP7A7', 'qa/wp7b-browser.mjs'],
   wp7a7: ['WP7A7', 'qa/wp7a4-browser.mjs'],
   wp7a6: ['WP7A6', 'qa/wp7a4-browser.mjs'],
   wp7a5: ['WP7A5', 'qa/wp7a4-browser.mjs'],
@@ -24,7 +26,7 @@ const choices = {
 };
 const selected = process.argv.slice(2);
 const packageName =
-  selected.length === 1 && ['wp7a', 'wp7a2', 'wp7a3', 'wp7a4', 'wp7a5', 'wp7a6', 'wp7a7'].includes(selected[0])
+  selected.length === 1 && ['wp7br1', 'wp7b', 'wp7a', 'wp7a2', 'wp7a3', 'wp7a4', 'wp7a5', 'wp7a6', 'wp7a7'].includes(selected[0])
     ? selected[0]
     : 'wp7';
 const evidenceRoot = 'tmp/qa-' + packageName;
@@ -42,6 +44,7 @@ for (const key of selected) {
       QA_PHASE: '2',
       QA_MIGRATE: '1',
       QA_BROWSER_PHASE: phase,
+      QA_WORK_PACKAGE: key === 'wp7br1' ? 'WP7BR1' : key === 'wp7b' ? 'WP7B' : '',
       QA_DATABASE_DROP_TIMEOUT_MS: '90000',
     },
     windowsHide: true,
@@ -122,7 +125,7 @@ for (const key of selected) {
     record.completed_at = new Date().toISOString();
     records.push(record);
     await fs.writeFile(
-      `${evidenceRoot}/execution-${['wp7a', 'wp7a2', 'wp7a3', 'wp7a4', 'wp7a5', 'wp7a6', 'wp7a7'].includes(packageName) ? record.token || 'startup-' + Date.now() : selected.join('-')}.json`,
+      `${evidenceRoot}/execution-${['wp7br1', 'wp7b', 'wp7a', 'wp7a2', 'wp7a3', 'wp7a4', 'wp7a5', 'wp7a6', 'wp7a7'].includes(packageName) ? record.token || 'startup-' + Date.now() : selected.join('-')}.json`,
       JSON.stringify(records, null, 2),
     );
     console.log(

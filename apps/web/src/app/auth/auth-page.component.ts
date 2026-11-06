@@ -64,6 +64,7 @@ import { authReturnUrl } from './auth-return-url';
   styles: [
     `
       .auth {
+        --vj-focus: var(--vj-color-brand-strong);
         box-sizing: border-box;
         width: 100%;
         min-height: 100vh;

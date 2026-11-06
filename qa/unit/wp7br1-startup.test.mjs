@@ -1,0 +1,3 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import {startupPolicy,safeStartupDiagnostic} from '../wp7br1-startup.mjs';
+test('R1 uses a bounded cold-start budget without changing other package probes',()=>{assert.deepEqual(startupPolicy('WP7BR1'),{deadlineMs:300000,probeMs:10000});assert.deepEqual(startupPolicy('WP7B'),{deadlineMs:null,probeMs:1000});});
+test('startup diagnostics retain classifications, never arbitrary process text',()=>{const r=safeStartupDiagnostic('password=PRIVATE TypeError: SECRET Exception in ASGI application');assert(r.asgi_error);assert.deepEqual(r.exception_types,['TypeError']);assert(!JSON.stringify(r).includes('PRIVATE'));assert(!JSON.stringify(r).includes('SECRET'));});

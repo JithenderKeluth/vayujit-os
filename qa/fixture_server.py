@@ -65,6 +65,7 @@ def run() -> None:
             "test_seller_wp7a5.py",
             "test_seller_wp7a6.py",
             "test_seller_wp7a7.py",
+            "test_seller_wp7br1.py",
             "test_campaign_activity_rescheduling.py",
             "test_campaign_recovery_dispatch.py",
             "test_ai_seo.py",
@@ -98,6 +99,8 @@ def run() -> None:
     from qa.postgres_instance import approved_guard
 
     guarded_instance = approved_guard(admin_url)
+    if os.environ.get("QA_WORK_PACKAGE") == "WP7BR1" and guarded_instance is None:
+        raise ValueError("R1_SIGNED_QA_INSTANCE_REQUIRED")
     # Do not load any .env or inherited business credentials into this process.
     for key in list(os.environ):
         if key.startswith("VAYUJIT_") or key in {
@@ -213,6 +216,10 @@ def run() -> None:
         else:
             Base.metadata.create_all(engine)
         args.output.mkdir(parents=True, exist_ok=True)
+        if os.environ.get("QA_WORK_PACKAGE") == "WP7BR1":
+            from qa.wp7br1_diagnostics import install as install_r1_diagnostics
+
+            install_r1_diagnostics(app, args.token, args.output, engine)
         schema = app.openapi()
         (args.output / "openapi.json").write_text(
             json.dumps(schema, indent=2), encoding="utf-8"

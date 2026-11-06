@@ -114,13 +114,13 @@ def metric_snapshot(db: Session, owner_id: uuid.UUID, campaign_id: uuid.UUID) ->
         if row.metric_key not in result and row.value is not None:
             result[row.metric_key] = float(row.value)
     impressions, clicks, spend, conversions = (
-        result.get(k, 0.0) for k in ("impressions", "clicks", "spend", "conversions")
+        result.get(k) for k in ("impressions", "clicks", "spend", "conversions")
     )
-    if impressions and "ctr" not in result:
+    if impressions and clicks is not None and "ctr" not in result:
         result["ctr"] = clicks / impressions
-    if clicks and "cpc" not in result:
+    if clicks and spend is not None and "cpc" not in result:
         result["cpc"] = spend / clicks
-    if conversions and "cpa" not in result:
+    if conversions and spend is not None and "cpa" not in result:
         result["cpa"] = spend / conversions
     if result.get("conversion_value") is not None and spend and "roas" not in result:
         result["roas"] = result["conversion_value"] / spend
@@ -129,7 +129,7 @@ def metric_snapshot(db: Session, owner_id: uuid.UUID, campaign_id: uuid.UUID) ->
         .where(AdBudget.owner_id == owner_id, AdBudget.campaign_id == campaign_id)
         .order_by(AdBudget.version.desc())
     )
-    if budget and budget.daily_amount and float(budget.daily_amount) > 0:
+    if spend is not None and budget and budget.daily_amount and float(budget.daily_amount) > 0:
         result["budget_utilization"] = min(1.0, spend / float(budget.daily_amount))
     return result
 
@@ -1040,7 +1040,11 @@ def detect_anomalies(
     if campaign_id:
         stmt = stmt.where(AdCampaign.id == campaign_id)
     output: list[dict[str, object]] = []
-    for campaign in db.scalars(stmt):
+    # The overview and anomaly endpoints evaluate concurrently. Serialize their
+    # read/create cycle on the existing owner-scoped campaign authority, in a
+    # stable order, until the evidence transaction commits. Keep the DB unique
+    # constraint; do not swallow unrelated integrity failures.
+    for campaign in db.scalars(stmt.order_by(AdCampaign.id).with_for_update()):
         metrics = metric_snapshot(db, owner.id, campaign.id)
         if not metrics:
             continue
@@ -1048,13 +1052,17 @@ def detect_anomalies(
         severity = "warning"
         if metrics.get("impressions") is None and metrics.get("spend", 0) > 0:
             kind, severity = "missing_metrics_ingestion", "critical"
-        elif metrics.get("impressions", 0) == 0 and campaign.state == "active":
+        elif metrics.get("impressions") == 0 and campaign.state == "active":
             kind, severity = "zero_impressions", "critical"
-        elif metrics.get("impressions", 0) == 0 and campaign.state != "paused":
+        elif metrics.get("impressions") == 0 and campaign.state != "paused":
             kind, severity = "delivery_stopped", "critical"
-        elif metrics.get("spend", 0) > 0 and metrics.get("conversions", 0) == 0:
+        elif metrics.get("spend", 0) > 0 and metrics.get("conversions") == 0:
             kind = "conversion_collapse"
-        elif metrics.get("ctr", 0) < 0.005 and metrics.get("impressions", 0) >= 1000:
+        elif (
+            metrics.get("ctr") is not None
+            and metrics["ctr"] < 0.005
+            and metrics.get("impressions", 0) >= 1000
+        ):
             kind = "ctr_collapse"
         elif metrics.get("cpc", 0) > 20:
             kind = "cpc_spike"
@@ -1087,11 +1095,17 @@ def detect_anomalies(
             "availability": "synthetic",
         }
         fp = fingerprint(
-            {"owner": owner.id, "campaign": campaign.id, "type": kind, "metrics": metrics}
+            {
+                "owner": owner.id,
+                "campaign": campaign.id,
+                "type": kind,
+                "metrics": metrics,
+            }
         )
         row = db.scalar(
             select(AdPerformanceAnomaly).where(
-                AdPerformanceAnomaly.owner_id == owner.id, AdPerformanceAnomaly.fingerprint == fp
+                AdPerformanceAnomaly.owner_id == owner.id,
+                AdPerformanceAnomaly.fingerprint == fp,
             )
         )
         if row is None:
@@ -1112,6 +1126,7 @@ def detect_anomalies(
                 updated_at=stamp,
             )
             db.add(row)
+            db.flush()  # Response identity/defaults must describe the persisted row.
         output.append(
             {
                 "id": row.id,

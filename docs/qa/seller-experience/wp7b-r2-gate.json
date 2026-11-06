@@ -1,0 +1,1349 @@
+{
+  "package": "WP7B-R2",
+  "date": "2026-11-05",
+  "timezone": "Asia/Calcutta",
+  "assessed_at_utc": "2026-11-05 02:02:34 UTC",
+  "status": "INCOMPLETE",
+  "gate_B": "INCOMPLETE",
+  "whole_application_certification": "INCOMPLETE",
+  "launch_authorized": false,
+  "status_vocabulary": {
+    "VERIFIED PASS": "Sufficient evidence for the specifically stated scope; inherited/file/arithmetic evidence is never a fresh manual behavior result.",
+    "VERIFIED FAIL": "An applicable behavior or measurement is demonstrably failing, with evidence and scope.",
+    "NOT VERIFIED": "Required evidence or a safe/reliable execution precondition is missing; blocks Gate B.",
+    "NOT APPLICABLE": "Only the identified criterion/measurement is inapplicable, with explicit justification; missing fixtures are not exemptions."
+  },
+  "preserved_gate_A": {
+    "status": "VERIFIED PASS",
+    "basis": "Inherited WP7B-R1 Gate A PASS; original report and current R1-tested source preserved, no functional rerun.",
+    "record": "docs/qa/seller-experience/wp7b-r1-gate.json",
+    "fresh_execution": false
+  },
+  "gate_B_rule": "PASS only if every required manual group has sufficient actual evidence or a justified applicable exemption, with no blocking demonstrated accessibility defect. File integrity, audibility, DOM, screenshots, axe and arithmetic cannot substitute for speech or native interaction.",
+  "environment": {
+    "database_lifecycle_authorization": false,
+    "old_R1_authority_reused": false,
+    "approved_active_fixture_session_proven": false,
+    "historical_R1_QA_windows_found": 0,
+    "narrator_windows_found": 0,
+    "narrator_processes_found": 0,
+    "narrator_installed_version": "10.0.26100.8972 (WinBuild.160101.0800)",
+    "installed_chrome_version": "156.0.8078.76",
+    "installed_edge_version": "156.0.4314.58",
+    "installed_versions_are_executed_pair": false,
+    "narrator_launched": false,
+    "desktop_input_actions": 0,
+    "business_window_selected": false,
+    "browser_runtime_requests": 0,
+    "database_operations": 0,
+    "permanent_or_golden_access": false,
+    "application_processes_changed": false,
+    "external_reads": "Public W3C accessibility guidance only; no business/live-provider actions."
+  },
+  "required_manual_counts": {
+    "VERIFIED PASS": 0,
+    "VERIFIED FAIL": 0,
+    "NOT VERIFIED": 40,
+    "NOT APPLICABLE": 0
+  },
+  "count_scope": "13 speech + 12 native zoom + 15 contrast/applicability/legacy review groups; not unique defects, per-element counts or comprehensive WCAG coverage.",
+  "retained_evidence_policy": "Valid R1 observations remain valid for their exact recorded scope. No rerun is required solely because the phase changed. NOT VERIFIED review groups describe the unclosed remainder, not a downgrade of inherited sample PASS results.",
+  "screen_reader_checks": [
+    {
+      "id": "R2-SR-01",
+      "area": "Sign-in labels",
+      "criteria": [
+        "1.3.1",
+        "3.3.2",
+        "4.1.2"
+      ],
+      "expected": "Email/password controls, required/secure-field information and show-password state are intelligible; no credentials spoken or recorded.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-02",
+      "area": "Navigation, landmarks and headings",
+      "criteria": [
+        "1.3.1",
+        "2.4.1",
+        "2.4.3"
+      ],
+      "expected": "Skip link, primary navigation, current page and heading/landmark sequence are understandable; focus moves predictably.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md#native--screen-reader-limitations",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-03",
+      "area": "Goal disclosure",
+      "criteria": [
+        "2.1.1",
+        "4.1.2"
+      ],
+      "expected": "Disclosure name and expanded/collapsed state are spoken before/after Enter and Space; no lost draft/focus.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-04",
+      "area": "Goal fields",
+      "criteria": [
+        "1.3.1",
+        "3.3.2",
+        "4.1.2"
+      ],
+      "expected": "Textarea label, required state and relevant help are spoken on focus; do not require one exact wording.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-05",
+      "area": "Form errors and recovery",
+      "criteria": [
+        "3.3.1",
+        "4.1.3"
+      ],
+      "expected": "Actual invalid field and explanatory error are conveyed, with recovery feedback; never submit a valid business artifact.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-06",
+      "area": "Marketplace import controls",
+      "criteria": [
+        "1.3.1",
+        "4.1.2"
+      ],
+      "expected": "Read-only imports group and each control name/state are identifiable; focusing is allowed, executing an import is not.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-07",
+      "area": "Meesho editor controls",
+      "criteria": [
+        "2.1.1",
+        "4.1.2"
+      ],
+      "expected": "Listing editor sections group, button names and resulting local panel are understandable; do not assert invented tablist semantics.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-08",
+      "area": "Ads dialog entry",
+      "criteria": [
+        "2.4.3",
+        "4.1.2",
+        "APG modal"
+      ],
+      "expected": "Read-only Preview opens with meaningful dialog/title context and focus inside.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-09",
+      "area": "Ads containment, dismissal and return",
+      "criteria": [
+        "2.1.1",
+        "2.1.2",
+        "2.4.3",
+        "APG modal"
+      ],
+      "expected": "Tab/Shift+Tab remain in the dialog; Space on Close and Escape dismiss; returned Preview focus is spoken.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-gate.json#gates",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-10",
+      "area": "Dynamic loading/status/retry",
+      "criteria": [
+        "4.1.3"
+      ],
+      "expected": "Relevant waiting/error/result messages without focus changes are actually announced; distinguish silence from an unexercised state.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-11",
+      "area": "Review/approval controls",
+      "criteria": [
+        "3.3.2",
+        "4.1.2"
+      ],
+      "expected": "Read labels, checkbox/disabled states and unmet prerequisites without activating approval/execution.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-12",
+      "area": "Research and selection context",
+      "criteria": [
+        "1.3.1",
+        "4.1.2"
+      ],
+      "expected": "Current goal/product, synthetic/unknown evidence and existing selection state remain comprehensible; do not select/reject or research.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    },
+    {
+      "id": "R2-SR-13",
+      "area": "Tables and lists",
+      "criteria": [
+        "1.3.1"
+      ],
+      "expected": "Relevant captions, headers, row relationships and list order are intelligible with actual reader navigation.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md#native--screen-reader-limitations",
+      "status": "NOT VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null
+    }
+  ],
+  "native_zoom_checks": [
+    {
+      "id": "R2-Z-01",
+      "area": "Goals and form/error state",
+      "route": "/intelligence/business-agent",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    },
+    {
+      "id": "R2-Z-02",
+      "area": "Goals and form/error state",
+      "route": "/intelligence/business-agent",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    },
+    {
+      "id": "R2-Z-03",
+      "area": "Goals and form/error state",
+      "route": "/intelligence/business-agent",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    },
+    {
+      "id": "R2-Z-04",
+      "area": "Marketplace import controls",
+      "route": "/marketplaces/accounts",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    },
+    {
+      "id": "R2-Z-05",
+      "area": "Marketplace import controls",
+      "route": "/marketplaces/accounts",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    },
+    {
+      "id": "R2-Z-06",
+      "area": "Marketplace import controls",
+      "route": "/marketplaces/accounts",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    },
+    {
+      "id": "R2-Z-07",
+      "area": "Meesho editor",
+      "route": "/marketplaces/listings/:fixture_id/meesho",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    },
+    {
+      "id": "R2-Z-08",
+      "area": "Meesho editor",
+      "route": "/marketplaces/listings/:fixture_id/meesho",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    },
+    {
+      "id": "R2-Z-09",
+      "area": "Meesho editor",
+      "route": "/marketplaces/listings/:fixture_id/meesho",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    },
+    {
+      "id": "R2-Z-10",
+      "area": "Ads preview dialog",
+      "route": "/ads/recommendations",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    },
+    {
+      "id": "R2-Z-11",
+      "area": "Ads preview dialog",
+      "route": "/ads/recommendations",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    },
+    {
+      "id": "R2-Z-12",
+      "area": "Ads preview dialog",
+      "route": "/ads/recommendations",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions."
+    }
+  ],
+  "contrast_review_groups": [
+    {
+      "id": "R2-C-01",
+      "area": "Social image-review textarea",
+      "target": "main textarea",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-02",
+      "area": "Social timeline strong text",
+      "target": ".timeline strong",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-03",
+      "area": "Flipkart labels and unmeasured forms",
+      "target": "main form label; three extra matching labels; mobile index 6",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-04",
+      "area": "Flipkart remaining editor buttons",
+      "target": ".inner-tabs button; two beyond the eight-element sample",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-05",
+      "area": "Meesho remaining editor buttons",
+      "target": ".inner-tabs button; two beyond the eight-element sample",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-06",
+      "area": "Mobile Meesho/goal fields",
+      "target": "Meesho main input[type=number] index 2; goal textarea index 0",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-gate.json",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-07",
+      "area": "Financial captions, including mobile occlusion",
+      "target": "main caption; actual recorded targets, not guessed new rows",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-08",
+      "area": "Financial headers beyond sample",
+      "target": "main th; thirteen additional matching targets in finance runs",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-09",
+      "area": "Ads dialog historical obscured heading/state",
+      "target": "[role=dialog] h2 and relevant error/loading states",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-10",
+      "area": "Campaign reschedule textarea",
+      "target": ".reschedule-panel textarea; needs legitimately eligible fixture",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-browser-retest.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-11",
+      "area": "Remaining interactive focus states",
+      "target": "Unfocused buttons/inputs and mobile goal samples, after applicability/deduplication",
+      "criteria": "1.4.11,2.4.7",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-gate.json",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-12",
+      "area": "Essential control boundaries and state indicators",
+      "target": "Actual authored input/checkbox/select boundary or indicator and adjacent colors",
+      "criteria": "1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-13",
+      "area": "Transition/hover/selected state contrast",
+      "target": "180ms transition evidence must align color sample and rendered frame",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-browser-retest.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-14",
+      "area": "Target size, spacing and legitimate exceptions",
+      "target": "Relevant controls; do not blanket-exempt small links",
+      "criteria": "2.5.8",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    },
+    {
+      "id": "R2-C-15",
+      "area": "Legacy manual-target reconciliation",
+      "target": "Stable observation IDs in accessibility-observations-reviewed.json",
+      "criteria": "Per recorded rule and applicability; no new blanket criterion",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped."
+    }
+  ],
+  "retained_exact_pending_text_records": {
+    "source": "tmp/qa-seller-browser/57e1c0c8d2d30df9/wp7br1-browser.json",
+    "historical": true,
+    "records": [
+      {
+        "state": "FLIPKART-wp7br1-chrome-1440",
+        "route": null,
+        "selector": ".inner-tabs button",
+        "index": null,
+        "reason": "Bounded sample: 2 additional matching targets not measured"
+      },
+      {
+        "state": "FLIPKART-wp7br1-chrome-1440",
+        "route": null,
+        "selector": "main form label",
+        "index": null,
+        "reason": "Bounded sample: 3 additional matching targets not measured"
+      },
+      {
+        "state": "MEESHO-wp7br1-chrome-1440",
+        "route": null,
+        "selector": ".inner-tabs button",
+        "index": null,
+        "reason": "Bounded sample: 2 additional matching targets not measured"
+      },
+      {
+        "state": "goal-wp7br1-chrome-390",
+        "route": "/intelligence/business-agent",
+        "selector": "textarea[name=goal]",
+        "index": 0,
+        "reason": "Visibility, overlay, opacity or text-shadow requires additional rendered review."
+      },
+      {
+        "state": "FLIPKART-wp7br1-chrome-390",
+        "route": null,
+        "selector": ".inner-tabs button",
+        "index": null,
+        "reason": "Bounded sample: 2 additional matching targets not measured"
+      },
+      {
+        "state": "FLIPKART-wp7br1-chrome-390",
+        "route": "/marketplaces/listings/e5dea806-8042-44ae-bd43-fc1fc776697c/flipkart",
+        "selector": "main form label",
+        "index": 6,
+        "reason": "Visibility, overlay, opacity or text-shadow requires additional rendered review."
+      },
+      {
+        "state": "FLIPKART-wp7br1-chrome-390",
+        "route": null,
+        "selector": "main form label",
+        "index": null,
+        "reason": "Bounded sample: 3 additional matching targets not measured"
+      },
+      {
+        "state": "MEESHO-wp7br1-chrome-390",
+        "route": null,
+        "selector": ".inner-tabs button",
+        "index": null,
+        "reason": "Bounded sample: 2 additional matching targets not measured"
+      },
+      {
+        "state": "MEESHO-wp7br1-chrome-390",
+        "route": "/marketplaces/listings/faae64e7-e57a-4bfd-97f9-24d7c6809f65/meesho",
+        "selector": "main input[type=number]",
+        "index": 2,
+        "reason": "Visibility, overlay, opacity or text-shadow requires additional rendered review."
+      },
+      {
+        "state": "FLIPKART-wp7br1-msedge-1440",
+        "route": null,
+        "selector": ".inner-tabs button",
+        "index": null,
+        "reason": "Bounded sample: 2 additional matching targets not measured"
+      },
+      {
+        "state": "FLIPKART-wp7br1-msedge-1440",
+        "route": null,
+        "selector": "main form label",
+        "index": null,
+        "reason": "Bounded sample: 3 additional matching targets not measured"
+      },
+      {
+        "state": "MEESHO-wp7br1-msedge-1440",
+        "route": null,
+        "selector": ".inner-tabs button",
+        "index": null,
+        "reason": "Bounded sample: 2 additional matching targets not measured"
+      },
+      {
+        "state": "goal-wp7br1-msedge-390",
+        "route": "/intelligence/business-agent",
+        "selector": "textarea[name=goal]",
+        "index": 0,
+        "reason": "Visibility, overlay, opacity or text-shadow requires additional rendered review."
+      },
+      {
+        "state": "FLIPKART-wp7br1-msedge-390",
+        "route": null,
+        "selector": ".inner-tabs button",
+        "index": null,
+        "reason": "Bounded sample: 2 additional matching targets not measured"
+      },
+      {
+        "state": "FLIPKART-wp7br1-msedge-390",
+        "route": "/marketplaces/listings/e5dea806-8042-44ae-bd43-fc1fc776697c/flipkart",
+        "selector": "main form label",
+        "index": 6,
+        "reason": "Visibility, overlay, opacity or text-shadow requires additional rendered review."
+      },
+      {
+        "state": "FLIPKART-wp7br1-msedge-390",
+        "route": null,
+        "selector": "main form label",
+        "index": null,
+        "reason": "Bounded sample: 3 additional matching targets not measured"
+      },
+      {
+        "state": "MEESHO-wp7br1-msedge-390",
+        "route": null,
+        "selector": ".inner-tabs button",
+        "index": null,
+        "reason": "Bounded sample: 2 additional matching targets not measured"
+      },
+      {
+        "state": "MEESHO-wp7br1-msedge-390",
+        "route": "/marketplaces/listings/faae64e7-e57a-4bfd-97f9-24d7c6809f65/meesho",
+        "selector": "main input[type=number]",
+        "index": 2,
+        "reason": "Visibility, overlay, opacity or text-shadow requires additional rendered review."
+      }
+    ]
+  },
+  "focus_reconciliation": {
+    "original_R1_records_modified": false,
+    "raw_NOT_VERIFIED_focus_records": 126,
+    "narrow_static_text_focus_subreviews": [
+      {
+        "id": "R2-NA-01",
+        "status": "NOT APPLICABLE",
+        "criterion": "2.4.7 / focus indication aspect of 1.4.11 only",
+        "selector": "#goal-help",
+        "count": 4,
+        "justification": "Non-focusable help paragraph; associated textarea remains in scope",
+        "scope_excludes_text_contrast_and_associated_control": true
+      },
+      {
+        "id": "R2-NA-02",
+        "status": "NOT APPLICABLE",
+        "criterion": "2.4.7 / focus indication aspect of 1.4.11 only",
+        "selector": "[role=dialog] p",
+        "count": 4,
+        "justification": "Non-focusable explanatory paragraph; dialog title and Close remain in scope",
+        "scope_excludes_text_contrast_and_associated_control": true
+      },
+      {
+        "id": "R2-NA-03",
+        "status": "NOT APPLICABLE",
+        "criterion": "2.4.7 / focus indication aspect of 1.4.11 only",
+        "selector": "main form label",
+        "count": 32,
+        "justification": "Label is not its associated input independent keyboard target; label text and input indicator remain in scope",
+        "scope_excludes_text_contrast_and_associated_control": true
+      }
+    ],
+    "static_text_focus_record_count": 40,
+    "matching_focused_Close_R1_PASS_records": 4,
+    "remaining_interactive_observations": 82,
+    "occurrences_are_not_unique_controls": true,
+    "actual_template_checks": {
+      "static_goal_help": true,
+      "static_ads_description": true,
+      "no_authored_tabindex_on_flipkart_labels": true
+    },
+    "historical_Close_evidence_scope": "Unfocused samples matched to same-context focused R1 Close PASS; not new R2 speech/manual visibility verification."
+  },
+  "historical_contrast_arithmetic": {
+    "status": "VERIFIED PASS",
+    "arithmetic_only": true,
+    "fresh_rendering": false,
+    "sample_calculations": 340,
+    "mismatches": 0,
+    "unique_comparisons": [
+      {
+        "kind": "text",
+        "foreground": [
+          18,
+          43,
+          51,
+          1
+        ],
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.798385782792908,
+        "required": 4.5,
+        "historical_status": "PASS",
+        "source_token": "57e1c0c8d2d30df9",
+        "state": "goal-wp7br1-chrome-1440",
+        "selector": "textarea[name=goal]",
+        "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\57e1c0c8d2d30df9\\wp7br1-chrome-1440\\contrast-goal-wp7br1-chrome-1440-0.png"
+      },
+      {
+        "kind": "focus",
+        "foreground": [
+          7,
+          84,
+          98,
+          1
+        ],
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 8.559089262681107,
+        "required": 3,
+        "historical_status": "PASS",
+        "source_token": "57e1c0c8d2d30df9",
+        "state": "goal-wp7br1-chrome-1440",
+        "selector": "textarea[name=goal]",
+        "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\57e1c0c8d2d30df9\\wp7br1-chrome-1440\\contrast-goal-wp7br1-chrome-1440-0.png"
+      },
+      {
+        "kind": "text",
+        "foreground": [
+          80,
+          107,
+          116,
+          1
+        ],
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 5.681259360424018,
+        "required": 4.5,
+        "historical_status": "PASS",
+        "source_token": "57e1c0c8d2d30df9",
+        "state": "goal-wp7br1-chrome-1440",
+        "selector": "#goal-help",
+        "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\57e1c0c8d2d30df9\\wp7br1-chrome-1440\\contrast-goal-wp7br1-chrome-1440-1.png"
+      },
+      {
+        "kind": "text",
+        "foreground": [
+          18,
+          43,
+          51,
+          1
+        ],
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.798385782792908,
+        "required": 3,
+        "historical_status": "PASS",
+        "source_token": "57e1c0c8d2d30df9",
+        "state": "ads-dialog-wp7br1-chrome-1440",
+        "selector": "[role=dialog] h2",
+        "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\57e1c0c8d2d30df9\\wp7br1-chrome-1440\\contrast-ads-dialog-wp7br1-chrome-1440-0.png"
+      },
+      {
+        "kind": "text",
+        "foreground": [
+          16,
+          42,
+          67,
+          1
+        ],
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.641624298935564,
+        "required": 4.5,
+        "historical_status": "PASS",
+        "source_token": "57e1c0c8d2d30df9",
+        "state": "ads-dialog-wp7br1-chrome-1440",
+        "selector": "[role=dialog] p",
+        "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\57e1c0c8d2d30df9\\wp7br1-chrome-1440\\contrast-ads-dialog-wp7br1-chrome-1440-1.png"
+      },
+      {
+        "kind": "text",
+        "foreground": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "background": [
+          21,
+          94,
+          117,
+          1
+        ],
+        "ratio": 7.266842816941486,
+        "required": 4.5,
+        "historical_status": "PASS",
+        "source_token": "57e1c0c8d2d30df9",
+        "state": "ads-dialog-wp7br1-chrome-1440",
+        "selector": "[role=dialog] button",
+        "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\57e1c0c8d2d30df9\\wp7br1-chrome-1440\\contrast-ads-dialog-wp7br1-chrome-1440-2.png"
+      },
+      {
+        "kind": "text",
+        "foreground": [
+          18,
+          49,
+          59,
+          1
+        ],
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 13.741673761522108,
+        "required": 4.5,
+        "historical_status": "PASS",
+        "source_token": "57e1c0c8d2d30df9",
+        "state": "FLIPKART-wp7br1-chrome-1440",
+        "selector": ".inner-tabs button",
+        "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\57e1c0c8d2d30df9\\wp7br1-chrome-1440\\contrast-FLIPKART-wp7br1-chrome-1440-0.png"
+      },
+      {
+        "kind": "text",
+        "foreground": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "background": [
+          20,
+          93,
+          118,
+          1
+        ],
+        "ratio": 7.350146361075357,
+        "required": 4.5,
+        "historical_status": "PASS",
+        "source_token": "57e1c0c8d2d30df9",
+        "state": "FLIPKART-wp7br1-chrome-1440",
+        "selector": ".inner-tabs button",
+        "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\57e1c0c8d2d30df9\\wp7br1-chrome-1440\\contrast-FLIPKART-wp7br1-chrome-1440-6.png"
+      },
+      {
+        "kind": "focus",
+        "foreground": [
+          16,
+          16,
+          16,
+          1
+        ],
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 19.028110547666497,
+        "required": 3,
+        "historical_status": "PASS",
+        "source_token": "5bd3f03205fd40bd",
+        "state": "ads-dialog-wp7br1-chrome-1440",
+        "selector": "[role=dialog] h2",
+        "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\5bd3f03205fd40bd\\wp7br1-chrome-1440\\contrast-ads-dialog-wp7br1-chrome-1440-0.png"
+      },
+      {
+        "kind": "text",
+        "foreground": [
+          16,
+          47,
+          53,
+          1
+        ],
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 14.188746492925187,
+        "required": 4.5,
+        "historical_status": "PASS",
+        "source_token": "5bd3f03205fd40bd",
+        "state": "SOCIAL-wp7br1-chrome-1440",
+        "selector": ".timeline strong",
+        "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\5bd3f03205fd40bd\\wp7br1-chrome-1440\\contrast-SOCIAL-wp7br1-chrome-1440-1.png"
+      },
+      {
+        "kind": "focus",
+        "foreground": [
+          228,
+          155,
+          40,
+          1
+        ],
+        "background": [
+          255,
+          255,
+          255,
+          1
+        ],
+        "ratio": 2.3286826338241413,
+        "required": 3,
+        "historical_status": "FAIL",
+        "source_token": "5bd3f03205fd40bd",
+        "state": "FLIPKART-wp7br1-chrome-1440",
+        "selector": ".inner-tabs button",
+        "screenshot": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\5bd3f03205fd40bd\\wp7br1-chrome-1440\\contrast-FLIPKART-wp7br1-chrome-1440-6.png"
+      }
+    ],
+    "method": "Independent sRGB linearization/luminance/ratio computation from retained effective colors. No QA calculation function imported; unrounded comparisons."
+  },
+  "legacy_index": {
+    "file": "tmp/qa-wp7b/accessibility-observations-reviewed.json",
+    "sha256": "a1806a88e138c032772d1c6abd5c24bcecd1bfe7eb4c6c5fa6720fb7aaee0a5a",
+    "entries": 3169,
+    "classifications": {
+      "Manual verification required": 2774,
+      "Confirmed violation (historical scan; current status unverified)": 395
+    },
+    "statuses": {
+      "NOT RETESTED IN WP7B": 3109,
+      "Component fix retested in four current contexts; historical unmatched context is not separately certified": 60
+    },
+    "cause_attribution": {
+      "NOT YET ATTRIBUTED; manual review required": 3109,
+      "Named generic import-control container lacked group role": 56,
+      "Named generic listing-editor control container lacked group role": 4
+    },
+    "limitations": [
+      "Historical labels do not always record exact viewport or engine; no dimensions are invented.",
+      "Component buckets are route-based, not confirmed source-component attribution.",
+      "A historical violation is not proof the current application still violates.",
+      "Different selectors may share a cause; these are observation keys, not a unique-defect count."
+    ],
+    "scope": "Retained exact stable-ID index, not newly verified live defects. No acceptance keys excluded or old statuses rewritten."
+  },
+  "prior_results_inherited_not_reexecuted": {
+    "focused_browser": 52,
+    "affected_browser": 32,
+    "angular": 442,
+    "node_QA": 138,
+    "python_QA": 163,
+    "backend_regressions": 36,
+    "QA_databases_reported_absent_in_R1": 9,
+    "absence_queried_in_R2": false
+  },
+  "preservation": {
+    "baseline_reports": {
+      "docs/qa/seller-experience/wp7b-accessibility-inventory.md": "d6a4c1a1a910e520d366ebbc62888f8c126cec236c61b488b4245c9333741648",
+      "docs/qa/seller-experience/wp7b-assessment-report.md": "2aa8ebf2ce0ce1293f2c5831c9ebca2444f0675b7a502a41e033ba24c7177780",
+      "docs/qa/seller-experience/wp7b-certification-provenance.md": "6bff57fafd82a2e92cfc6203d7373424f920a69701fb8c7da0e3e87c0924c390",
+      "docs/qa/seller-experience/wp7b-gate.json": "ec4590df9ab44d242477e6480ffc40be578ed87dfc083e540be79b3a254a48f1",
+      "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md": "6471ea1b511fd55e9f4c846cc97cdba11d710f2a07015559e22444aed6573512",
+      "docs/qa/seller-experience/wp7b-r1-browser-retest.md": "5abdd519b2af7d3bef53deae02cd3588af09bf8f19a768f1bfa18d242432ae29",
+      "docs/qa/seller-experience/wp7b-r1-gate.json": "63d4f8dffd660514daf1066563d9ae190797484d1bb57a7a26938aab80172e4b",
+      "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md": "6d55a4241ab777b6d063dd9e829e116a1ffbff82dc054c110ca2a047134b6b7f",
+      "docs/qa/seller-experience/wp7b-r1-remediation.md": "305adf93b320bd0fef2b809956510fb2f663b4fb34edca7b2742e6cd171b7390",
+      "docs/qa/seller-experience/wp7b-r1-risk-update.md": "6a4dee5a3b9f3b9709d65a929541b9ea3b64903f6ee83f3933afdbccfe8b50a7",
+      "docs/qa/seller-experience/wp7b-residual-risk-register.md": "f12ff4bd212155fee6b799df17811edd19a0443035b1ef1173facee6bc74c882"
+    },
+    "source_tree_files": 1131,
+    "source_tree_sha256": "6b0990208412047c10cd661c540d93927d6b5d6494177a11bcb73aff445c6674",
+    "differences_from_R1_tested_source": [],
+    "trace_integrity": {
+      "status": "VERIFIED PASS",
+      "read_only": true,
+      "trace_count": 23,
+      "all_crc_pass": true,
+      "traces": [
+        {
+          "path": "tmp/qa-seller-browser/428ad971b5ba262d/wp7br1-chrome-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "8b6d68f2bc0cc28c35103588dc27fc6ccfe3702214f47a1eb8af6d26dc3034d8"
+        },
+        {
+          "path": "tmp/qa-seller-browser/428ad971b5ba262d/wp7br1-chrome-390/trace.zip",
+          "crc_pass": true,
+          "sha256": "a235810b7e342f562f55a171d743de05560cde68a9d33e45c258d4f740e52e2a"
+        },
+        {
+          "path": "tmp/qa-seller-browser/428ad971b5ba262d/wp7br1-msedge-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "2c525c04308bb2209e86d78a7dc4f4659b8c6243dc3d964a897c803435e89963"
+        },
+        {
+          "path": "tmp/qa-seller-browser/428ad971b5ba262d/wp7br1-msedge-390/trace.zip",
+          "crc_pass": true,
+          "sha256": "3c50af4951bb70548b2c807193b4772cc1300ca8a1778dbad802ee86483fa411"
+        },
+        {
+          "path": "tmp/qa-seller-browser/57e1c0c8d2d30df9/wp7br1-chrome-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "3c75cec2b0356d0ed9a36ed018636e51d93c2ec4183cb19fb83c93ba656b73cf"
+        },
+        {
+          "path": "tmp/qa-seller-browser/57e1c0c8d2d30df9/wp7br1-chrome-390/trace.zip",
+          "crc_pass": true,
+          "sha256": "084f4305d290df95d5a853232aa1c5fed8ca5149abd23bce84cef1526b0ecc0f"
+        },
+        {
+          "path": "tmp/qa-seller-browser/57e1c0c8d2d30df9/wp7br1-msedge-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "6e40857d1195ab8df6e03ecfeaba45f0088b87ea985eb5b9fcad15b09b1c5495"
+        },
+        {
+          "path": "tmp/qa-seller-browser/57e1c0c8d2d30df9/wp7br1-msedge-390/trace.zip",
+          "crc_pass": true,
+          "sha256": "f1e9e0ac40ab1568cb87a93e7901473a900f4701cc939b331fb6afee0d4a8537"
+        },
+        {
+          "path": "tmp/qa-seller-browser/5bd3f03205fd40bd/wp7br1-chrome-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "cf08bf949c7cf8f4b0e6911b40d8cdad27165cd8db1cc199cd7c8f9b8b3c1f2d"
+        },
+        {
+          "path": "tmp/qa-seller-browser/5bd3f03205fd40bd/wp7br1-chrome-390/trace.zip",
+          "crc_pass": true,
+          "sha256": "7092874d544c55583852f7e5a0bd28ed15475dd31c9a6923829eacd4d9f5f38a"
+        },
+        {
+          "path": "tmp/qa-seller-browser/5bd3f03205fd40bd/wp7br1-msedge-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "8848066d9ef02ba91836f499a64da36105e078f2334f6aead4057b7a5af938b5"
+        },
+        {
+          "path": "tmp/qa-seller-browser/5bd3f03205fd40bd/wp7br1-msedge-390/trace.zip",
+          "crc_pass": true,
+          "sha256": "1fd65a27527dc4f2fa2f9d15f72544b3c4b80ac82a5719dfb59ddb8f7cc42a8f"
+        },
+        {
+          "path": "tmp/qa-seller-browser/67c081611ec1c006/wp7br1-chrome-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "d67787cc19b2341188824964b74747e0846ac0fb7f6e41ea3b27f2974178242e"
+        },
+        {
+          "path": "tmp/qa-seller-browser/9a6fad143ff9e2c5/wp7br1-chrome-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "9fb2a4949e1bd451a8a27f6898d1fcfec958f8e3d6b5aff196da7093c55177f8"
+        },
+        {
+          "path": "tmp/qa-seller-browser/9a6fad143ff9e2c5/wp7br1-chrome-390/trace.zip",
+          "crc_pass": true,
+          "sha256": "f380dede3fd68331a6a466599f12e7c4d4e01235f524141483af39148bd73921"
+        },
+        {
+          "path": "tmp/qa-seller-browser/9a6fad143ff9e2c5/wp7br1-msedge-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "2b0f92e757f9e1b206d2e5285c6058cffd169d0edf4bfed81935201684b88b64"
+        },
+        {
+          "path": "tmp/qa-seller-browser/9a6fad143ff9e2c5/wp7br1-msedge-390/trace.zip",
+          "crc_pass": true,
+          "sha256": "f85bc28e454bf7bc1b1d8d6a71a31a2762c0ca2a1d87450d6223369bab25ab3d"
+        },
+        {
+          "path": "tmp/qa-seller-browser/cd102dd32f92bcc3/wp7br1-chrome-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "b892ad4e1cf05a4600314ee21ce5501d0de0087370cfea62e01debc20aabc9d1"
+        },
+        {
+          "path": "tmp/qa-seller-browser/e383423462181a8e/wp7br1-chrome-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "6ce26ca5a20f79f1240a741babd2bc8ac6b2f93c761e70f95ba12455d102a08e"
+        },
+        {
+          "path": "tmp/qa-seller-browser/e383423462181a8e/wp7br1-chrome-390/trace.zip",
+          "crc_pass": true,
+          "sha256": "f329d63050ae4af8c032682230af1ab68101caba0ca4f12eab7c0b2c3353d8fd"
+        },
+        {
+          "path": "tmp/qa-seller-browser/e383423462181a8e/wp7br1-msedge-1440/trace.zip",
+          "crc_pass": true,
+          "sha256": "a07912bbd62fc8741f4ab5e9c51a8e7f15abe4d67db426c39fd1b308c487fddc"
+        },
+        {
+          "path": "tmp/qa-seller-browser/e383423462181a8e/wp7br1-msedge-390/trace.zip",
+          "crc_pass": true,
+          "sha256": "dd5aa1f5ca8ade1379c47edba9be0f52baea4f5c934be86262a717acff04fab2"
+        },
+        {
+          "path": "tmp/qa-seller-browser/e383423462181a8e/wp7br1-native-chrome/trace.zip",
+          "crc_pass": true,
+          "sha256": "93e5b9fd9b0db391d564a87f0cd2df1ae22e48fa2077da9df6fdf47408a78339"
+        }
+      ],
+      "database_accessed": false,
+      "trace_requests_replayed": false
+    },
+    "after_report_write_verification": "VERIFIED PASS"
+  },
+  "new_application_owned_accessibility_defects_demonstrated": [],
+  "application_code_changes_authorized": false,
+  "application_code_changes_made": false,
+  "inherited_repaired_failures_reopened": false,
+  "carry_forward": {
+    "WP7A": "Local prioritized 48-entry closure preserved (41 inherited + 7 targeted), not all 156 routes/operations.",
+    "L17": "Explicit narrower offline authorization-expiry acceptance approved; provider expiry remains UNVERIFIED. No missing-approval exception invented.",
+    "Ads_502": "Historical risk UNATTRIBUTED / unresolved; R1 500 repair not conflated.",
+    "PostgreSQL_timestamps": "Historical attribution unresolved; no DB/Docker operations in R2.",
+    "financial_history": "Projection/immutable-accounting/reconciliation limitations preserved.",
+    "live_provider_certification": "UNVERIFIED; no provider actions performed.",
+    "PC_first_backup_restore": "PARKED; no certification success inferred."
+  },
+  "fresh_manual_execution": {
+    "speech_groups_executed": 0,
+    "native_zoom_cases_executed": 0,
+    "fresh_contrast_target_states_measured": 0,
+    "new_screenshots": 0,
+    "functional_or_regression_suites_rerun": 0
+  },
+  "validation": {
+    "status": "VERIFIED PASS",
+    "scope": "Read-only evidence/report invariant checks, not application/manual test execution",
+    "checks": [
+      {
+        "id": "prior_WP7B_R1_report_hashes",
+        "status": "VERIFIED PASS"
+      },
+      {
+        "id": "WP7A7_provenance_preservation",
+        "status": "VERIFIED PASS"
+      },
+      {
+        "id": "application_QA_build_source_fingerprint",
+        "status": "VERIFIED PASS"
+      },
+      {
+        "id": "retained_trace_hashes_and_CRC_receipt",
+        "status": "VERIFIED PASS"
+      },
+      {
+        "id": "checklist_IDs_sources_and_status_counts",
+        "status": "VERIFIED PASS"
+      },
+      {
+        "id": "no_fabricated_speech_zoom_or_gate_promotion",
+        "status": "VERIFIED PASS"
+      },
+      {
+        "id": "narrow_NA_justifications_and_occurrence_reconciliation",
+        "status": "VERIFIED PASS"
+      },
+      {
+        "id": "all_five_documents_JSON_whitespace_and_local_links",
+        "status": "VERIFIED PASS"
+      },
+      {
+        "id": "safety_and_inheritance_report_contract",
+        "status": "VERIFIED PASS"
+      }
+    ],
+    "passed": 9,
+    "failed": 0,
+    "git_diff_check": "VERIFIED PASS",
+    "fresh_manual_checks": 0,
+    "note": "These are report/evidence checks, not accessibility or application regression executions. One earlier read-only inline command failed PowerShell quoting before logic executed; its corrected literal-argument rerun succeeded."
+  },
+  "required_next_decision": "Separately authorize/provide a proven isolated synthetic fixture session and human speech observations. R2 itself grants no new lifecycle permission. Retain NOT VERIFIED meanwhile.",
+  "restrictions": {
+    "QA_database_created_reused_recovered_or_deleted": false,
+    "permanent_golden_database_operations": false,
+    "unrelated_Docker_changes": false,
+    "live_provider_actions": false,
+    "branches_commits_pushes": false,
+    "WP7C_WP8_started": false,
+    "backup_work_started": false
+  }
+}

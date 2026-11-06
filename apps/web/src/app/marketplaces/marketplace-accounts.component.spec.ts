@@ -52,6 +52,10 @@ describe('MarketplaceAccountsComponent', () => {
         external_writes: false,
       });
     await fixture.whenStable();
+    expect(
+      (fixture.nativeElement as HTMLElement).querySelector('[aria-label="Read-only imports"]')
+        ?.getAttribute('role'),
+    ).toBe('group');
     http
       .expectOne('http://127.0.0.1:8000/api/v1/marketplaces/accounts/account-1/import-jobs')
       .flush([]);

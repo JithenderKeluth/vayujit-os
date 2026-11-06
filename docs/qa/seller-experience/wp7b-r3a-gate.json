@@ -1,0 +1,2338 @@
+{
+  "package": "WP7B-R3A",
+  "quality_history": {
+    "report_template_syntax_failure_after_metadata_edit": 1,
+    "corrected_and_successfully_rechecked": true,
+    "application_behavior_changed": false,
+    "focus_element_crop_proves_outer_outline_visibility": false,
+    "focus_failure_basis": "Actual active-focus computed authored outline against verified opaque adjacent backdrop, source CSS and unrounded WCAG calculation; not crop alone"
+  },
+  "assessed_at": "2026-11-05T04:58:17.928Z",
+  "gate_A": {
+    "status": "PASS",
+    "inherited_from": "docs/qa/seller-experience/wp7b-r1-gate.json",
+    "rerun": false
+  },
+  "gate_B": "INCOMPLETE",
+  "blocking_verified_failures": [
+    "WP7B-R3A-LOGIN-FOCUS-001"
+  ],
+  "overall_WP7B": "INCOMPLETE",
+  "tools": {
+    "node": "24.19.0",
+    "playwright": "1.64.1",
+    "axe_core": "4.11.0",
+    "browser_versions": {
+      "chrome": "156.0.8078.76",
+      "msedge": "156.0.4314.58"
+    },
+    "version_measurement": "Installed package versions read during R3A; browser versions returned by launched browsers"
+  },
+  "focused_static_tests": {
+    "passed": 14,
+    "failed": 0,
+    "skipped": 0,
+    "scope": "Existing seven R1 contrast/startup plus seven R3 guard/report self-tests; no manual accessibility closure",
+    "node_syntax_checks": 4,
+    "diff_check": "PASS"
+  },
+  "local_evidence_audit": {
+    "prior_reports_checked": 22,
+    "prior_reports_unchanged": true,
+    "trace_count": 9,
+    "traces": [
+      {
+        "file": "tmp/qa-wp7br3a/wp7br1-r3a-chrome-1440/trace.zip",
+        "crc_pass": true,
+        "sha256": "b56012064f43ceedaaf59c792082170494968d0b1ab29733f153a74236e82aeb"
+      },
+      {
+        "file": "tmp/qa-wp7br3a/wp7br1-r3a-chrome-390/trace.zip",
+        "crc_pass": true,
+        "sha256": "16d64842a7f0767872e8bac803dbcd60b8d087f0a0fe2006bca1c58bb46f07a5"
+      },
+      {
+        "file": "tmp/qa-wp7br3a/wp7br1-r3a-extra-chrome-1440/trace.zip",
+        "crc_pass": true,
+        "sha256": "352556c2941523ec6e36b92dadde894992c817146c3519fe060769af5598e446"
+      },
+      {
+        "file": "tmp/qa-wp7br3a/wp7br1-r3a-extra-chrome-390/trace.zip",
+        "crc_pass": true,
+        "sha256": "237427b9e248612ece8b43db41dc6670964b0dc73585d00436409c8957173839"
+      },
+      {
+        "file": "tmp/qa-wp7br3a/wp7br1-r3a-extra-msedge-1440/trace.zip",
+        "crc_pass": true,
+        "sha256": "fb94a645e6fa142c8640c6e489902d557269b2d1f8245420220054b6c3fd20dd"
+      },
+      {
+        "file": "tmp/qa-wp7br3a/wp7br1-r3a-extra-msedge-390/trace.zip",
+        "crc_pass": true,
+        "sha256": "1b66beb8d36fd943c0fc808a9d07c72bbdc95b2d4891bd24f864c88a6b485ede"
+      },
+      {
+        "file": "tmp/qa-wp7br3a/wp7br1-r3a-login-focus/trace.zip",
+        "crc_pass": true,
+        "sha256": "3f1d8254c616cdc57803b69f236667097788a3c07a19464622d71cc9b2159485"
+      },
+      {
+        "file": "tmp/qa-wp7br3a/wp7br1-r3a-msedge-1440/trace.zip",
+        "crc_pass": true,
+        "sha256": "811fb1648b90a3a3a0827f595b401547bf8b10bcf6e2b3a8d3114e760ec63f96"
+      },
+      {
+        "file": "tmp/qa-wp7br3a/wp7br1-r3a-msedge-390/trace.zip",
+        "crc_pass": true,
+        "sha256": "33f6d18c3ef8e4b7148df7e3cc3c9f5eeadf6f7cb1f3d76377c3c6e31ee41203"
+      }
+    ],
+    "protected_secret_or_plaintext_fixture_password_matches": 0,
+    "raw_output_persisted": false
+  },
+  "counts": {
+    "total_groups": 40,
+    "VERIFIED_PASS": 2,
+    "VERIFIED_FAIL": 1,
+    "NOT_VERIFIED": 37,
+    "NOT_APPLICABLE": 0,
+    "fully_verified_automatically": 2,
+    "partially_verified": 17,
+    "without_fresh_execution": 20,
+    "mandatory_speech_groups_with_missing_observations": 12
+  },
+  "groups": [
+    {
+      "id": "R2-SR-01",
+      "area": "Sign-in labels",
+      "criteria": [
+        "1.3.1",
+        "3.3.2",
+        "4.1.2"
+      ],
+      "expected": "Email/password controls, required/secure-field information and show-password state are intelligible; no credentials spoken or recorded.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Label/name, password type and show/hide pressed state; Tab/Shift+Tab between fields/toggle; capture focus and required-state applicability.",
+      "human_only_component": "Provided historical login speech accepted; do not repeat without demonstrated evidence inadequacy",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Existing reported login speech retained; do not repeat labels/toggle. Resolve remaining required-state applicability/build metadata; complete full keyboard-only login test separately.",
+      "required_for_closure": "Existing reported login speech retained; do not repeat labels/toggle. Resolve remaining required-state applicability/build metadata; complete full keyboard-only login test separately.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/login-retest.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-02",
+      "area": "Navigation, landmarks and headings",
+      "criteria": [
+        "1.3.1",
+        "2.4.1",
+        "2.4.3"
+      ],
+      "expected": "Skip link, primary navigation, current page and heading/landmark sequence are understandable; focus moves predictably.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md#native--screen-reader-limitations",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Skip-link destination, heading/landmark ordering, current navigation and actual keyboard sequence.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Listen once to navigation/headings/landmarks; no fresh observation obtained.",
+      "required_for_closure": "Listen once to navigation/headings/landmarks; no fresh observation obtained.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md#native--screen-reader-limitations",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-03",
+      "area": "Goal disclosure",
+      "criteria": [
+        "2.1.1",
+        "4.1.2"
+      ],
+      "expected": "Disclosure name and expanded/collapsed state are spoken before/after Enter and Space; no lost draft/focus.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Disclosure name/aria-expanded and native details state, Enter/Space, focus and draft persistence.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Hear only disclosure name/state before/after activation; keyboard segment automated in four contexts.",
+      "required_for_closure": "Hear only disclosure name/state before/after activation; keyboard segment automated in four contexts.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [
+        {
+          "review_id": "R2-SR-03",
+          "assertion": "Disclosure Enter and Space preserve focus and match expanded state",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:44:54.116Z",
+          "route": "/intelligence/business-agent",
+          "actual": {
+            "before": "false",
+            "after": "true",
+            "restored": "false"
+          },
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-1440\\002-R2-SR-03-1.png"
+        },
+        {
+          "review_id": "R2-SR-03",
+          "assertion": "Disclosure Enter and Space preserve focus and match expanded state",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:45:27.404Z",
+          "route": "/intelligence/business-agent",
+          "actual": {
+            "before": "false",
+            "after": "true",
+            "restored": "false"
+          },
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-390\\002-R2-SR-03-8.png"
+        },
+        {
+          "review_id": "R2-SR-03",
+          "assertion": "Disclosure Enter and Space preserve focus and match expanded state",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:45:55.567Z",
+          "route": "/intelligence/business-agent",
+          "actual": {
+            "before": "false",
+            "after": "true",
+            "restored": "false"
+          },
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-1440\\002-R2-SR-03-15.png"
+        },
+        {
+          "review_id": "R2-SR-03",
+          "assertion": "Disclosure Enter and Space preserve focus and match expanded state",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:46:28.047Z",
+          "route": "/intelligence/business-agent",
+          "actual": {
+            "before": "false",
+            "after": "true",
+            "restored": "false"
+          },
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-390\\002-R2-SR-03-22.png"
+        }
+      ],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-04",
+      "area": "Goal fields",
+      "criteria": [
+        "1.3.1",
+        "3.3.2",
+        "4.1.2"
+      ],
+      "expected": "Textarea label, required state and relevant help are spoken on focus; do not require one exact wording.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Field names, required/help relationships, current invalid states and actual focus.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Hear goal label/help/required context; DOM alone is not speech.",
+      "required_for_closure": "Hear goal label/help/required context; DOM alone is not speech.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [
+        {
+          "review_id": "R2-SR-04",
+          "assertion": "Goal textarea has accessible label and help relationship",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:44:57.507Z",
+          "route": "/intelligence/business-agent",
+          "actual": {
+            "required": true,
+            "describedby": "goal-help goal-validation",
+            "invalid": null,
+            "focused": true
+          },
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-1440\\003-R2-SR-04-2.png"
+        },
+        {
+          "review_id": "R2-SR-04",
+          "assertion": "Goal textarea has accessible label and help relationship",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:45:29.469Z",
+          "route": "/intelligence/business-agent",
+          "actual": {
+            "required": true,
+            "describedby": "goal-help goal-validation",
+            "invalid": null,
+            "focused": true
+          },
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-390\\003-R2-SR-04-9.png"
+        },
+        {
+          "review_id": "R2-SR-04",
+          "assertion": "Goal textarea has accessible label and help relationship",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:45:58.839Z",
+          "route": "/intelligence/business-agent",
+          "actual": {
+            "required": true,
+            "describedby": "goal-help goal-validation",
+            "invalid": null,
+            "focused": true
+          },
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-1440\\003-R2-SR-04-16.png"
+        },
+        {
+          "review_id": "R2-SR-04",
+          "assertion": "Goal textarea has accessible label and help relationship",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:46:30.010Z",
+          "route": "/intelligence/business-agent",
+          "actual": {
+            "required": true,
+            "describedby": "goal-help goal-validation",
+            "invalid": null,
+            "focused": true
+          },
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-390\\003-R2-SR-04-23.png"
+        }
+      ],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-05",
+      "area": "Form errors and recovery",
+      "criteria": [
+        "3.3.1",
+        "4.1.3"
+      ],
+      "expected": "Actual invalid field and explanatory error are conveyed, with recovery feedback; never submit a valid business artifact.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Legitimate invalid input, visible errors and their associations/invalid state, correction/focus recovery; no forced submission.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Already reported login errors/states retained. Remaining recovery and applicable goal-form feedback only; do not repeat verified login speech.",
+      "required_for_closure": "Already reported login errors/states retained. Remaining recovery and applicable goal-form feedback only; do not repeat verified login speech.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-06",
+      "area": "Marketplace import controls",
+      "criteria": [
+        "1.3.1",
+        "4.1.2"
+      ],
+      "expected": "Read-only imports group and each control name/state are identifiable; focusing is allowed, executing an import is not.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Named imports group and individual accessible names/states; no import activation.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Hear group/control context once without executing import.",
+      "required_for_closure": "Hear group/control context once without executing import.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [
+        {
+          "review_id": "R2-SR-06",
+          "assertion": "Read-only import group is named and all child controls expose names/states; no import executed",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:44:59.123Z",
+          "route": "/marketplaces/accounts",
+          "actual": "- group \"Read-only imports\":\n  - button \"Import catalog for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import catalog\n  - button \"Import orders for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import orders\n  - button \"Import inventory for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import inventory\n  - button \"Import financial for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import financial",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-1440\\004-R2-SR-06-3.png"
+        },
+        {
+          "review_id": "R2-SR-06",
+          "assertion": "Read-only import group is named and all child controls expose names/states; no import executed",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:45:30.630Z",
+          "route": "/marketplaces/accounts",
+          "actual": "- group \"Read-only imports\":\n  - button \"Import catalog for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import catalog\n  - button \"Import orders for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import orders\n  - button \"Import inventory for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import inventory\n  - button \"Import financial for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import financial",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-390\\004-R2-SR-06-10.png"
+        },
+        {
+          "review_id": "R2-SR-06",
+          "assertion": "Read-only import group is named and all child controls expose names/states; no import executed",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:46:00.397Z",
+          "route": "/marketplaces/accounts",
+          "actual": "- group \"Read-only imports\":\n  - button \"Import catalog for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import catalog\n  - button \"Import orders for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import orders\n  - button \"Import inventory for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import inventory\n  - button \"Import financial for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import financial",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-1440\\004-R2-SR-06-17.png"
+        },
+        {
+          "review_id": "R2-SR-06",
+          "assertion": "Read-only import group is named and all child controls expose names/states; no import executed",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:46:31.348Z",
+          "route": "/marketplaces/accounts",
+          "actual": "- group \"Read-only imports\":\n  - button \"Import catalog for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import catalog\n  - button \"Import orders for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import orders\n  - button \"Import inventory for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import inventory\n  - button \"Import financial for [QA SYNTHETIC] WP7A4 R1 Flipkart\": Import financial",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-390\\004-R2-SR-06-24.png"
+        }
+      ],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-07",
+      "area": "Meesho editor controls",
+      "criteria": [
+        "2.1.1",
+        "4.1.2"
+      ],
+      "expected": "Listing editor sections group, button names and resulting local panel are understandable; do not assert invented tablist semantics.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Named editor group and panel buttons, local panel activation via keyboard.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Hear editor context and result of local panel change, not invented tab roles.",
+      "required_for_closure": "Hear editor context and result of local panel change, not invented tab roles.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [
+        {
+          "review_id": "R2-SR-07",
+          "assertion": "Named listing editor group supports keyboard panel activation",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:45:06.416Z",
+          "route": "/marketplaces/listings/677b6635-ccd2-4f7f-a5c0-c8c25b6b17d4/meesho",
+          "actual": "- group \"Listing editor sections\":\n  - button \"Product\"\n  - button \"Category\"\n  - button \"Attributes\"\n  - button \"Content\"\n  - button \"Variants\"\n  - button \"Media\"\n  - button \"Pricing\"\n  - button \"Inventory\"\n  - button \"Readiness\"\n  - button \"Preview\"",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-1440\\005-R2-SR-07-4.png"
+        },
+        {
+          "review_id": "R2-SR-07",
+          "assertion": "Named listing editor group supports keyboard panel activation",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:45:36.836Z",
+          "route": "/marketplaces/listings/677b6635-ccd2-4f7f-a5c0-c8c25b6b17d4/meesho",
+          "actual": "- group \"Listing editor sections\":\n  - button \"Product\"\n  - button \"Category\"\n  - button \"Attributes\"\n  - button \"Content\"\n  - button \"Variants\"\n  - button \"Media\"\n  - button \"Pricing\"\n  - button \"Inventory\"\n  - button \"Readiness\"\n  - button \"Preview\"",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-390\\005-R2-SR-07-11.png"
+        },
+        {
+          "review_id": "R2-SR-07",
+          "assertion": "Named listing editor group supports keyboard panel activation",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:46:07.133Z",
+          "route": "/marketplaces/listings/677b6635-ccd2-4f7f-a5c0-c8c25b6b17d4/meesho",
+          "actual": "- group \"Listing editor sections\":\n  - button \"Product\"\n  - button \"Category\"\n  - button \"Attributes\"\n  - button \"Content\"\n  - button \"Variants\"\n  - button \"Media\"\n  - button \"Pricing\"\n  - button \"Inventory\"\n  - button \"Readiness\"\n  - button \"Preview\"",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-1440\\005-R2-SR-07-18.png"
+        },
+        {
+          "review_id": "R2-SR-07",
+          "assertion": "Named listing editor group supports keyboard panel activation",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:46:38.435Z",
+          "route": "/marketplaces/listings/677b6635-ccd2-4f7f-a5c0-c8c25b6b17d4/meesho",
+          "actual": "- group \"Listing editor sections\":\n  - button \"Product\"\n  - button \"Category\"\n  - button \"Attributes\"\n  - button \"Content\"\n  - button \"Variants\"\n  - button \"Media\"\n  - button \"Pricing\"\n  - button \"Inventory\"\n  - button \"Readiness\"\n  - button \"Preview\"",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-390\\005-R2-SR-07-25.png"
+        }
+      ],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-08",
+      "area": "Ads dialog entry",
+      "criteria": [
+        "2.4.3",
+        "4.1.2",
+        "APG modal"
+      ],
+      "expected": "Read-only Preview opens with meaningful dialog/title context and focus inside.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Dialog accessible name, title focus entry and description relationships.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Hear actual dialog role/title/context once.",
+      "required_for_closure": "Hear actual dialog role/title/context once.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [
+        {
+          "review_id": "R2-SR-08",
+          "assertion": "Preview opens a named dialog and focus enters title",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:45:14.384Z",
+          "route": "/ads/recommendations",
+          "actual": "- dialog \"Preview optimization\":\n  - heading \"Preview optimization\" [level=2]\n  - text: \"{ \\\"recommendation\\\": { \\\"id\\\": \\\"5219f7a0-9927-4053-882b-56a2b06cc904\\\", \\\"provider\\\": \\\"meta\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\", \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"group_id\\\": null, \\\"ad_id\\\": null, \\\"creative_id\\\": null, \\\"rule_id\\\": null, \\\"type\\\": \\\"review_destination\\\", \\\"recommendation_type\\\": \\\"review_destination\\\", \\\"severity\\\": \\\"recommendation\\\", \\\"confidence\\\": \\\"low\\\", \\\"confidence_score\\\": 0.35, \\\"status\\\": \\\"open\\\", \\\"evidence\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"availability\\\": \\\"synthetic\\\", \\\"fixture_only\\\": true }, \\\"explanation\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"evidence\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"fixture_only\\\": true }, \\\"actionable\\\": false, \\\"metric_window\\\": { \\\"end\\\": \\\"2026-11-05T04:18:50.550097+00:00\\\", \\\"start\\\": \\\"2026-10-29T04:18:50.550097+00:00\\\" }, \\\"action_options\\\": [ \\\"review_destination\\\", \\\"dismiss\\\" ], \\\"why_it_matters\\\": \\\"The observed local metrics may indicate a bounded optimization opportunity.\\\", \\\"affected_entities\\\": { \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\" }, \\\"expected_direction\\\": \\\"create an owner-reviewed follow-up\\\", \\\"provider_compatibility\\\": { \\\"status\\\": \\\"compatible\\\", \\\"provider\\\": \\\"meta\\\" } }, \\\"current_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"proposed_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"action_options\\\": [ \\\"review_destination\\\", \\\"dismiss\\\" ], \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"affected_entities\\\": { \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\" }, \\\"actionable\\\": false, \\\"provider_compatibility\\\": { \\\"status\\\": \\\"compatible\\\", \\\"provider\\\": \\\"meta\\\" }, \\\"metric_window\\\": { \\\"start\\\": \\\"2026-10-29T04:18:50.550097Z\\\", \\\"end\\\": \\\"2026-11-05T04:18:50.550097Z\\\" }, \\\"fingerprint\\\": \\\"f6a8c4d8146ef1e460ac794ecdd0d5c779af946ef3384b4da4a5d93b07ea8e26\\\", \\\"source\\\": \\\"synthetic_local\\\", \\\"synthetic\\\": true, \\\"stale_reason\\\": null }, \\\"action\\\": \\\"review_destination\\\", \\\"current_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"proposed_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"estimated_effect_direction\\\": \\\"create an owner-reviewed follow-up\\\", \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"blockers\\\": [], \\\"warnings\\\": [ \\\"Synthetic / Local Simulation: no live Ads mutation occurs during preview.\\\" ], \\\"fingerprint\\\": \\\"f6a8c4d8146ef1e460ac794ecdd0d5c779af946ef3384b4da4a5d93b07ea8e26\\\", \\\"synthetic\\\": true, \\\"mutating\\\": false }\"\n  - paragraph: Preview is non-mutating. Confirmation is required and stale fingerprints are rejected.\n  - button \"Close\"",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-1440\\006-R2-SR-08-5.png"
+        },
+        {
+          "review_id": "R2-SR-08",
+          "assertion": "Preview opens a named dialog and focus enters title",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:45:42.683Z",
+          "route": "/ads/recommendations",
+          "actual": "- dialog \"Preview optimization\":\n  - heading \"Preview optimization\" [level=2]\n  - text: \"{ \\\"recommendation\\\": { \\\"id\\\": \\\"5219f7a0-9927-4053-882b-56a2b06cc904\\\", \\\"provider\\\": \\\"meta\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\", \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"group_id\\\": null, \\\"ad_id\\\": null, \\\"creative_id\\\": null, \\\"rule_id\\\": null, \\\"type\\\": \\\"review_destination\\\", \\\"recommendation_type\\\": \\\"review_destination\\\", \\\"severity\\\": \\\"recommendation\\\", \\\"confidence\\\": \\\"low\\\", \\\"confidence_score\\\": 0.35, \\\"status\\\": \\\"open\\\", \\\"evidence\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"availability\\\": \\\"synthetic\\\", \\\"fixture_only\\\": true }, \\\"explanation\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"evidence\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"fixture_only\\\": true }, \\\"actionable\\\": false, \\\"metric_window\\\": { \\\"end\\\": \\\"2026-11-05T04:18:50.550097+00:00\\\", \\\"start\\\": \\\"2026-10-29T04:18:50.550097+00:00\\\" }, \\\"action_options\\\": [ \\\"review_destination\\\", \\\"dismiss\\\" ], \\\"why_it_matters\\\": \\\"The observed local metrics may indicate a bounded optimization opportunity.\\\", \\\"affected_entities\\\": { \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\" }, \\\"expected_direction\\\": \\\"create an owner-reviewed follow-up\\\", \\\"provider_compatibility\\\": { \\\"status\\\": \\\"compatible\\\", \\\"provider\\\": \\\"meta\\\" } }, \\\"current_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"proposed_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"action_options\\\": [ \\\"review_destination\\\", \\\"dismiss\\\" ], \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"affected_entities\\\": { \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\" }, \\\"actionable\\\": false, \\\"provider_compatibility\\\": { \\\"status\\\": \\\"compatible\\\", \\\"provider\\\": \\\"meta\\\" }, \\\"metric_window\\\": { \\\"start\\\": \\\"2026-10-29T04:18:50.550097Z\\\", \\\"end\\\": \\\"2026-11-05T04:18:50.550097Z\\\" }, \\\"fingerprint\\\": \\\"f6a8c4d8146ef1e460ac794ecdd0d5c779af946ef3384b4da4a5d93b07ea8e26\\\", \\\"source\\\": \\\"synthetic_local\\\", \\\"synthetic\\\": true, \\\"stale_reason\\\": null }, \\\"action\\\": \\\"review_destination\\\", \\\"current_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"proposed_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"estimated_effect_direction\\\": \\\"create an owner-reviewed follow-up\\\", \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"blockers\\\": [], \\\"warnings\\\": [ \\\"Synthetic / Local Simulation: no live Ads mutation occurs during preview.\\\" ], \\\"fingerprint\\\": \\\"f6a8c4d8146ef1e460ac794ecdd0d5c779af946ef3384b4da4a5d93b07ea8e26\\\", \\\"synthetic\\\": true, \\\"mutating\\\": false }\"\n  - paragraph: Preview is non-mutating. Confirmation is required and stale fingerprints are rejected.\n  - button \"Close\"",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-390\\006-R2-SR-08-12.png"
+        },
+        {
+          "review_id": "R2-SR-08",
+          "assertion": "Preview opens a named dialog and focus enters title",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:46:14.097Z",
+          "route": "/ads/recommendations",
+          "actual": "- dialog \"Preview optimization\":\n  - heading \"Preview optimization\" [level=2]\n  - text: \"{ \\\"recommendation\\\": { \\\"id\\\": \\\"5219f7a0-9927-4053-882b-56a2b06cc904\\\", \\\"provider\\\": \\\"meta\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\", \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"group_id\\\": null, \\\"ad_id\\\": null, \\\"creative_id\\\": null, \\\"rule_id\\\": null, \\\"type\\\": \\\"review_destination\\\", \\\"recommendation_type\\\": \\\"review_destination\\\", \\\"severity\\\": \\\"recommendation\\\", \\\"confidence\\\": \\\"low\\\", \\\"confidence_score\\\": 0.35, \\\"status\\\": \\\"open\\\", \\\"evidence\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"availability\\\": \\\"synthetic\\\", \\\"fixture_only\\\": true }, \\\"explanation\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"evidence\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"fixture_only\\\": true }, \\\"actionable\\\": false, \\\"metric_window\\\": { \\\"end\\\": \\\"2026-11-05T04:18:50.550097+00:00\\\", \\\"start\\\": \\\"2026-10-29T04:18:50.550097+00:00\\\" }, \\\"action_options\\\": [ \\\"review_destination\\\", \\\"dismiss\\\" ], \\\"why_it_matters\\\": \\\"The observed local metrics may indicate a bounded optimization opportunity.\\\", \\\"affected_entities\\\": { \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\" }, \\\"expected_direction\\\": \\\"create an owner-reviewed follow-up\\\", \\\"provider_compatibility\\\": { \\\"status\\\": \\\"compatible\\\", \\\"provider\\\": \\\"meta\\\" } }, \\\"current_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"proposed_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"action_options\\\": [ \\\"review_destination\\\", \\\"dismiss\\\" ], \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"affected_entities\\\": { \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\" }, \\\"actionable\\\": false, \\\"provider_compatibility\\\": { \\\"status\\\": \\\"compatible\\\", \\\"provider\\\": \\\"meta\\\" }, \\\"metric_window\\\": { \\\"start\\\": \\\"2026-10-29T04:18:50.550097Z\\\", \\\"end\\\": \\\"2026-11-05T04:18:50.550097Z\\\" }, \\\"fingerprint\\\": \\\"f6a8c4d8146ef1e460ac794ecdd0d5c779af946ef3384b4da4a5d93b07ea8e26\\\", \\\"source\\\": \\\"synthetic_local\\\", \\\"synthetic\\\": true, \\\"stale_reason\\\": null }, \\\"action\\\": \\\"review_destination\\\", \\\"current_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"proposed_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"estimated_effect_direction\\\": \\\"create an owner-reviewed follow-up\\\", \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"blockers\\\": [], \\\"warnings\\\": [ \\\"Synthetic / Local Simulation: no live Ads mutation occurs during preview.\\\" ], \\\"fingerprint\\\": \\\"f6a8c4d8146ef1e460ac794ecdd0d5c779af946ef3384b4da4a5d93b07ea8e26\\\", \\\"synthetic\\\": true, \\\"mutating\\\": false }\"\n  - paragraph: Preview is non-mutating. Confirmation is required and stale fingerprints are rejected.\n  - button \"Close\"",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-1440\\006-R2-SR-08-19.png"
+        },
+        {
+          "review_id": "R2-SR-08",
+          "assertion": "Preview opens a named dialog and focus enters title",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:46:44.055Z",
+          "route": "/ads/recommendations",
+          "actual": "- dialog \"Preview optimization\":\n  - heading \"Preview optimization\" [level=2]\n  - text: \"{ \\\"recommendation\\\": { \\\"id\\\": \\\"5219f7a0-9927-4053-882b-56a2b06cc904\\\", \\\"provider\\\": \\\"meta\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\", \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"group_id\\\": null, \\\"ad_id\\\": null, \\\"creative_id\\\": null, \\\"rule_id\\\": null, \\\"type\\\": \\\"review_destination\\\", \\\"recommendation_type\\\": \\\"review_destination\\\", \\\"severity\\\": \\\"recommendation\\\", \\\"confidence\\\": \\\"low\\\", \\\"confidence_score\\\": 0.35, \\\"status\\\": \\\"open\\\", \\\"evidence\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"availability\\\": \\\"synthetic\\\", \\\"fixture_only\\\": true }, \\\"explanation\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"evidence\\\": { \\\"issue\\\": \\\"[QA SYNTHETIC] accessibility-only read-only preview fixture\\\", \\\"fixture_only\\\": true }, \\\"actionable\\\": false, \\\"metric_window\\\": { \\\"end\\\": \\\"2026-11-05T04:18:50.550097+00:00\\\", \\\"start\\\": \\\"2026-10-29T04:18:50.550097+00:00\\\" }, \\\"action_options\\\": [ \\\"review_destination\\\", \\\"dismiss\\\" ], \\\"why_it_matters\\\": \\\"The observed local metrics may indicate a bounded optimization opportunity.\\\", \\\"affected_entities\\\": { \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\" }, \\\"expected_direction\\\": \\\"create an owner-reviewed follow-up\\\", \\\"provider_compatibility\\\": { \\\"status\\\": \\\"compatible\\\", \\\"provider\\\": \\\"meta\\\" } }, \\\"current_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"proposed_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"action_options\\\": [ \\\"review_destination\\\", \\\"dismiss\\\" ], \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"affected_entities\\\": { \\\"product_id\\\": \\\"8adc6a90-5d8c-4da3-994a-4154d70c6f83\\\", \\\"campaign_id\\\": \\\"27532d83-182e-4f33-90f7-f8b260fc5b2d\\\" }, \\\"actionable\\\": false, \\\"provider_compatibility\\\": { \\\"status\\\": \\\"compatible\\\", \\\"provider\\\": \\\"meta\\\" }, \\\"metric_window\\\": { \\\"start\\\": \\\"2026-10-29T04:18:50.550097Z\\\", \\\"end\\\": \\\"2026-11-05T04:18:50.550097Z\\\" }, \\\"fingerprint\\\": \\\"f6a8c4d8146ef1e460ac794ecdd0d5c779af946ef3384b4da4a5d93b07ea8e26\\\", \\\"source\\\": \\\"synthetic_local\\\", \\\"synthetic\\\": true, \\\"stale_reason\\\": null }, \\\"action\\\": \\\"review_destination\\\", \\\"current_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"proposed_state\\\": { \\\"currency\\\": \\\"INR\\\", \\\"creative_id\\\": null, \\\"daily_budget\\\": 100, \\\"budget_version\\\": 1, \\\"campaign_state\\\": \\\"approved\\\", \\\"lifetime_budget\\\": null, \\\"bidding_strategy\\\": null, \\\"creative_version\\\": null }, \\\"estimated_effect_direction\\\": \\\"create an owner-reviewed follow-up\\\", \\\"risks\\\": [ \\\"This recommendation is advisory and does not mutate a provider.\\\" ], \\\"blockers\\\": [], \\\"warnings\\\": [ \\\"Synthetic / Local Simulation: no live Ads mutation occurs during preview.\\\" ], \\\"fingerprint\\\": \\\"f6a8c4d8146ef1e460ac794ecdd0d5c779af946ef3384b4da4a5d93b07ea8e26\\\", \\\"synthetic\\\": true, \\\"mutating\\\": false }\"\n  - paragraph: Preview is non-mutating. Confirmation is required and stale fingerprints are rejected.\n  - button \"Close\"",
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-390\\006-R2-SR-08-26.png"
+        }
+      ],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-09",
+      "area": "Ads containment, dismissal and return",
+      "criteria": [
+        "2.1.1",
+        "2.1.2",
+        "2.4.3",
+        "APG modal"
+      ],
+      "expected": "Tab/Shift+Tab remain in the dialog; Space on Close and Escape dismiss; returned Preview focus is spoken.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-gate.json#gates",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Forward/reverse containment, Space Close, Escape, return focus and focused control identity.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Hear return-focus announcement; do not manually repeat already automated trap loops unless visually/audibly ambiguous.",
+      "required_for_closure": "Hear return-focus announcement; do not manually repeat already automated trap loops unless visually/audibly ambiguous.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [
+        {
+          "review_id": "R2-SR-09",
+          "assertion": "Tab/Shift+Tab containment, Space Close, Escape and return focus",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:45:16.770Z",
+          "route": "/ads/recommendations",
+          "actual": [
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            },
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            },
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            }
+          ],
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-1440\\007-R2-SR-09-6.png"
+        },
+        {
+          "review_id": "R2-SR-09",
+          "assertion": "Tab/Shift+Tab containment, Space Close, Escape and return focus",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-chrome-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:45:43.804Z",
+          "route": "/ads/recommendations",
+          "actual": [
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            },
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            },
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            }
+          ],
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-chrome-390\\007-R2-SR-09-13.png"
+        },
+        {
+          "review_id": "R2-SR-09",
+          "assertion": "Tab/Shift+Tab containment, Space Close, Escape and return focus",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-1440",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:46:16.640Z",
+          "route": "/ads/recommendations",
+          "actual": [
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            },
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            },
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            }
+          ],
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-1440\\007-R2-SR-09-20.png"
+        },
+        {
+          "review_id": "R2-SR-09",
+          "assertion": "Tab/Shift+Tab containment, Space Close, Escape and return focus",
+          "expected": "Stated deterministic assertion holds",
+          "browser": "wp7br1-r3a-msedge-390",
+          "tool": "Playwright",
+          "timestamp": "2026-11-05T04:46:45.389Z",
+          "route": "/ads/recommendations",
+          "actual": [
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            },
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            },
+            {
+              "tag": "BUTTON",
+              "text": "Close"
+            }
+          ],
+          "status": "VERIFIED_PASS",
+          "evidence": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-wp7br3a\\wp7br1-r3a-msedge-390\\007-R2-SR-09-27.png"
+        }
+      ],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-gate.json#gates",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-10",
+      "area": "Dynamic loading/status/retry",
+      "criteria": [
+        "4.1.3"
+      ],
+      "expected": "Relevant waiting/error/result messages without focus changes are actually announced; distinguish silence from an unexercised state.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Live region semantics and actual state updates; supported bounded loading/error/recovery.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Hear relevant dynamic messages without forced focus; no mutation solely for speech.",
+      "required_for_closure": "Hear relevant dynamic messages without forced focus; no mutation solely for speech.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-11",
+      "area": "Review/approval controls",
+      "criteria": [
+        "3.3.2",
+        "4.1.2"
+      ],
+      "expected": "Read labels, checkbox/disabled states and unmet prerequisites without activating approval/execution.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Review labels, prerequisite/disabled states and field associations without approval.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Hear HUMAN review prerequisites once; do not approve.",
+      "required_for_closure": "Hear HUMAN review prerequisites once; do not approve.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-12",
+      "area": "Research and selection context",
+      "criteria": [
+        "1.3.1",
+        "4.1.2"
+      ],
+      "expected": "Current goal/product, synthetic/unknown evidence and existing selection state remain comprehensible; do not select/reject or research.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Persisted synthetic goal/product/selection context and provenance labels, reload consistency.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Hear current research/selection/evidence context without discovery or selection.",
+      "required_for_closure": "Hear current research/selection/evidence context without discovery or selection.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-SR-13",
+      "area": "Tables and lists",
+      "criteria": [
+        "1.3.1"
+      ],
+      "expected": "Relevant captions, headers, row relationships and list order are intelligible with actual reader navigation.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md#native--screen-reader-limitations",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Actual table captions, th/scope/header relationships and list order.",
+      "human_only_component": "Actual unverified speech only; do not repeat proven keyboard/semantics",
+      "existing_evidence": "R1 bounded keyboard/semantic evidence preserved; R2 speech NOT VERIFIED; supplied R3A human login summaries apply only to SR-01 and the reported part of SR-05",
+      "actual_result": "Hear a representative caption/header/cell relationship with reader table navigation.",
+      "required_for_closure": "Hear a representative caption/header/cell relationship with reader table navigation.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md#native--screen-reader-limitations",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-01",
+      "area": "Goals and form/error state",
+      "route": "/intelligence/business-agent",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-02",
+      "area": "Goals and form/error state",
+      "route": "/intelligence/business-agent",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-03",
+      "area": "Goals and form/error state",
+      "route": "/intelligence/business-agent",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-04",
+      "area": "Marketplace import controls",
+      "route": "/marketplaces/accounts",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-05",
+      "area": "Marketplace import controls",
+      "route": "/marketplaces/accounts",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-06",
+      "area": "Marketplace import controls",
+      "route": "/marketplaces/accounts",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-07",
+      "area": "Meesho editor",
+      "route": "/marketplaces/listings/:fixture_id/meesho",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-08",
+      "area": "Meesho editor",
+      "route": "/marketplaces/listings/:fixture_id/meesho",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-09",
+      "area": "Meesho editor",
+      "route": "/marketplaces/listings/:fixture_id/meesho",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-10",
+      "area": "Ads preview dialog",
+      "route": "/ads/recommendations",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-11",
+      "area": "Ads preview dialog",
+      "route": "/ads/recommendations",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-Z-12",
+      "area": "Ads preview dialog",
+      "route": "/ads/recommendations",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Establish actual native browser zoom percentage using reliable native browser controls; measure CSS viewport/window, keyboard access, focus, clipping and reflow.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 native settings observed but complete post-fix interaction unverified; R2 no fresh native zoom",
+      "actual_result": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "required_for_closure": "No native zoom executed during the remaining R3 lifetime. Responsive width is not zoom. Human visual confirmation only where objective evidence is insufficient.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+        "docs/qa/seller-experience/wp7b-r2-gate.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-01",
+      "area": "Social image-review textarea",
+      "target": "main textarea",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Expose exact Social textarea; solid-background/opacity/occlusion-aware text contrast.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: main textarea",
+      "actual_result": "Three of four text samples pass; Chrome390 remains NOT VERIFIED. Retry reliable rendered exposure before asking human.",
+      "required_for_closure": "Three of four text samples pass; Chrome390 remains NOT VERIFIED. Retry reliable rendered exposure before asking human.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-02",
+      "area": "Social timeline strong text",
+      "target": ".timeline strong",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "VERIFIED_PASS",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "FULL_RECORDED_GROUP",
+      "automatable_assertions": "Measure all exact .timeline strong targets, expose by scrolling and match screenshot/color state.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: .timeline strong",
+      "actual_result": "Four of four current targets PASS at 14.188746492925187:1; SC1.4.3, threshold4.5. No additional human judgment needed for this recorded solid-color text scope.",
+      "required_for_closure": "Four of four current targets PASS at 14.188746492925187:1; SC1.4.3, threshold4.5. No additional human judgment needed for this recorded solid-color text scope.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-03",
+      "area": "Flipkart labels and unmeasured forms",
+      "target": "main form label; three extra matching labels; mobile index 6",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Measure Flipkart labels beyond old bound and index6 after stable rendering.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: main form label; three extra matching labels; mobile index 6",
+      "actual_result": "Remaining-measurement fixture currently renders seven labels, not prior eleven; absence of historical targets is not N/A. Mobile/exact legacy forms remain unclosed.",
+      "required_for_closure": "Remaining-measurement fixture currently renders seven labels, not prior eleven; absence of historical targets is not N/A. Mobile/exact legacy forms remain unclosed.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-04",
+      "area": "Flipkart remaining editor buttons",
+      "target": ".inner-tabs button; two beyond the eight-element sample",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Measure remaining Flipkart buttons8/9, selected/focus state and essential indicators.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: .inner-tabs button; two beyond the eight-element sample",
+      "actual_result": "All eight remaining-button text samples PASS; focus/selected indicator coverage incomplete.",
+      "required_for_closure": "All eight remaining-button text samples PASS; focus/selected indicator coverage incomplete.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-05",
+      "area": "Meesho remaining editor buttons",
+      "target": ".inner-tabs button; two beyond the eight-element sample",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Measure Meesho buttons8/9 plus keyboard focus/selected indicator against true adjacent colors.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: .inner-tabs button; two beyond the eight-element sample",
+      "actual_result": "All ten buttons sampled in four contexts; text PASS does not establish inactive focus or all state indicators.",
+      "required_for_closure": "All ten buttons sampled in four contexts; text PASS does not establish inactive focus or all state indicators.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-06",
+      "area": "Mobile Meesho/goal fields",
+      "target": "Meesho main input[type=number] index 2; goal textarea index 0",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-gate.json",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Expose exact mobile goal textarea/Meesho number input; text/focus/boundary measurements.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: Meesho main input[type=number] index 2; goal textarea index 0",
+      "actual_result": "Goal help/textarea and Meesho forms partly measured; exact number input state and occluded samples remain.",
+      "required_for_closure": "Goal help/textarea and Meesho forms partly measured; exact number input state and occluded samples remain.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-gate.json",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-07",
+      "area": "Financial captions, including mobile occlusion",
+      "target": "main caption; actual recorded targets, not guessed new rows",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Scroll both axes when necessary and measure actual captions after stable rendering.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: main caption; actual recorded targets, not guessed new rows",
+      "actual_result": "Six desktop caption samples PASS; six mobile caption samples remain occluded/oversized and NOT VERIFIED. Retry automation before human interpretation.",
+      "required_for_closure": "Six desktop caption samples PASS; six mobile caption samples remain occluded/oversized and NOT VERIFIED. Retry automation before human interpretation.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-08",
+      "area": "Financial headers beyond sample",
+      "target": "main th; thirteen additional matching targets in finance runs",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "VERIFIED_PASS",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "FULL_RECORDED_GROUP",
+      "automatable_assertions": "Measure all21 financial headers per context, including thirteen beyond old bound.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: main th; thirteen additional matching targets in finance runs",
+      "actual_result": "84 of84 header text samples PASS across Chrome/Edge1440/390; SC1.4.3. No manual perception needed for this recorded solid-color text scope.",
+      "required_for_closure": "84 of84 header text samples PASS across Chrome/Edge1440/390; SC1.4.3. No manual perception needed for this recorded solid-color text scope.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-09",
+      "area": "Ads dialog historical obscured heading/state",
+      "target": "[role=dialog] h2 and relevant error/loading states",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Measure actual Ads title/loading/error states; no artificial successful preview evidence.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: [role=dialog] h2 and relevant error/loading states",
+      "actual_result": "Keyboard/semantics PASS is not fresh title/state contrast closure.",
+      "required_for_closure": "Keyboard/semantics PASS is not fresh title/state contrast closure.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-10",
+      "area": "Campaign reschedule textarea",
+      "target": ".reschedule-panel textarea; needs legitimately eligible fixture",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-browser-retest.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Use a legitimately eligible persisted Campaign reschedule state; measure actual textarea.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: .reschedule-panel textarea; needs legitimately eligible fixture",
+      "actual_result": "Existing draft checkpoint is ineligible. Needs authorized eligible fixture; no bypass or manufactured approval.",
+      "required_for_closure": "Existing draft checkpoint is ineligible. Needs authorized eligible fixture; no bypass or manufactured approval.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-browser-retest.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-11",
+      "area": "Remaining interactive focus states",
+      "target": "Unfocused buttons/inputs and mobile goal samples, after applicability/deduplication",
+      "criteria": "1.4.11,2.4.7",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-gate.json",
+      "status": "VERIFIED_FAIL",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "CONFIRMED_FAILURE",
+      "automatable_assertions": "Keyboard-focus actual targets; measure active authored outlines against actual adjacent colors.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: Unfocused buttons/inputs and mobile goal samples, after applicability/deduplication",
+      "actual_result": "CONFIRMED FAIL: login password-toggle gold focus on white,2.374231440911746:1 versus3:1. Separate correction authorization required.",
+      "required_for_closure": "CONFIRMED FAIL: login password-toggle gold focus on white,2.374231440911746:1 versus3:1. Separate correction authorization required.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-gate.json",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json",
+        "tmp/qa-wp7br3a/login-focus.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-12",
+      "area": "Essential control boundaries and state indicators",
+      "target": "Actual authored input/checkbox/select boundary or indicator and adjacent colors",
+      "criteria": "1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Identify which authored boundary/state is essential and measure relevant adjacent colors, not every decorative border.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: Actual authored input/checkbox/select boundary or indicator and adjacent colors",
+      "actual_result": "Computed border data exists; essential-boundary applicability not fully adjudicated.",
+      "required_for_closure": "Computed border data exists; essential-boundary applicability not fully adjudicated.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-13",
+      "area": "Transition/hover/selected state contrast",
+      "target": "180ms transition evidence must align color sample and rendered frame",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-browser-retest.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Capture aligned transition frames/computed values, hover/selected states; do not cancel transitions.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: 180ms transition evidence must align color sample and rendered frame",
+      "actual_result": "Settled-state sampling executed, not full180ms transition/hover adjudication.",
+      "required_for_closure": "Settled-state sampling executed, not full180ms transition/hover adjudication.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-r1-browser-retest.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-14",
+      "area": "Target size, spacing and legitimate exceptions",
+      "target": "Relevant controls; do not blanket-exempt small links",
+      "criteria": "2.5.8",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "PARTIAL",
+      "automatable_assertions": "Measure actual hit rectangles/spacing and justify only applicable inline/equivalent/UA/essential exceptions.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: Relevant controls; do not blanket-exempt small links",
+      "actual_result": "Login toggle height21.609375px observed; spacing/exception not adjudicated. Not automatically a target-size FAIL.",
+      "required_for_closure": "Login toggle height21.609375px observed; spacing/exception not adjudicated. Not automatically a target-size FAIL.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    },
+    {
+      "id": "R2-C-15",
+      "area": "Legacy manual-target reconciliation",
+      "target": "Stable observation IDs in accessibility-observations-reviewed.json",
+      "criteria": "Per recorded rule and applicability; no new blanket criterion",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "coverage": "NO_FRESH_EXECUTION",
+      "automatable_assertions": "Reconcile original3169 stable observation keys by exact selector/state/cause/applicability.",
+      "human_only_component": "Only ambiguous perceptual/applicability portions after reliable measurement is exhausted",
+      "existing_evidence": "R1 sampled rendered colors and R2 arithmetic/target reconciliation preserved; exact remaining target: Stable observation IDs in accessibility-observations-reviewed.json",
+      "actual_result": "Legacy record hashes/IDs retained; no complete cause-level closure or new unique-defect count claimed.",
+      "required_for_closure": "Legacy record hashes/IDs retained; no complete cause-level closure or new unique-defect count claimed.",
+      "test_environment": {
+        "token": "dd240c756c70f504",
+        "origin": "http://127.0.0.1:55226",
+        "expired": true,
+        "fixture": "Existing R3 synthetic only",
+        "versions": {
+          "chrome": "156.0.8078.76",
+          "msedge": "156.0.4314.58"
+        },
+        "viewport": [
+          1440,
+          390
+        ],
+        "native_zoom_verified": false
+      },
+      "automated_assertion_records": [],
+      "evidence": [
+        "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+        "docs/qa/seller-experience/wp7b-r2-gate.json",
+        "tmp/qa-wp7br3a/remaining-contrast.json",
+        "tmp/qa-wp7br3a/browser-results.json"
+      ],
+      "assessment_timestamp": "2026-11-05T04:58:17.928Z"
+    }
+  ],
+  "observations": {
+    "source": "User-supplied WP7B-R3A specification, section1; historical human reports, not new automated speech",
+    "exact_utterances_available": false,
+    "reports": [
+      "Login Email, Password and Show password correct names and roles on repeat",
+      "Show password state announced after both Space activations; focus remained",
+      "Empty login validation announced and visible; focus remained on submit",
+      "Email/password labels, invalid states and associated errors announced"
+    ],
+    "initial_unclear_observations": "Retained as historical unclear observations; verbatim initial utterances not supplied here; not invented or erased",
+    "limitation": "Reader/browser/build/time linkage not supplied for several utterances. Current captured build disables empty Sign in and does not demonstrate those individual validation-state associations. Preserve reported observations without attributing an unobserved current execution."
+  },
+  "findings": [
+    {
+      "id": "WP7B-R3A-LOGIN-FOCUS-001",
+      "review_id": "R2-C-11",
+      "status": "VERIFIED_FAIL",
+      "severity": "P2",
+      "blocks_manual_accessibility_closure": true,
+      "route": "/login",
+      "expected": "Authored active focus indicator at least3:1 against actual adjacent white background (SC1.4.11).",
+      "actual": "Solid3px RGB224,154,54 outline on white;2.374231440911746:1, required3.",
+      "evidence": "tmp/qa-wp7br3a/login-focus.json",
+      "screenshot": "tmp\\qa-wp7br3a\\wp7br1-r3a-login-focus\\contrast-login-focus-0.png",
+      "actual_timestamp": "2026-11-05T04:48:43.061Z",
+      "browser": "156.0.8078.76",
+      "source": "apps/web/src/styles.css:99-107 global focus rule; auth password-toggle has no scoped accessible override. R1 repaired other scopes, not this login target.",
+      "reproduction": "Synthetic /login: Tab to Show password; observe authored focus ring. No login submission needed.",
+      "impact": "Low-vision keyboard users may not distinguish the active control reliably.",
+      "suggested_fix": "Separately authorize a scoped light-auth focus rule using existing brand-strong token; preserve dark navigation and business authorities. Retest actual rendered focus contrast in both browsers.",
+      "code_changed": false,
+      "criterion_reference": "https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html"
+    }
+  ],
+  "tests": {
+    "primary_browser": {
+      "total": 28,
+      "passed": 24,
+      "failed": 4,
+      "failures_classification": "Changing-name locator harness error, preserved"
+    },
+    "independent_login_retest": {
+      "total": 4,
+      "passed": 4,
+      "failed": 0,
+      "scope": "Email/password/toggle keyboard segment, not full valid-login submission"
+    },
+    "contrast": {
+      "records": 285,
+      "text_pass": 268,
+      "text_not_verified": 17,
+      "focus_fail": 1,
+      "record_counts_are_not_unique_tests": true
+    },
+    "axe": {
+      "scans": 16,
+      "violation_rule_occurrences": 0,
+      "incomplete_rule_occurrences": 10
+    },
+    "historical_arithmetic": {
+      "timestamp": "2026-11-05T04:58:17.928Z",
+      "comparisons": 340,
+      "mismatches": 0,
+      "sources": [
+        {
+          "file": "tmp/qa-seller-browser/57e1c0c8d2d30df9/wp7br1-browser.json",
+          "sha256": "df3c4b9de72a7559cf3458a2eb1664808a6c51406959e74937ba1e16b00e223b"
+        },
+        {
+          "file": "tmp/qa-seller-browser/5bd3f03205fd40bd/wp7br1-browser.json",
+          "sha256": "7fe936171c21d0fd2e100bd811ddd1ec93dc0b9db718b2c75bf4ab417fb29b49"
+        }
+      ],
+      "scope": "Historical arithmetic/source-data verification only, not fresh rendered states"
+    }
+  },
+  "evidence_limitations": {
+    "primary_measurement_screenshot_collision_paths": 40,
+    "primary_rows_at_colliding_paths": 80,
+    "collision_rows_not_used_to_close_groups": true,
+    "primary_financial_target_detachment": "Four contexts ended with unstable transient target. Stable-state follow-up retained112 measurements, zero thrown limitations, but7 explicit NOT VERIFIED color samples.",
+    "narrow_main_contexts": "1440/390 responsive desktop contexts; main inherited helper did not set touch/mobile UA for R3A label. Login retest explicitly set isMobile/hasTouch at390.",
+    "keyboard_goal_Enter_precondition": "Goal-field check uses Enter only to open disclosure after prior keyboard-focused check; not claimed as a full page Tab-order audit.",
+    "no_native_zoom_or_new_speech": true
+  },
+  "environment": {
+    "existing_R3_only": true,
+    "authorization_expired_at": "2026-11-05T04:48:54.540Z",
+    "new_database_lifecycle_operations": 0,
+    "no_new_session_created": true,
+    "cleanup": {
+      "package": "WP7B-R3A",
+      "token": "dd240c756c70f504",
+      "independent_database_absence": true,
+      "signed_state": "DROPPED",
+      "instance_id": "389b97d2-a4cd-4d9b-972e-6bb2bf5785eb",
+      "endpoint": "127.0.0.1:55432",
+      "role": "vayujit_qa_admin",
+      "lifecycle_mutations": 0,
+      "raw_output_persisted": false,
+      "normal_processes_managed": false,
+      "application_and_build_unchanged": true,
+      "R3_prior_reports_unchanged": true
+    },
+    "existing_development_process_management": false,
+    "application_source_changes": false,
+    "normal_process_preservation": "No R3A stop/restart or Python file edits; R3 reload risk retained, not retroactively closed"
+  },
+  "carry_forward": {
+    "WP7A": "Local prioritized 48-entry closure preserved (41 inherited + 7 targeted), not all 156 routes/operations.",
+    "L17": "Explicit narrower offline authorization-expiry acceptance approved; provider expiry remains UNVERIFIED. No missing-approval exception invented.",
+    "Ads_502": "Historical risk UNATTRIBUTED / unresolved; R1 500 repair not conflated.",
+    "PostgreSQL_timestamps": "Historical attribution unresolved; no DB/Docker operations in R2.",
+    "financial_history": "Projection/immutable-accounting/reconciliation limitations preserved.",
+    "live_provider_certification": "UNVERIFIED; no provider actions performed.",
+    "PC_first_backup_restore": "PARKED; no certification success inferred."
+  },
+  "prior_report_hash_manifest": "tmp/qa-wp7br3a/preserved-report-hashes.json",
+  "next_action": "Fresh explicit disposable QA lifecycle authorization needed before any additional live QA; separately authorize proposed auth focus correction if desired. No repeated login speech checklist.",
+  "live_provider_certification": false,
+  "backup_certification": "PARKED",
+  "WP7C_started": false,
+  "WP8_started": false
+}

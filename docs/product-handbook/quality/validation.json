@@ -1,0 +1,160 @@
+{
+  "status": "STRUCTURAL_CHECKS_PASS_COVERAGE_AND_RENDER_PENDING",
+  "checks": [
+    {
+      "name": "All page routes represented",
+      "status": "PASS",
+      "actual": {
+        "routes": 156,
+        "page_routes": 150,
+        "redirects": 6,
+        "page_families": 104,
+        "page_fields": 658,
+        "shared_fields": 35
+      }
+    },
+    {
+      "name": "All page family A M sections authored",
+      "status": "PASS",
+      "actual": 104
+    },
+    {
+      "name": "All page guidance IDs map to discovered pages",
+      "status": "PASS",
+      "actual": 104
+    },
+    {
+      "name": "All declared field records retained",
+      "status": "PASS",
+      "actual": 693
+    },
+    {
+      "name": "Stable field IDs unique",
+      "status": "PASS",
+      "actual": 693
+    },
+    {
+      "name": "Every field has explicit explanation or verification limit",
+      "status": "PASS",
+      "actual": 693
+    },
+    {
+      "name": "Manually reviewed overrides resolve exact fields",
+      "status": "PASS",
+      "actual": 26
+    },
+    {
+      "name": "At least twenty illustrative prompts",
+      "status": "PASS",
+      "actual": 24
+    },
+    {
+      "name": "Six beginner journey sources",
+      "status": "PASS",
+      "actual": 6
+    },
+    {
+      "name": "Reviewed screenshot copies identical to originals",
+      "status": "PASS",
+      "actual": {
+        "same": 19,
+        "total": 19
+      }
+    },
+    {
+      "name": "Figure order and captions match document order",
+      "status": "PASS",
+      "actual": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19
+      ]
+    },
+    {
+      "name": "All screenshots synthetic and historical labels retained",
+      "status": "PASS",
+      "actual": 19
+    },
+    {
+      "name": "Inspected page sources unchanged during authoring",
+      "status": "PASS",
+      "actual": 104
+    },
+    {
+      "name": "No recognizable credential patterns in authored content",
+      "status": "PASS",
+      "actual": {
+        "patterns": "age identity, credentialed PostgreSQL URL, common API secret prefix",
+        "not_a_comprehensive_secret_audit": true
+      }
+    },
+    {
+      "name": "Certification and financial limitations preserved",
+      "status": "PASS",
+      "actual": true
+    },
+    {
+      "name": "Generated Markdown links resolve",
+      "status": "PASS",
+      "actual": {
+        "links": 123,
+        "broken": 0
+      }
+    },
+    {
+      "name": "Native OOXML structural validation",
+      "status": "PASS",
+      "actual": {
+        "xml_parse_errors": 0,
+        "embedded_images": 19,
+        "images_missing_alt": 0,
+        "tables": 189,
+        "tables_with_repeating_header": 189,
+        "toc_fields": 1,
+        "toc_has_unupdated_placeholder": true,
+        "toc_cached_values_verified": false,
+        "chapter_headings": 20,
+        "macro_or_ole_entries": 0,
+        "remote_external_relationships": 0,
+        "layout_verified": false
+      }
+    }
+  ],
+  "failures": [],
+  "application_tests_executed": 0,
+  "word": {
+    "engine": "Microsoft Word native fallback",
+    "status": "BLOCKED",
+    "stage": "open_document",
+    "existing_user_documents_touched": false,
+    "opened": false,
+    "toc_updated": false,
+    "page_count": null,
+    "word_version": "16.0",
+    "pdf_exported": false,
+    "application_operations": 0,
+    "database_operations": 0,
+    "cleanup_failures": [],
+    "failure_type": "MethodInvocationException",
+    "failure_id": "COMException",
+    "raw_error_persisted": false,
+    "safe_code": "WORD_NATIVE_RENDER_UNAVAILABLE"
+  },
+  "classification": "HANDBOOK REFERENCE DRAFT / CURRENT UI AND VISUAL CERTIFICATION PENDING"
+}

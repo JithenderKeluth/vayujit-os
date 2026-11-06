@@ -121,7 +121,7 @@ import {
                 ><button type="button" (click)="toggle(account)">
                   {{ account.enabled ? 'Disable' : 'Enable' }}
                 </button>
-                <div class="marketplace-actions" aria-label="Read-only imports">
+                <div class="marketplace-actions" role="group" aria-label="Read-only imports">
                   @for (operation of operations; track operation) {
                     <button
                       type="button"

@@ -1,0 +1,1440 @@
+{
+  "package": "WP7B-R3",
+  "report_validation": {
+    "passed": 7,
+    "failed": 0,
+    "record": "tmp/qa-wp7br3/report-validation.json",
+    "diff_check": "PASS",
+    "scope": "Report invariants only; not manual accessibility"
+  },
+  "setup_qualifications": {
+    "normal_process_preservation": "NOT VERIFIED: WatchFiles observed reloading after qa/wp7br3_audit.py edit; no explicit R3 stop/restart command",
+    "owner_process_observation": "I changed the app processes",
+    "owner_observation_does_not_exclude_QA_reload_side_effect": true,
+    "further_python_edits_or_normal_process_management": "STOPPED",
+    "first_attempt": "6e9e32ae46d01290",
+    "first_attempt_failure": "Synthetic Ads fixture ID failed existing prefix guard; corrected fixture only",
+    "first_attempt_cleanup": "Independent signed DROPPED/absence PASS; tmp/qa-wp7br3/audit-6e9e32ae46d01290.json",
+    "standalone_audit_helper_runtime_validated": false,
+    "desktop_input_sent": false,
+    "QA_window_requires_human_restoration": true,
+    "normal_startup_business_data_preservation_certified": false
+  },
+  "snapshot_at": "2026-11-05T04:19:18.152Z",
+  "date": "2026-11-05",
+  "timezone": "Asia/Calcutta",
+  "status": "AWAITING_HUMAN_OBSERVATION",
+  "overall_wp7b": "INCOMPLETE",
+  "gate_A": {
+    "status": "PASS",
+    "inherited": true,
+    "evidence": "docs/qa/seller-experience/wp7b-r1-gate.json"
+  },
+  "gate_B": "INCOMPLETE",
+  "counts": {
+    "VERIFIED_PASS": 0,
+    "VERIFIED_FAIL": 0,
+    "NOT_VERIFIED": 40,
+    "NOT_APPLICABLE": 0
+  },
+  "groups": [
+    {
+      "id": "R2-SR-01",
+      "area": "Sign-in labels",
+      "criteria": [
+        "1.3.1",
+        "3.3.2",
+        "4.1.2"
+      ],
+      "expected": "Email/password controls, required/secure-field information and show-password state are intelligible; no credentials spoken or recorded.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-01",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-02",
+      "area": "Navigation, landmarks and headings",
+      "criteria": [
+        "1.3.1",
+        "2.4.1",
+        "2.4.3"
+      ],
+      "expected": "Skip link, primary navigation, current page and heading/landmark sequence are understandable; focus moves predictably.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md#native--screen-reader-limitations",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-02",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-03",
+      "area": "Goal disclosure",
+      "criteria": [
+        "2.1.1",
+        "4.1.2"
+      ],
+      "expected": "Disclosure name and expanded/collapsed state are spoken before/after Enter and Space; no lost draft/focus.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-03",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-04",
+      "area": "Goal fields",
+      "criteria": [
+        "1.3.1",
+        "3.3.2",
+        "4.1.2"
+      ],
+      "expected": "Textarea label, required state and relevant help are spoken on focus; do not require one exact wording.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-04",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-05",
+      "area": "Form errors and recovery",
+      "criteria": [
+        "3.3.1",
+        "4.1.3"
+      ],
+      "expected": "Actual invalid field and explanatory error are conveyed, with recovery feedback; never submit a valid business artifact.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-05",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-06",
+      "area": "Marketplace import controls",
+      "criteria": [
+        "1.3.1",
+        "4.1.2"
+      ],
+      "expected": "Read-only imports group and each control name/state are identifiable; focusing is allowed, executing an import is not.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-06",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-07",
+      "area": "Meesho editor controls",
+      "criteria": [
+        "2.1.1",
+        "4.1.2"
+      ],
+      "expected": "Listing editor sections group, button names and resulting local panel are understandable; do not assert invented tablist semantics.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-07",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-08",
+      "area": "Ads dialog entry",
+      "criteria": [
+        "2.4.3",
+        "4.1.2",
+        "APG modal"
+      ],
+      "expected": "Read-only Preview opens with meaningful dialog/title context and focus inside.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-08",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-09",
+      "area": "Ads containment, dismissal and return",
+      "criteria": [
+        "2.1.1",
+        "2.1.2",
+        "2.4.3",
+        "APG modal"
+      ],
+      "expected": "Tab/Shift+Tab remain in the dialog; Space on Close and Escape dismiss; returned Preview focus is spoken.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-gate.json#gates",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-09",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-10",
+      "area": "Dynamic loading/status/retry",
+      "criteria": [
+        "4.1.3"
+      ],
+      "expected": "Relevant waiting/error/result messages without focus changes are actually announced; distinguish silence from an unexercised state.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-10",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-11",
+      "area": "Review/approval controls",
+      "criteria": [
+        "3.3.2",
+        "4.1.2"
+      ],
+      "expected": "Read labels, checkbox/disabled states and unmet prerequisites without activating approval/execution.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-11",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-12",
+      "area": "Research and selection context",
+      "criteria": [
+        "1.3.1",
+        "4.1.2"
+      ],
+      "expected": "Current goal/product, synthetic/unknown evidence and existing selection state remain comprehensible; do not select/reject or research.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-reader-not-inferred-speech",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-12",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-SR-13",
+      "area": "Tables and lists",
+      "criteria": [
+        "1.3.1"
+      ],
+      "expected": "Relevant captions, headers, row relationships and list order are intelligible with actual reader navigation.",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md#native--screen-reader-limitations",
+      "status": "NOT_VERIFIED",
+      "actual_speech": null,
+      "reason": "No active approved synthetic QA browser or Narrator session; no fresh speech observation.",
+      "actual_browser": null,
+      "actual_browser_version": null,
+      "actual_reader": null,
+      "actual_reader_version": null,
+      "witness": null,
+      "fresh_evidence": null,
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-SR-13",
+      "test_method": "Actual human-reported Narrator utterances",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-01",
+      "area": "Goals and form/error state",
+      "route": "/intelligence/business-agent",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-01",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-02",
+      "area": "Goals and form/error state",
+      "route": "/intelligence/business-agent",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-02",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-03",
+      "area": "Goals and form/error state",
+      "route": "/intelligence/business-agent",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-03",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-04",
+      "area": "Marketplace import controls",
+      "route": "/marketplaces/accounts",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-04",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-05",
+      "area": "Marketplace import controls",
+      "route": "/marketplaces/accounts",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-05",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-06",
+      "area": "Marketplace import controls",
+      "route": "/marketplaces/accounts",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-06",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-07",
+      "area": "Meesho editor",
+      "route": "/marketplaces/listings/:fixture_id/meesho",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-07",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-08",
+      "area": "Meesho editor",
+      "route": "/marketplaces/listings/:fixture_id/meesho",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-08",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-09",
+      "area": "Meesho editor",
+      "route": "/marketplaces/listings/:fixture_id/meesho",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-09",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-10",
+      "area": "Ads preview dialog",
+      "route": "/ads/recommendations",
+      "zoom_percent": 100,
+      "criteria": [
+        "R2 baseline comparison"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-10",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-11",
+      "area": "Ads preview dialog",
+      "route": "/ads/recommendations",
+      "zoom_percent": 200,
+      "criteria": [
+        "1.4.4",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-11",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-Z-12",
+      "area": "Ads preview dialog",
+      "route": "/ads/recommendations",
+      "zoom_percent": 400,
+      "criteria": [
+        "1.4.10",
+        "2.1.1",
+        "2.4.7"
+      ],
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md#actual-native-browser-zoom",
+      "status": "NOT_VERIFIED",
+      "actual_zoom": null,
+      "window_dimensions": null,
+      "viewport_dimensions": null,
+      "screenshot": null,
+      "reason": "No authorized active fixture runtime; historical settings/crops do not complete post-fix interactions.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-Z-12",
+      "test_method": "Native browser zoom and human visual/keyboard observation",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-01",
+      "area": "Social image-review textarea",
+      "target": "main textarea",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-01",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-02",
+      "area": "Social timeline strong text",
+      "target": ".timeline strong",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-02",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-03",
+      "area": "Flipkart labels and unmeasured forms",
+      "target": "main form label; three extra matching labels; mobile index 6",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-03",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-04",
+      "area": "Flipkart remaining editor buttons",
+      "target": ".inner-tabs button; two beyond the eight-element sample",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-04",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-05",
+      "area": "Meesho remaining editor buttons",
+      "target": ".inner-tabs button; two beyond the eight-element sample",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-05",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-06",
+      "area": "Mobile Meesho/goal fields",
+      "target": "Meesho main input[type=number] index 2; goal textarea index 0",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-gate.json",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-06",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-07",
+      "area": "Financial captions, including mobile occlusion",
+      "target": "main caption; actual recorded targets, not guessed new rows",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-07",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-08",
+      "area": "Financial headers beyond sample",
+      "target": "main th; thirteen additional matching targets in finance runs",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-08",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-09",
+      "area": "Ads dialog historical obscured heading/state",
+      "target": "[role=dialog] h2 and relevant error/loading states",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-09",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-10",
+      "area": "Campaign reschedule textarea",
+      "target": ".reschedule-panel textarea; needs legitimately eligible fixture",
+      "criteria": "1.4.3",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-browser-retest.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-10",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-11",
+      "area": "Remaining interactive focus states",
+      "target": "Unfocused buttons/inputs and mobile goal samples, after applicability/deduplication",
+      "criteria": "1.4.11,2.4.7",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-gate.json",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-11",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-12",
+      "area": "Essential control boundaries and state indicators",
+      "target": "Actual authored input/checkbox/select boundary or indicator and adjacent colors",
+      "criteria": "1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-manual-accessibility.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-12",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-13",
+      "area": "Transition/hover/selected state contrast",
+      "target": "180ms transition evidence must align color sample and rendered frame",
+      "criteria": "1.4.3,1.4.11",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-r1-browser-retest.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-13",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-14",
+      "area": "Target size, spacing and legitimate exceptions",
+      "target": "Relevant controls; do not blanket-exempt small links",
+      "criteria": "2.5.8",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-manual-accessibility-evidence.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-14",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    },
+    {
+      "id": "R2-C-15",
+      "area": "Legacy manual-target reconciliation",
+      "target": "Stable observation IDs in accessibility-observations-reviewed.json",
+      "criteria": "Per recorded rule and applicability; no new blanket criterion",
+      "acceptance_source": "docs/qa/seller-experience/wp7b-accessibility-inventory.md",
+      "status": "NOT_VERIFIED",
+      "fresh_measured_value": null,
+      "reason": "Existing manual acceptance item; fresh required state not safely available. Historical measurements remain separately scoped.",
+      "actual_result": null,
+      "observation_timestamp": null,
+      "human_observer": null,
+      "browser": {
+        "name": "Chrome",
+        "version": "156.0.8078.76",
+        "pid_scope": "Owned Playwright browser only"
+      },
+      "screen_reader_used": null,
+      "evidence_reference": "docs/qa/seller-experience/wp7b-r2-gate.json#R2-C-15",
+      "test_method": "Actual exposed rendered-state color/applicability measurement",
+      "remaining_blocker": "Awaiting human-assisted session; this group not yet executed"
+    }
+  ],
+  "session_receipt": "tmp/qa-wp7br3/session-control.json",
+  "authority": {
+    "source": "Latest R3 specification attachment",
+    "sha256": "7013879d0237a9a4d10449c01558b3576a17dcb4b5de0f414b9ef63dc3cd09f6",
+    "development_interruption": false,
+    "application_code_changes": false
+  },
+  "environment": {
+    "preflight": {
+      "container_id": "a06480a4e71135da13f225685c8809b0d30255cf53209d93bb0123097b1fec23",
+      "instance_id": "389b97d2-a4cd-4d9b-972e-6bb2bf5785eb",
+      "endpoint": "127.0.0.1:55432",
+      "role": "vayujit_qa_admin",
+      "signed_guard_verified": true,
+      "development_listeners": {
+        "port": 8000,
+        "address": "127.0.0.1",
+        "pid": 35936,
+        "start": "2026-11-05T01:35:51.6401511Z"
+      },
+      "containers": [
+        {
+          "id": "a06480a4e71135da13f225685c8809b0d30255cf53209d93bb0123097b1fec23",
+          "name": "/vayujit-qa-postgres",
+          "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+          "status": "running",
+          "started": "2026-11-03T02:21:56.357185571Z",
+          "finished": "2026-11-03T02:13:20.043189774Z",
+          "mounts": [
+            {
+              "Type": "bind",
+              "Name": null,
+              "Destination": "/run/secrets/instance_id",
+              "RW": false
+            },
+            {
+              "Type": "bind",
+              "Name": null,
+              "Destination": "/run/secrets/qa_password",
+              "RW": false
+            },
+            {
+              "Type": "volume",
+              "Name": "vayujit-qa-postgres-data",
+              "Destination": "/var/lib/postgresql/data",
+              "RW": true
+            },
+            {
+              "Type": "bind",
+              "Name": null,
+              "Destination": "/docker-entrypoint-initdb.d/10-qa-instance.sh",
+              "RW": false
+            },
+            {
+              "Type": "bind",
+              "Name": null,
+              "Destination": "/run/secrets/bootstrap_password",
+              "RW": false
+            }
+          ],
+          "networks": [
+            "vayujit-qa-postgres-host",
+            "vayujit-qa-postgres-net"
+          ]
+        },
+        {
+          "id": "aca91abfaa740a0d2d6c444be98f46da13b8bcb6f4a5d39c66f0999630e2d6bf",
+          "name": "/nervous_archimedes",
+          "image": "sha256:cc85699b3624b6087430a233fddc190adc6b350da9d1c6edd08352d422abcf70",
+          "status": "exited",
+          "started": "2026-10-14T18:46:43.630285667Z",
+          "finished": "2026-10-14T18:46:46.543771772Z",
+          "mounts": [],
+          "networks": [
+            "bridge"
+          ]
+        },
+        {
+          "id": "a5d5139c1500075417781b0f6c12e1f7aa3a9b255be0ccfa637f76e3a95e54cf",
+          "name": "/jovial_buck",
+          "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+          "status": "exited",
+          "started": "2026-10-14T18:46:18.128378808Z",
+          "finished": "2026-10-14T18:46:18.360415238Z",
+          "mounts": [
+            {
+              "Type": "volume",
+              "Name": "797a1e0fb24b6950dbbe4c81a966b56df2dda75eec27ccbe1c07d1c9d09ab609",
+              "Destination": "/var/lib/postgresql/data",
+              "RW": true
+            }
+          ],
+          "networks": [
+            "bridge"
+          ]
+        },
+        {
+          "id": "c2546bd53299597c4efb8070d4f5dfbea2bece63a24be718892845632ea1a2c7",
+          "name": "/sharp_wiles",
+          "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+          "status": "exited",
+          "started": "2026-09-27T06:22:27.472140733Z",
+          "finished": "2026-09-27T06:22:27.667404721Z",
+          "mounts": [
+            {
+              "Type": "volume",
+              "Name": "e8c7af12fc829190d1b5934f93093ee92880024c9c24bbaf2db8d172cc4e741f",
+              "Destination": "/var/lib/postgresql/data",
+              "RW": true
+            }
+          ],
+          "networks": [
+            "bridge"
+          ]
+        },
+        {
+          "id": "a8c1bc2f8a44c01d675cf2ae5715f3c1f7129557ec033e41aad3af98e6c17571",
+          "name": "/affectionate_blackburn",
+          "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+          "status": "exited",
+          "started": "2026-09-27T06:21:44.766926665Z",
+          "finished": "2026-09-27T06:21:44.942504332Z",
+          "mounts": [
+            {
+              "Type": "volume",
+              "Name": "7107a19770dfdd5faf9d9e9b2f61f6ac0be7982b0692f42dbbccbf6e48cd8cda",
+              "Destination": "/var/lib/postgresql/data",
+              "RW": true
+            }
+          ],
+          "networks": [
+            "bridge"
+          ]
+        },
+        {
+          "id": "b9c42e87be37c516a65e029f28ae6f7df7d3f082bb112901f95dcecbf561c70a",
+          "name": "/sad_edison",
+          "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+          "status": "exited",
+          "started": "2026-09-27T06:19:31.814276462Z",
+          "finished": "2026-09-27T06:19:32.022487745Z",
+          "mounts": [
+            {
+              "Type": "volume",
+              "Name": "bf3030287e7a5be941a8971b65bfe06e9a28d1a4da16b82b70e6497636917ff9",
+              "Destination": "/var/lib/postgresql/data",
+              "RW": true
+            }
+          ],
+          "networks": [
+            "bridge"
+          ]
+        },
+        {
+          "id": "aa1081e65f3aac8bba620fd4ecb26eea44a32f0acc2544480ba0462a4b2c0781",
+          "name": "/musing_diffie",
+          "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+          "status": "exited",
+          "started": "2026-09-26T04:25:35.680134208Z",
+          "finished": "2026-09-26T04:25:35.958428801Z",
+          "mounts": [
+            {
+              "Type": "volume",
+              "Name": "4e7446bfd0c9018d4f659f1cd9f248e3e8d016d825337060a289cf6e866a5318",
+              "Destination": "/var/lib/postgresql/data",
+              "RW": true
+            }
+          ],
+          "networks": [
+            "bridge"
+          ]
+        },
+        {
+          "id": "4cbd965a43116e95e890ed45379784df5f1a7023bd4cdbf4c677470721610b98",
+          "name": "/interesting_wing",
+          "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+          "status": "exited",
+          "started": "2026-09-26T04:23:02.741283461Z",
+          "finished": "2026-09-26T04:23:03.014652504Z",
+          "mounts": [
+            {
+              "Type": "volume",
+              "Name": "e5b743ca4da3f8bbf6a2f59304c058015ae3f392b6df80e6dda573dcea9625ef",
+              "Destination": "/var/lib/postgresql/data",
+              "RW": true
+            }
+          ],
+          "networks": [
+            "bridge"
+          ]
+        },
+        {
+          "id": "db73bf19abf32407ba9c7357ee5a952621ecd0bcc8a9786bae9bdab1f5c00814",
+          "name": "/vigilant_antonelli",
+          "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+          "status": "exited",
+          "started": "2026-09-26T04:22:31.244688766Z",
+          "finished": "2026-09-26T04:22:31.517040317Z",
+          "mounts": [
+            {
+              "Type": "volume",
+              "Name": "e1ff3457b9220969aa0906ae2e9914616fd54c91245c0c23f2144a6bdd74a568",
+              "Destination": "/var/lib/postgresql/data",
+              "RW": true
+            }
+          ],
+          "networks": [
+            "bridge"
+          ]
+        },
+        {
+          "id": "b28d7a4ef65e50c45fdce60adfb9f9504e2ae9f82a533e7cad8269d976a96b37",
+          "name": "/happy_lederberg",
+          "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+          "status": "exited",
+          "started": "2026-09-01T18:30:45.389459596Z",
+          "finished": "2026-09-01T18:30:45.654475837Z",
+          "mounts": [
+            {
+              "Type": "volume",
+              "Name": "9d32740853acc58a95681456aefb27987f1fad2ca4db709bf5bdd6de04562a11",
+              "Destination": "/var/lib/postgresql/data",
+              "RW": true
+            }
+          ],
+          "networks": [
+            "bridge"
+          ]
+        },
+        {
+          "id": "9082e894b5afc398197f42210fb9af39ac974f2e78c09454c9ba91c790361216",
+          "name": "/infrastructure-postgres-1",
+          "image": "sha256:742f40ea20b9ff2ff31db5458d127452988a2164df9e17441e191f3b72252193",
+          "status": "running",
+          "started": "2026-11-03T02:21:59.943341832Z",
+          "finished": "2026-11-03T02:13:23.074630975Z",
+          "mounts": [
+            {
+              "Type": "volume",
+              "Name": "infrastructure_vayujit_postgres_data",
+              "Destination": "/var/lib/postgresql/data",
+              "RW": true
+            }
+          ],
+          "networks": [
+            "infrastructure_default"
+          ]
+        }
+      ]
+    },
+    "session": {
+      "token": "dd240c756c70f504",
+      "origin": "http://127.0.0.1:55226",
+      "folder": "C:\\Users\\jithe\\Documents\\vayujit-os\\tmp\\qa-seller-browser\\dd240c756c70f504",
+      "status": "READY",
+      "synthetic": true,
+      "qa_phase": "WP7A7",
+      "database_scope": "vayujit_qadd240c756c70f504_test",
+      "schema": "ALEMBIC_HEAD",
+      "startup": {
+        "elapsed_ms": 44712,
+        "deadline_ms": 300000,
+        "probe_timeout_ms": 10000,
+        "probes": 110,
+        "last_status": 200,
+        "raw_output_persisted": false,
+        "asgi_error": false,
+        "lifespan_failure": false,
+        "exception_types": []
+      }
+    },
+    "browser": {
+      "name": "Chrome",
+      "version": "156.0.8078.76",
+      "pid_scope": "Owned Playwright browser only"
+    },
+    "expires_at": "2026-11-05T04:48:54.540Z"
+  },
+  "cleanup": {
+    "status": "PENDING_ACTIVE_BOUNDED_SESSION",
+    "independent_absence_verified": false
+  },
+  "tests": {
+    "offline_node_pass": 14,
+    "offline_node_fail": 0,
+    "powershell_parser_errors": 0,
+    "fresh_manual_groups": 0,
+    "full_regression_suites_rerun": false
+  },
+  "carry_forward": {
+    "WP7A": "Local prioritized 48-entry closure preserved (41 inherited + 7 targeted), not all 156 routes/operations.",
+    "L17": "Explicit narrower offline authorization-expiry acceptance approved; provider expiry remains UNVERIFIED. No missing-approval exception invented.",
+    "Ads_502": "Historical risk UNATTRIBUTED / unresolved; R1 500 repair not conflated.",
+    "PostgreSQL_timestamps": "Historical attribution unresolved; no DB/Docker operations in R2.",
+    "financial_history": "Projection/immutable-accounting/reconciliation limitations preserved.",
+    "live_provider_certification": "UNVERIFIED; no provider actions performed.",
+    "PC_first_backup_restore": "PARKED; no certification success inferred."
+  },
+  "risks_preserved": true,
+  "application_certification": "INCOMPLETE",
+  "restrictions": {
+    "permanent_golden_database_access": false,
+    "live_provider_calls": false,
+    "backup": "PARKED",
+    "WP7C": false,
+    "WP8": false,
+    "commits": false,
+    "pushes": false
+  }
+}
